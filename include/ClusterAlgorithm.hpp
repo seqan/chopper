@@ -3,6 +3,11 @@
 #include <seqan/graph_msa.h>
 #include <seqan/seq_io.h>
 
+#include <seqan3/range/views/join.hpp>
+#include <seqan3/range/views/to.hpp>
+#include <seqan3/range/views/zip.hpp>
+#include <seqan3/search/dream_index/interleaved_bloom_filter.hpp>
+
 #include "minimizer.hpp"
 #include "segment_generation_config.hpp"
 
