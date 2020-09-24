@@ -6,3 +6,7 @@
 	path = lib/seqan
 	url = https://github.com/smehringer/seqan.git
 	branch = chopper
+[submodule "lib/lemon"]
+	path = lib/lemon
+	url = https://github.com/seqan/lemon.git
+	branch = master
