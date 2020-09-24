@@ -46,6 +46,9 @@ void write_graph(TTarget & target,
     }
     seqan::writeValue(iter, '\n');
 
+    seqan::write(iter, "/*directed edges*/\n");
+    seqan::_writeGraphFooter(iter,g,seqan::DotDrawing()); // somehow this writes directed edges :shrug:
+
     seqan::write(iter, "/* Edges */\n");
     typedef typename seqan::Iterator<TGraph, seqan::EdgeIterator>::Type TConstEdIter;
     TConstEdIter itEd(g);
@@ -61,7 +64,6 @@ void write_graph(TTarget & target,
     }
     seqan::writeValue(iter, '\n');
 
-    seqan::_writeGraphFooter(iter,g,seqan::DotDrawing());
 
     seqan::write(iter, "}\n");
 }
