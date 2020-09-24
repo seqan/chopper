@@ -13,7 +13,7 @@
 #include <seqan3/std/ranges>
 
 #include "minimizer.hpp"
-#include "ClusterAlgorithm.hpp"
+#include "distance_matrix_initialiser.hpp"
 #include "seqan2_msa_alignment.hpp"
 #include "graph_output.hpp"
 
@@ -27,8 +27,8 @@ inline void minimizer_msa(seqan::StringSet<TSequence, seqan::Owner<>> & sequence
     typedef seqan::Graph<seqan::Alignment<seqan::StringSet<TSequence, seqan::Dependent<> >, void, seqan::WithoutEdgeId> > TGraph;
     TGraph gAlign;
 
-    ClusterAlgorithm alg{};
-    alg.fill_mash_distance_matrix(sequenceSet, sequenceNames, sequenceLengths, seg_gen_config);
+    distance_matrix_initialiser initialiser{};
+    initialiser.mash_distance(sequenceSet, sequenceNames, sequenceLengths, seg_gen_config);
 
     // MSA
     try

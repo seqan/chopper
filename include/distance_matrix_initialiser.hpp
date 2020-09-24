@@ -3,7 +3,7 @@
 #include "minimizer.hpp"
 #include "segment_generation_config.hpp"
 
-struct ClusterAlgorithm
+struct distance_matrix_initialiser
 {
     static constexpr size_t sketch_size{100};
 
@@ -34,10 +34,10 @@ struct ClusterAlgorithm
     }
 
     template <typename TNameSet, typename TSize>
-    auto fill_mash_distance_matrix(seqan::StringSet<seqan::String<minimizer>, seqan::Owner<>> & minimizer_sequences,
-                                   TNameSet & fastaIDs,
-                                   seqan::String<size_t> & original_sequence_lengths,
-                                   segment_generation_config<TSize> & config)
+    auto mash_distance(seqan::StringSet<seqan::String<minimizer>, seqan::Owner<>> & minimizer_sequences,
+                       TNameSet & fastaIDs,
+                       seqan::String<size_t> & original_sequence_lengths,
+                       segment_generation_config<TSize> & config)
     {
         // -----------------------------------------------------------------------------
         //                              SORT

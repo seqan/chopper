@@ -57,7 +57,7 @@ int main(int argc, const char *argv [])
             throw std::runtime_error{"Something went wrong when reading file " + file_name};
     auto end = std::chrono::steady_clock::now();
     seqan3::debug_stream << ">>> Loading " << seqan::length(sequenceSet) << " sequences and computing minimizers complete "
-                         << ClusterAlgorithm::secs(start, end) << std::endl;
+                         << distance_matrix_initialiser::secs(start, end) << std::endl;
 
     // Compute minimizer MSA
     // -------------------------------------------------------------------------
