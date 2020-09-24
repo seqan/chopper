@@ -538,10 +538,10 @@ struct ClusterAlgorithm
             set_distance_value(config.distanceMatrix, i, i, 1); // same sequence => similarity = 1
         }
 
-        std::cout << "distance matrices: ";
-        for (size_t i = 0; i < seqan::length(config.distanceMatrix); ++i)
-            std::cout << config.distanceMatrix[i] << ',';
-        std::cout << std::endl;
+        // std::cout << "distance matrices: ";
+        // for (size_t i = 0; i < seqan::length(config.distanceMatrix); ++i)
+        //     std::cout << config.distanceMatrix[i] << ',';
+        // std::cout << std::endl;
 
         end = std::chrono::steady_clock::now();
         seqan3::debug_stream << ">>> Done filling distance matrix (" << secs(start, end) << std::endl;
