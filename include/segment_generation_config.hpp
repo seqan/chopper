@@ -42,6 +42,7 @@ template <typename TSize>
 struct segment_generation_config
 {
     std::vector<std::string> seqfiles;
+    std::string output_graph_file{"graph.dot"}; // default
     seqan::String<TSize> global_alignment_pairs;
     seqan::String<TSize> local_alignment_pairs;
     seqan::String<TSize> semi_global_alignment_pairs;

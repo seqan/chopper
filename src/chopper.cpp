@@ -12,6 +12,7 @@ void set_up_argument_parser(seqan3::argument_parser & parser, segment_generation
     parser.info.version = "1.0.0";
     parser.add_option(seg_gen_config.seqfiles, 's', "seq", "Name of multi-fasta input file.",
                       seqan3::option_spec::REQUIRED);
+    parser.add_option(seg_gen_config.output_graph_file, 'o', "outfile", "Name of the graph output file.");
 }
 
 //////////////////////////////////////////////////////////////////////////////////

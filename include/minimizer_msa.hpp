@@ -74,7 +74,7 @@ inline void minimizer_msa(seqan::StringSet<TSequence, seqan::Owner<>> & sequence
         //std::cout << property(nodeMap, *it) << std::endl;
     }
 
-    std::ofstream dotFile("graph.dot");
+    std::ofstream dotFile(seg_gen_config.output_graph_file);
     write_graph(dotFile, gAlign, nodeMap, edgeMap, sequenceNames, sequenceLengths, seqan::DotDrawing());
     dotFile.close();
 }
