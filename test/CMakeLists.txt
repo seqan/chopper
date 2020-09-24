@@ -34,7 +34,11 @@ macro (add_app_test test_filename test_alternative)
 
     # Create the test target.
     add_executable (${target} ${test_filename})
-    target_link_libraries (${target} "${PROJECT_NAME}_lib" seqan3::seqan3 gtest_all pthread)
+    target_link_libraries (${target} "${SEQAN_LIBRARIES}" seqan3::seqan3 gtest_all pthread)
+    target_include_directories ("${target}" PUBLIC ${CMAKE_SOURCE_DIR}/include)
+    target_compile_definitions ("${target}" PUBLIC ${SEQAN_DEFINITIONS})
+    target_compile_options ("${target}" PUBLIC ${SEQAN_CXX_FLAGS_LIST})
+    target_include_directories ("${target}" PUBLIC "${SEQAN_INCLUDE_DIRS}")
 
     # Add the test to its general target (cli or api).
     if (${test_alternative} STREQUAL "CLI_TEST")
