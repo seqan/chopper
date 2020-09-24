@@ -11,55 +11,6 @@
 #include "minimizer.hpp"
 #include "segment_generation_config.hpp"
 
-// globals
-constexpr uint8_t kmer_size{25};
-constexpr uint16_t window_size{100};
-
-template <typename TNameSet>
-bool
-_loadSequences(seqan::StringSet<seqan::String<minimizer>, seqan::Owner<>> & minimizer_sequences,
-               TNameSet& fastaIDs,
-               seqan::String<size_t> & original_sequence_lengths,
-               const char *fileName)
-{
-    seqan::SeqFileIn inFile;
-    if (!open(inFile, fileName))
-    {
-        std::cerr << "Could not open " << fileName << " for reading!" << std::endl;
-        return false;
-    }
-
-    std::cerr << ">>> Processing file " << fileName << std::endl;
-    seqan::StringSet<seqan::String<seqan::Dna>, seqan::Owner<>> sequences;
-    {
-        seqan::StringSet<seqan::String<seqan::Iupac>, seqan::Owner<>> iupac_sequences;
-        seqan::readRecords(fastaIDs, iupac_sequences, inFile);
-        seqan::resize(sequences, seqan::length(iupac_sequences));
-
-        for (size_t idx = 0; idx < seqan::length(iupac_sequences); ++idx)
-        {
-            for (size_t jdx = 0; jdx < seqan::length(iupac_sequences[idx]); ++jdx)
-            {
-                seqan::appendValue(sequences[idx], iupac_sequences[idx][jdx]);
-            }
-            seqan::appendValue(original_sequence_lengths, seqan::length(iupac_sequences[idx]));
-        }
-    }
-
-    // compute minimizers per sequence and store the corresponding chain in minimizer_sequences
-    auto from = seqan::length(minimizer_sequences);
-    resize(minimizer_sequences, seqan::length(minimizer_sequences) + seqan::length(sequences));
-    Minimizer mini;
-    mini.resize(kmer_size, window_size);
-    for (size_t idx = from; idx < seqan::length(minimizer_sequences); ++idx)
-    {
-        minimizer_sequences[idx] = mini.getMinimizer(sequences[idx - from]);
-        // seqan3::debug_stream << seqan::length(minimizer_sequences[idx]) << std::endl;
-    }
-
-    return (seqan::length(fastaIDs) > 0u);
-}
-
 struct ClusterAlgorithm
 {
     static constexpr double FPR{1.0E-6};
@@ -72,7 +23,7 @@ struct ClusterAlgorithm
     using fitting_bin_t = std::vector<std::vector<fitting_bin_info_t>>;
 
     template <typename time_point>
-    std::string secs(time_point start, time_point end)
+    static std::string secs(time_point start, time_point end)
     {
         return "(" + std::to_string(std::chrono::duration_cast<std::chrono::seconds>(end - start).count()) + "s)";
     }
@@ -388,26 +339,15 @@ struct ClusterAlgorithm
                                           segment_generation_config<TSize> & config)
     {
         // -----------------------------------------------------------------------------
-        //                              LOAD DATA
-        // -----------------------------------------------------------------------------
-        auto start = std::chrono::steady_clock::now();
-
-            for (auto const & file_name : config.seqfiles)
-                if (!_loadSequences(minimizer_sequences, fastaIDs, original_sequence_lengths, file_name.c_str()))
-                    return false;
-
-        auto end = std::chrono::steady_clock::now();
-        seqan3::debug_stream << ">>> Loading sequences and computing minimizers complete " << secs(start, end) << std::endl;
-        // -----------------------------------------------------------------------------
         //                     FILL RANGES AND BIN_SIZES
         // -----------------------------------------------------------------------------
-        start = std::chrono::steady_clock::now();
+        auto start = std::chrono::steady_clock::now();
 
             std::vector<size_t> ranges;
             std::vector<size_t> bin_sizes;
             fill_ranges_and_bin_sizes(ranges, bin_sizes, minimizer_sequences);
 
-        end = std::chrono::steady_clock::now();
+        auto end = std::chrono::steady_clock::now();
         seqan3::debug_stream << ">>> Computing ranges done "  << secs(start, end)
                              << "    ranges: " << ranges << std::endl
                              << "    IBF bin sizes: " << bin_sizes << std::endl;
@@ -532,20 +472,9 @@ struct ClusterAlgorithm
                                    segment_generation_config<TSize> & config)
     {
         // -----------------------------------------------------------------------------
-        //                              LOAD DATA
-        // -----------------------------------------------------------------------------
-        auto start = std::chrono::steady_clock::now();
-
-        for (auto const & file_name : config.seqfiles)
-            if (!_loadSequences(minimizer_sequences, fastaIDs, original_sequence_lengths, file_name.c_str()))
-                return false;
-
-        auto end = std::chrono::steady_clock::now();
-        seqan3::debug_stream << ">>> Loading sequences and computing minimizers complete " << secs(start, end) << std::endl;
-        // -----------------------------------------------------------------------------
         //                              SORT
         // -----------------------------------------------------------------------------
-        start = std::chrono::steady_clock::now();
+        auto start = std::chrono::steady_clock::now();
 
         // store the length s' < s of each sketch (some sequences are too small for full sketches)
         std::vector<size_t> sketch_lengths(length(minimizer_sequences));
@@ -559,7 +488,7 @@ struct ClusterAlgorithm
             sketch_lengths[i] = std::min<size_t>(sketch_size, new_length);
         }
 
-        end = std::chrono::steady_clock::now();
+        auto end = std::chrono::steady_clock::now();
         seqan3::debug_stream << ">>> Sorting individual minimizer sequences done. (" << secs(start, end) << std::endl;
 
         // -----------------------------------------------------------------------------

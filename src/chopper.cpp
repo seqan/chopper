@@ -4,6 +4,7 @@
 #include "minimizer.hpp"
 #include "minimizer_msa.hpp"
 #include "segment_generation_config.hpp"
+#include "sequence_input.hpp"
 
 template <typename TSize>
 void set_up_argument_parser(seqan3::argument_parser & parser, segment_generation_config<TSize> & seg_gen_config)
@@ -34,7 +35,26 @@ int main(int argc, const char *argv [])
         return -1;
     }
 
-    minimizer_msa(seg_gen_config);
+    // Load data
+    // -------------------------------------------------------------------------
+
+    typedef seqan::String<minimizer> TSequence;
+    seqan::StringSet<TSequence, seqan::Owner<> > sequenceSet;
+    seqan::StringSet<seqan::String<char> > sequenceNames;
+    seqan::String<size_t> sequenceLengths;
+
+    auto start = std::chrono::steady_clock::now();
+    for (auto const & file_name : seg_gen_config.seqfiles)
+        if (!load_minimizer_sequences(sequenceSet, sequenceNames, sequenceLengths, file_name.c_str()))
+            throw std::runtime_error{"Something went wrong when reading file " + file_name};
+    auto end = std::chrono::steady_clock::now();
+    seqan3::debug_stream << ">>> Loading sequences and computing minimizers complete "
+                         << ClusterAlgorithm::secs(start, end) << std::endl;
+
+    // Compute minimizer MSA
+    // -------------------------------------------------------------------------
+
+    minimizer_msa(sequenceSet, sequenceNames, sequenceLengths, seg_gen_config);
 
     return 0;
 }

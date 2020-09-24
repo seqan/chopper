@@ -16,14 +16,12 @@
 #include "graph_output.hpp"
 #include "segment_generation_config.hpp"
 
-template <typename TSize>
-inline void minimizer_msa(segment_generation_config<TSize> & seg_gen_config)
+template <typename TNameSet, typename TSequence, typename TSize>
+inline void minimizer_msa(seqan::StringSet<TSequence, seqan::Owner<>> & sequenceSet,
+                          TNameSet & sequenceNames,
+                          seqan::String<size_t> & sequenceLengths,
+                          segment_generation_config<TSize> & seg_gen_config)
 {
-    typedef seqan::String<minimizer> TSequence;
-    seqan::StringSet<TSequence, seqan::Owner<> > sequenceSet;
-    seqan::StringSet<seqan::String<char> > sequenceNames;
-    seqan::String<size_t> sequenceLengths;
-
     // Alignment of the sequences
     typedef seqan::Graph<seqan::Alignment<seqan::StringSet<TSequence, seqan::Dependent<> >, void, seqan::WithoutEdgeId> > TGraph;
     TGraph gAlign;
