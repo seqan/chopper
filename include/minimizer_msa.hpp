@@ -2,6 +2,8 @@
 
 #include <cstdlib>
 
+#include "segment_generation_config.hpp" // include before #include <seqan/graph_msa.h> !!!
+
 #include <seqan/basic.h>
 #include <seqan/graph_msa.h>
 #include <seqan/modifier.h>
@@ -14,7 +16,6 @@
 #include "ClusterAlgorithm.hpp"
 #include "seqan2_msa_alignment.hpp"
 #include "graph_output.hpp"
-#include "segment_generation_config.hpp"
 
 template <typename TNameSet, typename TSequence, typename TSize>
 inline void minimizer_msa(seqan::StringSet<TSequence, seqan::Owner<>> & sequenceSet,
