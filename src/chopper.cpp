@@ -13,6 +13,8 @@ void set_up_argument_parser(seqan3::argument_parser & parser, segment_generation
     parser.add_option(seg_gen_config.seqfiles, 's', "seq", "Name of multi-fasta input file.",
                       seqan3::option_spec::REQUIRED);
     parser.add_option(seg_gen_config.output_graph_file, 'o', "outfile", "Name of the graph output file.");
+    parser.add_option(seg_gen_config.kmer_size, 'k', "kmer-size", "The kmer size to compute minimizer.");
+    parser.add_option(seg_gen_config.window_size, 'w', "window-size", "The window size to compute minimizer.");
 }
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -46,7 +48,7 @@ int main(int argc, const char *argv [])
 
     auto start = std::chrono::steady_clock::now();
     for (auto const & file_name : seg_gen_config.seqfiles)
-        if (!load_minimizer_sequences(sequenceSet, sequenceNames, sequenceLengths, file_name.c_str()))
+        if (!load_minimizer_sequences(sequenceSet, sequenceNames, sequenceLengths, seg_gen_config, file_name.c_str()))
             throw std::runtime_error{"Something went wrong when reading file " + file_name};
     auto end = std::chrono::steady_clock::now();
     seqan3::debug_stream << ">>> Loading sequences and computing minimizers complete "

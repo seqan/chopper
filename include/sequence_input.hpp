@@ -3,15 +3,13 @@
 #include <seqan/seq_io.h>
 
 #include "minimizer.hpp"
+#include "segment_generation_config.hpp"
 
-// globals
-constexpr uint8_t kmer_size{25};
-constexpr uint16_t window_size{100};
-
-template <typename TNameSet>
+template <typename TNameSet, typename TSize>
 bool load_minimizer_sequences(seqan::StringSet<seqan::String<minimizer>, seqan::Owner<>> & minimizer_sequences,
                               TNameSet& fastaIDs,
                               seqan::String<size_t> & original_sequence_lengths,
+                              segment_generation_config<TSize> const & config,
                               const char *fileName)
 {
     seqan::SeqFileIn inFile;
@@ -42,7 +40,7 @@ bool load_minimizer_sequences(seqan::StringSet<seqan::String<minimizer>, seqan::
     auto from = seqan::length(minimizer_sequences);
     resize(minimizer_sequences, seqan::length(minimizer_sequences) + seqan::length(sequences));
     Minimizer mini;
-    mini.resize(kmer_size, window_size);
+    mini.resize(config.kmer_size, config.window_size);
     for (size_t idx = from; idx < seqan::length(minimizer_sequences); ++idx)
     {
         minimizer_sequences[idx] = mini.getMinimizer(sequences[idx - from]);

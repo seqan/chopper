@@ -43,6 +43,10 @@ struct segment_generation_config
 {
     std::vector<std::string> seqfiles;
     std::string output_graph_file{"graph.dot"}; // default
+
+    uint8_t kmer_size{25};
+    uint16_t window_size{100};
+
     seqan::String<TSize> global_alignment_pairs;
     seqan::String<TSize> local_alignment_pairs;
     seqan::String<TSize> semi_global_alignment_pairs;
