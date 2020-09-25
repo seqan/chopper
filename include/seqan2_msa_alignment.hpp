@@ -57,7 +57,7 @@ inline void append_all_to_all_matches(seqan::StringSet<TString, seqan::Dependent
 template <typename TStringSet, typename TCargo, typename TSpec, typename TStringSet1, typename Tsize>
 void seqan2_msa_alignment(seqan::Graph<seqan::Alignment<TStringSet, TCargo, TSpec> > & gAlign,
                           TStringSet1 & sequenceSet,
-                          segment_generation_config<Tsize> & config)
+                          chopper_config<Tsize> & config)
 {
     typedef seqan::Score<int> TScore;
     typedef typename seqan::Value<TScore>::Type TScoreValue;

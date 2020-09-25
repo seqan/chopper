@@ -1,7 +1,7 @@
 #pragma once
 
 #include "minimizer.hpp"
-#include "segment_generation_config.hpp"
+#include "chopper_config.hpp"
 
 struct distance_matrix_initialiser
 {
@@ -33,11 +33,11 @@ struct distance_matrix_initialiser
         distanceMatrix.emplace(j * nseq + i, 1.0 - similarity_score); // distance = 1 - similarity
     }
 
-    template <typename TNameSet, typename TSize>
+    template <typename TNameSet>
     auto mash_distance(seqan::StringSet<seqan::String<minimizer>, seqan::Owner<>> & minimizer_sequences,
                        TNameSet & fastaIDs,
                        seqan::String<size_t> & original_sequence_lengths,
-                       segment_generation_config<TSize> & config)
+                       chopper_config & config)
     {
         // -----------------------------------------------------------------------------
         //                              SORT

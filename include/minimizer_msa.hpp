@@ -2,7 +2,7 @@
 
 #include <cstdlib>
 
-#include "segment_generation_config.hpp" // include before #include <seqan/graph_msa.h> !!!
+#include "chopper_config.hpp" // include before #include <seqan/graph_msa.h> !!!
 
 #include <seqan/basic.h>
 #include <seqan/graph_msa.h>
@@ -17,23 +17,23 @@
 #include "seqan2_msa_alignment.hpp"
 #include "graph_output.hpp"
 
-template <typename TNameSet, typename TSequence, typename TSize>
+template <typename TNameSet, typename TSequence>
 inline void minimizer_msa(seqan::StringSet<TSequence, seqan::Owner<>> & sequenceSet,
                           TNameSet & sequenceNames,
                           seqan::String<size_t> & sequenceLengths,
-                          segment_generation_config<TSize> & seg_gen_config)
+                          chopper_config & config)
 {
     // Alignment of the sequences
     typedef seqan::Graph<seqan::Alignment<seqan::StringSet<TSequence, seqan::Dependent<> >, void, seqan::WithoutEdgeId> > TGraph;
     TGraph gAlign;
 
     distance_matrix_initialiser initialiser{};
-    initialiser.mash_distance(sequenceSet, sequenceNames, sequenceLengths, seg_gen_config);
+    initialiser.mash_distance(sequenceSet, sequenceNames, sequenceLengths, config);
 
     // MSA
     try
     {
-        seqan2_msa_alignment(gAlign, sequenceSet, seg_gen_config);
+        seqan2_msa_alignment(gAlign, sequenceSet, config);
     }
     catch (const std::bad_alloc & exception)
     {
@@ -75,7 +75,7 @@ inline void minimizer_msa(seqan::StringSet<TSequence, seqan::Owner<>> & sequence
         //std::cout << property(nodeMap, *it) << std::endl;
     }
 
-    std::ofstream dotFile(seg_gen_config.output_graph_file);
+    std::ofstream dotFile(config.output_graph_file);
     write_graph(dotFile, gAlign, nodeMap, edgeMap, sequenceNames, sequenceLengths, seqan::DotDrawing());
     dotFile.close();
 }

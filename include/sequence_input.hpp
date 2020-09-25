@@ -3,13 +3,13 @@
 #include <seqan/seq_io.h>
 
 #include "minimizer.hpp"
-#include "segment_generation_config.hpp"
+#include "chopper_config.hpp"
 
-template <typename TNameSet, typename TSize>
+template <typename TNameSet>
 bool load_minimizer_sequences(seqan::StringSet<seqan::String<minimizer>, seqan::Owner<>> & minimizer_sequences,
                               TNameSet& fastaIDs,
                               seqan::String<size_t> & original_sequence_lengths,
-                              segment_generation_config<TSize> const & config,
+                              chopper_config const & config,
                               const char *fileName)
 {
     seqan::SeqFileIn inFile;
