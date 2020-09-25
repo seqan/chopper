@@ -2,6 +2,8 @@
 
 #include <seqan/graph_msa.h>
 
+#include "chopper_config.hpp"
+
 template<typename TString, typename TSpec, typename TSegmentMatches, typename TScoreValues>
 inline void append_all_to_all_matches(seqan::StringSet<TString, seqan::Dependent<TSpec> > const & sequenceSet,
                                       TSegmentMatches& matches,
@@ -54,10 +56,10 @@ inline void append_all_to_all_matches(seqan::StringSet<TString, seqan::Dependent
  *
  * The resulting alignment is stored in <tt>align</tt>/<tt>gAlign</tt>.
  */
-template <typename TStringSet, typename TCargo, typename TSpec, typename TStringSet1, typename Tsize>
+template <typename TStringSet, typename TCargo, typename TSpec, typename TStringSet1>
 void seqan2_msa_alignment(seqan::Graph<seqan::Alignment<TStringSet, TCargo, TSpec> > & gAlign,
                           TStringSet1 & sequenceSet,
-                          chopper_config<Tsize> & config)
+                          chopper_config & config)
 {
     typedef seqan::Score<int> TScore;
     typedef typename seqan::Value<TScore>::Type TScoreValue;

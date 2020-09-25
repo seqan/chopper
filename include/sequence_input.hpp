@@ -2,13 +2,11 @@
 
 #include <seqan/seq_io.h>
 
-#include "minimizer.hpp"
 #include "chopper_config.hpp"
+#include "chopper_data.hpp"
+#include "minimizer.hpp"
 
-template <typename TNameSet>
-bool load_minimizer_sequences(seqan::StringSet<seqan::String<minimizer>, seqan::Owner<>> & minimizer_sequences,
-                              TNameSet& fastaIDs,
-                              seqan::String<size_t> & original_sequence_lengths,
+bool load_minimizer_sequences(chopper_data & data,
                               chopper_config const & config,
                               const char *fileName)
 {
@@ -23,7 +21,7 @@ bool load_minimizer_sequences(seqan::StringSet<seqan::String<minimizer>, seqan::
     seqan::StringSet<seqan::String<seqan::Dna>, seqan::Owner<>> sequences;
     {
         seqan::StringSet<seqan::String<seqan::Iupac>, seqan::Owner<>> iupac_sequences;
-        seqan::readRecords(fastaIDs, iupac_sequences, inFile);
+        seqan::readRecords(data.ids, iupac_sequences, inFile);
         seqan::resize(sequences, seqan::length(iupac_sequences));
 
         for (size_t idx = 0; idx < seqan::length(iupac_sequences); ++idx)
@@ -32,20 +30,20 @@ bool load_minimizer_sequences(seqan::StringSet<seqan::String<minimizer>, seqan::
             {
                 seqan::appendValue(sequences[idx], iupac_sequences[idx][jdx]);
             }
-            seqan::appendValue(original_sequence_lengths, seqan::length(iupac_sequences[idx]));
+            seqan::appendValue(data.lengths, seqan::length(iupac_sequences[idx]));
         }
     }
 
-    // compute minimizers per sequence and store the corresponding chain in minimizer_sequences
-    auto from = seqan::length(minimizer_sequences);
-    resize(minimizer_sequences, seqan::length(minimizer_sequences) + seqan::length(sequences));
+    // compute minimizers per sequence and store the corresponding chain in data.sequences
+    auto from = seqan::length(data.sequences);
+    resize(data.sequences, seqan::length(data.sequences) + seqan::length(sequences));
     Minimizer mini;
     mini.resize(config.kmer_size, config.window_size);
-    for (size_t idx = from; idx < seqan::length(minimizer_sequences); ++idx)
+    for (size_t idx = from; idx < seqan::length(data.sequences); ++idx)
     {
-        minimizer_sequences[idx] = mini.getMinimizer(sequences[idx - from]);
-        // seqan3::debug_stream << seqan::length(minimizer_sequences[idx]) << std::endl;
+        data.sequences[idx] = mini.getMinimizer(sequences[idx - from]);
+        // seqan3::debug_stream << seqan::length(data.sequences[idx]) << std::endl;
     }
 
-    return (seqan::length(fastaIDs) > 0u);
+    return (seqan::length(data.ids) > 0u);
 }

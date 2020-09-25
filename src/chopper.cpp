@@ -1,13 +1,13 @@
 #include <seqan3/argument_parser/all.hpp>
 #include <seqan3/core/debug_stream.hpp>
 
+#include "chopper_data.hpp"
 #include "minimizer.hpp"
 #include "minimizer_msa.hpp"
 #include "chopper_config.hpp"
 #include "sequence_input.hpp"
 #include "traverse_graph.hpp"
 
-template <typename TSize>
 void set_up_argument_parser(seqan3::argument_parser & parser,
                             chopper_config & config,
                             cmd_arguments & traverse_config)
@@ -44,25 +44,21 @@ int main(int argc, const char *argv [])
 
     // Load data
     // -------------------------------------------------------------------------
-
-    typedef seqan::String<minimizer> TSequence;
-    seqan::StringSet<TSequence, seqan::Owner<> > sequenceSet;
-    seqan::StringSet<seqan::String<char> > sequenceNames;
-    seqan::String<size_t> sequenceLengths;
+    chopper_data data;
 
     auto start = std::chrono::steady_clock::now();
     for (auto const & file_name : config.seqfiles)
-        if (!load_minimizer_sequences(sequenceSet, sequenceNames, sequenceLengths, config, file_name.c_str()))
+        if (!load_minimizer_sequences(data, config, file_name.c_str()))
             throw std::runtime_error{"Something went wrong when reading file " + file_name};
     auto end = std::chrono::steady_clock::now();
-    seqan3::debug_stream << ">>> Loading " << seqan::length(sequenceSet) << " sequences and computing minimizers complete "
+    seqan3::debug_stream << ">>> Loading " << seqan::length(data.sequences) << " sequences and computing minimizers complete "
                          << distance_matrix_initialiser::secs(start, end) << std::endl;
 
     // Compute minimizer MSA
     // -------------------------------------------------------------------------
 
     config.output_graph_file = "/tmp/graph.dot";
-    minimizer_msa(sequenceSet, sequenceNames, sequenceLengths, config);
+    minimizer_msa(data, config);
     // currently writes graph to an output file.
 
     // Traverse graph

@@ -12,28 +12,25 @@
 
 #include <seqan3/std/ranges>
 
+#include "chopper_data.hpp"
 #include "minimizer.hpp"
 #include "distance_matrix_initialiser.hpp"
 #include "seqan2_msa_alignment.hpp"
 #include "graph_output.hpp"
 
-template <typename TNameSet, typename TSequence>
-inline void minimizer_msa(seqan::StringSet<TSequence, seqan::Owner<>> & sequenceSet,
-                          TNameSet & sequenceNames,
-                          seqan::String<size_t> & sequenceLengths,
-                          chopper_config & config)
+inline void minimizer_msa(chopper_data & data, chopper_config & config)
 {
     // Alignment of the sequences
-    typedef seqan::Graph<seqan::Alignment<seqan::StringSet<TSequence, seqan::Dependent<> >, void, seqan::WithoutEdgeId> > TGraph;
+    typedef seqan::Graph<seqan::Alignment<seqan::StringSet<seqan::String<minimizer>, seqan::Dependent<> >, void, seqan::WithoutEdgeId> > TGraph;
     TGraph gAlign;
 
     distance_matrix_initialiser initialiser{};
-    initialiser.mash_distance(sequenceSet, sequenceNames, sequenceLengths, config);
+    initialiser.mash_distance(data, config);
 
     // MSA
     try
     {
-        seqan2_msa_alignment(gAlign, sequenceSet, config);
+        seqan2_msa_alignment(gAlign, data.sequences, config);
     }
     catch (const std::bad_alloc & exception)
     {
@@ -61,13 +58,13 @@ inline void minimizer_msa(seqan::StringSet<TSequence, seqan::Owner<>> & sequence
         if (regStart == 0)
             outs << "0"; // if it is the very first minimizer, include beginning of the sequence
         else
-            outs << sequenceSet[id][regStart].position;
+            outs << data.sequences[id][regStart].position;
         outs << ",";
         auto regEnd = seqan::fragmentBegin(gAlign, *it) + seqan::fragmentLength(gAlign, *it);
-        if (regEnd >= seqan::length(sequenceSet[id]))
-            outs << sequenceLengths[id];
+        if (regEnd >= seqan::length(data.sequences[id]))
+            outs << data.lengths[id];
         else
-            outs << sequenceSet[id][regEnd].position;
+            outs << data.sequences[id][regEnd].position;
         outs << ")";
         outs << "\", group = ";
         outs << id;
@@ -76,6 +73,6 @@ inline void minimizer_msa(seqan::StringSet<TSequence, seqan::Owner<>> & sequence
     }
 
     std::ofstream dotFile(config.output_graph_file);
-    write_graph(dotFile, gAlign, nodeMap, edgeMap, sequenceNames, sequenceLengths, seqan::DotDrawing());
+    write_graph(dotFile, gAlign, nodeMap, edgeMap, data.ids, data.lengths, seqan::DotDrawing());
     dotFile.close();
 }

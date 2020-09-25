@@ -33,11 +33,7 @@ struct distance_matrix_initialiser
         distanceMatrix.emplace(j * nseq + i, 1.0 - similarity_score); // distance = 1 - similarity
     }
 
-    template <typename TNameSet>
-    auto mash_distance(seqan::StringSet<seqan::String<minimizer>, seqan::Owner<>> & minimizer_sequences,
-                       TNameSet & fastaIDs,
-                       seqan::String<size_t> & original_sequence_lengths,
-                       chopper_config & config)
+    auto mash_distance(chopper_data & data, chopper_config & config)
     {
         // -----------------------------------------------------------------------------
         //                              SORT
@@ -45,14 +41,14 @@ struct distance_matrix_initialiser
         auto start = std::chrono::steady_clock::now();
 
         // store the length s' < s of each sketch (some sequences are too small for full sketches)
-        std::vector<size_t> sketch_lengths(length(minimizer_sequences));
+        std::vector<size_t> sketch_lengths(length(data.sequences));
 
         // sort minimizer by value to get sketches
-        for (size_t i = 0; i < length(minimizer_sequences); ++i)
+        for (size_t i = 0; i < length(data.sequences); ++i)
         {
-            std::sort(seqan::begin(minimizer_sequences[i]), seqan::end(minimizer_sequences[i]));
-            auto new_end_it = std::unique(seqan::begin(minimizer_sequences[i]), seqan::end(minimizer_sequences[i]));
-            auto new_length = std::distance(seqan::begin(minimizer_sequences[i]), new_end_it);
+            std::sort(seqan::begin(data.sequences[i]), seqan::end(data.sequences[i]));
+            auto new_end_it = std::unique(seqan::begin(data.sequences[i]), seqan::end(data.sequences[i]));
+            auto new_length = std::distance(seqan::begin(data.sequences[i]), new_end_it);
             sketch_lengths[i] = std::min<size_t>(sketch_size, new_length);
         }
 
@@ -64,11 +60,11 @@ struct distance_matrix_initialiser
         // -----------------------------------------------------------------------------
         start = std::chrono::steady_clock::now();
 
-        config.distanceMatrix.nseq = length(minimizer_sequences);
+        config.distanceMatrix.nseq = length(data.sequences);
 
-        for (size_t i = 0; i < seqan::length(minimizer_sequences); ++i)
+        for (size_t i = 0; i < seqan::length(data.sequences); ++i)
         {
-            for (size_t j = i + 1; j < seqan::length(minimizer_sequences); ++j)
+            for (size_t j = i + 1; j < seqan::length(data.sequences); ++j)
             {
                 size_t common_hashes{0u};
                 size_t unique_processed_hashes{0u};
@@ -79,8 +75,8 @@ struct distance_matrix_initialiser
                        pos_seq_i < sketch_lengths[i] &&
                        pos_seq_j < sketch_lengths[j])
                 {
-                    minimizer const m_i = minimizer_sequences[i][pos_seq_i];
-                    minimizer const m_j = minimizer_sequences[j][pos_seq_j];
+                    minimizer const m_i = data.sequences[i][pos_seq_i];
+                    minimizer const m_j = data.sequences[j][pos_seq_j];
 
                     pos_seq_i     += m_i <= m_j;
                     pos_seq_j     += m_i >= m_j;
@@ -116,10 +112,10 @@ struct distance_matrix_initialiser
         // -----------------------------------------------------------------------------
 
         // sort minimizer back
-        for (size_t i = 0; i < length(minimizer_sequences); ++i)
+        for (size_t i = 0; i < length(data.sequences); ++i)
         {
             auto compare = [](minimizer const & m1, minimizer const & m2) { return m1.position < m2.position; };
-            std::sort(seqan::begin(minimizer_sequences[i]), seqan::end(minimizer_sequences[i]), compare);
+            std::sort(seqan::begin(data.sequences[i]), seqan::end(data.sequences[i]), compare);
         }
 
         return true;

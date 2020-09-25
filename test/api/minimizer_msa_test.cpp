@@ -6,6 +6,7 @@
 #include <seqan3/core/debug_stream.hpp>
 #include <seqan3/std/filesystem>
 
+#include "chopper_data.hpp"
 #include "sequence_input.hpp"
 #include "minimizer_msa.hpp"
 
@@ -17,16 +18,14 @@ TEST(minimizer_msa_test, simple_example)
     config.kmer_size = 15;
     config.window_size = 25;
 
-    seqan::StringSet<seqan::String<minimizer>> seqs;
-    seqan::StringSet<seqan::String<char>> ids;
-    seqan::String<size_t> lengths;
-    load_minimizer_sequences(seqs, ids, lengths, config, DATADIR"small.fa");
-    ASSERT_EQ(seqan::length(seqs), 3); // sanity check
-    ASSERT_EQ(seqan::length(ids), 3); // sanity check
-    ASSERT_EQ(seqan::length(lengths), 3); // sanity check
+    chopper_data data;
+    load_minimizer_sequences(data, config, DATADIR"small.fa");
+    ASSERT_EQ(seqan::length(data.sequences), 3); // sanity check
+    ASSERT_EQ(seqan::length(data.ids), 3); // sanity check
+    ASSERT_EQ(seqan::length(data.lengths), 3); // sanity check
 
     // run MSA
-    minimizer_msa(seqs, ids, lengths, config); // writes graph.out as a result
+    minimizer_msa(data, config); // writes graph.out as a result
 
     // compare results
     std::ifstream expected_file{DATADIR"small_graph.dot"};
