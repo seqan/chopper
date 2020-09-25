@@ -2,8 +2,6 @@
 
 #include <cstdlib>
 
-#include "chopper_config.hpp" // include before #include <seqan/graph_msa.h> !!!
-
 #include <seqan/basic.h>
 #include <seqan/graph_msa.h>
 #include <seqan/modifier.h>
@@ -12,25 +10,27 @@
 
 #include <seqan3/std/ranges>
 
+#include "chopper_config.hpp"
 #include "chopper_data.hpp"
-#include "minimizer.hpp"
+#include "map_distance_matrix.hpp"
 #include "distance_matrix_initialiser.hpp"
+#include "minimizer.hpp"
 #include "seqan2_msa_alignment.hpp"
 #include "graph_output.hpp"
 
-inline void minimizer_msa(chopper_data & data, chopper_config & config)
+inline void minimizer_msa(chopper_data & data, chopper_config const & config)
 {
     // Alignment of the sequences
     typedef seqan::Graph<seqan::Alignment<seqan::StringSet<seqan::String<minimizer>, seqan::Dependent<> >, void, seqan::WithoutEdgeId> > TGraph;
     TGraph gAlign;
 
     distance_matrix_initialiser initialiser{};
-    initialiser.mash_distance(data, config);
+    auto distance_matrix = initialiser.mash_distance(data);
 
     // MSA
     try
     {
-        seqan2_msa_alignment(gAlign, data.sequences, config);
+        seqan2_msa_alignment(gAlign, data.sequences, distance_matrix);
     }
     catch (const std::bad_alloc & exception)
     {

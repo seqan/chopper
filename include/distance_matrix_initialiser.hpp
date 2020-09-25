@@ -1,7 +1,6 @@
 #pragma once
 
 #include "minimizer.hpp"
-#include "chopper_config.hpp"
 
 struct distance_matrix_initialiser
 {
@@ -33,8 +32,10 @@ struct distance_matrix_initialiser
         distanceMatrix.emplace(j * nseq + i, 1.0 - similarity_score); // distance = 1 - similarity
     }
 
-    auto mash_distance(chopper_data & data, chopper_config & config)
+    auto mash_distance(chopper_data & data)
     {
+        map_distance_matrix distance_matrix;
+
         // -----------------------------------------------------------------------------
         //                              SORT
         // -----------------------------------------------------------------------------
@@ -60,7 +61,7 @@ struct distance_matrix_initialiser
         // -----------------------------------------------------------------------------
         start = std::chrono::steady_clock::now();
 
-        config.distanceMatrix.nseq = length(data.sequences);
+        distance_matrix.nseq = length(data.sequences);
 
         for (size_t i = 0; i < seqan::length(data.sequences); ++i)
         {
@@ -96,15 +97,15 @@ struct distance_matrix_initialiser
                 // Jaquard Index is approximated with x/s' -> common_hashes / unique_processed_hashes
                 double const similarity_score = (double)common_hashes / (double)unique_processed_hashes;
                 if (similarity_score > 0.1)
-                    set_distance_value(config.distanceMatrix, i, j, similarity_score); // set to 1-score for distance
+                    set_distance_value(distance_matrix, i, j, similarity_score); // set to 1-score for distance
             }
 
-            set_distance_value(config.distanceMatrix, i, i, 1); // same sequence => similarity = 1
+            set_distance_value(distance_matrix, i, i, 1); // same sequence => similarity = 1
         }
 
         // std::cout << "distance matrices: ";
-        // for (size_t i = 0; i < seqan::length(config.distanceMatrix); ++i)
-        //     std::cout << config.distanceMatrix[i] << ',';
+        // for (size_t i = 0; i < seqan::length(distance_matrix); ++i)
+        //     std::cout << distance_matrix[i] << ',';
         // std::cout << std::endl;
 
         end = std::chrono::steady_clock::now();
@@ -118,6 +119,6 @@ struct distance_matrix_initialiser
             std::sort(seqan::begin(data.sequences[i]), seqan::end(data.sequences[i]), compare);
         }
 
-        return true;
+        return distance_matrix;
     }
 };
