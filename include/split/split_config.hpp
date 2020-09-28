@@ -1,6 +1,6 @@
 #pragma once
 
-struct chopper_config
+struct split_config
 {
     std::vector<std::string> seqfiles;
     std::string output_graph_file{"graph.dot"}; // default

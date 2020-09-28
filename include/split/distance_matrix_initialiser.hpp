@@ -1,6 +1,6 @@
 #pragma once
 
-#include "minimizer.hpp"
+#include "split/minimizer.hpp"
 
 struct distance_matrix_initialiser
 {
@@ -32,7 +32,7 @@ struct distance_matrix_initialiser
         distanceMatrix.emplace(j * nseq + i, 1.0 - similarity_score); // distance = 1 - similarity
     }
 
-    auto mash_distance(chopper_data & data)
+    auto mash_distance(split_data & data)
     {
         map_distance_matrix distance_matrix;
 

@@ -6,19 +6,19 @@
 #include <seqan3/core/debug_stream.hpp>
 #include <seqan3/std/filesystem>
 
-#include "chopper_data.hpp"
-#include "sequence_input.hpp"
-#include "minimizer_msa.hpp"
+#include "split/split_data.hpp"
+#include "split/sequence_input.hpp"
+#include "split/minimizer_msa.hpp"
 
 TEST(minimizer_msa_test, simple_example)
 {
     // set up config
-    chopper_config config;
+    split_config config;
     config.output_graph_file = DATADIR"output_small_graph.dot";
     config.kmer_size = 15;
     config.window_size = 25;
 
-    chopper_data data;
+    split_data data;
     load_minimizer_sequences(data, config, DATADIR"small.fa");
     ASSERT_EQ(seqan::length(data.sequences), 3); // sanity check
     ASSERT_EQ(seqan::length(data.ids), 3); // sanity check

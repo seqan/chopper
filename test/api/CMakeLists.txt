@@ -1,5 +1,3 @@
-cmake_minimum_required (VERSION 3.8)
+include(${CMAKE_SOURCE_DIR}/lib/seqan3/test/cmake/add_subdirectories.cmake)
 
-add_api_test (minimizer_msa_test.cpp)
-target_use_datasources (minimizer_msa_test FILES small_graph.dot)
-target_use_datasources (minimizer_msa_test FILES small.fa)
+add_subdirectories ()

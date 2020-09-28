@@ -2,9 +2,9 @@
 
 #include <seqan/sequence.h>
 
-#include "minimizer.hpp"
+#include "split/minimizer.hpp"
 
-struct chopper_data
+struct split_data
 {
     typedef seqan::String<minimizer> TSequence;
     seqan::StringSet<TSequence, seqan::Owner<> > sequences;

@@ -2,12 +2,12 @@
 
 #include <seqan/seq_io.h>
 
-#include "chopper_config.hpp"
-#include "chopper_data.hpp"
-#include "minimizer.hpp"
+#include "split/split_config.hpp"
+#include "split/split_data.hpp"
+#include "split/minimizer.hpp"
 
-bool load_minimizer_sequences(chopper_data & data,
-                              chopper_config const & config,
+bool load_minimizer_sequences(split_data & data,
+                              split_config const & config,
                               const char *fileName)
 {
     seqan::SeqFileIn inFile;

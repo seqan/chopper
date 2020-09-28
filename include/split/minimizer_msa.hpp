@@ -10,15 +10,15 @@
 
 #include <seqan3/std/ranges>
 
-#include "chopper_config.hpp"
-#include "chopper_data.hpp"
-#include "map_distance_matrix.hpp"
-#include "distance_matrix_initialiser.hpp"
-#include "minimizer.hpp"
-#include "seqan2_msa_alignment.hpp"
-#include "graph_output.hpp"
+#include "split/split_config.hpp"
+#include "split/split_data.hpp"
+#include "split/map_distance_matrix.hpp"
+#include "split/distance_matrix_initialiser.hpp"
+#include "split/minimizer.hpp"
+#include "split/seqan2_msa_alignment.hpp"
+#include "split/graph_output.hpp"
 
-inline void minimizer_msa(chopper_data & data, chopper_config const & config)
+inline void minimizer_msa(split_data & data, split_config const & config)
 {
     // Alignment of the sequences
     typedef seqan::Graph<seqan::Alignment<seqan::StringSet<seqan::String<minimizer>, seqan::Dependent<> >, void, seqan::WithoutEdgeId> > TGraph;
