@@ -8,9 +8,9 @@
 #include "sequence_input.hpp"
 #include "traverse_graph.hpp"
 
-void set_up_argument_parser(seqan3::argument_parser & parser,
-                            chopper_config & config,
-                            cmd_arguments & traverse_config)
+int set_up_and_parse_subparser_split(seqan3::argument_parser & parser,
+                                     chopper_config & config,
+                                     cmd_arguments & traverse_config)
 {
     parser.info.version = "1.0.0";
     parser.add_option(config.seqfiles, 's', "seq", "Name of multi-fasta input file.",
@@ -19,6 +19,16 @@ void set_up_argument_parser(seqan3::argument_parser & parser,
     parser.add_option(config.kmer_size, 'k', "kmer-size", "The kmer size to compute minimizer.");
     parser.add_option(config.window_size, 'w', "window-size", "The window size to compute minimizer.");
     parser.add_option(traverse_config.bins, 'b', "technical-bins", "How many technical bins do you want you sequences to be split?.");
+
+    try
+    {
+        parser.parse();
+    }
+    catch (seqan3::argument_parser_error const & ext) // the user did something wrong
+    {
+        std::cerr << "[CHOPPER SPLIT ERROR] " << ext.what() << '\n'; // customize your error message
+        return -2;
+    }
 }
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -28,18 +38,25 @@ int main(int argc, const char *argv [])
     chopper_config config;
     cmd_arguments traverse_config;
 
-    // Command line parsing
-    seqan3::argument_parser parser{"chopper", argc, argv};
-    set_up_argument_parser(parser, config, traverse_config);
+    seqan3::argument_parser top_level_parser{"chopper", argc, argv, false, {"split"}};
+    top_level_parser.info.version = "1.0.0";
 
     try
     {
-        parser.parse();
+        top_level_parser.parse();
     }
     catch (seqan3::argument_parser_error const & ext) // the user did something wrong
     {
-        std::cerr << "[PARSER ERROR] " << ext.what() << '\n'; // customize your error message
+        std::cerr << "[CHOPPER ERROR] " << ext.what() << '\n'; // customize your error message
         return -1;
+    }
+
+    seqan3::argument_parser & sub_parser = top_level_parser.get_sub_parser(); // hold a reference to the sub_parser
+
+    if (sub_parser.info.app_name == std::string_view{"chopper-split"})
+    {
+        if (auto r = set_up_and_parse_subparser_split(sub_parser, config, traverse_config); r != 0)
+            return r;
     }
 
     // Load data
