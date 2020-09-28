@@ -1,11 +1,11 @@
 #pragma once
 
-#include "split/split_data.hpp"
-#include "split/split_config.hpp"
-#include "split/minimizer.hpp"
-#include "split/minimizer_msa.hpp"
-#include "split/sequence_input.hpp"
-#include "split/traverse_graph.hpp"
+#include <chopper/split/split_data.hpp>
+#include <chopper/split/split_config.hpp>
+#include <chopper/split/minimizer.hpp>
+#include <chopper/split/minimizer_msa.hpp>
+#include <chopper/split/sequence_input.hpp>
+#include <chopper/split/traverse_graph.hpp>
 
 int set_up_and_parse_subparser_split(seqan3::argument_parser & parser,
                                      split_config & config,

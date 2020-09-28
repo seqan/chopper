@@ -2,8 +2,8 @@
 
 #include <seqan/graph_msa.h>
 
-#include "split/split_config.hpp"
-#include "split/map_distance_matrix.hpp"
+#include <chopper/split/split_config.hpp>
+#include <chopper/split/map_distance_matrix.hpp>
 
 template<typename TString, typename TSpec, typename TSegmentMatches, typename TScoreValues>
 inline void append_all_to_all_matches(seqan::StringSet<TString, seqan::Dependent<TSpec> > const & sequenceSet,

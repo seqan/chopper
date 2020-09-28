@@ -6,9 +6,9 @@
 #include <seqan3/core/debug_stream.hpp>
 #include <seqan3/std/filesystem>
 
-#include "split/split_data.hpp"
-#include "split/sequence_input.hpp"
-#include "split/minimizer_msa.hpp"
+#include <chopper/split/split_data.hpp>
+#include <chopper/split/sequence_input.hpp>
+#include <chopper/split/minimizer_msa.hpp>
 
 TEST(minimizer_msa_test, simple_example)
 {

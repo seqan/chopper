@@ -2,7 +2,7 @@
 
 #include <seqan/sequence.h>
 
-#include "split/minimizer.hpp"
+#include <chopper/split/minimizer.hpp>
 
 struct split_data
 {

@@ -10,13 +10,13 @@
 
 #include <seqan3/std/ranges>
 
-#include "split/split_config.hpp"
-#include "split/split_data.hpp"
-#include "split/map_distance_matrix.hpp"
-#include "split/distance_matrix_initialiser.hpp"
-#include "split/minimizer.hpp"
-#include "split/seqan2_msa_alignment.hpp"
-#include "split/graph_output.hpp"
+#include <chopper/split/split_config.hpp>
+#include <chopper/split/split_data.hpp>
+#include <chopper/split/map_distance_matrix.hpp>
+#include <chopper/split/distance_matrix_initialiser.hpp>
+#include <chopper/split/minimizer.hpp>
+#include <chopper/split/seqan2_msa_alignment.hpp>
+#include <chopper/split/graph_output.hpp>
 
 inline void minimizer_msa(split_data & data, split_config const & config)
 {
