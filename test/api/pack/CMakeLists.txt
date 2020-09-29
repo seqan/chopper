@@ -6,3 +6,4 @@ target_use_datasources (filenames_data_input_test FILES filenames_and_counts.tsv
 target_use_datasources (filenames_data_input_test FILES filenames_counts_and_extra_information.tsv)
 
 add_api_test (simple_binning_test.cpp)
+add_api_test (hierarchical_binning_test.cpp)
