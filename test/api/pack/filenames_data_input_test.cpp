@@ -25,9 +25,9 @@ TEST(read_filename_data_file_test, filenames_and_counts)
     read_filename_data_file(data, config);
 
     ASSERT_EQ(data.filenames.size(), 3u);
-    EXPECT_EQ(data.filenames[0].string(), "file1");
-    EXPECT_EQ(data.filenames[1].string(), "file2");
-    EXPECT_EQ(data.filenames[2].string(), "file3");
+    EXPECT_EQ(data.filenames[0], "file1");
+    EXPECT_EQ(data.filenames[1], "file2");
+    EXPECT_EQ(data.filenames[2], "file3");
 
     ASSERT_EQ(data.kmer_counts.size(), 3u);
     EXPECT_EQ(data.kmer_counts[0], 1000);
@@ -48,9 +48,9 @@ TEST(read_filename_data_file_test, filenames_counts_and_extra_information)
     read_filename_data_file(data, config);
 
     ASSERT_EQ(data.filenames.size(), 3u);
-    EXPECT_EQ(data.filenames[0].string(), "file1");
-    EXPECT_EQ(data.filenames[1].string(), "file2");
-    EXPECT_EQ(data.filenames[2].string(), "file3");
+    EXPECT_EQ(data.filenames[0], "file1");
+    EXPECT_EQ(data.filenames[1], "file2");
+    EXPECT_EQ(data.filenames[2], "file3");
 
     ASSERT_EQ(data.kmer_counts.size(), 3u);
     EXPECT_EQ(data.kmer_counts[0], 1000);
