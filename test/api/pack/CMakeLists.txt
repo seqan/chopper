@@ -4,3 +4,5 @@ add_api_test (filenames_data_input_test.cpp)
 target_use_datasources (filenames_data_input_test FILES only_filenames.tsv)
 target_use_datasources (filenames_data_input_test FILES filenames_and_counts.tsv)
 target_use_datasources (filenames_data_input_test FILES filenames_counts_and_extra_information.tsv)
+
+add_api_test (simple_binning_test.cpp)
