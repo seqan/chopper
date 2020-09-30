@@ -25,6 +25,8 @@
 #include <seqan3/std/filesystem>
 #include <seqan3/std/ranges>
 
+#include <chopper/split/split_config.hpp>
+
 namespace lemon {
 
 const Color WHITE(1,1,1);
@@ -299,34 +301,25 @@ edge [fontname = "Times-Italic", arrowsize = 0.75, fontsize = 16];
     fout << std::endl << "}" << std::endl;
 }
 
-struct cmd_arguments
-{
-    std::filesystem::path in_path{};
-    std::filesystem::path out_path{"/tmp/traverse_graph.out"};
-    int16_t bins{64};
-    bool write_out_graph{false};
-    bool write_out_weights{false};
-};
-
-void traverse_graph(cmd_arguments & args)
+void traverse_graph(split_config & config)
 {
     lemon::ListDigraph g;
     std::vector<lemon::ListDigraph::Node> nodes;
     lemon::ListDigraph::NodeMap<std::vector<std::pair<uint32_t, uint32_t>>> node_map{g};
 
-    read_graph(g, nodes, node_map, args.in_path); // also merges nodes along undirected edges
+    read_graph(g, nodes, node_map, config.output_graph_file); // also merges nodes along undirected edges
 
     seqan3::debug_stream << "[LOG] " <<  lemon::countNodes(g) << " nodes remain after merging." << std::endl;
     seqan3::debug_stream << "[LOG] " <<  lemon::countArcs(g) << " arcs remain after merging." << std::endl;
 
-    if (args.write_out_graph)
+    if (config.write_out_graph)
     {
         write_graph(g, node_map, "/tmp/graph_out.dot");
         seqan3::debug_stream << "[LOG] Written graph to /tmp/graph_out.dot" << std::endl;
     }
 
     std::ofstream weights_file;
-    if (args.write_out_weights)
+    if (config.write_out_weights)
         weights_file.open("/tmp/weights.tsv");
 
     // sanity check for graph:
@@ -357,10 +350,10 @@ void traverse_graph(cmd_arguments & args)
         weight_per_bin += max;
     }
     seqan3::debug_stream << "[LOG] total weight:" << weight_per_bin << std::endl;
-    weight_per_bin = weight_per_bin / args.bins;
+    weight_per_bin = weight_per_bin / config.bins;
     seqan3::debug_stream << "[LOG] weight per bin :" << weight_per_bin << std::endl;
 
-    // int32_t nodes_per_bin{lemon::countNodes(g) / args.bins}; // #nodes == #minimizers
+    // int32_t nodes_per_bin{lemon::countNodes(g) / config.bins}; // #nodes == #minimizers
     std::vector<std::vector<std::pair<uint32_t, uint32_t>>> bin_contents{};
 
     // Since the graph is an alignment graph it is linear.
@@ -443,7 +436,7 @@ void traverse_graph(cmd_arguments & args)
             {
                 auto surplus = count + node_weigths[next_node] - weight_per_bin - 1;
 
-                if (args.write_out_weights)
+                if (config.write_out_weights)
                     weights_file << (count + node_weigths[next_node] - surplus) << "\t";
 
                 for (auto && [curr, next] : seqan3::views::zip(current_ranges, node_map[next_node]))
@@ -485,7 +478,7 @@ void traverse_graph(cmd_arguments & args)
             }
             else
             {
-                if (args.write_out_weights)
+                if (config.write_out_weights)
                     weights_file << (count  + node_weigths[next_node]) << "\t";
 
                 for (auto && [curr, next] : seqan3::views::zip(current_ranges, node_map[next_node]))
@@ -542,10 +535,10 @@ void traverse_graph(cmd_arguments & args)
 
     seqan3::debug_stream << "[LOG] " <<  lemon::countNodes(g) << " nodes remain. (should be 1 only the sink)" << std::endl;
 
-    std::ofstream fout{args.out_path};
+    std::ofstream fout{config.out_path};
     seqan3::debug_stream_type dout{fout};
     for (auto & bin : bin_contents)
         dout << bin << std::endl;
 
-    seqan3::debug_stream << "Bin content written to : " << args.out_path << std::endl;
+    seqan3::debug_stream << "Bin content written to : " << config.out_path << std::endl;
 }

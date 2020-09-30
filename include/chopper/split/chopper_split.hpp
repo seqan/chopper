@@ -8,16 +8,15 @@
 #include <chopper/split/traverse_graph.hpp>
 
 int set_up_and_parse_subparser_split(seqan3::argument_parser & parser,
-                                     split_config & config,
-                                     cmd_arguments & traverse_config)
+                                     split_config & config)
 {
     parser.info.version = "1.0.0";
     parser.add_option(config.seqfiles, 's', "seq", "Name of multi-fasta input file.",
                       seqan3::option_spec::REQUIRED);
-    parser.add_option(traverse_config.out_path, 'o', "outfile", "Name of the traversal output file.");
+    parser.add_option(config.out_path, 'o', "outfile", "Name of the traversal output file.");
     parser.add_option(config.kmer_size, 'k', "kmer-size", "The kmer size to compute minimizer.");
     parser.add_option(config.window_size, 'w', "window-size", "The window size to compute minimizer.");
-    parser.add_option(traverse_config.bins, 'b', "technical-bins", "How many technical bins do you want you sequences to be split?.");
+    parser.add_option(config.bins, 'b', "technical-bins", "How many technical bins do you want you sequences to be split?.");
 
     try
     {
@@ -34,9 +33,8 @@ int set_up_and_parse_subparser_split(seqan3::argument_parser & parser,
 int chopper_split(seqan3::argument_parser & parser)
 {
     split_config config;
-    cmd_arguments traverse_config;
 
-    if (auto r = set_up_and_parse_subparser_split(parser, config, traverse_config); r != 0)
+    if (auto r = set_up_and_parse_subparser_split(parser, config); r != 0)
         return r;
 
     // Load data
@@ -62,11 +60,10 @@ int chopper_split(seqan3::argument_parser & parser)
     // Traverse graph
     // -------------------------------------------------------------------------
 
-    traverse_config.in_path = config.output_graph_file;
-    traverse_config.write_out_graph = false;
-    traverse_config.write_out_weights = false;
+    config.write_out_graph = false;
+    config.write_out_weights = false;
 
-    traverse_graph(traverse_config);
+    traverse_graph(config);
 
     return 0;
 }
