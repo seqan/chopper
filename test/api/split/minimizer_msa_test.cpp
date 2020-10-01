@@ -5,6 +5,7 @@
 
 #include <seqan3/core/debug_stream.hpp>
 #include <seqan3/std/filesystem>
+#include <seqan3/test/tmp_filename.hpp>
 
 #include <chopper/split/split_data.hpp>
 #include <chopper/split/sequence_input.hpp>
@@ -12,9 +13,11 @@
 
 TEST(minimizer_msa_test, simple_example)
 {
+    seqan3::test::tmp_filename output_filename{"output_small_graph.dot"};
+
     // set up config
     split_config config;
-    config.output_graph_file = DATADIR"output_small_graph.dot";
+    config.output_graph_file = output_filename.get_path().string();
     config.kmer_size = 15;
     config.window_size = 25;
 
@@ -29,7 +32,6 @@ TEST(minimizer_msa_test, simple_example)
 
     // compare results
     std::ifstream expected_file{DATADIR"small_graph.dot"};
-    std::filesystem::path tmp_dir = std::filesystem::temp_directory_path(); // get the temp directory
     std::ifstream output_file{config.output_graph_file};
 
     std::string expected_line;
