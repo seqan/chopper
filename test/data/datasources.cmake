@@ -23,3 +23,9 @@ declare_datasource (FILE filenames_counts_and_extra_information.tsv
                     URL ${CMAKE_SOURCE_DIR}/test/data/filenames_counts_and_extra_information.tsv
                     URL_HASH SHA256=2df6817a35aa73b75e1c63fdaa09dcb554f5bedddff59404ab48fdeb48e32649)
 
+declare_datasource (FILE high_level_ibf.binning
+                    URL ${CMAKE_SOURCE_DIR}/test/data/high_level_ibf.binning
+                    URL_HASH SHA256=0d198d13f96cc7d4c6984b795ea5a39f271124278540584c68519a07a5cfffe7)
+declare_datasource (FILE low_level_ibfs.binning
+                    URL ${CMAKE_SOURCE_DIR}/test/data/low_level_ibfs.binning
+                    URL_HASH SHA256=1bf3530d47ae044eef071c725e9e23ec2cec139222aad3ee3bade8ba001b46fb)

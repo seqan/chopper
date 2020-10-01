@@ -4,6 +4,7 @@
 
 struct split_config
 {
+    std::string data_filename;
     std::vector<std::string> seqfiles;
     std::string output_graph_file{"graph.dot"}; // default
 
