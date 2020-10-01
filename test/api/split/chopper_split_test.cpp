@@ -19,7 +19,7 @@ TEST(chopper_split_test, simple_example)
                            "-s", input_filename.c_str(),
                            "-o", output_filename.get_path().c_str()};
     int argc = 11;
-    seqan3::argument_parser split_parser{"chopper-split", argc, argv};
+    seqan3::argument_parser split_parser{"chopper-split", argc, argv, false};
 
     chopper_split(split_parser);
 
