@@ -30,6 +30,8 @@ int set_up_and_parse_subparser_split(seqan3::argument_parser & parser, split_con
         std::cerr << "[CHOPPER SPLIT ERROR] " << ext.what() << '\n'; // customize your error message
         return -2;
     }
+
+    return 0;
 }
 
 // runs splitting of sequences into technical bins
