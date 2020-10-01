@@ -1,5 +1,7 @@
 #pragma once
 
+#include <seqan3/core/debug_stream.hpp>
+
 #include <chopper/split/split_data.hpp>
 #include <chopper/split/split_config.hpp>
 #include <chopper/split/minimizer.hpp>
