@@ -2,7 +2,6 @@ cmake_minimum_required (VERSION 3.8)
 
 include (cmake/app_datasources.cmake)
 
-# minimizer_msa_test
 declare_datasource (FILE small_graph.dot
                     URL ${CMAKE_SOURCE_DIR}/test/data/small_graph.dot
                     URL_HASH SHA256=17b4ea76944561f781221d6d30421b5074624a2c057cea1b924743bbfabb16a7)
@@ -10,7 +9,10 @@ declare_datasource (FILE small.fa
                     URL ${CMAKE_SOURCE_DIR}/test/data/small.fa
                     URL_HASH SHA256=215a646ccd2d156eeabdd792108fc0ba385e244a25218afc095658189d2a3c0d)
 
-# filenames_data_input_test
+declare_datasource (FILE small_traverse.out
+                    URL ${CMAKE_SOURCE_DIR}/test/data/small_traverse.out
+                    URL_HASH SHA256=9cbdd4cf4f78c35bdece7868b77c03406317255231224e88d75dc06192f8bde8)
+
 declare_datasource (FILE only_filenames.tsv
                     URL ${CMAKE_SOURCE_DIR}/test/data/only_filenames.tsv
                     URL_HASH SHA256=581870b9c418bac44191ea967376c5b81d42a14d0d8aaf4e17dc700e146e714b)
