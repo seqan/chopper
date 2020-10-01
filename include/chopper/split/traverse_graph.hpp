@@ -301,7 +301,7 @@ edge [fontname = "Times-Italic", arrowsize = 0.75, fontsize = 16];
     fout << std::endl << "}" << std::endl;
 }
 
-void traverse_graph(split_config & config)
+void traverse_graph(split_config const & config)
 {
     lemon::ListDigraph g;
     std::vector<lemon::ListDigraph::Node> nodes;
