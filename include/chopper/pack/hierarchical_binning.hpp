@@ -11,6 +11,7 @@
 #include <seqan3/range/views/to.hpp>
 #include <seqan3/core/debug_stream.hpp>
 
+#include <chopper/pack/pack_config.hpp>
 #include <chopper/pack/print_matrix.hpp>
 #include <chopper/pack/simple_binning.hpp>
 
@@ -27,11 +28,11 @@ struct hierarchical_binning
     size_t const kmer_count_average_per_bin;
 
     // ctor
-    hierarchical_binning(std::vector<std::string> & names_, std::vector<size_t> & input, size_t num_bins = 0) :
+    hierarchical_binning(std::vector<std::string> & names_, std::vector<size_t> & input, pack_config const & config) :
         names{names_},
         user_bin_kmer_counts{input},
         num_user_bins{input.size()},
-        num_technical_bins{(num_bins == 0) ? ((user_bin_kmer_counts.size() + 63) / 64 * 64) : num_bins},
+        num_technical_bins{(config.bins == 0) ? ((user_bin_kmer_counts.size() + 63) / 64 * 64) : config.bins},
         kmer_count_sum{std::accumulate(user_bin_kmer_counts.begin(), user_bin_kmer_counts.end(), 0u)},
         kmer_count_average_per_bin{std::max<size_t>(1u, kmer_count_sum / num_technical_bins)}
     {

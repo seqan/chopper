@@ -12,7 +12,10 @@ TEST(hierarchical_binning_test, small_example)
     std::vector<std::string> seq_ids{"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6",  "seq7"};
     std::vector<size_t> counts{500, 1000, 500, 500, 500, 500, 500, 500};
 
-    hierarchical_binning algo{seq_ids, counts, 4};
+    pack_config config;
+    config.bins = 4;
+
+    hierarchical_binning algo{seq_ids, counts, config};
     algo.dp_algorithm();
 
     std::istringstream expected_file{std::string
