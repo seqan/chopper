@@ -41,17 +41,18 @@ int chopper_pack(seqan3::argument_parser & parser)
     if (data.filenames.empty())
         throw std::runtime_error{"[CHOPPER PACK ERROR] File Error: you passed an empty file."};
 
-    if (config.aggregate_by_column != -1 &&  data.extra_information[0].empty())
+    if (config.aggregate_by_column != -1 && data.extra_information[0].empty())
         throw std::runtime_error{"[CHOPPER PACK ERROR] Aggregate Error: You want to aggregate by something but your "
                                  "file does not contain any extra information columns."};
-
-    if (config.aggregate_by_column > data.extra_information[0].size())
-        throw std::runtime_error{"[CHOPPER PACK ERROR]Aggregate Error: You want to aggregate by a column index that is "
+    if (config.aggregate_by_column > static_cast<int>(data.extra_information[0].size()))
+        throw std::runtime_error{"[CHOPPER PACK ERROR] Aggregate Error: You want to aggregate by a column index that is "
                                  "larger than the number of extra information columns."};
 
-    aggregate_by(data, config.aggregate_by_column);
+    if (config.aggregate_by_column != -1)
+        aggregate_by(data, config.aggregate_by_column);
 
     hierarchical_binning algo{data.filenames, data.kmer_counts, config.bins};
+    algo.dp_algorithm();
 
     return 0;
 }

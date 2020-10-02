@@ -8,3 +8,4 @@ target_use_datasources (filenames_data_input_test FILES filenames_counts_and_ext
 add_api_test (simple_binning_test.cpp)
 add_api_test (hierarchical_binning_test.cpp)
 add_api_test (aggregate_by_test.cpp)
+add_api_test (chopper_pack_test.cpp)
