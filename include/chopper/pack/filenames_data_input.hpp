@@ -14,7 +14,7 @@ auto read_filename_data_file(pack_data & data, pack_config const & config)
     std::ifstream file_in{config.data_file};
 
     if (!file_in.good())
-        throw std::runtime_error{"[CHOPPER SPLIT ERROR] Could not open file " + config.data_file.string()};
+        throw std::runtime_error{"[CHOPPER PACK ERROR] Could not open file " + config.data_file.string()};
 
     std::string line;
     while (std::getline(file_in, line) && line[0] == '#'); // skip comments
@@ -26,11 +26,15 @@ auto read_filename_data_file(pack_data & data, pack_config const & config)
         auto ptr = &buffer[0];
         auto const buffer_end = ptr + line.size();
 
+        if (line.empty())
+            continue;
+
         while (ptr != buffer_end && *ptr != '\t') ++ptr;
         data.filenames.push_back(std::string(&buffer[0], ptr));
 
         if (ptr == buffer_end) // only file info, no kmer info
-            throw std::runtime_error{"CHOPPER SPLIT ERROR] You file only contains sequence names but no kmer counts."};
+            throw std::runtime_error{"[CHOPPER PACK ERROR] Your file only contains sequence names but no kmer counts."
+                                     "Offending line: '" + line + "'."};
 
         // read kmer_count
         ++ptr; // skip tab
