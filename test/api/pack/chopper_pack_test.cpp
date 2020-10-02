@@ -26,13 +26,15 @@ TEST(chopper_pack_test, small_example)
              << "seq7\t500\n";
     }
 
-    const char * argv[] = {"./chopper-pack", "-b", "4", "-f", data_filename.get_path().c_str()};
-    int argc = 5;
+    seqan3::test::tmp_filename output_filename{"output.binning"};
+    const char * argv[] = {"./chopper-pack", "-b", "4",
+                           "-f", data_filename.get_path().c_str(), "-o", output_filename.get_path().c_str()};
+    int argc = 7;
     seqan3::argument_parser pack_parser{"chopper-pack", argc, argv, false};
 
     chopper_pack(pack_parser);
 
-    std::istringstream expected_file{std::string
+    std::string expected_file
     {
         "BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n"
         "SPLIT_BIN_0\tseq7\t1\t500\n"
@@ -43,20 +45,9 @@ TEST(chopper_pack_test, small_example)
         "COLORFUL_MERGED_BIN_2_3\tseq4\t12\t42\n"
         "COLORFUL_MERGED_BIN_2_4\tseq5\t12\t42\n"
         "SPLIT_BIN_3\tseq1\t1\t1000\n"
-    }};
+    };
 
-    std::string expected_line;
-    std::string output_line;
-
-    // high level ibf file:
-    {
-        std::ifstream output_file{"output.binning"};
-        while (std::getline(expected_file, expected_line) && std::getline(output_file, output_line))
-            EXPECT_EQ(expected_line, output_line);
-
-        EXPECT_FALSE(std::getline(expected_file, expected_line)); // both files are exhausted
-        EXPECT_FALSE(std::getline(output_file, output_line)); // both files are exhausted
-    }
+    std::ifstream output_file{output_filename.get_path()};
+    std::string const output_file_str((std::istreambuf_iterator<char>(output_file)), std::istreambuf_iterator<char>());
+    EXPECT_EQ(output_file_str, expected_file);
 }
-
-// std::string input_filename = DATADIR"filenames_counts_and_extra_information.tsv";

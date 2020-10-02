@@ -27,6 +27,8 @@ struct hierarchical_binning
     size_t const kmer_count_sum;
     size_t const kmer_count_average_per_bin;
 
+    std::ofstream output_file;
+
     // ctor
     hierarchical_binning(std::vector<std::string> & names_, std::vector<size_t> & input, pack_config const & config) :
         names{names_},
@@ -34,10 +36,15 @@ struct hierarchical_binning
         num_user_bins{input.size()},
         num_technical_bins{(config.bins == 0) ? ((user_bin_kmer_counts.size() + 63) / 64 * 64) : config.bins},
         kmer_count_sum{std::accumulate(user_bin_kmer_counts.begin(), user_bin_kmer_counts.end(), 0u)},
-        kmer_count_average_per_bin{std::max<size_t>(1u, kmer_count_sum / num_technical_bins)}
+        kmer_count_average_per_bin{std::max<size_t>(1u, kmer_count_sum / num_technical_bins)},
+        output_file{config.output_filename}
     {
         std::cout << "#Techincal bins: " << num_technical_bins << std::endl;
         std::cout << "#User bins: " << input.size() << std::endl;
+        std::cout << "Output file: " << config.output_filename.string() << std::endl;
+
+        if (!output_file.good() || !output_file.is_open())
+            throw std::runtime_error{"Could not open file " + config.output_filename.string() + "for reading."};
     }
 
     template <typename names_type, typename distribution_type>
@@ -164,8 +171,6 @@ struct hierarchical_binning
         std::cout << "optimum: " << matrix[trace_i][trace_j] << std::endl;
         std::cout << std::endl;
 
-        std::ofstream output_file{"output.binning"};
-
         output_file << "BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE" << std::endl;
 
         size_t bin_id{};
@@ -265,5 +270,7 @@ struct hierarchical_binning
             }
             ++bin_id;
         }
+
+        output_file.close(); // make sure content is flushed
     }
 };

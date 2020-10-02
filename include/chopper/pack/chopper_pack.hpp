@@ -10,6 +10,7 @@ int set_up_and_parse_subparser_split(seqan3::argument_parser & parser, pack_conf
     parser.add_option(config.data_file, 'f', "filenames", "A file with filenames.", seqan3::option_spec::REQUIRED);
     parser.add_option(config.bins, 'b', "technical-bins",
                       "In how many technical bins do you (hierarchical) IBF?.");
+    parser.add_option(config.output_filename, 'o', "outfile", "Name of the binning output file.");
     parser.add_option(config.aggregate_by_column, 'y', "aggregate-by",
                       "Which column do you want to aggregate your files by? Start counting your columns from 1!",
                       seqan3::option_spec::DEFAULT,
@@ -51,7 +52,7 @@ int chopper_pack(seqan3::argument_parser & parser)
     if (config.aggregate_by_column != -1)
         aggregate_by(data, config.aggregate_by_column);
 
-    hierarchical_binning algo{data.filenames, data.kmer_counts, config.bins};
+    hierarchical_binning algo{data.filenames, data.kmer_counts, config};
     algo.dp_algorithm();
 
     return 0;
