@@ -80,6 +80,7 @@ private:
         //!\brief Pre-increment.
         iterator & operator++() noexcept
         {
+            ++(host->count);
             current_config.seqfiles.clear();
             while (std::getline(host->data_file, host->current_line) && !parse_next_line());
             return *this;
@@ -171,6 +172,9 @@ private:
 
             current_config.bins = num_technical_bins;
 
+            std::string out_filename = host->config.out_path.string() + "_" + std::to_string(host->count) + ".out";
+            current_config.out_path = std::filesystem::path{out_filename};
+
             return true;
         }
     };
@@ -210,6 +214,8 @@ private:
     std::ifstream data_file;
 
     std::string current_line{""};
+
+    size_t count{};
 public:
     file_type const current_file_type{file_type::unknown};
 
