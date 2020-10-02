@@ -73,3 +73,15 @@ TEST(aggregate_by_test, small_example)
         EXPECT_RANGE_EQ(copy.extra_information, expected_extra_information);
     }
 }
+
+#ifndef NDEBUG
+TEST(aggregate_by_test, column_index_to_sort_too_big)
+{
+    pack_data data;
+    data.filenames = std::vector<std::string>{"seq1", "seq2"};
+    data.kmer_counts = std::vector<size_t>{100, 40};
+    data.extra_information = std::vector<std::vector<std::string>>{{"1", "foo"}, {"2", "foo"}};
+
+    EXPECT_DEATH((aggregate_by(data, 4)), "");
+}
+#endif
