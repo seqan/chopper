@@ -55,11 +55,12 @@ TEST(chopper_split_test, high_level_ibf)
 
     {
         std::ofstream fout{data_filename.get_path()};
-        fout << "FILE_OR_COLOR_ID\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n"
-             << input_filename + "\t2\t500\n"
-             << input_filename + "\t2\t500\n"
-             << "COLORFUL_MERGED_BIN_0\t1\t2500\n"
-             << input_filename + "\t3\t1000\n";
+        fout << "BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n"
+             << "SPLIT_BIN_0\t" << input_filename + "\t2\t500\n"
+             << "SPLIT_BIN_1\t" << input_filename + "\t2\t500\n"
+             << "COLORFUL_MERGED_BIN_2_0\t" << input_filename << "\t1\t2500\n"
+             << "COLORFUL_MERGED_BIN_2_1\t" << input_filename << ";" << input_filename << "\t2\t2500\n"
+             << "SPLIT_BIN_3\t" << input_filename + "\t3\t1000\n";
     }
 
     seqan3::test::tmp_filename output_filename{"traverse"};
@@ -83,16 +84,28 @@ TEST(chopper_split_test, high_level_ibf)
             "[(209,400),(289,480),(209,481)]\n"
         },
         {
+            "[(0,247),(0,327),(0,227),(0,247),(0,327),(0,235)]\n"
+            "[(247,400),(327,480),(227,481),(247,400),(327,480),(235,481)]\n"
+        },
+        {
             "[(0,163),(0,186),(0,163)]\n"
             "[(163,247),(186,327),(163,284)]\n"
             "[(247,400),(327,480),(284,481)]\n"
         }
     };
 
-    // compare results
-    for (size_t batch_number = 0; batch_number < 3; ++batch_number)
+    std::vector<std::string> const bin_names
     {
-        std::ifstream output_file{output_filename.get_path().string() + "_" + std::to_string(batch_number) + ".out"};
+        "SPLIT_BIN_0",
+        "SPLIT_BIN_1",
+        "COLORFUL_MERGED_BIN_2_1",
+        "SPLIT_BIN_3",
+    };
+
+    // compare results
+    for (size_t batch_number = 0; batch_number < 4; ++batch_number)
+    {
+        std::ifstream output_file{output_filename.get_path().string() + "_" + bin_names[batch_number] + ".out"};
         std::string const output_file_str((std::istreambuf_iterator<char>(output_file)), std::istreambuf_iterator<char>());
         EXPECT_EQ(output_file_str, expected_output[batch_number]);
     }

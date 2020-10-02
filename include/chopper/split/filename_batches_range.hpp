@@ -14,8 +14,7 @@ public:
     {
         unknown,
         seqfiles_given,
-        high_level,
-        low_level
+        data_file
     };
 
 private:
@@ -80,7 +79,6 @@ private:
         //!\brief Pre-increment.
         iterator & operator++() noexcept
         {
-            ++(host->count);
             current_config.seqfiles.clear();
             while (std::getline(host->data_file, host->current_line) && !parse_next_line());
             return *this;
@@ -147,17 +145,13 @@ private:
 
             while (field_end != buffer_end && *field_end != '\t') ++field_end;
 
-            if (host->current_file_type == file_type::low_level)
-            {
-                ++field_end; // skip tab
-                field_start = field_end;
-                while (field_end != buffer_end && *field_end != '\t') ++field_end;
-            }
+            std::string const bin_name = std::string(field_start, field_end);
+
+            ++field_end; // skip tab
+            field_start = field_end;
+            while (field_end != buffer_end && *field_end != '\t') ++field_end;
 
             std::string filenames = std::string(field_start, field_end);
-
-            if (host->current_file_type == file_type::high_level && host->starts_with(filenames, merged_bin_prefix))
-                return false;
 
             // read number of technical bins assigned to these files
             ++field_end; // skip tab
@@ -172,7 +166,7 @@ private:
 
             current_config.bins = num_technical_bins;
 
-            std::string out_filename = host->config.out_path.string() + "_" + std::to_string(host->count) + ".out";
+            std::string out_filename = host->config.out_path.string() + "_" + bin_name + ".out";
             current_config.out_path = std::filesystem::path{out_filename};
 
             return true;
@@ -215,7 +209,6 @@ private:
 
     std::string current_line{""};
 
-    size_t count{};
 public:
     file_type const current_file_type{file_type::unknown};
 
@@ -239,19 +232,13 @@ private:
         }
         else // empty
         {
+            identified_file_type = file_type::data_file;
+
             if (!data_file.good() || !data_file.is_open())
                 throw std::logic_error{"Could not open file for reading"};
 
-            std::getline(data_file, current_line); // read header line
-
-            if (starts_with(current_line, "FILE_OR_COLOR_ID"))
-                identified_file_type = file_type::high_level;
-            else if (starts_with(current_line, "COLOR_ID"))
-                identified_file_type = file_type::low_level;
-            else
-                throw std::logic_error{"Unkown file format :(. File: " + config.data_filename};
-
-            std::getline(data_file, current_line);
+            std::getline(data_file, current_line); // skip header line
+            std::getline(data_file, current_line); // read first line
         }
 
         return identified_file_type;

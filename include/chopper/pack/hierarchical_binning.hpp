@@ -163,13 +163,11 @@ struct hierarchical_binning
         std::cout << "optimum: " << matrix[trace_i][trace_j] << std::endl;
         std::cout << std::endl;
 
-        std::ofstream high_level_ibf_file{"high_level_ibf.binning"};
-        std::ofstream low_level_ibf_file{"low_level_ibfs.binning"};
+        std::ofstream output_file{"output.binning"};
 
-        high_level_ibf_file << "FILE_OR_COLOR_ID\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE" << std::endl;
-        low_level_ibf_file << "COLOR_ID\tFILE_ID\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE" << std::endl;
+        output_file << "BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE" << std::endl;
 
-        size_t color_id{};
+        size_t bin_id{};
 
         while (trace_j >= 0)
         {
@@ -189,16 +187,16 @@ struct hierarchical_binning
                 int const kmer_count = user_bin_kmer_counts[0];
                 int const average_bin_size = kmer_count / trace_i;
 
-                high_level_ibf_file << names[0] << '\t' << trace_i << '\t' << average_bin_size << '\n';
+                output_file << "SPLIT_BIN_" << bin_id << '\t'
+                            << names[0] << '\t'
+                            << trace_i << '\t'
+                            << average_bin_size << '\n';
 
                 --trace_j;
                 // std::cout << "split " << trace_j << " into " << trace_i << ": " << kmer_count / trace_i << std::endl;
             }
             else if (number_of_bins == 0) // start of merged bin
             {
-                std::string const merged_ibf_name{"COLORFUL_MERGED_BIN_" + std::to_string(color_id)};
-                ++color_id;
-
                 std::vector<size_t> merged_bins{kmer_count};
                 std::vector<std::string> merged_bin_names{names[trace_j]};
                 // std::cout << "merged [" << trace_j;
@@ -214,14 +212,14 @@ struct hierarchical_binning
                 }
                 assert(trace_j == 0 || trace_i - next_i == 1);
                 assert(kmer_count == std::accumulate(merged_bins.begin(), merged_bins.end(), 0u));
-                high_level_ibf_file << merged_ibf_name << '\t' << 1/*technical bin*/ << '\t' << kmer_count << '\n';
 
                 ++number_of_bins;
                 trace_i = next_i;
                 --trace_j;
 
                 // now do the binning for the low-level IBF:
-                simple_binning algo{merged_bins, merged_bin_names, merged_ibf_name, low_level_ibf_file};
+                std::string const merged_ibf_name{"MERGED_BIN_" + std::to_string(bin_id)};
+                simple_binning algo{merged_bins, merged_bin_names, merged_ibf_name, output_file};
                 algo.dp_algorithm();
 
                 // std::cout << "]: " << kmer_count << std::endl;
@@ -229,9 +227,6 @@ struct hierarchical_binning
             }
             else if (number_of_bins == 1 && next_j != static_cast<size_t>(trace_j) - 1) // merged bin
             {
-                std::string const merged_ibf_name{"COLORFUL_MERGED_BIN_" + std::to_string(color_id)};
-                ++color_id;
-
                 std::vector<size_t> merged_bins{kmer_count};
                 std::vector<std::string> merged_bin_names{names[trace_j]};
                 // std::cout << "merged [" << trace_j;
@@ -246,10 +241,10 @@ struct hierarchical_binning
                 }
                 trace_i = next_i;
                 trace_j = next_j; // unneccessary?
-                high_level_ibf_file << merged_ibf_name << '\t' << 1/*technical bin*/ << '\t' << kmer_count << '\n';
 
                 // now do the binning for the low-level IBF:
-                simple_binning algo{merged_bins, merged_bin_names, merged_ibf_name, low_level_ibf_file};
+                std::string const merged_ibf_name{"COLORFUL_MERGED_BIN_" + std::to_string(bin_id)};
+                simple_binning algo{merged_bins, merged_bin_names, merged_ibf_name, output_file};
                 algo.dp_algorithm();
                 // std::cout << "]: " << kmer_count << std::endl;
             }
@@ -257,13 +252,17 @@ struct hierarchical_binning
             {
                 size_t const kmer_count_per_bin = kmer_count / number_of_bins; // round down
 
-                high_level_ibf_file << names[trace_j] << '\t' << number_of_bins << '\t' << kmer_count_per_bin << '\n';
+                output_file << "SPLIT_BIN_" << bin_id << '\t'
+                            << names[trace_j] << '\t'
+                            << number_of_bins << '\t'
+                            << kmer_count_per_bin << '\n';
 
                 // std::cout << "split " << trace_j << " into " << number_of_bins << ": " << kmer_count_per_bin << std::endl;
 
                 trace_i = trace[trace_i][trace_j].first;
                 --trace_j;
             }
+            ++bin_id;
         }
     }
 };

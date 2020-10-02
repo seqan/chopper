@@ -92,6 +92,7 @@ struct simple_binning
         size_t trace_i = num_technical_bins - 1;
         size_t trace_j = num_user_bins - 1;
 
+        size_t bin_id{};
         while (trace_j > 0)
         {
             size_t next_i = trace[trace_i][trace_j];
@@ -100,10 +101,11 @@ struct simple_binning
             size_t const kmer_count_per_bin = (kmer_count + number_of_bins - 1) / number_of_bins; // round up
 
             // ouput_file << IBF_ID,NAME,NUM_TECHNICAL_BINS,ESTIMATED_TB_SIZE
-            output_file << ibf_name << '\t'
+            output_file << ibf_name << '_' << bin_id << '\t'
                         << user_bin_names[trace_j] << '\t'
                         << number_of_bins << '\t'
                         << kmer_count_per_bin << '\n';
+            ++bin_id;
 
             trace_i = trace[trace_i][trace_j];
             --trace_j;
@@ -113,7 +115,7 @@ struct simple_binning
         size_t const kmer_count_per_bin =  (kmer_count + trace_i - 1) / trace_i;
 
         // ouput_file << IBF_ID,NAME,NUM_TECHNICAL_BINS,ESTIMATED_TB_SIZE
-        output_file << ibf_name << '\t'
+        output_file << ibf_name << '_' << bin_id << '\t'
                     << user_bin_names[0] << '\t'
                     << trace_i << '\t'
                     << kmer_count_per_bin << '\n';

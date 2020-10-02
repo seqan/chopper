@@ -32,23 +32,17 @@ TEST(chopper_pack_test, small_example)
 
     chopper_pack(pack_parser);
 
-    std::istringstream expected_high_level{std::string
+    std::istringstream expected_file{std::string
     {
-        "FILE_OR_COLOR_ID\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n"
-        "seq7\t1\t500\n"
-        "seq6\t1\t500\n"
-        "COLORFUL_MERGED_BIN_0\t1\t2500\n"
-        "seq1\t1\t1000\n"
-    }};
-
-    std::istringstream expected_low_level{std::string
-    {
-        "COLOR_ID\tFILE_ID\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n"
-        "COLORFUL_MERGED_BIN_0\tseq0\t16\t32\n"
-        "COLORFUL_MERGED_BIN_0\tseq2\t12\t42\n"
-        "COLORFUL_MERGED_BIN_0\tseq3\t12\t42\n"
-        "COLORFUL_MERGED_BIN_0\tseq4\t12\t42\n"
-        "COLORFUL_MERGED_BIN_0\tseq5\t12\t42\n"
+        "BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n"
+        "SPLIT_BIN_0\tseq7\t1\t500\n"
+        "SPLIT_BIN_1\tseq6\t1\t500\n"
+        "COLORFUL_MERGED_BIN_2_0\tseq0\t16\t32\n"
+        "COLORFUL_MERGED_BIN_2_1\tseq2\t12\t42\n"
+        "COLORFUL_MERGED_BIN_2_2\tseq3\t12\t42\n"
+        "COLORFUL_MERGED_BIN_2_3\tseq4\t12\t42\n"
+        "COLORFUL_MERGED_BIN_2_4\tseq5\t12\t42\n"
+        "SPLIT_BIN_3\tseq1\t1\t1000\n"
     }};
 
     std::string expected_line;
@@ -56,22 +50,12 @@ TEST(chopper_pack_test, small_example)
 
     // high level ibf file:
     {
-        std::ifstream output_file{"high_level_ibf.binning"};
-        while (std::getline(expected_high_level, expected_line) && std::getline(output_file, output_line))
+        std::ifstream output_file{"output.binning"};
+        while (std::getline(expected_file, expected_line) && std::getline(output_file, output_line))
             EXPECT_EQ(expected_line, output_line);
 
-        EXPECT_FALSE(std::getline(expected_high_level, expected_line)); // both files are exhausted
+        EXPECT_FALSE(std::getline(expected_file, expected_line)); // both files are exhausted
         EXPECT_FALSE(std::getline(output_file, output_line)); // both files are exhausted
-    }
-
-    // high level ibf file:
-    {
-        std::ifstream output_file{"low_level_ibfs.binning"};
-        while (std::getline(expected_low_level, expected_line) && std::getline(output_file, output_line))
-            EXPECT_EQ(expected_line, output_line);
-
-        EXPECT_FALSE(std::getline(expected_low_level, expected_line)); // both files are exhausted
-        EXPECT_FALSE(std::getline(output_file, output_line)) << output_line << std::endl; // both files are exhausted
     }
 }
 

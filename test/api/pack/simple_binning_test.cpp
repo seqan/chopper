@@ -17,10 +17,10 @@ TEST(simple_binning_test, small_example)
 
     std::string expected
     {
-        "TEST_IBF\tseq4\t1\t20\n"
-        "TEST_IBF\tseq3\t1\t20\n"
-        "TEST_IBF\tseq2\t2\t20\n"
-        "TEST_IBF\tseq1\t5\t20\n"
+        "TEST_IBF_0\tseq4\t1\t20\n"
+        "TEST_IBF_1\tseq3\t1\t20\n"
+        "TEST_IBF_2\tseq2\t2\t20\n"
+        "TEST_IBF_3\tseq1\t5\t20\n"
     };
 
     EXPECT_EQ(output.str(), expected);
@@ -37,10 +37,10 @@ TEST(simple_binning_test, uniform_distribution)
 
     std::string expected
     {
-        "TEST_IBF\tseq4\t1\t20\n"
-        "TEST_IBF\tseq3\t1\t20\n"
-        "TEST_IBF\tseq2\t1\t20\n"
-        "TEST_IBF\tseq1\t1\t20\n"
+        "TEST_IBF_0\tseq4\t1\t20\n"
+        "TEST_IBF_1\tseq3\t1\t20\n"
+        "TEST_IBF_2\tseq2\t1\t20\n"
+        "TEST_IBF_3\tseq1\t1\t20\n"
     };
 
     EXPECT_EQ(output.str(), expected);
