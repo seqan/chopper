@@ -36,3 +36,14 @@ TEST(chopper_split_test, simple_example)
     EXPECT_FALSE(std::getline(expected_file, expected_line)); // both files are exhausted
     EXPECT_FALSE(std::getline(output_file, output_line)); // both files are exhausted
 }
+
+TEST(chopper_split_test, no_s_or_f_option)
+{
+    std::string input_filename = DATADIR"small.fa";
+    seqan3::test::tmp_filename output_filename{"small_traverse.out"};
+    const char * argv[] = {"./chopper-split", "-k", "15"};
+    int argc = 3;
+    seqan3::argument_parser split_parser{"chopper-split", argc, argv, false};
+
+    EXPECT_THROW(chopper_split(split_parser), std::runtime_error);
+}
