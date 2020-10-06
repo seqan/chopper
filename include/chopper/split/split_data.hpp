@@ -10,4 +10,5 @@ struct split_data
     seqan::StringSet<TSequence, seqan::Owner<> > sequences;
     seqan::StringSet<seqan::String<char> > ids;
     seqan::String<size_t> lengths;
+    std::vector<std::string> files_of_origin;
 };

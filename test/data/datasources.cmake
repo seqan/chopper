@@ -10,9 +10,9 @@ declare_datasource (FILE small.fa
                     URL ${CMAKE_SOURCE_DIR}/test/data/small.fa
                     URL_HASH SHA256=215a646ccd2d156eeabdd792108fc0ba385e244a25218afc095658189d2a3c0d)
 
-declare_datasource (FILE small_traverse.out
-                    URL ${CMAKE_SOURCE_DIR}/test/data/small_traverse.out
-                    URL_HASH SHA256=9cbdd4cf4f78c35bdece7868b77c03406317255231224e88d75dc06192f8bde8)
+declare_datasource (FILE small2.fa
+                    URL ${CMAKE_SOURCE_DIR}/test/data/small2.fa
+                    URL_HASH SHA256=3a444c41f71586d62514eea8faf3c699ac5f2cfce94fd3fc7c3e47d3ff3a8383)
 
 declare_datasource (FILE only_filenames.tsv
                     URL ${CMAKE_SOURCE_DIR}/test/data/only_filenames.tsv

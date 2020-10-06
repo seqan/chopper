@@ -301,7 +301,7 @@ edge [fontname = "Times-Italic", arrowsize = 0.75, fontsize = 16];
     fout << std::endl << "}" << std::endl;
 }
 
-void traverse_graph(split_config const & config)
+void traverse_graph(split_data const & data, split_config const & config)
 {
     lemon::ListDigraph g;
     std::vector<lemon::ListDigraph::Node> nodes;
@@ -535,10 +535,47 @@ void traverse_graph(split_config const & config)
 
     seqan3::debug_stream << "[LOG] " <<  lemon::countNodes(g) << " nodes remain. (should be 1 only the sink)" << std::endl;
 
+    assert(bin_contents.size() != 0);
+    assert(bin_contents[0].size() == seqan::length(data.sequences));
+
     std::ofstream fout{config.out_path};
-    seqan3::debug_stream_type dout{fout};
+    fout << "FILE_ID\tSEQ_ID\tBEGIN\tEND\tBIN_NUMBER\n"; // header
+
+    seqan::String<bool> range_end_sanity_check;//(seqan::length(data.lengths));
+    seqan::resize(range_end_sanity_check, seqan::length(data.sequences));
+    size_t bin_index{};
     for (auto & bin : bin_contents)
-        dout << bin << std::endl;
+    {
+        for (size_t i = 0; i < seqan::length(data.sequences); ++i)
+        {
+            if (bin[i].first != bin[i].second)
+            {
+                fout << data.files_of_origin[i] << '\t'
+                     << data.ids[i] << '\t'
+                     << bin[i].first << '\t'
+                     << bin[i].second << '\t'
+                     << bin_index << '\n';
+            }
+
+            if (bin[i].second == data.lengths[i])
+                range_end_sanity_check[i] == true;
+        }
+        ++bin_index;
+    }
+
+    bool sanity_check_passed{true};
+    for (bool end_matched : range_end_sanity_check)
+        sanity_check_passed = sanity_check_passed && end_matched;
+    if (!sanity_check_passed)
+    {
+        seqan3::debug_stream << "[WARNING] Sanity check at the end did not pass. "
+                             << "Not all sequence ends were contained in the traversed ranges. "
+                             << std::endl;
+        for (size_t i = 0; i < seqan::length(range_end_sanity_check)/*.size()*/; ++i)
+            if (!range_end_sanity_check[i])
+                std::cerr << "[WARNING] End did not match for " << data.ids[i] << " of length " << data.lengths[i] << std::endl;
+        seqan3::debug_stream << "[WARNING] This should never happen. Please contact the developer." << std::endl;
+    }
 
     seqan3::debug_stream << "Bin content written to : " << config.out_path << std::endl;
 }

@@ -6,7 +6,7 @@ target_use_datasources (minimizer_msa_test FILES small.fa)
 
 add_api_test (chopper_split_test.cpp)
 target_use_datasources (chopper_split_test FILES small.fa)
-target_use_datasources (chopper_split_test FILES small_traverse.out)
+target_use_datasources (chopper_split_test FILES small2.fa)
 
 add_api_test (filename_batches_range_test.cpp)
 target_use_datasources (filename_batches_range_test FILES high_level_ibf.binning)

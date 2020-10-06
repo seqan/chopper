@@ -78,7 +78,7 @@ int chopper_split(seqan3::argument_parser & parser)
 
         // Traverse graph
         // -------------------------------------------------------------------------
-        traverse_graph(batch_config);
+        traverse_graph(data, batch_config);
     }
 
     return 0;

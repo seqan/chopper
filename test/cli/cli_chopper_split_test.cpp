@@ -29,20 +29,35 @@ TEST_F(cli_test, with_out_file)
     cli_test_result result = execute_app("chopper", "split",
                                          "-k", "15", "-w", "25", "-b", "3",
                                          "-s", data("small.fa"),
+                                         "-s", data("small2.fa"),
                                          "-o", output_filename.get_path().c_str());
 
     // compare results
-    std::ifstream expected_file{DATADIR"small_traverse.out"};
+    std::string expected_file_str
+    {
+        "FILE_ID\tSEQ_ID\tBEGIN\tEND\tBIN_NUMBER\n" +
+        data("small.fa").string() + "\tseq1\t0\t163\t0\n" +
+        data("small.fa").string() + "\tseq2\t0\t226\t0\n" +
+        data("small.fa").string() + "\tseq3\t0\t163\t0\n" +
+        data("small2.fa").string() + "\tseq10\t0\t163\t0\n" +
+        data("small2.fa").string() + "\tseq20\t0\t226\t0\n" +
+        data("small2.fa").string() + "\tseq30\t0\t163\t0\n" +
+        data("small.fa").string() + "\tseq1\t163\t247\t1\n" +
+        data("small.fa").string() + "\tseq2\t226\t327\t1\n" +
+        data("small.fa").string() + "\tseq3\t163\t261\t1\n" +
+        data("small2.fa").string() + "\tseq10\t163\t247\t1\n" +
+        data("small2.fa").string() + "\tseq20\t226\t327\t1\n" +
+        data("small2.fa").string() + "\tseq30\t163\t327\t1\n" +
+        data("small.fa").string() + "\tseq1\t247\t400\t2\n" +
+        data("small.fa").string() + "\tseq2\t327\t480\t2\n" +
+        data("small.fa").string() + "\tseq3\t261\t481\t2\n" +
+        data("small2.fa").string() + "\tseq10\t247\t400\t2\n" +
+        data("small2.fa").string() + "\tseq20\t327\t480\t2\n" +
+        data("small2.fa").string() + "\tseq30\t327\t481\t2\n"
+    };
+
+    // compare results
     std::ifstream output_file{output_filename.get_path()};
-
-    std::string expected_line;
-    std::string output_line;
-
-    while (std::getline(expected_file, expected_line) && std::getline(output_file, output_line))
-        EXPECT_EQ(expected_line, output_line);
-
-    EXPECT_FALSE(std::getline(expected_file, expected_line)); // both files are exhausted
-    EXPECT_FALSE(std::getline(output_file, output_line)); // both files are exhausted
-
-    EXPECT_EQ(result.exit_code, 0);
+    std::string const output_file_str((std::istreambuf_iterator<char>(output_file)), std::istreambuf_iterator<char>());
+    EXPECT_EQ(output_file_str, expected_file_str);
 }

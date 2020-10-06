@@ -22,7 +22,9 @@ bool load_minimizer_sequences(split_data & data,
     {
         seqan::StringSet<seqan::String<seqan::Iupac>, seqan::Owner<>> iupac_sequences;
         seqan::readRecords(data.ids, iupac_sequences, inFile);
+
         seqan::resize(sequences, seqan::length(iupac_sequences));
+        data.files_of_origin.reserve(seqan::length(iupac_sequences));
 
         for (size_t idx = 0; idx < seqan::length(iupac_sequences); ++idx)
         {
@@ -31,6 +33,7 @@ bool load_minimizer_sequences(split_data & data,
                 seqan::appendValue(sequences[idx], iupac_sequences[idx][jdx]);
             }
             seqan::appendValue(data.lengths, seqan::length(iupac_sequences[idx]));
+            data.files_of_origin.push_back(fileName);
         }
     }
 
