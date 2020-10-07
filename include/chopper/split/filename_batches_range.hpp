@@ -5,6 +5,7 @@
 
 #include <seqan3/range/views/to.hpp>
 
+#include <chopper/detail_starts_with.hpp>
 #include <chopper/split/split_config.hpp>
 
 class filename_batches_range
@@ -213,14 +214,6 @@ public:
     file_type const current_file_type{file_type::unknown};
 
 private:
-
-    bool starts_with(std::string const & target, std::string_view const & query) const
-    {
-        size_t index{};
-        while (index < target.size() && index < query.size() && target[index] == query[index])
-            ++index;
-        return index == query.size();
-    }
 
     file_type init()
     {
