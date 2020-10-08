@@ -73,23 +73,10 @@ struct hierarchical_binning
         }
     }
 
-    void dp_algorithm()
+    void initialization(std::vector<std::vector<size_t>> & matrix,
+                        std::vector<std::vector<size_t>> & ll_matrix,
+                        std::vector<std::vector<std::pair<size_t, size_t>>> & trace)
     {
-        sort_by_distribution(names, user_bin_kmer_counts);
-        // seqan3::debug_stream << std::endl << "Sorted list: " << user_bin_kmer_counts << std::endl << std::endl;
-
-        std::vector<std::vector<size_t>> matrix(num_technical_bins); // rows
-        for (auto & v : matrix)
-            v.resize(num_user_bins, std::numeric_limits<size_t>::max()); // columns
-
-        std::vector<std::vector<size_t>> ll_matrix(num_technical_bins); // rows
-        for (auto & v : ll_matrix)
-            v.resize(num_user_bins, 0u); // columns
-
-        std::vector<std::vector<std::pair<size_t, size_t>>> trace(num_technical_bins); // rows
-        for (auto & v : trace)
-            v.resize(num_user_bins, {std::numeric_limits<size_t>::max(), std::numeric_limits<size_t>::max()}); // columns
-
         // initialize first column (first row is initialized with inf)
         for (size_t i = 0; i < num_technical_bins; ++i)
         {
@@ -104,7 +91,12 @@ struct hierarchical_binning
             ll_matrix[0][j] = matrix[0][j];
             trace[0][j] = {0u, j - 1}; // unnecessary?
         }
+    }
 
+    void recursion(std::vector<std::vector<size_t>> & matrix,
+                   std::vector<std::vector<size_t>> & ll_matrix,
+                   std::vector<std::vector<std::pair<size_t, size_t>>> & trace)
+    {
         // we must iterate column wise
         for (size_t j = 1; j < num_user_bins; ++j)
         {
@@ -160,11 +152,12 @@ struct hierarchical_binning
                 matrix[i][j] = minimum;
             }
         }
+    }
 
-        // print_matrix(matrix, num_technical_bins, num_user_bins, std::numeric_limits<size_t>::max());
-        // print_matrix(ll_matrix, num_technical_bins, num_user_bins, std::numeric_limits<size_t>::max());
-        // print_matrix(trace, num_technical_bins, num_user_bins, std::make_pair(std::numeric_limits<size_t>::max(), std::numeric_limits<size_t>::max()));
-
+    void backtracking(std::vector<std::vector<size_t>> const & matrix,
+                      std::vector<std::vector<size_t>> const & ll_matrix,
+                      std::vector<std::vector<std::pair<size_t, size_t>>> const & trace)
+    {
         // backtracking
         size_t trace_i = num_technical_bins - 1;
         int trace_j = num_user_bins - 1;
@@ -272,5 +265,33 @@ struct hierarchical_binning
         }
 
         output_file.close(); // make sure content is flushed
+    }
+
+    void dp_algorithm()
+    {
+        sort_by_distribution(names, user_bin_kmer_counts);
+        // seqan3::debug_stream << std::endl << "Sorted list: " << user_bin_kmer_counts << std::endl << std::endl;
+
+        std::vector<std::vector<size_t>> matrix(num_technical_bins); // rows
+        for (auto & v : matrix)
+            v.resize(num_user_bins, std::numeric_limits<size_t>::max()); // columns
+
+        std::vector<std::vector<size_t>> ll_matrix(num_technical_bins); // rows
+        for (auto & v : ll_matrix)
+            v.resize(num_user_bins, 0u); // columns
+
+        std::vector<std::vector<std::pair<size_t, size_t>>> trace(num_technical_bins); // rows
+        for (auto & v : trace)
+            v.resize(num_user_bins, {std::numeric_limits<size_t>::max(), std::numeric_limits<size_t>::max()}); // columns
+
+        initialization(matrix, ll_matrix, trace);
+
+        recursion(matrix, ll_matrix, trace);
+
+        // print_matrix(matrix, num_technical_bins, num_user_bins, std::numeric_limits<size_t>::max());
+        // print_matrix(ll_matrix, num_technical_bins, num_user_bins, std::numeric_limits<size_t>::max());
+        // print_matrix(trace, num_technical_bins, num_user_bins, std::make_pair(std::numeric_limits<size_t>::max(), std::numeric_limits<size_t>::max()));
+
+        backtracking(matrix, ll_matrix, trace);
     }
 };
