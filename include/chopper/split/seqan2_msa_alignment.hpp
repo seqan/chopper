@@ -56,6 +56,7 @@ void seqan2_msa_alignment(seqan::Graph<seqan::Alignment<TStringSet, TCargo, TSpe
     typedef seqan::String<TScoreValue> TScoreValues;
 
     std::cout << "Start" << std::endl;
+    double current_time = seqan::sysTime();
 
     // Initialize alignment object
     // -------------------------------------------------------------------------
@@ -65,48 +66,53 @@ void seqan2_msa_alignment(seqan::Graph<seqan::Alignment<TStringSet, TCargo, TSpe
 
     // Segment match generation
     // -------------------------------------------------------------------------
-    double segmentGenerationTime = seqan::sysTime();
+    current_time = seqan::sysTime();
     // Containers for segment matches and corresponding scores
     TFragmentString matches;
     TScoreValues scores;
     append_all_to_all_matches(seqSet, matches, scores); // all-to-all no segment matches
-    std::cout << std::setw(30) << std::left << "Segment-match generation:" << std::setw(10) << std::right << seqan::sysTime() - segmentGenerationTime << "  s" << std::endl;
+    std::cout << std::setw(30) << std::left << "Segment-match generation:" << std::setw(10) << std::right << seqan::sysTime() - current_time << " s" << std::endl;
 
     // Build Alignment Graph from matches
     // -------------------------------------------------------------------------
+    current_time = seqan::sysTime();
     // Use these segment matches for the initial alignment graph
     TGraph g(seqSet);
     seqan::buildAlignmentGraph(matches, scores, g, seqan::FractionalScore());
     seqan::clear(matches);
     seqan::clear(scores);
+    std::cout << std::setw(30) << std::left << "Build alignment graph:" << std::setw(10) << std::right << seqan::sysTime() - current_time << " s" << std::endl;
     std::cout << std::setw(30) << std::left << "Number of vertices:" << std::setw(10) << std::right << seqan::numVertices(g) << std::endl;
 
     // Build guide Tree
     // -------------------------------------------------------------------------
+    current_time = seqan::sysTime();
     // Guide tree
     seqan::Graph<seqan::Tree<TDistanceValue> > guideTree;
     assert(!distance_matrix.empty()); // Check if we have a valid distance matrix
     seqan::njTree(distance_matrix, guideTree);
     distance_matrix.clear();
+    std::cout << std::setw(30) << std::left << "Build Guide Tree:" << std::setw(10) << std::right << seqan::sysTime() - current_time << " s" << std::endl;
 
     // Triplet extension
     // -------------------------------------------------------------------------
+    current_time = seqan::sysTime();
     // Some alignment constants
     TSize nSeq = seqan::length(seqSet);
     bool isDeepAlignment = (nSeq > 50);  // threshold for what is a deep alignment
     TSize threshold = (isDeepAlignment) ? 30 : 10;  // experimentally proved relation
 
-    double tripletStartTime = seqan::sysTime();
     if (nSeq < threshold)
         seqan::tripletLibraryExtension(g);
     else
         seqan::tripletLibraryExtension(g, guideTree, threshold / 2);
-    std::cout << std::setw(30) << std::left << "Triplet extension:" << std::setw(10) << std::right << seqan::sysTime() - tripletStartTime << "  s" << std::endl;
+    std::cout << std::setw(30) << std::left << "Triplet extension:" << std::setw(10) << std::right << seqan::sysTime() - current_time << "  " << std::endl;
 
     // Progressive Alignment
     // -------------------------------------------------------------------------
+    current_time = seqan::sysTime();
     seqan::progressiveAlignment(g, guideTree, gAlign);
-
     seqan::clear(guideTree);
     seqan::clear(g);
+    std::cout << std::setw(30) << std::left << "Progressive Alignment:" << std::setw(10) << std::right << seqan::sysTime() - current_time << " s" << std::endl;
 }
