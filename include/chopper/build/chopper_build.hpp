@@ -44,14 +44,24 @@ int chopper_build(seqan3::argument_parser & parser)
     auto && [high_level_ibf, low_level_ibfs] = create_ibfs_from_data_file(config);
 
     {
-        std::ofstream fout(config.output_prefix + "high_level.ibf", std::ios::binary);
+        std::string const out_filename{config.output_prefix + "high_level.ibf"};
+        std::ofstream fout(out_filename, std::ios::binary);
+
+        if (!fout.good() || !fout.is_open())
+            throw std::runtime_error{"Could not open " + out_filename + " for writing."};
+
         cereal::BinaryOutputArchive archive(fout);
         archive(high_level_ibf);
     }
 
     for (auto const & low_level_ibf : low_level_ibfs)
     {
-        std::ofstream fout(config.output_prefix + "low_level.ibf", std::ios::binary);
+        std::string const out_filename{config.output_prefix + "low_level.ibf"};
+        std::ofstream fout(out_filename, std::ios::binary);
+
+        if (!fout.good() || !fout.is_open())
+            throw std::runtime_error{"Could not open " + out_filename + " for writing."};
+
         cereal::BinaryOutputArchive archive(fout);
         archive(low_level_ibf);
     }
