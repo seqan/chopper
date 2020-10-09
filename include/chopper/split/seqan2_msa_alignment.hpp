@@ -42,21 +42,6 @@ inline void append_all_to_all_matches(seqan::StringSet<TString, seqan::Dependent
     }
 }
 
-/*!
- * @fn globalMsaAlignment
- * @headerfile <seqan/graph_msa.h>
- * @brief Compute a global multiple sequence alignment.
- *
- * @signature void globalMsaAlignment(align, score);
- * @signature void globalMsaAlignment(gAlign, score[, options]);
- *
- * @param[in,out] gAlign  An @link AlignmentGraph @endlink containing two or more sequences.
- * @param[in,out] align   A @link Align @endlink object with two or more sequences to align.
- * @param[in]     score   The @link Score @endlink to use for computing the alignment.
- * @param[in]     options The @link MsaOptions @endlink to use for the configuration.
- *
- * The resulting alignment is stored in <tt>align</tt>/<tt>gAlign</tt>.
- */
 template <typename TStringSet, typename TCargo, typename TSpec, typename TStringSet1>
 void seqan2_msa_alignment(seqan::Graph<seqan::Alignment<TStringSet, TCargo, TSpec> > & gAlign,
                           TStringSet1 const & sequenceSet,

@@ -9,6 +9,71 @@
 
 #include <chopper/pack/print_matrix.hpp>
 
+/*!\brief Distributes x Technical Bins across y User Bins while minimizing the maximal Technical Bin size
+ *
+ * # Terminology
+ *
+ * ## Technical Bin
+ * \copydetails simple_binning::num_technical_bins
+ *
+ * ## User Bin
+ * \copydetails simple_binning::num_user_bins
+ *
+ * ## Notation
+ *  | Name    | Description                                                                 |
+ *  |---------|---------------------------------------------------------------------------- |
+ *  | **x**   | Number of Technical Bins (TB)                                               |
+ *  | **y**   | Number of User Bins (UB)                                                    |
+ *  | **b_i** | The bin size (kmer content) of Technical Bin $i$                            |
+ *  | **c_j** | The kmer content of User Bin $j$                                            |
+ *  | **M**   | A DP matrix that tracks the maximum technical bin size \f$\max_{i} (b_i)\f$.|
+ *
+ *  \note The number of technical bins **x** must be greater that the number of user bins **y** for this algorithm.
+ *
+ * # Algorithm
+ *
+ * Since the size of the IBF depends on the maximal Technical Bin size, we want to minimize \f$ max_{i} (b_i)\f$.
+ *
+ * Let \f$r = x - y\f$ be the surplus of TBs
+ *
+ * ## Initialization
+ * <img src="dp_algorithm_init.png" align="left"  width="10%"/>
+ *
+ * <br><br>
+ * \f$\qquad \forall_{i \in [0,r]} \quad M_{i,0} = \frac{c_0}{i + 1}\f$
+ * <br><br><br><br><br><br><br><br><br><br>
+ *
+ * ## Recursion
+ * <img src="dp_algorithm_recursion.png" align="left"  width="10%"/>
+ *
+ * <br><br>
+ * \f$\forall_{i,j} \quad M_{i,j} = \min_{i' \in [i - r - 1, i - 1]} \max(M_{i',j-1}, \frac{c_j}{i - i'})\f$
+ * <br><br><br><br><br><br><br><br><br><br>
+ *
+ * ## Backtracking
+ *
+ * Assume we filled a trace matrix **T** during the computation of **M**.
+ *
+ * We now want to recover the number of bins **n_j** for each User Bin **j**.
+ *
+ * <img src="dp_algorithm_backtracking.png" align="left"  width="10%"/>
+ *
+ * Backtracking pseudo code:
+ * ```
+ * // Start at the bottom-right cell.
+ * j = y - 1;
+ * i = x - 1;
+ * n = array(y); // array of length y
+ *
+ * while (j > 0)
+ * {
+ *     next_i = T[i][j];
+ *     n[j] = i - next_i;
+ *     i = next_i;
+ *     j = j - 1;
+ * }
+ * ```
+ */
 struct simple_binning
 {
     std::vector<size_t> const & user_bin_kmer_counts;
@@ -16,7 +81,17 @@ struct simple_binning
     std::string const & ibf_name;
     std::ostream & output_file;
 
+    /*!\brief The number of User bins.
+     *
+     * The user may impose a structure on his sequence data in the form of *logical groups* (e.g. species).
+     * When querying the IBF, the user is interested in an answer that differentiates between these groups.
+     */
     size_t const num_user_bins;
+    /*!\brief The number of Technical bins.
+     *
+     * A *Technical Bin* represents an actual bin in the binning directory.
+     * In the IBF, it stores its kmers in a **single Bloom Filter** (which is interleaved with all the other BFs).
+     */
     size_t const num_technical_bins;
     size_t const kmer_count_sum;
     size_t const kmer_count_average_per_bin;

@@ -73,11 +73,15 @@ struct hierarchical_binning
         }
     }
 
+    /*!\brief Initialize the matrices M (hig_level_ibf), L (low_level_ibfs) and T (trace)
+     *
+     * \image html hierarchical_dp_init.png
+     */
     void initialization(std::vector<std::vector<size_t>> & matrix,
                         std::vector<std::vector<size_t>> & ll_matrix,
                         std::vector<std::vector<std::pair<size_t, size_t>>> & trace)
     {
-        // initialize first column (first row is initialized with inf)
+        // initialize first column
         for (size_t i = 0; i < num_technical_bins; ++i)
         {
             matrix[i][0] = user_bin_kmer_counts[0] / (i + 1);
@@ -93,6 +97,44 @@ struct hierarchical_binning
         }
     }
 
+    /*!\brief Performs the recursion.
+     *
+     * \image html hierarchical_dp_recursion.png
+     *
+     * Explanations to the formula:
+     *
+     * Remember that M (matrix) stores the maximum technical bin size of the high level IBF (HIBF) and
+     * L (ll_matrix) stores the sum of all estimate low level ibfs (LIBF) memory footprints
+     * (assuming perfect splitting of kmer_content which can obviously not be achieved but `alpha` may be adjusted
+     * in order to counteract this underestimation).
+     *
+     * Now in order to minimize the memory footprint we...
+     *
+     * 1. ... (\f$v_ij\f$) firstly check if we should split the bin. <br>
+     * Therefore we compute for every possible \f$ i' \f$ above \f$ i \f$, the technical bin size if we split
+     * \f$ c_j \f$ into \f$ i - i' \f$ bins (\f$ \frac{c_j}{i - i'} \f$). We only take the maximum of the current
+     * maximum where I come from (\$f M_{i',j-1} \$f) and the new technical bin size computed just now.
+     * This maximum is the new current *maximum technical bin size* that needs to be multiplied by the current number
+     * technical bins \$f (i + 1) \$f in order to estimate the memory footprint of the HIBF.
+     * Now that we have the memory footprint of the HIBF we also consider the LIBFs memory footprint but nothing
+     * changed here, since we split not merge, so we just take \f$ L_{i',j-1} \f$ scaled by alpha.
+     *
+     * 2. ... (\f$h_ij\f$) secondly check if we should merge the bin with the ones before.<br>
+     * Therefore we start by compute for every possible \f$ j' \f$ to the left of \f$ j \f$, the merged bin weight
+     * (\f$ \sum_{g = j'}^{j} c_g \f$) of merging together user bins \f$ [j', ...,  j] \f$. This is only possible
+     * iff every bin \f$ [j', ...,  j] \f$ was **not splitted**. If we merge those bins starting with user bin
+     * \f$ j' \f$ we start the trace at \f$ M_{i-1,j'-1} \f$. Therefore we need to compute the new maximal technical
+     * bin size of the HIBF, which is the maximum of the merged bin weight and where we would come from
+     * (\f$ \max(M_{i-1,j'-1}, \sum_{g = j'}^{j} c_g) \f$) and multiple it by the number of technical bins so far
+     * \$f (i + 1) \$f to get the HIBF memory footprint. The LIBFs memory footprint also changes since we introduce a
+     * new merged bin. Namely, we add the weight of the new merged bin (\f$ \sum_{g = j'}^{j} c_g \f$) again to the
+     * LIBFs memory footprint from where we would come from \f$ L_{i-1,j'-1} \f$ and scale this by alpha. Just adding
+     * the combined merged bin weight neglects the fact, that the merged bin weight has to be distributed within the
+     * new low level IBF, potentially causing the effective text ratio and thereby the IBF memory footprint to increase.
+     * This we cannot know before hand how the data are, we need to accept this as a flaw in the "optimumal result" of
+     * this algorithm. It would be too computational intensive to compute the splitting for every possibility.
+     *
+     */
     void recursion(std::vector<std::vector<size_t>> & matrix,
                    std::vector<std::vector<size_t>> & ll_matrix,
                    std::vector<std::vector<std::pair<size_t, size_t>>> & trace)
@@ -107,6 +149,7 @@ struct hierarchical_binning
                 size_t minimum{std::numeric_limits<size_t>::max()};
                 size_t full_minimum{std::numeric_limits<size_t>::max()};
 
+                // check vertical cells
                 for (size_t i_prime = 0; i_prime < i; ++i_prime)
                 {
                     // score: The current maximum technical bin size for the high-level IBF (score for the matrix M)
@@ -125,9 +168,9 @@ struct hierarchical_binning
                     }
                 }
 
+                // check horizontal cells
                 size_t j_prime{j - 1};
                 size_t weight{current_weight};
-
                 // if the user bin j-1 was not split into multiple technical bins!
                 // I may merge the current user bin j into the former
                 while (j_prime != 0 && ((i - trace[i][j_prime].first) < 2) && weight < minimum)
