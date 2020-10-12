@@ -80,18 +80,17 @@ auto neighbour_joining(TMatrix mat)
         mat[i*nseq+i] = 0;
     }
 
+    int64_t sumOfBranches = 0;
+    // Determine the sum of all branches and
+    // copy upper triangle mat to lower triangle
+    for (TSize col = 1; col < nseq; ++col)
+        for (TSize row = 0; row < col; ++row)
+            sumOfBranches += mat[col*nseq+row] = mat[row*nseq+col];
+
     // Main cycle
     int64_t fnseqs = static_cast<int64_t>(nseq);
     for (TSize nc = 0; nc < (nseq - 3); ++nc)
     {
-        int64_t sumOfBranches = 0;
-
-        // Determine the sum of all branches and
-        // copy upper triangle matrix to lower triangle
-        for (TSize col = 1; col < nseq; ++col)
-            for (TSize row = 0; row < col; ++row)
-                sumOfBranches += mat[col*nseq+row] = mat[row*nseq+col];
-
         // Compute the sum of branch lengths for all possible pairs
         bool notFound = true;
         int64_t tmin = 0;
@@ -178,13 +177,18 @@ auto neighbour_joining(TMatrix mat)
 
         for (TSize j = 0; j < nseq; ++j)
         {
-            if (connector[j] != nilVertex )
+            if (connector[j] != nilVertex && mini != j)
             {
-                // Use upper triangle
-                if ((TSize) mini < j)
-                    mat[mini*nseq+j] = (mat[mini*nseq+j] + mat[minj*nseq+j]) / 2;
-                if ((TSize) mini > j)
-                    mat[j*nseq+mini] = (mat[mini*nseq+j] + mat[minj*nseq+j]) / 2;
+                TSize const new_value = (mat[mini*nseq+j] + mat[minj*nseq+j]) / 2;
+                assert(mat[mini*nseq+j] == mat[j*nseq+mini]);
+                mat[mini*nseq+j] = new_value;
+                mat[j*nseq+mini] = new_value;
+                sumOfBranches -= new_value;
+            }
+            else
+            {
+                assert(mat[j*nseq+minj] == mat[minj*nseq+j]);
+                sumOfBranches -= mat[j*nseq+minj];
             }
 
             mat[j*nseq+minj] = mat[minj*nseq+j] = 0;
