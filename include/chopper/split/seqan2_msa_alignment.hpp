@@ -4,6 +4,7 @@
 
 #include <chopper/split/split_config.hpp>
 #include <chopper/split/map_distance_matrix.hpp>
+#include <chopper/split/neighbour_joining.hpp>
 
 template<typename TString, typename TSpec, typename TSegmentMatches, typename TScoreValues>
 inline void append_all_to_all_matches(seqan::StringSet<TString, seqan::Dependent<TSpec> > const & sequenceSet,
@@ -51,7 +52,6 @@ void seqan2_msa_alignment(seqan::Graph<seqan::Alignment<TStringSet, TCargo, TSpe
     typedef typename seqan::Value<TScore>::Type TScoreValue;
     typedef typename seqan::Size<TStringSet>::Type TSize;
     typedef seqan::Graph<seqan::Alignment<TStringSet, TSize> > TGraph;
-    typedef double TDistanceValue;
     typedef seqan::String<seqan::Fragment<> > TFragmentString;
     typedef seqan::String<TScoreValue> TScoreValues;
 
@@ -88,10 +88,8 @@ void seqan2_msa_alignment(seqan::Graph<seqan::Alignment<TStringSet, TCargo, TSpe
     // -------------------------------------------------------------------------
     current_time = seqan::sysTime();
     // Guide tree
-    seqan::Graph<seqan::Tree<TDistanceValue> > guideTree;
     assert(!distance_matrix.empty()); // Check if we have a valid distance matrix
-    seqan::njTree(distance_matrix, guideTree);
-    distance_matrix.clear();
+    auto guide_tree = neighbour_joining(std::move(distance_matrix));
     std::cout << std::setw(30) << std::left << "Build Guide Tree:" << std::setw(10) << std::right << seqan::sysTime() - current_time << " s" << std::endl;
 
     // Triplet extension
@@ -105,14 +103,14 @@ void seqan2_msa_alignment(seqan::Graph<seqan::Alignment<TStringSet, TCargo, TSpe
     if (nSeq < threshold)
         seqan::tripletLibraryExtension(g);
     else
-        seqan::tripletLibraryExtension(g, guideTree, threshold / 2);
+        seqan::tripletLibraryExtension(g, guide_tree, threshold / 2);
     std::cout << std::setw(30) << std::left << "Triplet extension:" << std::setw(10) << std::right << seqan::sysTime() - current_time << "  " << std::endl;
 
     // Progressive Alignment
     // -------------------------------------------------------------------------
     current_time = seqan::sysTime();
-    seqan::progressiveAlignment(g, guideTree, gAlign);
-    seqan::clear(guideTree);
+    seqan::progressiveAlignment(g, guide_tree, gAlign);
+    seqan::clear(guide_tree);
     seqan::clear(g);
     std::cout << std::setw(30) << std::left << "Progressive Alignment:" << std::setw(10) << std::right << seqan::sysTime() - current_time << " s" << std::endl;
 }
