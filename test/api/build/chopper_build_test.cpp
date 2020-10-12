@@ -18,7 +18,7 @@ TEST(chopper_count_test, small_example_parallel_2_threads)
     std::string input_filename2 = DATADIR"small2.fa";
     seqan3::test::tmp_filename data_filename{"data.tsv"};
 
-    seqan3::test::tmp_filename traversal_dir{"/"};
+    seqan3::test::tmp_filename traversal_dir{""};
     std::string traversal_split_bin0{traversal_dir.get_path().string() + "SPLIT_BIN_0.out"};
     std::string traversal_merged_bin2{traversal_dir.get_path().string() + "COLORFUL_MERGED_BIN_2_1.out"};
     std::string traversal_split_bin3{traversal_dir.get_path().string() + "SPLIT_BIN_3.out"};
@@ -58,7 +58,7 @@ TEST(chopper_count_test, small_example_parallel_2_threads)
              << input_filename2 << "\tseq30\t0\t481\t2\n";
     }
 
-    seqan3::test::tmp_filename output_filename{"/"};
+    seqan3::test::tmp_filename output_filename{""};
     const char * argv[] = {"./chopper-build", "-k", "15",
                            "-f", data_filename.get_path().c_str(),
                            "-p", traversal_dir.get_path().c_str(),
