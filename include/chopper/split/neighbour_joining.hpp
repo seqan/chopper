@@ -55,8 +55,8 @@ auto neighbour_joining(TMatrix mat)
         TVertexDescriptor v1 = seqan::addVertex(g);
         TVertexDescriptor v2 = seqan::addVertex(g);
         TVertexDescriptor internalVertex = seqan::addVertex(g);
-        seqan::addEdge(g, internalVertex, v1, (node_weight_type) roundToSignificantFigures(mat[1] / 2.0, 5));
-        seqan::addEdge(g, internalVertex, v2, (node_weight_type) roundToSignificantFigures(mat[1] / 2.0, 5));
+        seqan::addEdge(g, internalVertex, v1, roundToSignificantFigures(mat[1] / 2.0, 5));
+        seqan::addEdge(g, internalVertex, v2, roundToSignificantFigures(mat[1] / 2.0, 5));
         g.data_root = internalVertex;
         return g;
     }
@@ -155,8 +155,8 @@ auto neighbour_joining(TMatrix mat)
 
         // Build tree
         TVertexDescriptor internalVertex = seqan::addVertex(g);
-        seqan::addEdge(g, internalVertex, connector[mini], (node_weight_type) roundToSignificantFigures(iBranch, 5));
-        seqan::addEdge(g, internalVertex, connector[minj], (node_weight_type) roundToSignificantFigures(jBranch, 5));
+        seqan::addEdge(g, internalVertex, connector[mini], roundToSignificantFigures(iBranch, 5));
+        seqan::addEdge(g, internalVertex, connector[minj], roundToSignificantFigures(jBranch, 5));
 
         // Remember the average branch length for the new combined node
         // Must be subtracted from all branches that include this node
@@ -234,11 +234,11 @@ auto neighbour_joining(TMatrix mat)
 
     // Build tree
     TVertexDescriptor internalVertex = seqan::addVertex(g);
-    seqan::addEdge(g, internalVertex, seqan::getValue(connector, l[0]), (node_weight_type) roundToSignificantFigures(branch[0], 5));
-    seqan::addEdge(g, internalVertex, seqan::getValue(connector, l[1]), (node_weight_type) roundToSignificantFigures(branch[1], 5));
+    seqan::addEdge(g, internalVertex, seqan::getValue(connector, l[0]), roundToSignificantFigures(branch[0], 5));
+    seqan::addEdge(g, internalVertex, seqan::getValue(connector, l[1]), roundToSignificantFigures(branch[1], 5));
     TVertexDescriptor the_root = seqan::addVertex(g);
-    seqan::addEdge(g, the_root, seqan::getValue(connector, l[2]), (node_weight_type) roundToSignificantFigures((branch[2] / 2.0), 5));
-    seqan::addEdge(g, the_root, internalVertex, (node_weight_type) roundToSignificantFigures((branch[2] / 2.0), 5));
+    seqan::addEdge(g, the_root, seqan::getValue(connector, l[2]), roundToSignificantFigures((branch[2] / 2.0), 5));
+    seqan::addEdge(g, the_root, internalVertex, roundToSignificantFigures((branch[2] / 2.0), 5));
     g.data_root = the_root;
 
     return g;
