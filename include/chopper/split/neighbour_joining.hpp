@@ -1,6 +1,7 @@
 #pragma once
 
 #include <seqan/graph_msa.h>
+#include <seqan/sequence.h>
 
 // Helper function for rounding to n significant digits.  Ported from
 // Java code found here: http://stackoverflow.com/questions/202302
@@ -36,6 +37,13 @@ void main_cycle(TMatrix & mat, graph_type & g, TSize nseq, TConnector & connecto
     }
 
     double fnseqs = static_cast<double>(nseq);
+    seqan::String<double> dToAllOthers;
+    seqan::resize(dToAllOthers, nseq, 0.0);
+
+    for (TSize col = 0; col < nseq; ++col)
+        for (TSize row = 0; row < nseq; ++row)
+            dToAllOthers[col] += mat[col*nseq+row];
+
     for (TSize nc = 0; nc < (nseq - 3); ++nc)
     {
         // Compute the sum of branch lengths for all possible pairs
@@ -43,11 +51,10 @@ void main_cycle(TMatrix & mat, graph_type & g, TSize nseq, TConnector & connecto
         double tmin = 0;
         TSize mini = 0;  // Next pair of seq i and j to join
         TSize minj = 0;
-        double diToAllOthers = 0;
-        double djToAllOthers = 0;
         double total = 0;
         double dMinIToOthers = 0;
         double dMinJToOthers = 0;
+
         for (TSize col = 1; col < nseq; ++col)
         {
             if (connector[col] != nilVertex)
@@ -56,16 +63,7 @@ void main_cycle(TMatrix & mat, graph_type & g, TSize nseq, TConnector & connecto
                 {
                     if (connector[row] != nilVertex)
                     {
-                        diToAllOthers = 0;
-                        djToAllOthers = 0;
-
-                        for (TSize i = 0; i < nseq; ++i)
-                        {
-                            diToAllOthers += mat[i*nseq+row];
-                            djToAllOthers += mat[i*nseq+col];
-                        }
-
-                        total = diToAllOthers + djToAllOthers + (fnseqs - 2.0) * mat[row*nseq+col] + 2.0 * (sumOfBranches - diToAllOthers - djToAllOthers);
+                        total = dToAllOthers[row] + dToAllOthers[col] + (fnseqs - 2.0) * mat[row*nseq+col] + 2.0 * (sumOfBranches - dToAllOthers[row] - dToAllOthers[col]);
                         total /= (2.0*(fnseqs - 2.0));
 
                         if ((notFound) || (total < tmin))
@@ -74,8 +72,8 @@ void main_cycle(TMatrix & mat, graph_type & g, TSize nseq, TConnector & connecto
                             tmin = total;
                             mini = row;
                             minj = col;
-                            dMinIToOthers = diToAllOthers;
-                            dMinJToOthers = djToAllOthers;
+                            dMinIToOthers = dToAllOthers[row];
+                            dMinJToOthers = dToAllOthers[col];
                         }
                     }
                 }
@@ -122,14 +120,20 @@ void main_cycle(TMatrix & mat, graph_type & g, TSize nseq, TConnector & connecto
         connector[minj] = nilVertex;
         connector[mini] = internalVertex;
 
+        double new_sum{};
         for (TSize j = 0; j < nseq; ++j)
         {
             if (connector[j] != nilVertex && mini != j)
             {
                 double const new_value = (mat[mini*nseq+j] + mat[minj*nseq+j]) / 2.0;
                 assert(mat[mini*nseq+j] == mat[j*nseq+mini]);
+
+                dToAllOthers[j] -= new_value;
+                new_sum += new_value;
+
                 mat[mini*nseq+j] = new_value;
                 mat[j*nseq+mini] = new_value;
+
                 sumOfBranches -= new_value;
             }
             else
@@ -141,6 +145,7 @@ void main_cycle(TMatrix & mat, graph_type & g, TSize nseq, TConnector & connecto
             mat[j*nseq+minj] = 0.0;
             mat[minj*nseq+j] = 0.0;
         }
+        dToAllOthers[mini] = new_sum;
     }
 }
 
