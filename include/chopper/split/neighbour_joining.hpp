@@ -17,63 +17,11 @@ inline double roundToSignificantFigures(double num, int n)
     return shifted / magnitude;
 }
 
-template<typename TMatrix>
-auto neighbour_joining(TMatrix mat)
+template<typename TMatrix, typename graph_type, typename TSize, typename TConnector, typename Tav>
+void main_cycle(TMatrix & mat, graph_type & g, TSize nseq, TConnector & connector, Tav & av)
 {
-    using TSize = typename seqan::Size<TMatrix>::Type;
-    using node_weight_type = double;
-    using graph_type = seqan::Graph<seqan::Tree<node_weight_type>>;
     using TVertexDescriptor = typename seqan::VertexDescriptor<graph_type>::Type;
-
-    graph_type g; // resulting guide tree
-
     TVertexDescriptor nilVertex = seqan::getNil<TVertexDescriptor>();
-    TSize nseq = (TSize) std::sqrt((double)length(mat));
-
-    // Assert that the input matrix has no negative values.
-// #if SEQAN_ENABLE_DEBUG
-//     for (unsigned i = 0; i < length(mat); ++i)
-//         SEQAN_ASSERT_GEQ_MSG(mat[i], 0, "i = %u", i);
-// #endif  // #if SEQAN_ENABLE_DEBUG
-
-    //for(TSize i=0;i<nseq;++i) {
-    //    for(TSize j=0;j<nseq;++j) {
-    //        std::cout << seqan::getValue(mat, i*nseq+j) << ",";
-    //    }
-    //    std::cout << std::endl;
-    //}
-
-    // Handle base cases for one and two sequences.
-    seqan::clearVertices(g);
-    if (nseq == 1)
-    {
-        g.data_root = seqan::addVertex(g);
-        return g;
-    }
-    else if (nseq == 2)
-    {
-        TVertexDescriptor v1 = seqan::addVertex(g);
-        TVertexDescriptor v2 = seqan::addVertex(g);
-        TVertexDescriptor internalVertex = seqan::addVertex(g);
-        seqan::addEdge(g, internalVertex, v1, roundToSignificantFigures(mat[1] / 2.0, 5));
-        seqan::addEdge(g, internalVertex, v2, roundToSignificantFigures(mat[1] / 2.0, 5));
-        g.data_root = internalVertex;
-        return g;
-    }
-
-    // First initialization
-    seqan::String<double> av;    // Average branch length to a combined node
-    seqan::resize(av, nseq, 0.0);
-
-    seqan::String<TVertexDescriptor> connector;   // Nodes that need to be connected
-    seqan::resize(connector, nseq);
-
-    for (TSize i = 0; i < nseq; ++i)
-    {
-        seqan::addVertex(g);  // Add all the nodes that correspond to sequences
-        connector[i] = i;
-        mat[i*nseq+i] = 0;
-    }
 
     double sumOfBranches = 0;
     // Determine the sum of all branches and
@@ -82,7 +30,6 @@ auto neighbour_joining(TMatrix mat)
         for (TSize row = 0; row < col; ++row)
             sumOfBranches += mat[col*nseq+row] = mat[row*nseq+col];
 
-    // Main cycle
     double fnseqs = static_cast<double>(nseq);
     for (TSize nc = 0; nc < (nseq - 3); ++nc)
     {
@@ -189,6 +136,68 @@ auto neighbour_joining(TMatrix mat)
             mat[j*nseq+minj] = mat[minj*nseq+j] = 0.0;
         }
     }
+}
+
+template<typename TMatrix>
+auto neighbour_joining(TMatrix mat)
+{
+    using TSize = typename seqan::Size<TMatrix>::Type;
+    using node_weight_type = double;
+    using graph_type = seqan::Graph<seqan::Tree<node_weight_type>>;
+    using TVertexDescriptor = typename seqan::VertexDescriptor<graph_type>::Type;
+
+    graph_type g; // resulting guide tree
+
+    TVertexDescriptor nilVertex = seqan::getNil<TVertexDescriptor>();
+    TSize nseq = (TSize) std::sqrt((double)length(mat));
+    assert(nseq != 0);
+
+    // Assert that the input matrix has no negative values.
+// #if SEQAN_ENABLE_DEBUG
+//     for (unsigned i = 0; i < length(mat); ++i)
+//         SEQAN_ASSERT_GEQ_MSG(mat[i], 0, "i = %u", i);
+// #endif  // #if SEQAN_ENABLE_DEBUG
+
+    //for(TSize i=0;i<nseq;++i) {
+    //    for(TSize j=0;j<nseq;++j) {
+    //        std::cout << seqan::getValue(mat, i*nseq+j) << ",";
+    //    }
+    //    std::cout << std::endl;
+    //}
+
+    // Handle base cases for one and two sequences.
+    seqan::clearVertices(g);
+    if (nseq == 1)
+    {
+        g.data_root = seqan::addVertex(g);
+        return g;
+    }
+    else if (nseq == 2)
+    {
+        TVertexDescriptor v1 = seqan::addVertex(g);
+        TVertexDescriptor v2 = seqan::addVertex(g);
+        TVertexDescriptor internalVertex = seqan::addVertex(g);
+        seqan::addEdge(g, internalVertex, v1, roundToSignificantFigures(mat[1] / 2.0, 5));
+        seqan::addEdge(g, internalVertex, v2, roundToSignificantFigures(mat[1] / 2.0, 5));
+        g.data_root = internalVertex;
+        return g;
+    }
+
+    // First initialization
+    seqan::String<double> av;    // Average branch length to a combined node
+    seqan::resize(av, nseq, 0.0);
+
+    seqan::String<TVertexDescriptor> connector;   // Nodes that need to be connected
+    seqan::resize(connector, nseq);
+
+    for (TSize i = 0; i < nseq; ++i)
+    {
+        seqan::addVertex(g);  // Add all the nodes that correspond to sequences
+        connector[i] = i;
+        mat[i*nseq+i] = 0;
+    }
+
+    main_cycle(mat, g, nseq, connector, av);
 
     // Only three nodes left
 
