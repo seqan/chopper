@@ -61,14 +61,9 @@ auto neighbour_joining(TMatrix mat)
         return g;
     }
 
-    // Create a normalized copy of mat with fixed point numbers, precision of 10 digits.
-    double normFactor = 1.0;
-    for (unsigned i = 0; i < length(mat); ++i)
-        mat[i] = static_cast<int64_t>(10000000.0 * ((double)(mat[i]) / (double)(normFactor)));
-
     // First initialization
-    seqan::String<int64_t> av;    // Average branch length to a combined node
-    seqan::resize(av, nseq, 0);
+    seqan::String<double> av;    // Average branch length to a combined node
+    seqan::resize(av, nseq, 0.0);
 
     seqan::String<TVertexDescriptor> connector;   // Nodes that need to be connected
     seqan::resize(connector, nseq);
@@ -80,7 +75,7 @@ auto neighbour_joining(TMatrix mat)
         mat[i*nseq+i] = 0;
     }
 
-    int64_t sumOfBranches = 0;
+    double sumOfBranches = 0;
     // Determine the sum of all branches and
     // copy upper triangle mat to lower triangle
     for (TSize col = 1; col < nseq; ++col)
@@ -88,19 +83,19 @@ auto neighbour_joining(TMatrix mat)
             sumOfBranches += mat[col*nseq+row] = mat[row*nseq+col];
 
     // Main cycle
-    int64_t fnseqs = static_cast<int64_t>(nseq);
+    double fnseqs = static_cast<double>(nseq);
     for (TSize nc = 0; nc < (nseq - 3); ++nc)
     {
         // Compute the sum of branch lengths for all possible pairs
         bool notFound = true;
-        int64_t tmin = 0;
+        double tmin = 0;
         TSize mini = 0;  // Next pair of seq i and j to join
         TSize minj = 0;
-        int64_t diToAllOthers = 0;
-        int64_t djToAllOthers = 0;
-        int64_t total = 0;
-        int64_t dMinIToOthers = 0;
-        int64_t dMinJToOthers = 0;
+        double diToAllOthers = 0;
+        double djToAllOthers = 0;
+        double total = 0;
+        double dMinIToOthers = 0;
+        double dMinJToOthers = 0;
         for (TSize col = 1; col < nseq; ++col)
         {
             if (connector[col] != nilVertex)
@@ -118,8 +113,8 @@ auto neighbour_joining(TMatrix mat)
                             djToAllOthers += mat[i*nseq+col];
                         }
 
-                        total = diToAllOthers + djToAllOthers + (fnseqs - 2) * mat[row*nseq+col] + 2 * (sumOfBranches - diToAllOthers - djToAllOthers);
-                        total /= (2*(fnseqs - 2));
+                        total = diToAllOthers + djToAllOthers + (fnseqs - 2.0) * mat[row*nseq+col] + 2.0 * (sumOfBranches - diToAllOthers - djToAllOthers);
+                        total /= (2.0*(fnseqs - 2.0));
 
                         if ((notFound) || (total < tmin))
                         {
@@ -141,17 +136,17 @@ auto neighbour_joining(TMatrix mat)
         //std::cout << tmin << std::endl;
         //std::cout << std::endl;
 
-        int64_t dmin = mat[mini*nseq + minj];
-        dMinIToOthers = dMinIToOthers / (fnseqs - 2);
-        dMinJToOthers = dMinJToOthers / (fnseqs - 2);
-        int64_t iBranch = (dmin + dMinIToOthers - dMinJToOthers) / 2;
-        int64_t jBranch = dmin - iBranch;
+        double dmin = mat[mini*nseq + minj];
+        dMinIToOthers = dMinIToOthers / (fnseqs - 2.0);
+        dMinJToOthers = dMinJToOthers / (fnseqs - 2.0);
+        double iBranch = (dmin + dMinIToOthers - dMinJToOthers) / 2.0;
+        double jBranch = dmin - iBranch;
         iBranch -= av[mini];
         jBranch -= av[minj];
 
         // Set negative branch length to zero
-        if (iBranch < 0) iBranch = 0;
-        if (jBranch < 0) jBranch = 0;
+        if (iBranch < 0) iBranch = 0.0;
+        if (jBranch < 0) jBranch = 0.0;
 
         // Print branch lengths
         //std::cout << iBranch << std::endl;
@@ -160,8 +155,8 @@ auto neighbour_joining(TMatrix mat)
 
         // Build tree
         TVertexDescriptor internalVertex = seqan::addVertex(g);
-        seqan::addEdge(g, internalVertex, connector[mini], (node_weight_type) roundToSignificantFigures((iBranch / 10000000.0) * normFactor, 5));
-        seqan::addEdge(g, internalVertex, connector[minj], (node_weight_type) roundToSignificantFigures((jBranch / 10000000.0) * normFactor, 5));
+        seqan::addEdge(g, internalVertex, connector[mini], (node_weight_type) roundToSignificantFigures(iBranch, 5));
+        seqan::addEdge(g, internalVertex, connector[minj], (node_weight_type) roundToSignificantFigures(jBranch, 5));
 
         // Remember the average branch length for the new combined node
         // Must be subtracted from all branches that include this node
@@ -179,7 +174,7 @@ auto neighbour_joining(TMatrix mat)
         {
             if (connector[j] != nilVertex && mini != j)
             {
-                TSize const new_value = (mat[mini*nseq+j] + mat[minj*nseq+j]) / 2;
+                double const new_value = (mat[mini*nseq+j] + mat[minj*nseq+j]) / 2.0;
                 assert(mat[mini*nseq+j] == mat[j*nseq+mini]);
                 mat[mini*nseq+j] = new_value;
                 mat[j*nseq+mini] = new_value;
@@ -191,7 +186,7 @@ auto neighbour_joining(TMatrix mat)
                 sumOfBranches -= mat[j*nseq+minj];
             }
 
-            mat[j*nseq+minj] = mat[minj*nseq+j] = 0;
+            mat[j*nseq+minj] = mat[minj*nseq+j] = 0.0;
         }
     }
 
@@ -216,11 +211,11 @@ auto neighbour_joining(TMatrix mat)
     //std::cout << l[2] << std::endl;
     //std::cout << std::endl;
 
-    seqan::String<int64_t> branch;
+    seqan::String<double> branch;
     seqan::resize(branch, 3);
-    branch[0] = (mat[l[0]*nseq+l[1]] + mat[l[0]*nseq+l[2]] - mat[l[1]*nseq+l[2]]) / 2;
-    branch[1] = (mat[l[1]*nseq+l[2]] + mat[l[0]*nseq+l[1]] - mat[l[0]*nseq+l[2]]) / 2;
-    branch[2] = (mat[l[1]*nseq+l[2]] + mat[l[0]*nseq+l[2]] - mat[l[0]*nseq+l[1]]) / 2;
+    branch[0] = (mat[l[0]*nseq+l[1]] + mat[l[0]*nseq+l[2]] - mat[l[1]*nseq+l[2]]) / 2.0;
+    branch[1] = (mat[l[1]*nseq+l[2]] + mat[l[0]*nseq+l[1]] - mat[l[0]*nseq+l[2]]) / 2.0;
+    branch[2] = (mat[l[1]*nseq+l[2]] + mat[l[0]*nseq+l[2]] - mat[l[0]*nseq+l[1]]) / 2.0;
 
     branch[0] -= av[l[0]];
     branch[1] -= av[l[1]];
@@ -239,11 +234,11 @@ auto neighbour_joining(TMatrix mat)
 
     // Build tree
     TVertexDescriptor internalVertex = seqan::addVertex(g);
-    seqan::addEdge(g, internalVertex, seqan::getValue(connector, l[0]), (node_weight_type) roundToSignificantFigures((branch[0] / 10000000.0)* normFactor, 5));
-    seqan::addEdge(g, internalVertex, seqan::getValue(connector, l[1]), (node_weight_type) roundToSignificantFigures((branch[1] / 10000000.0) * normFactor, 5));
+    seqan::addEdge(g, internalVertex, seqan::getValue(connector, l[0]), (node_weight_type) roundToSignificantFigures(branch[0], 5));
+    seqan::addEdge(g, internalVertex, seqan::getValue(connector, l[1]), (node_weight_type) roundToSignificantFigures(branch[1], 5));
     TVertexDescriptor the_root = seqan::addVertex(g);
-    seqan::addEdge(g, the_root, seqan::getValue(connector, l[2]), (node_weight_type) roundToSignificantFigures((branch[2] / 20000000.0) * normFactor, 5));
-    seqan::addEdge(g, the_root, internalVertex, (node_weight_type) roundToSignificantFigures((branch[2] / 20000000.0) * normFactor, 5));
+    seqan::addEdge(g, the_root, seqan::getValue(connector, l[2]), (node_weight_type) roundToSignificantFigures((branch[2] / 2.0), 5));
+    seqan::addEdge(g, the_root, internalVertex, (node_weight_type) roundToSignificantFigures((branch[2] / 2.0), 5));
     g.data_root = the_root;
 
     return g;

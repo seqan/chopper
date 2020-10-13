@@ -37,23 +37,23 @@ TEST_F(cli_test, with_out_file)
     {
         "FILE_ID\tSEQ_ID\tBEGIN\tEND\tBIN_NUMBER\n" +
         data("small.fa").string() + "\tseq1\t0\t163\t0\n" +
-        data("small.fa").string() + "\tseq2\t0\t226\t0\n" +
+        data("small.fa").string() + "\tseq2\t0\t186\t0\n" +
         data("small.fa").string() + "\tseq3\t0\t163\t0\n" +
         data("small2.fa").string() + "\tseq10\t0\t163\t0\n" +
-        data("small2.fa").string() + "\tseq20\t0\t226\t0\n" +
+        data("small2.fa").string() + "\tseq20\t0\t186\t0\n" +
         data("small2.fa").string() + "\tseq30\t0\t163\t0\n" +
         data("small.fa").string() + "\tseq1\t163\t247\t1\n" +
-        data("small.fa").string() + "\tseq2\t226\t327\t1\n" +
-        data("small.fa").string() + "\tseq3\t163\t261\t1\n" +
+        data("small.fa").string() + "\tseq2\t186\t327\t1\n" +
+        data("small.fa").string() + "\tseq3\t163\t284\t1\n" +
         data("small2.fa").string() + "\tseq10\t163\t247\t1\n" +
-        data("small2.fa").string() + "\tseq20\t226\t327\t1\n" +
-        data("small2.fa").string() + "\tseq30\t163\t327\t1\n" +
+        data("small2.fa").string() + "\tseq20\t186\t327\t1\n" +
+        data("small2.fa").string() + "\tseq30\t163\t284\t1\n" +
         data("small.fa").string() + "\tseq1\t247\t400\t2\n" +
         data("small.fa").string() + "\tseq2\t327\t480\t2\n" +
-        data("small.fa").string() + "\tseq3\t261\t481\t2\n" +
+        data("small.fa").string() + "\tseq3\t284\t481\t2\n" +
         data("small2.fa").string() + "\tseq10\t247\t400\t2\n" +
         data("small2.fa").string() + "\tseq20\t327\t480\t2\n" +
-        data("small2.fa").string() + "\tseq30\t327\t481\t2\n"
+        data("small2.fa").string() + "\tseq30\t284\t481\t2\n"
     };
 
     // compare results
