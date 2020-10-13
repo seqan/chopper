@@ -12,29 +12,11 @@ struct distance_matrix_initialiser
         return "(" + std::to_string(std::chrono::duration_cast<std::chrono::seconds>(end - start).count()) + "s)";
     }
 
-    void set_distance_value(seqan::String<double> & distanceMatrix, size_t i, size_t j, double similarity_score)
-    {
-        size_t const nseq = std::sqrt(length(distanceMatrix));
-
-        // since we are not sure which diagonal is used but they are symmetric, fill both diagonals
-        if (i < j)
-            distanceMatrix[i * nseq + j] = 1.0 - similarity_score; // distance = 1 - similarity
-        else
-            distanceMatrix[j * nseq + i] = 1.0 - similarity_score; // distance = 1 - similarity
-    }
-
-    void set_distance_value(map_distance_matrix & distanceMatrix, size_t i, size_t j, double similarity_score)
-    {
-        size_t const nseq = std::sqrt(seqan::length(distanceMatrix));
-
-        // always set whole upper and lower diagonal because I don't know what is needed
-        distanceMatrix.emplace(i * nseq + j, 1.0 - similarity_score); // distance = 1 - similarity
-        distanceMatrix.emplace(j * nseq + i, 1.0 - similarity_score); // distance = 1 - similarity
-    }
-
     auto mash_distance(split_data & data)
     {
-        map_distance_matrix distance_matrix;
+        map_distance_matrix distance_matrix{num_seq{length(data.sequences)},
+                                            dummy_value{1.0},
+                                            upper_distance_threshold{0.9}};
 
         // -----------------------------------------------------------------------------
         //                              SORT
@@ -60,8 +42,6 @@ struct distance_matrix_initialiser
         // fill distance matrix
         // -----------------------------------------------------------------------------
         start = std::chrono::steady_clock::now();
-
-        distance_matrix.nseq = length(data.sequences);
 
         for (size_t i = 0; i < seqan::length(data.sequences); ++i)
         {
@@ -95,12 +75,11 @@ struct distance_matrix_initialiser
                 unique_processed_hashes += std::min(remaining, available_i + available_j);
 
                 // Jaquard Index is approximated with x/s' -> common_hashes / unique_processed_hashes
-                double const similarity_score = (double)common_hashes / (double)unique_processed_hashes;
-                if (similarity_score > 0.1)
-                    set_distance_value(distance_matrix, i, j, similarity_score); // set to 1-score for distance
+                double const sim_score = (double)common_hashes / (double)unique_processed_hashes;
+                distance_matrix.set_distance_value(i, j, similarity_score{sim_score}); // set to 1-score for distance
             }
 
-            set_distance_value(distance_matrix, i, i, 1); // same sequence => similarity = 1
+            distance_matrix.set_distance_value(i, i, similarity_score{1.0}); // same sequence => similarity = 1
         }
 
         // std::cout << "distance matrices: ";

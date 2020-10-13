@@ -27,8 +27,13 @@ void main_cycle(TMatrix & mat, graph_type & g, TSize nseq, TConnector & connecto
     // Determine the sum of all branches and
     // copy upper triangle mat to lower triangle
     for (TSize col = 1; col < nseq; ++col)
+    {
         for (TSize row = 0; row < col; ++row)
-            sumOfBranches += mat[col*nseq+row] = mat[row*nseq+col];
+        {
+            mat[col*nseq+row] = mat[row*nseq+col];
+            sumOfBranches += mat[col*nseq+row];
+        }
+    }
 
     double fnseqs = static_cast<double>(nseq);
     for (TSize nc = 0; nc < (nseq - 3); ++nc)
@@ -133,7 +138,8 @@ void main_cycle(TMatrix & mat, graph_type & g, TSize nseq, TConnector & connecto
                 sumOfBranches -= mat[j*nseq+minj];
             }
 
-            mat[j*nseq+minj] = mat[minj*nseq+j] = 0.0;
+            mat[j*nseq+minj] = 0.0;
+            mat[minj*nseq+j] = 0.0;
         }
     }
 }
