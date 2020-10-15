@@ -5,6 +5,7 @@
 #include <chopper/split/split_config.hpp>
 #include <chopper/split/map_distance_matrix.hpp>
 #include <chopper/split/neighbour_joining.hpp>
+#include <chopper/split/progressive_alignment.hpp>
 
 template<typename TString, typename TSpec, typename TSegmentMatches, typename TScoreValues>
 inline void append_all_to_all_matches(seqan::StringSet<TString, seqan::Dependent<TSpec> > const & sequenceSet,
@@ -109,7 +110,7 @@ void seqan2_msa_alignment(seqan::Graph<seqan::Alignment<TStringSet, TCargo, TSpe
     // Progressive Alignment
     // -------------------------------------------------------------------------
     current_time = seqan::sysTime();
-    seqan::progressiveAlignment(g, guide_tree, gAlign);
+    seqan::progressive_alignment(g, guide_tree, gAlign);
     seqan::clear(guide_tree);
     seqan::clear(g);
     std::cout << std::setw(30) << std::left << "Progressive Alignment:" << std::setw(10) << std::right << seqan::sysTime() - current_time << " s" << std::endl;
