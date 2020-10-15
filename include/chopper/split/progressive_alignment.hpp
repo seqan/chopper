@@ -1,5 +1,7 @@
 #pragma once
 
+#include <set>
+
 #include <seqan/graph_msa.h>
 
 namespace seqan
@@ -302,8 +304,6 @@ auto get_slot_positions(Graph<Alignment<TStringSet, TCargo, TSpec>> const & g,
     typedef typename Iterator<TString const, Standard>::Type TStringIterConst;
     typedef typename Value<TString>::Type TVertexSet;
     typedef typename Iterator<TVertexSet const, Standard>::Type TVertexSetIterConst;
-    typedef String<TSize> TOccupiedPositions;
-    typedef typename Iterator<TOccupiedPositions, Standard>::Type TOccIter;
     typedef String<TSize> TSlotToPos;
     typedef typename Iterator<TSlotToPos, Standard>::Type TSlotToPosIter;
 
@@ -311,7 +311,8 @@ auto get_slot_positions(Graph<Alignment<TStringSet, TCargo, TSpec>> const & g,
 
     // We could create the full graph -> too expensive
     // Remember which edges are actually present
-    TOccupiedPositions occupiedPositions;
+    std::set<TSize> occupied_positions;
+
     TStringIterConst itStr2 = begin(str2, Standard());
     TStringIterConst itStrEnd2 = end(str2, Standard());
     TSize posItStr2 = 0;
@@ -330,26 +331,17 @@ auto get_slot_positions(Graph<Alignment<TStringSet, TCargo, TSpec>> const & g,
                 // Target vertex must be in the map
                 TSize pPos = map[targetVertex(itOut)];
                 if (pPos != std::numeric_limits<TSize>::max())
-                    appendValue(occupiedPositions, pPos * n + (TSize) (n - posItStr2 - 1), Generous());
+                    occupied_positions.insert(pPos * n + (TSize) (n - posItStr2 - 1));
             }
         }
     }
 
-    std::sort(begin(occupiedPositions, Standard()), end(occupiedPositions, Standard()));
     // Get all occupied positions
     TSlotToPos slotToPos;
-    TSize oldVal = std::numeric_limits<TSize>::max();
-    TOccIter occIt = begin(occupiedPositions, Standard());
-    TOccIter occItEnd = end(occupiedPositions, Standard());
+    reserve(slotToPos, occupied_positions.size());
 
-    for (; occIt != occItEnd; ++occIt)
-    {
-        if (oldVal != *occIt)
-        {
-            appendValue(slotToPos, *occIt, Generous());
-            oldVal = *occIt;
-        }
-    }
+    for (auto val : occupied_positions)
+        appendValue(slotToPos, val);
 
     return slotToPos;
 }
