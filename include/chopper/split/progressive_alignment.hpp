@@ -8,10 +8,9 @@ namespace seqan
 {
 
 template<typename TString, typename TWeightMap, typename TPositions>
-inline typename Value<TWeightMap>::Type
-heaviest_increasing_subsequence(TString const& str,
-                                TWeightMap const& weights,
-                                TPositions& pos)
+inline void heaviest_increasing_subsequence(TString const & str,
+                                            TWeightMap const & weights,
+                                            TPositions& pos)
 {
     typedef typename Size<TString>::Type TSize;
     typedef typename Value<TString>::Type TValue;
@@ -34,11 +33,10 @@ heaviest_increasing_subsequence(TString const& str,
     TStringIter it = begin(str, Standard());
     TStringIter endIt = end(str, Standard());
     TSize pos_of_iterator = 0;
-    TWeight w = 0;
 
-    for(; it != endIt; ++it, ++pos_of_iterator)
+    for (; it != endIt; ++it, ++pos_of_iterator)
     {
-        w = weights[pos_of_iterator];
+        TWeight w = weights[pos_of_iterator];
         // Letters that do not contribute a weight (e.g., w = 0) are excluded!
         // Weights must increase!
         if (w == 0)
@@ -80,25 +78,19 @@ heaviest_increasing_subsequence(TString const& str,
     }
 
     // Trace-back
-    w = 0;
-
-    if (list.rbegin() == list.rend())
-    {
-        return 0;
-    }
-    else
+    if (list.rbegin() != list.rend())
     {
         // Last vertex is end of heaviest increasing subsequence
         TVertexDescriptor v = list.rbegin()->second.second;
         while (true)
         {
             appendValue(pos, v, Generous());
-            w+=weights[v];
-            if (g.data_vertex[v]) v = (*g.data_vertex[v]).data_target;
-            else break;
+            if (g.data_vertex[v])
+                v = (*g.data_vertex[v]).data_target;
+            else
+                break;
         }
     }
-    return w;
 }
 
 template<typename TStringSet, typename TCargo, typename TSpec, typename TSize2, typename TSpec2, typename TPositions, typename TString, typename TOutString>
@@ -362,11 +354,10 @@ auto get_slots_and_weights_and_seq(Graph<Alignment<TStringSet, TCargo, TSpec>> c
 }
 
 template<typename TStringSet, typename TCargo, typename TSpec, typename TString, typename TOutString>
-inline TCargo
-heaviest_common_subsequence(Graph<Alignment<TStringSet, TCargo, TSpec> > const& g,
-                            TString const& str1,
-                            TString const& str2,
-                            TOutString& align)
+inline void heaviest_common_subsequence(Graph<Alignment<TStringSet, TCargo, TSpec>> const & g,
+                                        TString const & str1,
+                                        TString const & str2,
+                                        TOutString & align)
 {
     typedef Graph<Alignment<TStringSet, TCargo, TSpec> > TGraph;
     typedef typename Size<TGraph>::Type TSize;
@@ -380,14 +371,11 @@ heaviest_common_subsequence(Graph<Alignment<TStringSet, TCargo, TSpec> > const& 
     // Now the tough part: Find the right number for a given position
     // Calculate the heaviest increasing subsequence
     String<TSize> positions;
-    TCargo score = (TCargo) heaviest_increasing_subsequence(seq, weights, positions);
+    heaviest_increasing_subsequence(seq, weights, positions);
 
     // Retrieve the alignment sequence
     _heaviest_common_subsequence(g, slotToPos, positions, str1, str2, align);
-
-    return score;
 }
-
 
 template<typename TStringSet, typename TCargo, typename TSpec, typename TGuideTree, typename TOutGraph>
 inline void
