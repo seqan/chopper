@@ -1,6 +1,6 @@
 #pragma once
 
-#include <set>
+#include <map>
 
 #include <seqan/graph_msa.h>
 
@@ -293,10 +293,10 @@ auto get_vertex_descriptor_pos_map(Graph<Alignment<TStringSet, TCargo, TSpec> > 
     return map;
 }
 
-template<typename TStringSet, typename TCargo, typename TSpec, typename TString, typename TMap>
-auto get_slot_positions(Graph<Alignment<TStringSet, TCargo, TSpec>> const & g,
-                        TString const & str2,
-                        TMap const & map)
+template<typename TStringSet, typename TCargo, typename TSpec, typename TString>
+auto get_slots_and_weights_and_seq(Graph<Alignment<TStringSet, TCargo, TSpec>> const & g,
+                                   TString const & str1,
+                                   TString const & str2)
 {
     typedef Graph<Alignment<TStringSet, TCargo, TSpec> > TGraph;
     typedef typename Size<TGraph>::Type TSize;
@@ -305,13 +305,17 @@ auto get_slot_positions(Graph<Alignment<TStringSet, TCargo, TSpec>> const & g,
     typedef typename Value<TString>::Type TVertexSet;
     typedef typename Iterator<TVertexSet const, Standard>::Type TVertexSetIterConst;
     typedef String<TSize> TSlotToPos;
-    typedef typename Iterator<TSlotToPos, Standard>::Type TSlotToPosIter;
+    typedef String<TCargo> TWeights;
+    typedef String<TSize> TSequenceString;
+
+    auto const map = get_vertex_descriptor_pos_map(g, str1);
 
     TSize const n = length(str2);  // How many sets of vertex descriptors in seq2
 
     // We could create the full graph -> too expensive
     // Remember which edges are actually present
-    std::set<TSize> occupied_positions;
+    // if slotToPos doesn't have to be sorted we could even use an unordered map
+    std::map<TSize, TCargo> slots_and_weights;
 
     TStringIterConst itStr2 = begin(str2, Standard());
     TStringIterConst itStrEnd2 = end(str2, Standard());
@@ -331,88 +335,31 @@ auto get_slot_positions(Graph<Alignment<TStringSet, TCargo, TSpec>> const & g,
                 // Target vertex must be in the map
                 TSize pPos = map[targetVertex(itOut)];
                 if (pPos != std::numeric_limits<TSize>::max())
-                    occupied_positions.insert(pPos * n + (TSize) (n - posItStr2 - 1));
+                {
+                    TSize const key = pPos * n + (TSize) (n - posItStr2 - 1);
+                    slots_and_weights[key] += (TCargo) cargo(*itOut);
+                }
             }
         }
     }
 
     // Get all occupied positions
     TSlotToPos slotToPos;
-    reserve(slotToPos, occupied_positions.size());
-
-    for (auto val : occupied_positions)
-        appendValue(slotToPos, val);
-
-    return slotToPos;
-}
-
-template<typename TStringSet, typename TCargo, typename TSpec, typename TString, typename TMap, typename TSlots>
-auto get_weights(Graph<Alignment<TStringSet, TCargo, TSpec>> const & g,
-                 TString const & str2,
-                 TMap const & map,
-                 TSlots const & slotToPos)
-{
-    typedef Graph<Alignment<TStringSet, TCargo, TSpec> > TGraph;
-    typedef typename Size<TGraph>::Type TSize;
-    typedef typename Iterator<TGraph, OutEdgeIterator>::Type TOutEdgeIterator;
-    typedef typename Iterator<TString const, Standard>::Type TStringIterConst;
-    typedef typename Value<TString>::Type TVertexSet;
-    typedef typename Iterator<TVertexSet const, Standard>::Type TVertexSetIterConst;
-    typedef String<TCargo> TWeights;
-
-    TSize const n = length(str2);  // How many sets of vertex descriptors in seq2
-
-    // Walk through str2 and fill in the weights of the actual edges
     TWeights weights;
-    resize(weights, length(slotToPos), 0);
-    TStringIterConst itStr2 = begin(str2, Standard());
-    TStringIterConst itStrEnd2 = end(str2, Standard());
-    TSize posItStr2 = 0;
-
-    for (; itStr2 != itStrEnd2; ++itStr2, ++posItStr2)
-    {
-        TVertexSetIterConst itV = begin(*itStr2, Standard());
-        TVertexSetIterConst itVEnd = end(*itStr2, Standard());
-
-        for (; itV != itVEnd; ++itV)
-        {
-            TOutEdgeIterator itOut(g, *itV);
-
-            for (; !atEnd(itOut); ++itOut)
-            {
-                // Target vertex must be in the map
-                TSize pPos = map[targetVertex(itOut)];
-                if (pPos != std::numeric_limits<TSize>::max())
-                    weights[std::distance(begin(slotToPos, Standard()), std::lower_bound(begin(slotToPos, Standard()), end(slotToPos, Standard()), pPos * n + (TSize) (n - posItStr2 - 1)))] += (TCargo) cargo(*itOut);
-            }
-        }
-    }
-
-    return weights;
-}
-
-template<typename TSize, typename TSlotToPos>
-auto get_seq(TSize const n,
-             TSlotToPos const & slotToPos)
-{
-    typedef typename Iterator<TSlotToPos const, Standard>::Type TSlotToPosIter;
-    typedef String<TSize> TSequenceString;
-    typedef typename Iterator<TSequenceString, Standard>::Type TSeqIter;
-
     TSequenceString seq;
-    resize(seq, length(slotToPos));
-    TSeqIter itSeq = begin(seq, Standard());
-    TSlotToPosIter itSlotPos = begin(slotToPos, Standard());
-    TSlotToPosIter itSlotPosEnd = end(slotToPos, Standard());
+    reserve(slotToPos, slots_and_weights.size());
+    reserve(weights, slots_and_weights.size());
+    reserve(seq, slots_and_weights.size());
 
-    for (; itSlotPos != itSlotPosEnd; ++itSlotPos, ++itSeq)
+    for (auto [slot, weight] : slots_and_weights)
     {
-        *itSeq = n - 1 - (*itSlotPos % n);
+        appendValue(slotToPos, slot);
+        appendValue(weights, weight);
+        appendValue(seq, n - 1 - (slot % n));
     }
 
-    return seq;
+    return std::make_tuple(std::move(slotToPos), std::move(weights), std::move(seq));
 }
-
 
 template<typename TStringSet, typename TCargo, typename TSpec, typename TString, typename TOutString>
 inline TCargo
@@ -428,16 +375,9 @@ heaviest_common_subsequence(Graph<Alignment<TStringSet, TCargo, TSpec> > const& 
 
     // Fill the vertex to position map for str1
     // Remember for each vertex descriptor the position in the sequence
-    auto const map = get_vertex_descriptor_pos_map(g, str1);
-
-    auto const slotToPos = get_slot_positions(g, str2, map);
-
-    auto const weights = get_weights(g, str2, map, slotToPos);
-    // clear(map);
+    auto const [slotToPos, weights, seq] = get_slots_and_weights_and_seq(g, str1, str2);
 
     // Now the tough part: Find the right number for a given position
-    auto const seq = get_seq(length(str2), slotToPos);
-
     // Calculate the heaviest increasing subsequence
     String<TSize> positions;
     TCargo score = (TCargo) heaviest_increasing_subsequence(seq, weights, positions);
