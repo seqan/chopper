@@ -111,138 +111,87 @@ _heaviest_common_subsequence(Graph<Alignment<TStringSet, TCargo, TSpec> > const&
 
     TSize const m = length(str1);  // How many sets of vertex descriptors in seq1
     TSize const n = length(str2);  // How many sets of vertex descriptors in seq2
+    TSize const numMatches = length(positions);
+    TSize const alignLength = numMatches + (n - numMatches) + (m - numMatches);
 
     // Create the alignment sequence
-    TSize numMatches = length(positions);
-    TSize alignLength = numMatches + (n - numMatches) + (m - numMatches);
     clear(align);
     resize(align, alignLength, TVertexSet(), Exact() );
+
     TSIter pointerAlign = begin(align, Standard());
     TSIter pointerAlignEnd = end(align, Standard());
-    TStringIter pointerStr1 = begin(str1, Standard());
     TSize posStr1 = 0;
     TSize posStr2 = 0;
+    TStringIter pointerStr1 = begin(str1, Standard());
     TStringIter pointerStr2 = begin(str2, Standard());
     int p = length(positions) - 1;
-    while(pointerAlign != pointerAlignEnd)
+
+    while (pointerAlign != pointerAlignEnd)
     {
         TSize i = m;
         TSize j = n;
-        if (p>=0)
+
+        if (p >= 0)
         {
             i = (TSize) (slotToPos[positions[p]] / (TSize) n);   // Get the index in str1
             j = n - 1 - (TSize) (slotToPos[positions[p]] % (TSize) n); // Get the index in str2
-        };
+        }
 
         // In what order do we insert gaps? -> Only important at the beginning and at the end, not between matches
         bool firstI = true;
         if ((i != posStr1) && (j != posStr2))
         {
-            if ((posStr1 == 0) && (posStr2 == 0))
+            TSize tmpPosStr1 = posStr1;
+            TSize tmpPosStr2 = posStr2;
+            TSize len1 = 0;
+            TSize len2 = 0;
+
+            for (TStringIter tmpPointerStr1 = pointerStr1; i != tmpPosStr1; ++tmpPosStr1, ++tmpPointerStr1)
+                len1 += fragmentLength(g, value(*tmpPointerStr1, 0));
+
+            for (TStringIter tmpPointerStr2 = pointerStr2; j != tmpPosStr2; ++tmpPosStr2, ++tmpPointerStr2)
+                len2 += fragmentLength(g, value(*tmpPointerStr2, 0));
+
+            if (((posStr1 == 0) && (posStr2 == 0) && (len1 > len2)) || ((i == m) && (i == n) && (len1 < len2)))
             {
-                TStringIter tmpPointerStr1 = pointerStr1;
-                TStringIter tmpPointerStr2 = pointerStr2;
-                TSize tmpPosStr1 = posStr1;
-                TSize tmpPosStr2 = posStr2;
-                TSize len1 = 0;
-                TSize len2 = 0;
-
-                for (; i != tmpPosStr1; ++tmpPosStr1, ++tmpPointerStr1)
-                    len1 += fragmentLength(g, value(*tmpPointerStr1, 0));
-
-                for (; j != tmpPosStr2; ++tmpPosStr2, ++tmpPointerStr2)
-                    len2 += fragmentLength(g, value(*tmpPointerStr2, 0));
-
-                if (len1 > len2)
-                    firstI = false;
-            }
-            else if ((i == m) && (i == n))
-            {
-                TStringIter tmpPointerStr1 = pointerStr1;
-                TStringIter tmpPointerStr2 = pointerStr2;
-                TSize tmpPosStr1 = posStr1;
-                TSize tmpPosStr2 = posStr2;
-                TSize len1 = 0;
-                TSize len2 = 0;
-
-                for (; i != tmpPosStr1; ++tmpPosStr1, ++tmpPointerStr1)
-                    len1 += fragmentLength(g, value(*tmpPointerStr1, 0));
-
-                for (; j != tmpPosStr2; ++tmpPosStr2, ++tmpPointerStr2)
-                    len2 += fragmentLength(g, value(*tmpPointerStr2, 0));
-
-                if (len1 < len2)
-                    firstI = false;
+                firstI = false;
             }
         }
+
+        auto append_to_align = [&pointerAlign] (auto & pointer_str, auto & pos)
+        {
+            for (TVertexSetIter itV = begin(*pointer_str, Standard()); itV != end(*pointer_str, Standard()); ++itV)
+                appendValue(*pointerAlign, *itV, Generous());
+
+            ++pointerAlign;
+            ++pointer_str;
+            ++pos;
+        };
+
         if (firstI)
         {
-            // Gaps in seq 2
-            while (i != posStr1)
-            {
-                TVertexSetIter itV = begin(*pointerStr1, Standard());
-                TVertexSetIter itVEnd = end(*pointerStr1, Standard());
+            while (i != posStr1) // Gaps in seq 2
+                append_to_align(pointerStr1, posStr1);
 
-                for (; itV != itVEnd; ++itV)
-                    appendValue(*pointerAlign, *itV, Generous());
-
-                ++pointerAlign;
-                ++pointerStr1; ++posStr1;
-            }
-            // Gaps in seq 1
-            while (j != posStr2)
-            {
-                TVertexSetIter itV = begin(*pointerStr2, Standard());
-                TVertexSetIter itVEnd = end(*pointerStr2, Standard());
-
-                for (; itV != itVEnd; ++itV)
-                    appendValue(*pointerAlign, *itV, Generous());
-
-                ++pointerAlign;
-                ++pointerStr2; ++posStr2;
-            }
+            while (j != posStr2) // Gaps in seq 1
+                append_to_align(pointerStr2, posStr2);
         }
         else
         {
-            // Gaps in seq 1
-            while (j != posStr2)
-            {
-                TVertexSetIter itV = begin(*pointerStr2, Standard());
-                TVertexSetIter itVEnd = end(*pointerStr2, Standard());
+            while (j != posStr2) // Gaps in seq 1
+                append_to_align(pointerStr2, posStr2);
 
-                for (; itV != itVEnd; ++itV)
-                    appendValue(*pointerAlign, *itV, Generous());
-
-                ++pointerAlign;
-                ++pointerStr2; ++posStr2;
-            }
-            // Gaps in seq 2
-            while (i != posStr1)
-            {
-                TVertexSetIter itV = begin(*pointerStr1, Standard());
-                TVertexSetIter itVEnd = end(*pointerStr1, Standard());
-
-                for (; itV != itVEnd; ++itV)
-                    appendValue(*pointerAlign, *itV, Generous());
-
-                ++pointerAlign;
-                ++pointerStr1; ++posStr1;
-            }
+            while (i != posStr1) // Gaps in seq 2
+                append_to_align(pointerStr1, posStr1);
         }
 
         // Matches
-        if (p>=0)
+        if (p >= 0)
         {
-            TVertexSetIter itV = begin(*pointerStr1, Standard());
-            TVertexSetIter itVEnd = end(*pointerStr1, Standard());
-
-            for (; itV != itVEnd; ++itV)
+            for (TVertexSetIter itV = begin(*pointerStr1, Standard()); itV != end(*pointerStr1, Standard()); ++itV)
                 appendValue(*pointerAlign, *itV, Generous());
 
-            TVertexSetIter itV2 = begin(*pointerStr2, Standard());
-            TVertexSetIter itVEnd2 = end(*pointerStr2, Standard());
-
-            for (; itV2 != itVEnd2; ++itV2)
+            for (TVertexSetIter itV2 = begin(*pointerStr2, Standard()); itV2 != end(*pointerStr2, Standard()); ++itV2)
                 appendValue(*pointerAlign, *itV2, Generous());
 
             ++pointerAlign;
