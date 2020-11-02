@@ -541,8 +541,7 @@ void traverse_graph(split_data const & data, split_config const & config)
     std::ofstream fout{config.out_path};
     fout << "FILE_ID\tSEQ_ID\tBEGIN\tEND\tBIN_NUMBER\n"; // header
 
-    seqan::String<bool> range_end_sanity_check;//(seqan::length(data.lengths));
-    seqan::resize(range_end_sanity_check, seqan::length(data.sequences));
+    std::vector<bool> range_end_sanity_check(seqan::length(data.sequences), 0);
     size_t bin_index{};
     for (auto & bin : bin_contents)
     {
@@ -558,7 +557,7 @@ void traverse_graph(split_data const & data, split_config const & config)
             }
 
             if (bin[i].second == data.lengths[i])
-                range_end_sanity_check[i] == true;
+                range_end_sanity_check[i] = true;
         }
         ++bin_index;
     }
@@ -571,7 +570,7 @@ void traverse_graph(split_data const & data, split_config const & config)
         seqan3::debug_stream << "[WARNING] Sanity check at the end did not pass. "
                              << "Not all sequence ends were contained in the traversed ranges. "
                              << std::endl;
-        for (size_t i = 0; i < seqan::length(range_end_sanity_check)/*.size()*/; ++i)
+        for (size_t i = 0; i < range_end_sanity_check.size(); ++i)
             if (!range_end_sanity_check[i])
                 std::cerr << "[WARNING] End did not match for " << data.ids[i] << " of length " << data.lengths[i] << std::endl;
         seqan3::debug_stream << "[WARNING] This should never happen. Please contact the developer." << std::endl;
