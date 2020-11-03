@@ -92,11 +92,11 @@ next_in_sorted_sequence(TSortedSequence const & list, TIterator const & prev)
 {
     typedef typename TSortedSequence::const_iterator TSortedSequenceIter;
 
-    TSortedSequenceIter b_l_it;
+    TSortedSequenceIter b_l_it = prev;
     if (prev == list.end())
         b_l_it = list.begin();
     else
-        b_l_it = list.upper_bound(*prev);
+        ++b_l_it;
 
     return b_l_it;
 }
@@ -149,7 +149,7 @@ inline void heaviest_increasing_subsequence(TString const & str,
         while ((b_l_it != list.end()) && (w >= b_l_it->second.first))
         {
             TSortedSequenceIter tmp = b_l_it;
-            b_l_it = next_in_sorted_sequence(list, b_l_it);
+            ++b_l_it;
             list.erase(*tmp);
         }
 
