@@ -61,27 +61,11 @@ previous_in_sortedSequence(TSortedSequence const & list, TKey const key)
     TSortedSequenceIter a_k_it = list.lower_bound(key);
     // Now we need to move one to the front
 
-    if (a_k_it != list.end())
-    {
-        // If we are at the beginning, no predecessor
-        if (a_k_it == list.begin())
-            a_k_it = list.end();
-        else
-            --a_k_it;
-    }
+    // If we are at the beginning, no predecessor
+    if (a_k_it == list.begin())
+        a_k_it = list.end();
     else
-    {
-        // If we are at the end, the predecessor is the last element of the list
-        TSortedSequenceIter tmp = list.begin();
-        if (tmp != list.end())
-        {
-            do
-            {
-                a_k_it = tmp;
-            }
-            while (++tmp != list.end());
-        }
-    }
+        --a_k_it;
 
     return a_k_it;
 }
@@ -112,14 +96,14 @@ inline void heaviest_increasing_subsequence(TString const & str,
     typedef typename Value<TWeightMap>::Type TWeight;
 
     // The list of decreasing covers, only the smallest element of each member must be remembered
-    typedef std::pair<TValue, std::pair<TWeight, TPos> > TKey;
+    typedef std::tuple<TValue, TWeight, TPos> TKey;
     typedef std::set<TKey, std::less<TKey> > TSortedSequence;
     typedef typename TSortedSequence::const_iterator TSortedSequenceIter;
     TSortedSequence list;
 
     // The trace-back graph
     typedef Graph<Directed<void, WithoutEdgeId> > TGraph;
-    typedef VertexDescriptor<TGraph>::Type TVertexDescriptor;
+    typedef VertexDescriptor<TGraph>::Type TVDesc;
     TGraph trace_back_graph;
 
     // Walk through the sequence and build the decreasing covers
@@ -127,49 +111,37 @@ inline void heaviest_increasing_subsequence(TString const & str,
     {
         TValue str_id = str[current_pos];
         TWeight w = weights[current_pos];
-        // Letters that do not contribute a weight (e.g., w = 0) are excluded!
-        // Weights must increase!
-        if (w == 0)
-        {
-            addVertex(trace_back_graph);  // Note: The vertex id corresponds to the position
-            continue;
-        }
-
-        // Get previous element
-        TSortedSequenceIter a_k_it = previous_in_sortedSequence(list, std::make_pair(str_id, std::make_pair(0, 0)));
-
-        // Get next element
-        TSortedSequenceIter b_l_it = next_in_sorted_sequence(list, a_k_it);
-
-        // Determine new weight
-        if (a_k_it != list.end())
-            w += a_k_it->second.first;
-
-        // Delete from list
-        while ((b_l_it != list.end()) && (w >= b_l_it->second.first))
-        {
-            TSortedSequenceIter tmp = b_l_it;
-            ++b_l_it;
-            list.erase(*tmp);
-        }
-
-        // Insert new list element
-        if ((b_l_it == list.end()) || (str_id < b_l_it->first))
-            list.insert(std::make_pair(str_id, std::make_pair(w, current_pos)));
 
         // Create the corresponding node, current_pos == Vertex Descriptor
         addVertex(trace_back_graph);
 
-        // Connect to predecessor
+        // Letters that do not contribute a weight (e.g., w = 0) are excluded!
+        // Weights must increase!
+        if (w == 0)
+            continue;
+
+        TSortedSequenceIter const a_k_it = previous_in_sortedSequence(list, std::make_tuple(str_id, 0, 0));
+
         if (a_k_it != list.end())
-            addEdge(trace_back_graph, (TVertexDescriptor) current_pos, (TVertexDescriptor) a_k_it->second.second);
+        {
+            w += std::get<1>(*a_k_it); // Determine new weight
+            addEdge(trace_back_graph, (TVDesc) current_pos, (TVDesc) std::get<2>(*a_k_it)); // Connect to predecessor
+        }
+
+        TSortedSequenceIter b_l_it = next_in_sorted_sequence(list, a_k_it);
+
+        while ((b_l_it != list.end()) && (w >= std::get<1>(*b_l_it)))
+            b_l_it = list.erase(b_l_it);
+
+        if ((b_l_it == list.end()) || (str_id < std::get<0>(*b_l_it)))
+            list.emplace(str_id, w, current_pos);
     }
 
     // Trace-back
     if (list.rbegin() != list.rend())
     {
         // Last vertex is end of heaviest increasing subsequence
-        TVertexDescriptor v = list.rbegin()->second.second;
+        TVDesc v = std::get<2>(*list.rbegin());
         while (true)
         {
             appendValue(positions, v, Generous());
