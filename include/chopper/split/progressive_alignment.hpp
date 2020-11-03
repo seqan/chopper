@@ -7,6 +7,47 @@
 namespace seqan
 {
 
+template<typename TStringSet, typename TCargo, typename TSpec, typename TSeqId, typename TPos>
+inline typename VertexDescriptor<Graph<Alignment<TStringSet, TCargo, TSpec> > >::Type
+find_vertex(Graph<Alignment<TStringSet, TCargo, TSpec>> const & g, TSeqId const id, TPos const pos)
+{
+    typedef Graph<Alignment<TStringSet, TCargo, TSpec> > TGraph;
+    typedef typename TGraph::TKey_ TKey;
+    typedef typename Size<TGraph>::Type TSize;
+    typedef typename Id<TGraph>::Type TIdType;
+    typedef typename VertexDescriptor<TGraph>::Type TVertexDescriptor;
+
+    return (pos >= (TPos) length(getValueById(stringSet(g), id))) ?
+                getNil<TVertexDescriptor>() :
+                g.data_pvMap.upper_bound(TKey((TIdType)id, (TSize)pos))->second;
+}
+
+template<typename TStringSet, typename TCargo, typename TSpec, typename TPosition, typename TSequence>
+inline void build_leaf_string(Graph<Alignment<TStringSet, TCargo, TSpec>> const & g,
+                              TPosition const pos,
+                              TSequence & alignSeq)
+{
+    typedef Graph<Alignment<TStringSet, TCargo, TSpec> > TGraph;
+    typedef typename Size<TGraph>::Type TSize;
+    typedef typename Id<TGraph>::Type TId;
+    typedef typename VertexDescriptor<TGraph>::Type TVertexDescriptor;
+    typedef typename Value<TSequence>::Type TVertexString;
+
+    TStringSet const & str = stringSet(g);
+    TId const seqId = positionToId(str, pos);
+    TSize const lenRoot = length(str[pos]);
+    TSize i = 0;
+
+    while (i < lenRoot)
+    {
+        TVertexDescriptor nextVertex = find_vertex(g, seqId, i);
+        TVertexString vs;
+        appendValue(vs, nextVertex);
+        appendValue(alignSeq, vs, Generous());
+        i += fragmentLength(g, nextVertex);
+    }
+}
+
 template<typename TString, typename TWeightMap, typename TPositions>
 inline void heaviest_increasing_subsequence(TString const & str,
                                             TWeightMap const & weights,
@@ -208,28 +249,15 @@ auto get_vertex_descriptor_pos_map(Graph<Alignment<TStringSet, TCargo, TSpec> > 
 {
     typedef Graph<Alignment<TStringSet, TCargo, TSpec> > TGraph;
     typedef typename Size<TGraph>::Type TSize;
-    typedef typename Iterator<TString const, Standard>::Type TStringIterConst;
-    typedef typename Value<TString>::Type TVertexSet;
-    typedef typename Iterator<TVertexSet const, Standard>::Type TVertexSetIterConst;
     typedef String<TSize> TMapVertexPos;
 
     TMapVertexPos map;
     resize(map, getIdUpperBound(_getVertexIdManager(g)), std::numeric_limits<TSize>::max());
 
-    TStringIterConst itStr1 = begin(str1, Standard());
-    TStringIterConst itStrEnd1 = end(str1, Standard());
     TSize pos = 0;
-    TVertexSetIterConst itV;
-    TVertexSetIterConst itVEnd;
-
-    for (; itStr1 != itStrEnd1; ++itStr1, ++pos)
-    {
-        itV = begin(*itStr1, Standard());
-        itVEnd = end(*itStr1, Standard());
-
-        for (; itV != itVEnd; ++itV)
+    for (auto itStr1 = begin(str1, Standard()); itStr1 != end(str1, Standard()); ++itStr1, ++pos)
+        for (auto itV = begin(*itStr1, Standard()); itV != end(*itStr1, Standard()); ++itV)
             map[*itV] = pos;
-    }
 
     return map;
 }
@@ -255,27 +283,18 @@ auto get_slots_and_weights_and_seq(Graph<Alignment<TStringSet, TCargo, TSpec>> c
 
     // We could create the full graph -> too expensive
     // Remember which edges are actually present
-    // if slotToPos doesn't have to be sorted we could even use an unordered map
     std::map<TSize, TCargo> slots_and_weights;
 
-    TStringIterConst itStr2 = begin(str2, Standard());
-    TStringIterConst itStrEnd2 = end(str2, Standard());
     TSize posItStr2 = 0;
-
-    for (; itStr2 != itStrEnd2; ++itStr2, ++posItStr2)
+    for (auto itStr2 = begin(str2, Standard()); itStr2 != end(str2, Standard()); ++itStr2, ++posItStr2)
     {
-        TVertexSetIterConst itV = begin(*itStr2, Standard());
-        TVertexSetIterConst itVEnd = end(*itStr2, Standard());
-
-        for (; itV != itVEnd; ++itV)
+        for (auto itV = begin(*itStr2, Standard()); itV != end(*itStr2, Standard()); ++itV)
         {
-            TOutEdgeIterator itOut(g, *itV);
-
-            for (; !atEnd(itOut); ++itOut)
+            for (auto itOut = TOutEdgeIterator(g, *itV); !atEnd(itOut); ++itOut)
             {
                 // Target vertex must be in the map
                 TSize pPos = map[targetVertex(itOut)];
-                if (pPos != std::numeric_limits<TSize>::max())
+                if (pPos != std::numeric_limits<TSize>::max()) // if edge points to vertex of str1
                 {
                     TSize const key = pPos * n + (TSize) (n - posItStr2 - 1);
                     slots_and_weights[key] += (TCargo) cargo(*itOut);
@@ -328,8 +347,8 @@ inline void heaviest_common_subsequence(Graph<Alignment<TStringSet, TCargo, TSpe
 
 template<typename TStringSet, typename TCargo, typename TSpec, typename TGuideTree, typename TOutGraph>
 inline void
-progressive_alignment(Graph<Alignment<TStringSet, TCargo, TSpec> >& g,
-                      TGuideTree& tree,
+progressive_alignment(Graph<Alignment<TStringSet, TCargo, TSpec>> const & g,
+                      TGuideTree const & tree,
                       TOutGraph& gOut)
 {
     typedef Graph<Alignment<TStringSet, TCargo, TSpec> > TGraph;
@@ -354,30 +373,31 @@ progressive_alignment(Graph<Alignment<TStringSet, TCargo, TSpec> >& g,
 
     // Walk through the tree in bfs order
     typedef typename Iterator<TVertexString, Standard>::Type TVertexIter;
-    TVertexIter itVert = begin(vertices, Standard());
-    TVertexIter itVertEnd = end(vertices, Standard());
-    --itVertEnd;
+    TVertexIter current_node = begin(vertices, Standard());
+    TVertexIter nodes_end = end(vertices, Standard());
+    --nodes_end;
     TBfsIterator bfsIt(tree, rootVertex);
-    for (; !atEnd(bfsIt); goNext(bfsIt), --itVertEnd)
-        *itVertEnd = *bfsIt;
+    for (; !atEnd(bfsIt); goNext(bfsIt), --nodes_end)
+        *nodes_end = *bfsIt;
 
     // Progressive alignment
-    itVert = begin(vertices, Standard());
-    itVertEnd = end(vertices, Standard());
-    for (; itVert != itVertEnd; ++itVert)
+    current_node = begin(vertices, Standard());
+    nodes_end = end(vertices, Standard());
+    for (; current_node != nodes_end; ++current_node)
     {
-        if (isLeaf(tree, *itVert))
+        if (isLeaf(tree, *current_node))
         {
-            _buildLeafString(g, *itVert, segString[*itVert]);
+            build_leaf_string(g, *current_node, segString[*current_node]);
         }
         else
         {
             // Align the two children (Binary tree)
-            TAdjacencyIterator adjIt(tree, *itVert);
-            TVertexDescriptor child1 = *adjIt; goNext(adjIt);
-            heaviest_common_subsequence(g, segString[child1], segString[*adjIt], segString[*itVert]);
+            TAdjacencyIterator child2(tree, *current_node);
+            TVertexDescriptor child1 = *child2;
+            goNext(child2);
+            heaviest_common_subsequence(g, segString[child1], segString[*child2], segString[*current_node]);
             clear(segString[child1]);
-            clear(segString[*adjIt]);
+            clear(segString[*child2]);
         }
     }
 
