@@ -51,10 +51,60 @@ inline void build_leaf_string(Graph<Alignment<TStringSet, TCargo, TSpec>> const 
     }
 }
 
+
+template<typename TSortedSequence, typename TKey>
+inline typename TSortedSequence::const_iterator
+previous_in_sortedSequence(TSortedSequence const & list, TKey const key)
+{
+    typedef typename TSortedSequence::const_iterator TSortedSequenceIter;
+
+    TSortedSequenceIter a_k_it = list.lower_bound(key);
+    // Now we need to move one to the front
+
+    if (a_k_it != list.end())
+    {
+        // If we are at the beginning, no predecessor
+        if (a_k_it == list.begin())
+            a_k_it = list.end();
+        else
+            --a_k_it;
+    }
+    else
+    {
+        // If we are at the end, the predecessor is the last element of the list
+        TSortedSequenceIter tmp = list.begin();
+        if (tmp != list.end())
+        {
+            do
+            {
+                a_k_it = tmp;
+            }
+            while (++tmp != list.end());
+        }
+    }
+
+    return a_k_it;
+}
+
+template<typename TSortedSequence, typename TIterator>
+inline typename TSortedSequence::const_iterator
+next_in_sorted_sequence(TSortedSequence const & list, TIterator const & prev)
+{
+    typedef typename TSortedSequence::const_iterator TSortedSequenceIter;
+
+    TSortedSequenceIter b_l_it;
+    if (prev == list.end())
+        b_l_it = list.begin();
+    else
+        b_l_it = list.upper_bound(*prev);
+
+    return b_l_it;
+}
+
 template<typename TString, typename TWeightMap, typename TPositions>
 inline void heaviest_increasing_subsequence(TString const & str,
                                             TWeightMap const & weights,
-                                            TPositions& pos)
+                                            TPositions& positions)
 {
     typedef typename Size<TString>::Type TSize;
     typedef typename Value<TString>::Type TValue;
@@ -70,30 +120,26 @@ inline void heaviest_increasing_subsequence(TString const & str,
     // The trace-back graph
     typedef Graph<Directed<void, WithoutEdgeId> > TGraph;
     typedef VertexDescriptor<TGraph>::Type TVertexDescriptor;
-    TGraph g;
+    TGraph trace_back_graph;
 
     // Walk through the sequence and build the decreasing covers
-    typedef typename Iterator<TString const, Standard>::Type TStringIter;
-    TStringIter it = begin(str, Standard());
-    TStringIter endIt = end(str, Standard());
-    TSize pos_of_iterator = 0;
-
-    for (; it != endIt; ++it, ++pos_of_iterator)
+    for (TSize current_pos = 0; current_pos < length(str); ++current_pos)
     {
-        TWeight w = weights[pos_of_iterator];
+        TValue str_id = str[current_pos];
+        TWeight w = weights[current_pos];
         // Letters that do not contribute a weight (e.g., w = 0) are excluded!
         // Weights must increase!
         if (w == 0)
         {
-            addVertex(g);  // Note: The vertex id corresponds to the position
+            addVertex(trace_back_graph);  // Note: The vertex id corresponds to the position
             continue;
         }
 
         // Get previous element
-        TSortedSequenceIter a_k_it = _previousInSortedSequence(list, std::make_pair(*it, std::make_pair(0, 0)));
+        TSortedSequenceIter a_k_it = previous_in_sortedSequence(list, std::make_pair(str_id, std::make_pair(0, 0)));
 
         // Get next element
-        TSortedSequenceIter b_l_it = _nextInSortedSequence(list, a_k_it);
+        TSortedSequenceIter b_l_it = next_in_sorted_sequence(list, a_k_it);
 
         // Determine new weight
         if (a_k_it != list.end())
@@ -103,22 +149,20 @@ inline void heaviest_increasing_subsequence(TString const & str,
         while ((b_l_it != list.end()) && (w >= b_l_it->second.first))
         {
             TSortedSequenceIter tmp = b_l_it;
-            b_l_it = _nextInSortedSequence(list, b_l_it);
+            b_l_it = next_in_sorted_sequence(list, b_l_it);
             list.erase(*tmp);
         }
 
         // Insert new list element
-        if ((b_l_it == list.end()) || (*it < b_l_it->first))
-        {
-            list.insert(std::make_pair(*it, std::make_pair(w, pos_of_iterator)));
-        }
+        if ((b_l_it == list.end()) || (str_id < b_l_it->first))
+            list.insert(std::make_pair(str_id, std::make_pair(w, current_pos)));
 
-        // Create the corresponding node, pos_of_iterator == Vertex Descriptor
-        addVertex(g);
+        // Create the corresponding node, current_pos == Vertex Descriptor
+        addVertex(trace_back_graph);
 
         // Connect to predecessor
         if (a_k_it != list.end())
-            addEdge(g, (TVertexDescriptor) pos_of_iterator, (TVertexDescriptor) a_k_it->second.second);
+            addEdge(trace_back_graph, (TVertexDescriptor) current_pos, (TVertexDescriptor) a_k_it->second.second);
     }
 
     // Trace-back
@@ -128,9 +172,9 @@ inline void heaviest_increasing_subsequence(TString const & str,
         TVertexDescriptor v = list.rbegin()->second.second;
         while (true)
         {
-            appendValue(pos, v, Generous());
-            if (g.data_vertex[v])
-                v = (*g.data_vertex[v]).data_target;
+            appendValue(positions, v, Generous());
+            if (trace_back_graph.data_vertex[v])
+                v = (*trace_back_graph.data_vertex[v]).data_target;
             else
                 break;
         }
