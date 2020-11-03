@@ -4,6 +4,9 @@
 
 #include <seqan/graph_msa.h>
 
+#include <seqan3/range/views/to.hpp>
+#include <seqan3/std/ranges>
+
 namespace seqan
 {
 
@@ -262,6 +265,31 @@ auto get_vertex_descriptor_pos_map(Graph<Alignment<TStringSet, TCargo, TSpec> > 
     return map;
 }
 
+template <typename TSlots, typename TWeights, typename TSeqs>
+void sort_by_slots(TSlots & slots, TWeights & weights, TSeqs & seqs)
+{
+    // generate permutation of indices sorted in descinding order by the slots
+    auto permutation = std::views::iota(0u, length(slots)) | seqan3::views::to<std::vector>;
+    auto compare = [&slots] (auto const l, auto const r) { return slots[l] < slots[r]; };
+    std::sort(permutation.begin(), permutation.end(), compare);
+
+    // apply permutation
+    for (size_t i = 0; i < permutation.size(); i++)
+    {
+        auto current = i;
+        while (i != permutation[current])
+        {
+            auto next = permutation[current];
+            std::swap(slots[current], slots[next]);
+            std::swap(weights[current], weights[next]);
+            std::swap(seqs[current], seqs[next]);
+            permutation[current] = current;
+            current = next;
+        }
+        permutation[current] = current;
+    }
+}
+
 template<typename TStringSet, typename TCargo, typename TSpec, typename TString>
 auto get_slots_and_weights_and_seq(Graph<Alignment<TStringSet, TCargo, TSpec>> const & g,
                                    TString const & str1,
@@ -283,40 +311,32 @@ auto get_slots_and_weights_and_seq(Graph<Alignment<TStringSet, TCargo, TSpec>> c
 
     // We could create the full graph -> too expensive
     // Remember which edges are actually present
-    std::map<TSize, TCargo> slots_and_weights;
+    TSlotToPos slotToPos;
+    TWeights weights;
+    TSequenceString seq;
 
     TSize posItStr2 = 0;
     for (auto itStr2 = begin(str2, Standard()); itStr2 != end(str2, Standard()); ++itStr2, ++posItStr2)
     {
-        for (auto itV = begin(*itStr2, Standard()); itV != end(*itStr2, Standard()); ++itV)
+        auto itV = begin(*itStr2, Standard()); // only check first vertex (all should point to the same)
+        for (auto itOut = TOutEdgeIterator(g, *itV); !atEnd(itOut); ++itOut) // find the first cargo weight
         {
-            for (auto itOut = TOutEdgeIterator(g, *itV); !atEnd(itOut); ++itOut)
+            // Target vertex must be in the map
+            TSize pPos = map[targetVertex(itOut)];
+            if (pPos != std::numeric_limits<TSize>::max()) // if edge points to vertex of str1
             {
-                // Target vertex must be in the map
-                TSize pPos = map[targetVertex(itOut)];
-                if (pPos != std::numeric_limits<TSize>::max()) // if edge points to vertex of str1
-                {
-                    TSize const key = pPos * n + (TSize) (n - posItStr2 - 1);
-                    slots_and_weights[key] += (TCargo) cargo(*itOut);
-                }
+                TSize const slot = pPos * n + (TSize) (n - posItStr2 - 1);
+
+                appendValue(slotToPos, slot);
+                appendValue(weights, length(*itStr2) * (TCargo)cargo(*itOut));
+                appendValue(seq, n - 1 - (slot % n));
+
+                break;
             }
         }
     }
 
-    // Get all occupied positions
-    TSlotToPos slotToPos;
-    TWeights weights;
-    TSequenceString seq;
-    reserve(slotToPos, slots_and_weights.size());
-    reserve(weights, slots_and_weights.size());
-    reserve(seq, slots_and_weights.size());
-
-    for (auto [slot, weight] : slots_and_weights)
-    {
-        appendValue(slotToPos, slot);
-        appendValue(weights, weight);
-        appendValue(seq, n - 1 - (slot % n));
-    }
+    sort_by_slots(slotToPos, weights, seq);
 
     return std::make_tuple(std::move(slotToPos), std::move(weights), std::move(seq));
 }
