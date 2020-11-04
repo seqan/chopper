@@ -183,7 +183,7 @@ void read_graph(lemon::ListDigraph & g,
 
     nodes.reserve(group.size() + 1);
     g.reserveNode(group.size() + 1);
-    g.reserveArc((group.size() + 1) * unique_groups.size());
+    g.reserveArc(group.size() + 1);
 
     lemon::ListDigraph::Node source_node = g.addNode();
     lemon::ListDigraph::Node sink_node = g.addNode();
