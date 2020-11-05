@@ -20,7 +20,7 @@ TEST(chopper_count_test, small_example_parallel_2_threads)
 
     seqan3::test::tmp_filename traversal_dir{""};
     std::string traversal_split_bin0{traversal_dir.get_path().string() + "/SPLIT_BIN_0.out"};
-    std::string traversal_merged_bin2{traversal_dir.get_path().string() + "/COLORFUL_MERGED_BIN_2_1.out"};
+    std::string traversal_merged_bin2{traversal_dir.get_path().string() + "/COLORFUL_MERGED_BIN_2.out"};
     std::string traversal_split_bin3{traversal_dir.get_path().string() + "/SPLIT_BIN_3.out"};
 
     // generate data files
@@ -29,7 +29,7 @@ TEST(chopper_count_test, small_example_parallel_2_threads)
         fout << "BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n"
              << "SPLIT_BIN_0\t" << input_filename1 << "\t2\t500\n"
              << "SPLIT_BIN_1\t" << input_filename1 + "\t1\t500\n"
-             << "COLORFUL_MERGED_BIN_2_0\t" << input_filename1 << "\t1\t2500\n"
+             << "COLORFUL_MERGED_BIN_2_0\t" << input_filename1 << "\t3\t2500\n"
              << "COLORFUL_MERGED_BIN_2_1\t" << input_filename1 << ";" << input_filename2 << "\t2\t2500\n"
              << "SPLIT_BIN_3\t" << input_filename2 + "\t3\t1000\n";
     }
@@ -44,12 +44,17 @@ TEST(chopper_count_test, small_example_parallel_2_threads)
     {
         std::ofstream fout{traversal_merged_bin2};
         fout << "FILE_ID\tSEQ_ID\tBEGIN\tEND\tBIN_NUMBER\n"
+             /*COLORFUL_MERGED_BIN_2_0*/
              << input_filename1 << "\tseq1\t0\t400\t0\n"
-             << input_filename2 << "\tseq10\t0\t400\t0\n"
-             << input_filename1 << "\tseq2\t0\t480\t0\n"
-             << input_filename2 << "\tseq20\t0\t480\t0\n"
-             << input_filename1 << "\tseq3\t0\t481\t1\n"
-             << input_filename2 << "\tseq30\t0\t481\t1\n";
+             << input_filename1 << "\tseq2\t0\t480\t1\n"
+             << input_filename1 << "\tseq3\t0\t481\t2\n"
+             /*COLORFUL_MERGED_BIN_2_1*/
+             << input_filename1 << "\tseq1\t0\t400\t3\n"
+             << input_filename2 << "\tseq10\t0\t400\t3\n"
+             << input_filename1 << "\tseq2\t0\t480\t3\n"
+             << input_filename2 << "\tseq20\t0\t480\t3\n"
+             << input_filename1 << "\tseq3\t0\t481\t4\n"
+             << input_filename2 << "\tseq30\t0\t481\t4\n";
     }
     {
         std::ofstream fout{traversal_split_bin3};
@@ -67,25 +72,31 @@ TEST(chopper_count_test, small_example_parallel_2_threads)
     auto && [high_level_ibf, low_level_ibfs] = create_ibfs_from_data_file(config);
 
     EXPECT_EQ(config.high_level_ibf_num_technical_bins, 7);
-    EXPECT_EQ(low_level_ibfs.size(), 1u);
-    EXPECT_EQ(low_level_ibfs[0].bin_count(), 3u);
+    EXPECT_EQ(low_level_ibfs.size(), 1u);         // one low level IBF
+    EXPECT_EQ(low_level_ibfs[0].bin_count(), 5u); // with 5 user bins
 
     // The traversal files are made up like the following
+    // Note that the function `read_data_file_and_set_high_level_bins()` will output all split bin first
+    // and only then the merged bins, so the order of high level bins does not correspond exactly to the
+    // order of the traversal file.
+
     // HIGH LEVEL IBF
     // --------------
     // Bin 0: seq1, seq2
     // Bin 1: seq3
     // Bin 2: seq1, seq2, seq3
-    // Bin 3: seq1, seq2, seq3
-    // Bin 4: seq1
-    // Bin 5: seq2
-    // Bin 6: seq3
+    // Bin 3: seq1
+    // Bin 4: seq2
+    // Bin 5: seq3
+    // Bin 6: seq1, seq2, seq3
 
     // LOW LEVEL IBF (only one)
     // --------------
-    // Bin 0: seq1, seq2, seq3
-    // Bin 1: seq1, seq2
+    // Bin 0: seq1
+    // Bin 1: seq2
     // Bin 2: seq3
+    // Bin 3: seq1, seq2
+    // Bin 4: seq3
 
     auto unspecific = "ACGATCGACTAGGAGCGATTACGACTGACTACATCTAGCTAGCTAGAGATTCTTCAGAGCTTAGCGATCTCGAGCTATCG"_dna4;
     auto seq2_specific = "ATATCGATCGAGCGAGGCAGGCAGCGATCGAGCGAGCGCATGCAGCGACTAGCTACGACAGCTACTATCAGCAGCGAGCG"_dna4;
@@ -94,7 +105,7 @@ TEST(chopper_count_test, small_example_parallel_2_threads)
     auto high_level_agent = high_level_ibf.membership_agent();
     auto low_level_agent = low_level_ibfs[0].membership_agent();
 
-    {
+    { // UNSPECIFIC - unspecific region should be found in all bins
         std::vector<size_t> high_level_counts(high_level_agent.result_buffer.size());
         std::vector<size_t> low_level_counts(low_level_agent.result_buffer.size());
 
@@ -119,7 +130,7 @@ TEST(chopper_count_test, small_example_parallel_2_threads)
             EXPECT_EQ(low_level_counts[i], expected) << "[LOW LEVEL] Failed for bin " << i << std::endl;
     }
 
-    {
+    { // SEQ2 SPECIFIC
         std::vector<size_t> high_level_counts(high_level_agent.result_buffer.size());
         std::vector<size_t> low_level_counts(low_level_agent.result_buffer.size());
 
@@ -138,19 +149,21 @@ TEST(chopper_count_test, small_example_parallel_2_threads)
         size_t expected = std::ranges::distance(seq2_specific | seqan3::views::kmer_hash(seqan3::ungapped{config.k}));
 
         EXPECT_EQ(high_level_counts[0], expected);
-        EXPECT_EQ(high_level_counts[1], 1); // 1 by change
+        EXPECT_EQ(high_level_counts[1], 1); // 1 by chance
         EXPECT_EQ(high_level_counts[2], expected);
-        EXPECT_EQ(high_level_counts[3], expected);
-        EXPECT_EQ(high_level_counts[4], 1); // 1 by change
-        EXPECT_EQ(high_level_counts[5], expected);
-        EXPECT_EQ(high_level_counts[6], 1); // 1 by change
+        EXPECT_EQ(high_level_counts[3], 1); // 1 by chance
+        EXPECT_EQ(high_level_counts[4], expected);
+        EXPECT_EQ(high_level_counts[5], 1); // 1 by chance
+        EXPECT_EQ(high_level_counts[6], expected);
 
-        EXPECT_EQ(low_level_counts[0], expected);
+        EXPECT_EQ(low_level_counts[0], 1); // 1 by chance
         EXPECT_EQ(low_level_counts[1], expected);
-        EXPECT_EQ(low_level_counts[2], 1); // 1 by change
+        EXPECT_EQ(low_level_counts[2], 1); // 1 by chance
+        EXPECT_EQ(low_level_counts[3], expected);
+        EXPECT_EQ(low_level_counts[4], 1); // 1 by chance
     }
 
-    {
+    { // SEQ3 SPECIFIC
         std::vector<size_t> high_level_counts(high_level_agent.result_buffer.size());
         std::vector<size_t> low_level_counts(low_level_agent.result_buffer.size());
 
@@ -171,13 +184,15 @@ TEST(chopper_count_test, small_example_parallel_2_threads)
         EXPECT_EQ(high_level_counts[0], 0);
         EXPECT_EQ(high_level_counts[1], expected);
         EXPECT_EQ(high_level_counts[2], expected);
-        EXPECT_EQ(high_level_counts[3], expected);
+        EXPECT_EQ(high_level_counts[3], 0);
         EXPECT_EQ(high_level_counts[4], 0);
-        EXPECT_EQ(high_level_counts[5], 0);
+        EXPECT_EQ(high_level_counts[5], expected);
         EXPECT_EQ(high_level_counts[6], expected);
 
-        EXPECT_EQ(low_level_counts[0], expected);
+        EXPECT_EQ(low_level_counts[0], 0);
         EXPECT_EQ(low_level_counts[1], 0);
         EXPECT_EQ(low_level_counts[2], expected);
+        EXPECT_EQ(low_level_counts[3], 0);
+        EXPECT_EQ(low_level_counts[4], expected);
     }
 }

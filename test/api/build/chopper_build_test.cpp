@@ -20,7 +20,7 @@ TEST(chopper_count_test, small_example_parallel_2_threads)
 
     seqan3::test::tmp_filename traversal_dir{""};
     std::string traversal_split_bin0{traversal_dir.get_path().string() + "SPLIT_BIN_0.out"};
-    std::string traversal_merged_bin2{traversal_dir.get_path().string() + "COLORFUL_MERGED_BIN_2_1.out"};
+    std::string traversal_merged_bin2{traversal_dir.get_path().string() + "COLORFUL_MERGED_BIN_2.out"};
     std::string traversal_split_bin3{traversal_dir.get_path().string() + "SPLIT_BIN_3.out"};
 
     // generate data files
@@ -29,7 +29,7 @@ TEST(chopper_count_test, small_example_parallel_2_threads)
         fout << "BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n"
              << "SPLIT_BIN_0\t" << input_filename1 << "\t2\t500\n"
              << "SPLIT_BIN_1\t" << input_filename1 + "\t1\t500\n"
-             << "COLORFUL_MERGED_BIN_2_0\t" << input_filename1 << "\t1\t2500\n"
+             << "COLORFUL_MERGED_BIN_2_0\t" << input_filename1 << "\t2\t2500\n"
              << "COLORFUL_MERGED_BIN_2_1\t" << input_filename1 << ";" << input_filename2 << "\t2\t2500\n"
              << "SPLIT_BIN_3\t" << input_filename2 + "\t3\t1000\n";
     }
@@ -43,6 +43,11 @@ TEST(chopper_count_test, small_example_parallel_2_threads)
     {
         std::ofstream fout{traversal_merged_bin2};
         fout << "FILE_ID\tSEQ_ID\tBEGIN\tEND\tBIN_NUMBER\n"
+             /*COLORFUL_MERGED_BIN_2_0*/
+             << input_filename1 << "\tseq1\t0\t400\t0\n"
+             << input_filename1 << "\tseq2\t0\t480\t1\n"
+             << input_filename1 << "\tseq3\t0\t481\t2\n"
+             /*COLORFUL_MERGED_BIN_2_1*/
              << input_filename1 << "\tseq1\t0\t400\t0\n"
              << input_filename2 << "\tseq10\t0\t400\t0\n"
              << input_filename1 << "\tseq2\t0\t480\t0\n"

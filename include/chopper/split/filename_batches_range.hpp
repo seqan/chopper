@@ -8,6 +8,7 @@
 #include <chopper/detail_starts_with.hpp>
 #include <chopper/split/split_config.hpp>
 
+// implements an input range
 class filename_batches_range
 {
 public:
@@ -131,6 +132,7 @@ private:
         split_config current_config;
 
         static constexpr std::string_view merged_bin_prefix{"COLORFUL_MERGED_BIN"};
+        static constexpr size_t merged_bin_prefix_length{merged_bin_prefix.size()};
 
         bool parse_next_line()
         {
@@ -138,6 +140,8 @@ private:
 
             if (host->current_file_type == file_type::seqfiles_given)
                 return true;
+
+            current_config = host->config; // reset
 
             char const * buffer = host->current_line.c_str();
             auto field_start = &buffer[0];
@@ -167,7 +171,30 @@ private:
 
             current_config.bins = num_technical_bins;
 
-            std::string out_filename = host->config.out_path.string() + "_" + bin_name + ".out";
+            std::string out_filename;
+
+            if (starts_with(bin_name, merged_bin_prefix))
+            {
+                auto const id_end = std::find(bin_name.begin() + merged_bin_prefix_length + 1, bin_name.end(), '_');
+                std::string const merged_bin_id{&bin_name[0], static_cast<std::string_view::size_type>(id_end - bin_name.begin())};
+
+                auto it = host->colourful_bin_offsets.find(merged_bin_id);
+
+                if (it == host->colourful_bin_offsets.end()) // merged bin has not been seen yet
+                    it = host->colourful_bin_offsets.emplace(merged_bin_id, 0u).first;
+                else
+                    current_config.append_traverse_output = true;
+
+                current_config.bin_index_offset = it->second;
+                it->second += num_technical_bins;
+
+                out_filename = host->config.out_path.string() + std::string{merged_bin_id} + ".out";
+            }
+            else
+            {
+                out_filename = host->config.out_path.string() + bin_name + ".out";
+            }
+
             current_config.out_path = std::filesystem::path{out_filename};
 
             return true;
@@ -209,6 +236,8 @@ private:
     std::ifstream data_file;
 
     std::string current_line{""};
+
+    std::unordered_map<std::string, size_t> colourful_bin_offsets{};
 
 public:
     file_type const current_file_type{file_type::unknown};

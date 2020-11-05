@@ -538,8 +538,11 @@ void traverse_graph(split_data const & data, split_config const & config)
     assert(bin_contents.size() != 0);
     assert(bin_contents[0].size() == seqan::length(data.sequences));
 
-    std::ofstream fout{config.out_path};
-    fout << "FILE_ID\tSEQ_ID\tBEGIN\tEND\tBIN_NUMBER\n"; // header
+    auto const open_mode = (config.append_traverse_output) ? std::ios::binary | std::ios::app: std::ios::binary;
+    std::ofstream fout{config.out_path, open_mode};
+
+    if (!config.append_traverse_output)
+        fout << "FILE_ID\tSEQ_ID\tBEGIN\tEND\tBIN_NUMBER\n"; // header
 
     std::vector<bool> range_end_sanity_check(seqan::length(data.sequences), 0);
     size_t bin_index{};
@@ -553,7 +556,7 @@ void traverse_graph(split_data const & data, split_config const & config)
                      << data.ids[i] << '\t'
                      << bin[i].first << '\t'
                      << bin[i].second << '\t'
-                     << bin_index << '\n';
+                     << bin_index + config.bin_index_offset << '\n';
             }
 
             if (bin[i].second == data.lengths[i])
@@ -576,5 +579,8 @@ void traverse_graph(split_data const & data, split_config const & config)
         seqan3::debug_stream << "[WARNING] This should never happen. Please contact the developer." << std::endl;
     }
 
-    seqan3::debug_stream << "Bin content written to : " << config.out_path << std::endl;
+    seqan3::debug_stream << "Bin content "
+                         << ((config.append_traverse_output) ? "appended" : "written")
+                         << " to : "
+                         << config.out_path << std::endl;
 }

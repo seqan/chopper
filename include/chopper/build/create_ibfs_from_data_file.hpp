@@ -42,6 +42,8 @@ auto read_sequences(std::vector<std::string> const & filenames)
 
 auto create_ibfs_from_data_file(build_config & config)
 {
+    // the data file records, e.g. {bin_name, filenames, number_of_technical_bins}
+
     auto records = read_data_file_and_set_high_level_bins(config);
 
     assert(config.high_level_ibf_num_technical_bins != 0);
@@ -60,11 +62,8 @@ auto create_ibfs_from_data_file(build_config & config)
 
 
     size_t bin_idx{};
-    size_t record_idx{};
-    while (record_idx < records.size())
+    for (auto const & record : records)
     {
-        auto const & record = records[record_idx];
-
         if (starts_with(record.bin_name, split_bin_prefix))
         {
             auto && info = read_sequences(record.filenames); // into random access containers
@@ -98,76 +97,36 @@ auto create_ibfs_from_data_file(build_config & config)
                         for (auto hash : seq | seqan3::views::kmer_hash(seqan3::ungapped{config.k}))
                             high_level_ibf.emplace(hash, seqan3::bin_index{bin_idx});
             }
-            ++record_idx;
         }
         else if (starts_with(record.bin_name, merged_bin_prefix))
         {
             // we need to construct a low level ibf AND insert all kmers into the high level bin
-            auto const prefix_end = std::find(record.bin_name.begin() + merged_bin_prefix.size(), record.bin_name.end(), '_');
-            std::string const bin_prefix(record.bin_name.begin(), prefix_end);
 
-            auto record_range_begin = records.begin() + record_idx;
-            auto record_range_end = record_range_begin;
-
-            size_t technical_bins{};
-            while (record_range_end != records.end() && starts_with(record_range_end->bin_name, bin_prefix))
-            {
-                technical_bins += record_range_end->bins;
-                ++record_idx;
-                ++record_range_end;
-            }
-
-            assert(technical_bins != 0);
-            seqan3::interleaved_bloom_filter low_level{seqan3::bin_count{technical_bins},
+            assert(record.bins != 0);
+            seqan3::interleaved_bloom_filter low_level{seqan3::bin_count{record.bins},
                                                        seqan3::bin_size{8192u/*todo*/},
                                                        seqan3::hash_function_count{2}};
 
-            size_t merged_bin_idx{};
-            for (auto it = record_range_begin; it != record_range_end; ++it)
+            auto && info = read_sequences(record.filenames); // into random access containers
+
+            std::ifstream fin{config.traversal_path_prefix + record.bin_name + ".out"};
+            std::string line;
+
+            if (!fin.good() || !fin.is_open())
+                throw std::logic_error{"Could not open file '" + config.traversal_path_prefix + record.bin_name + ".out' for reading"};
+
+            std::getline(fin, line); // skip header
+            while (std::getline(fin, line))
             {
-                auto const & merged_record = *it;
+                auto && [filename, id, begin, end, idx] = parse_traversal_file_line(line);
+                assert(bin_idx < high_level_ibf.bin_count());
+                assert(idx < low_level.bin_count());
 
-                if (merged_record.bins != 1)
+                for (auto hash : hash_infix(info[filename][id], begin, end))
                 {
-                    auto && info = read_sequences(merged_record.filenames); // into random access containers
-
-                    std::ifstream fin{config.traversal_path_prefix + merged_record.bin_name + ".out"};
-                    std::string line;
-
-                    if (!fin.good() || !fin.is_open())
-                        throw std::logic_error{"Could not open file '" + config.traversal_path_prefix + merged_record.bin_name + ".out' for reading"};
-
-                    std::getline(fin, line); // skip header
-                    while (std::getline(fin, line))
-                    {
-                        auto && [filename, id, begin, end, idx] = parse_traversal_file_line(line);
-                        assert(bin_idx < high_level_ibf.bin_count());
-                        assert(merged_bin_idx + idx < low_level.bin_count());
-
-                        // insert into high level
-                        for (auto hash : hash_infix(info[filename][id], begin, end))
-                        {
-                            high_level_ibf.emplace(hash, seqan3::bin_index{bin_idx});
-                            low_level.emplace(hash, seqan3::bin_index{merged_bin_idx + idx});
-                        }
-                    }
-
-                    merged_bin_idx += merged_record.bins - 1;
+                    high_level_ibf.emplace(hash, seqan3::bin_index{bin_idx});
+                    low_level.emplace(hash, seqan3::bin_index{idx});
                 }
-                else
-                {
-                    assert(bin_idx < high_level_ibf.bin_count());
-                    assert(merged_bin_idx < low_level.bin_count());
-
-                    for (auto const & filename : merged_record.filenames)
-                        for (auto && [seq, id] : sequence_file_type{filename})
-                            for (auto hash : seq | seqan3::views::kmer_hash(seqan3::ungapped{config.k}))
-                            {
-                                high_level_ibf.emplace(hash, seqan3::bin_index{bin_idx});
-                                low_level.emplace(hash, seqan3::bin_index{merged_bin_idx});
-                            }
-                }
-                ++merged_bin_idx;
             }
 
             low_level_ibfs.emplace_back(low_level);

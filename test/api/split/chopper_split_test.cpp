@@ -75,7 +75,7 @@ TEST(chopper_split_test, data_file_as_input)
         fout << "BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n"
              << "SPLIT_BIN_0\t" << input_filename1 + "\t2\t500\n"
              << "SPLIT_BIN_1\t" << input_filename1 + "\t2\t500\n"
-             << "COLORFUL_MERGED_BIN_2_0\t" << input_filename1 << "\t1\t2500\n"
+             << "COLORFUL_MERGED_BIN_2_0\t" << input_filename1 << "\t2\t2500\n"
              << "COLORFUL_MERGED_BIN_2_1\t" << input_filename1 << ";" << input_filename2 << "\t2\t2500\n"
              << "SPLIT_BIN_3\t" << input_filename2 + "\t3\t1000\n";
     }
@@ -112,18 +112,26 @@ TEST(chopper_split_test, data_file_as_input)
         },
         {
             "FILE_ID\tSEQ_ID\tBEGIN\tEND\tBIN_NUMBER\n" +
+            /*COLORFUL_MERGED_BIN_2_0*/
             input_filename1 + "\tseq1\t0\t209\t0\n" +
             input_filename1 + "\tseq2\t0\t289\t0\n" +
             input_filename1 + "\tseq3\t0\t209\t0\n" +
-            input_filename2 + "\tseq10\t0\t209\t0\n" +
-            input_filename2 + "\tseq20\t0\t289\t0\n" +
-            input_filename2 + "\tseq30\t0\t209\t0\n" +
             input_filename1 + "\tseq1\t209\t400\t1\n" +
             input_filename1 + "\tseq2\t289\t480\t1\n" +
             input_filename1 + "\tseq3\t209\t481\t1\n" +
-            input_filename2 + "\tseq10\t209\t400\t1\n" +
-            input_filename2 + "\tseq20\t289\t480\t1\n" +
-            input_filename2 + "\tseq30\t209\t481\t1\n"
+            /*COLORFUL_MERGED_BIN_2_1*/
+            input_filename1 + "\tseq1\t0\t209\t2\n" +
+            input_filename1 + "\tseq2\t0\t289\t2\n" +
+            input_filename1 + "\tseq3\t0\t209\t2\n" +
+            input_filename2 + "\tseq10\t0\t209\t2\n" +
+            input_filename2 + "\tseq20\t0\t289\t2\n" +
+            input_filename2 + "\tseq30\t0\t209\t2\n" +
+            input_filename1 + "\tseq1\t209\t400\t3\n" +
+            input_filename1 + "\tseq2\t289\t480\t3\n" +
+            input_filename1 + "\tseq3\t209\t481\t3\n" +
+            input_filename2 + "\tseq10\t209\t400\t3\n" +
+            input_filename2 + "\tseq20\t289\t480\t3\n" +
+            input_filename2 + "\tseq30\t209\t481\t3\n"
         },
         {
             "FILE_ID\tSEQ_ID\tBEGIN\tEND\tBIN_NUMBER\n" +
@@ -143,15 +151,15 @@ TEST(chopper_split_test, data_file_as_input)
     {
         "SPLIT_BIN_0",
         "SPLIT_BIN_1",
-        "COLORFUL_MERGED_BIN_2_1",
+        "COLORFUL_MERGED_BIN_2",
         "SPLIT_BIN_3",
     };
 
     // compare results
     for (size_t batch_number = 0; batch_number < 4; ++batch_number)
     {
-        std::ifstream output_file{output_filename.get_path().string() + "_" + bin_names[batch_number] + ".out"};
+        std::ifstream output_file{output_filename.get_path().string() + bin_names[batch_number] + ".out"};
         std::string const output_file_str((std::istreambuf_iterator<char>(output_file)), std::istreambuf_iterator<char>());
-        EXPECT_EQ(output_file_str, expected_output[batch_number]);
+        EXPECT_EQ(output_file_str, expected_output[batch_number]) << " failed at batch " << batch_number << std::endl;
     }
 }
