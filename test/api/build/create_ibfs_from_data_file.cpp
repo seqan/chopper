@@ -196,3 +196,112 @@ TEST(chopper_count_test, small_example_parallel_2_threads)
         EXPECT_EQ(low_level_counts[4], expected);
     }
 }
+
+TEST(chopper_count_test, config_overlap)
+{
+    std::string input_filename1 = DATADIR"small.fa";
+    seqan3::test::tmp_filename data_filename{"data.tsv"};
+
+    seqan3::test::tmp_filename traversal_dir{""};
+    std::string traversal_split_bin0{traversal_dir.get_path().string() + "/SPLIT_BIN_0.out"};
+
+    // generate data files
+    {
+        std::ofstream fout{data_filename.get_path()};
+        fout << "BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n"
+             << "SPLIT_BIN_0\t" << input_filename1 << "\t3\t500\n";
+    }
+
+    {
+        std::ofstream fout{traversal_split_bin0};
+        fout << "FILE_ID\tSEQ_ID\tBEGIN\tEND\tBIN_NUMBER\n"
+             << input_filename1 << "\tseq1\t0\t400\t0\n"
+             << input_filename1 << "\tseq2\t0\t480\t0\n"
+             << input_filename1 << "\tseq3\t0\t240\t1\n"
+             << input_filename1 << "\tseq3\t240\t481\t2\n";
+    }
+
+    // The traversal files are made up like the following
+    // HIGH LEVEL IBF
+    // --------------
+    // Bin 0: seq1, seq2
+    // Bin 1: seq3 0 - 240
+    // Bin 2: seq3 240 - 481
+
+    // Note that the seq3 specific line is from [240,320) (0-based)
+    auto seq3_specific = "ATCGATCACGATCAGCGAGCGATATCTTATCGTAGGCATCGAGCATCGAGGAGCGATCTATCTATCTATCATCTATCTAT"_dna4;
+
+    auto produce_results = [&] (auto & config)
+    {
+        config.traversal_path_prefix = traversal_dir.get_path().string() + "/";
+        config.binning_filename = data_filename.get_path().string();
+        config.k = 15;
+
+        auto && [high_level_ibf, low_level_ibfs] = create_ibfs_from_data_file(config);
+
+        EXPECT_EQ(config.high_level_ibf_num_technical_bins, 3);
+        EXPECT_EQ(low_level_ibfs.size(), 0u); // no low level IBF
+
+        auto high_level_agent = high_level_ibf.membership_agent();
+        std::vector<size_t> high_level_counts(high_level_agent.result_buffer.size());
+
+        for (auto hash : seq3_specific | seqan3::views::kmer_hash(seqan3::ungapped{config.k}))
+        {
+            auto const & high_res_v = high_level_agent.bulk_contains(hash);
+
+            for (size_t i = 0; i < high_res_v.size(); ++i)
+                high_level_counts[i] += high_res_v[i];
+        }
+
+        return high_level_counts;
+    };
+
+    { // overlap = 0 (no overlap)
+        build_config config{};
+        config.overlap = 0;
+        // the rest of config is set inside produce_results()
+
+        auto high_level_counts = produce_results(config);
+
+        size_t expected_count = std::ranges::distance(seq3_specific
+                                                      | seqan3::views::kmer_hash(seqan3::ungapped{config.k}));
+
+        EXPECT_EQ(high_level_counts[0], 0);
+        EXPECT_EQ(high_level_counts[1], 0);
+        EXPECT_EQ(high_level_counts[2], expected_count);
+    }
+
+    { // overlap = 80 (this means the complete specfic seq3 region is now also in bin 1)
+        build_config config{};
+        config.overlap = 80;
+        // the rest of config is set inside produce_results()
+
+        auto high_level_counts = produce_results(config);
+
+        size_t expected_count = std::ranges::distance(seq3_specific
+                                                      | seqan3::views::kmer_hash(seqan3::ungapped{config.k}));
+
+        EXPECT_EQ(high_level_counts[0], 0);
+        EXPECT_EQ(high_level_counts[1], expected_count);
+        EXPECT_EQ(high_level_counts[2], expected_count);
+    }
+
+    { // overlap = 40 (this means half of the specfic seq3 region is now also in bin 1)
+        build_config config{};
+        config.overlap = 40;
+        // the rest of config is set inside produce_results()
+
+        auto high_level_counts = produce_results(config);
+
+        size_t part_count = std::ranges::distance(seq3_specific
+                                                  | seqan3::views::take(40)
+                                                  | seqan3::views::kmer_hash(seqan3::ungapped{config.k}));
+
+        size_t full_count = std::ranges::distance(seq3_specific
+                                                  | seqan3::views::kmer_hash(seqan3::ungapped{config.k}));
+
+        EXPECT_EQ(high_level_counts[0], 0);
+        EXPECT_EQ(high_level_counts[1], part_count);
+        EXPECT_EQ(high_level_counts[2], full_count);
+    }
+}

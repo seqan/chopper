@@ -23,6 +23,7 @@ void initialize_argument_parser(seqan3::argument_parser & parser, build_config &
                       seqan3::option_spec::REQUIRED);
     parser.add_option(config.traversal_path_prefix, 'p', "traversal-prefix", "Give the prefix were the traversal files are stored.");
     parser.add_option(config.k, 'k', "kmer-size", "The kmer size to build kmers.");
+    parser.add_option(config.overlap, 'l', "overlap", "The overlap between split regions of the same sequence.");
     parser.add_option(config.output_prefix, 'o', "out-prefix", "Prefix of the output files.");
 }
 

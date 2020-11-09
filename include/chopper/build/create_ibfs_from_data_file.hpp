@@ -56,7 +56,7 @@ auto create_ibfs_from_data_file(build_config & config)
     auto hash_infix = [&config] (auto const & seq, auto const begin, auto const end)
     {
         return seq | seqan3::views::drop(begin)
-                   | seqan3::views::take(end - begin)
+                   | seqan3::views::take(end + config.overlap - begin) // views::take never goes over the end
                    | seqan3::views::kmer_hash(seqan3::ungapped{config.k});
     };
 
