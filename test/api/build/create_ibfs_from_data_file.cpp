@@ -71,7 +71,7 @@ TEST(chopper_count_test, small_example_parallel_2_threads)
 
     auto && [high_level_ibf, low_level_ibfs] = create_ibfs_from_data_file(config);
 
-    EXPECT_EQ(config.high_level_ibf_num_technical_bins, 7);
+    EXPECT_EQ(high_level_ibf.bin_count(), 7);
     EXPECT_EQ(low_level_ibfs.size(), 1u);         // one low level IBF
     EXPECT_EQ(low_level_ibfs[0].bin_count(), 5u); // with 5 user bins
 
@@ -239,7 +239,7 @@ TEST(chopper_count_test, config_overlap)
 
         auto && [high_level_ibf, low_level_ibfs] = create_ibfs_from_data_file(config);
 
-        EXPECT_EQ(config.high_level_ibf_num_technical_bins, 3);
+        EXPECT_EQ(high_level_ibf.bin_count(), 3);
         EXPECT_EQ(low_level_ibfs.size(), 0u); // no low level IBF
 
         auto high_level_agent = high_level_ibf.membership_agent();

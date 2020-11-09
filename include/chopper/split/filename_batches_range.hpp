@@ -1,12 +1,9 @@
 #pragma once
 
-#include <seqan3/std/charconv>
-#include <seqan3/std/ranges>
-
-#include <seqan3/range/views/to.hpp>
-
 #include <chopper/detail_starts_with.hpp>
+#include <chopper/detail_parse_binning_line.hpp>
 #include <chopper/split/split_config.hpp>
+
 
 // implements an input range
 class filename_batches_range
@@ -143,40 +140,23 @@ private:
 
             current_config = host->config; // reset
 
-            char const * buffer = host->current_line.c_str();
-            auto field_start = &buffer[0];
-            auto field_end = &buffer[0];
-            auto const buffer_end = field_start + host->current_line.size();
+            auto const bin_data = parse_binning_line(host->current_line);
 
-            while (field_end != buffer_end && *field_end != '\t') ++field_end;
-
-            std::string const bin_name = std::string(field_start, field_end);
-
-            ++field_end; // skip tab
-            field_start = field_end;
-            while (field_end != buffer_end && *field_end != '\t') ++field_end;
-
-            std::string filenames = std::string(field_start, field_end);
-
-            // read number of technical bins assigned to these files
-            ++field_end; // skip tab
-            size_t num_technical_bins;
-            auto res = std::from_chars(field_end, buffer_end, num_technical_bins);
-
-            if (num_technical_bins == 1)
+            if (bin_data.bins == 1)
                 return false;
 
-            for (auto && filename : filenames | std::views::split(';'))
-                current_config.seqfiles.push_back((filename | seqan3::views::to<std::string>));
-
-            current_config.bins = num_technical_bins;
+            current_config.seqfiles = std::move(bin_data.filenames);
+            current_config.bins = bin_data.bins;
 
             std::string out_filename;
 
-            if (starts_with(bin_name, merged_bin_prefix))
+            if (starts_with(bin_data.bin_name, merged_bin_prefix))
             {
-                auto const id_end = std::find(bin_name.begin() + merged_bin_prefix_length + 1, bin_name.end(), '_');
-                std::string const merged_bin_id{&bin_name[0], static_cast<std::string_view::size_type>(id_end - bin_name.begin())};
+                auto const id_end = std::find(bin_data.bin_name.begin() + merged_bin_prefix_length + 1,
+                                              bin_data.bin_name.end(),
+                                              '_');
+                std::string const merged_bin_id{&bin_data.bin_name[0],
+                                                static_cast<std::string_view::size_type>(id_end - bin_data.bin_name.begin())};
 
                 auto it = host->colourful_bin_offsets.find(merged_bin_id);
 
@@ -186,13 +166,13 @@ private:
                     current_config.append_traverse_output = true;
 
                 current_config.bin_index_offset = it->second;
-                it->second += num_technical_bins;
+                it->second += bin_data.bins;
 
                 out_filename = host->config.out_path.string() + std::string{merged_bin_id} + ".out";
             }
             else
             {
-                out_filename = host->config.out_path.string() + bin_name + ".out";
+                out_filename = host->config.out_path.string() + bin_data.bin_name + ".out";
             }
 
             current_config.out_path = std::filesystem::path{out_filename};

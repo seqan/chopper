@@ -40,14 +40,20 @@ auto read_sequences(std::vector<std::string> const & filenames)
     return info;
 }
 
-auto create_ibfs_from_data_file(build_config & config)
+auto create_ibfs_from_data_file(build_config const & config)
 {
     // the data file records, e.g. {bin_name, filenames, number_of_technical_bins}
-
     auto records = read_data_file_and_set_high_level_bins(config);
 
-    assert(config.high_level_ibf_num_technical_bins != 0);
-    seqan3::interleaved_bloom_filter high_level_ibf{seqan3::bin_count{config.high_level_ibf_num_technical_bins},
+    size_t high_level_ibf_num_technical_bins{};
+
+    for (auto const & record : records)
+    {
+        high_level_ibf_num_technical_bins += (starts_with(record.bin_name, split_bin_prefix)) ? record.bins : 1;
+    }
+
+    assert(high_level_ibf_num_technical_bins != 0);
+    seqan3::interleaved_bloom_filter high_level_ibf{seqan3::bin_count{high_level_ibf_num_technical_bins},
                                                     seqan3::bin_size{8192u},
                                                     seqan3::hash_function_count{2}};
 
@@ -59,7 +65,6 @@ auto create_ibfs_from_data_file(build_config & config)
                    | seqan3::views::take(end + config.overlap - begin) // views::take never goes over the end
                    | seqan3::views::kmer_hash(seqan3::ungapped{config.k});
     };
-
 
     size_t bin_idx{};
     for (auto const & record : records)
