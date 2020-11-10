@@ -13,6 +13,7 @@ struct data_file_record
     std::string bin_name{};
     std::vector<std::string> filenames{};
     size_t bins{};
+    size_t max_size{};
 };
 
 auto parse_binning_line(std::string const & current_line)
@@ -40,6 +41,10 @@ auto parse_binning_line(std::string const & current_line)
     // read number of technical bins assigned to these files
     ++field_end; // skip tab
     auto res = std::from_chars(field_end, buffer_end, result.bins);
+
+    // read estimated maximum technical bin size
+    field_end = res.ptr + 1;
+    res = std::from_chars(field_end, buffer_end, result.max_size);
 
     return result;
 }

@@ -38,6 +38,8 @@ TEST(filename_batches_range_test, high_level_data_file)
         "SPLIT_BIN_3"
     };
 
+    std::vector<int> expected_max_size{500, 500, 32, 42, 42, 42, 42, 1000};
+
     for (size_t i = 0; i < expected_filenames.size(); ++i)
     {
         data_file_record && record = parse_binning_line(lines[i]);
@@ -45,5 +47,6 @@ TEST(filename_batches_range_test, high_level_data_file)
         EXPECT_EQ(record.bin_name, expected_bin_names[i]);
         EXPECT_RANGE_EQ(record.filenames, expected_filenames[i]);
         EXPECT_EQ(record.bins, expected_bins[i]) << " failed at " << expected_bin_names[i] << std::endl;
+        EXPECT_EQ(record.max_size, expected_max_size[i]) << " failed at " << expected_bin_names[i] << std::endl;
     }
 }
