@@ -40,6 +40,88 @@ auto read_sequences(std::vector<std::string> const & filenames)
     return info;
 }
 
+auto hash_infix(build_config const & config, auto const & seq, auto const begin, auto const end)
+{
+    return seq | seqan3::views::drop(begin)
+               | seqan3::views::take(end + config.overlap - begin) // views::take never goes over the end
+               | seqan3::views::kmer_hash(seqan3::ungapped{config.k});
+};
+
+auto process_splitted_bin(build_config const & config,
+                          data_file_record const & record,
+                          seqan3::interleaved_bloom_filter<> & high_level_ibf,
+                          size_t & bin_idx)
+{
+    auto && info = read_sequences(record.filenames); // into random access containers
+
+    if (record.bins != 1)
+    {
+        std::ifstream fin{config.traversal_path_prefix + record.bin_name + ".out"};
+
+        if (!fin.good() || !fin.is_open())
+            throw std::logic_error{"Could not open file '" + config.traversal_path_prefix + record.bin_name + ".out' for reading."};
+
+        std::string line;
+        std::getline(fin, line); // skip header
+
+        while (std::getline(fin, line))
+        {
+            auto && [filename, id, begin, end, idx] = parse_traversal_file_line(line);
+            assert(bin_idx + idx < high_level_ibf.bin_count());
+
+            // insert into high level
+            for (auto hash : hash_infix(config, info[filename][id], begin, end))
+                high_level_ibf.emplace(hash, seqan3::bin_index{bin_idx + idx});
+        }
+        bin_idx += record.bins - 1;
+    }
+    else
+    {
+        assert(bin_idx < high_level_ibf.bin_count());
+        for (auto const & filename : record.filenames)
+            for (auto && [seq, id] : sequence_file_type{filename})
+                for (auto hash : seq | seqan3::views::kmer_hash(seqan3::ungapped{config.k}))
+                    high_level_ibf.emplace(hash, seqan3::bin_index{bin_idx});
+    }
+}
+
+auto process_merged_bin(build_config const & config,
+                        data_file_record const & record,
+                        seqan3::interleaved_bloom_filter<> & high_level_ibf,
+                        std::vector<seqan3::interleaved_bloom_filter<>> & low_level_ibfs,
+                        size_t & bin_idx)
+{
+    // we need to construct a low level ibf AND insert all kmers into the high level bin
+    assert(record.bins != 0);
+    seqan3::interleaved_bloom_filter low_level{seqan3::bin_count{record.bins},
+                                               seqan3::bin_size{8192u/*todo*/},
+                                               seqan3::hash_function_count{2}};
+
+    auto && info = read_sequences(record.filenames); // into random access containers
+
+    std::ifstream fin{config.traversal_path_prefix + record.bin_name + ".out"};
+    std::string line;
+
+    if (!fin.good() || !fin.is_open())
+        throw std::logic_error{"Could not open file '" + config.traversal_path_prefix + record.bin_name + ".out' for reading"};
+
+    std::getline(fin, line); // skip header
+    while (std::getline(fin, line))
+    {
+        auto && [filename, id, begin, end, idx] = parse_traversal_file_line(line);
+        assert(bin_idx < high_level_ibf.bin_count());
+        assert(idx < low_level.bin_count());
+
+        for (auto hash : hash_infix(config, info[filename][id], begin, end))
+        {
+            high_level_ibf.emplace(hash, seqan3::bin_index{bin_idx});
+            low_level.emplace(hash, seqan3::bin_index{idx});
+        }
+    }
+
+    low_level_ibfs.emplace_back(low_level);
+}
+
 auto create_ibfs_from_data_file(build_config const & config)
 {
     // the data file records, e.g. {bin_name, filenames, number_of_technical_bins}
@@ -59,82 +141,16 @@ auto create_ibfs_from_data_file(build_config const & config)
 
     std::vector<seqan3::interleaved_bloom_filter<>> low_level_ibfs;
 
-    auto hash_infix = [&config] (auto const & seq, auto const begin, auto const end)
-    {
-        return seq | seqan3::views::drop(begin)
-                   | seqan3::views::take(end + config.overlap - begin) // views::take never goes over the end
-                   | seqan3::views::kmer_hash(seqan3::ungapped{config.k});
-    };
-
     size_t bin_idx{};
     for (auto const & record : records)
     {
         if (starts_with(record.bin_name, split_bin_prefix))
         {
-            auto && info = read_sequences(record.filenames); // into random access containers
-
-            if (record.bins != 1)
-            {
-                std::ifstream fin{config.traversal_path_prefix + record.bin_name + ".out"};
-
-                if (!fin.good() || !fin.is_open())
-                    throw std::logic_error{"Could not open file '" + config.traversal_path_prefix + record.bin_name + ".out' for reading."};
-
-                std::string line;
-                std::getline(fin, line); // skip header
-
-                while (std::getline(fin, line))
-                {
-                    auto && [filename, id, begin, end, idx] = parse_traversal_file_line(line);
-                    assert(bin_idx + idx < high_level_ibf.bin_count());
-
-                    // insert into high level
-                    for (auto hash : hash_infix(info[filename][id], begin, end))
-                        high_level_ibf.emplace(hash, seqan3::bin_index{bin_idx + idx});
-                }
-                bin_idx += record.bins - 1;
-            }
-            else
-            {
-                assert(bin_idx < high_level_ibf.bin_count());
-                for (auto const & filename : record.filenames)
-                    for (auto && [seq, id] : sequence_file_type{filename})
-                        for (auto hash : seq | seqan3::views::kmer_hash(seqan3::ungapped{config.k}))
-                            high_level_ibf.emplace(hash, seqan3::bin_index{bin_idx});
-            }
+            process_splitted_bin(config, record, high_level_ibf, bin_idx);
         }
         else if (starts_with(record.bin_name, merged_bin_prefix))
         {
-            // we need to construct a low level ibf AND insert all kmers into the high level bin
-
-            assert(record.bins != 0);
-            seqan3::interleaved_bloom_filter low_level{seqan3::bin_count{record.bins},
-                                                       seqan3::bin_size{8192u/*todo*/},
-                                                       seqan3::hash_function_count{2}};
-
-            auto && info = read_sequences(record.filenames); // into random access containers
-
-            std::ifstream fin{config.traversal_path_prefix + record.bin_name + ".out"};
-            std::string line;
-
-            if (!fin.good() || !fin.is_open())
-                throw std::logic_error{"Could not open file '" + config.traversal_path_prefix + record.bin_name + ".out' for reading"};
-
-            std::getline(fin, line); // skip header
-            while (std::getline(fin, line))
-            {
-                auto && [filename, id, begin, end, idx] = parse_traversal_file_line(line);
-                assert(bin_idx < high_level_ibf.bin_count());
-                assert(idx < low_level.bin_count());
-
-                for (auto hash : hash_infix(info[filename][id], begin, end))
-                {
-                    high_level_ibf.emplace(hash, seqan3::bin_index{bin_idx});
-                    low_level.emplace(hash, seqan3::bin_index{idx});
-                }
-            }
-
-            low_level_ibfs.emplace_back(low_level);
+            process_merged_bin(config, record, high_level_ibf, low_level_ibfs, bin_idx);
         }
 
         ++bin_idx;
