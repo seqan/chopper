@@ -39,8 +39,6 @@ auto read_traversal_file(std::filesystem::path const & traversal_filename)
     return std::make_pair(std::move(filenames), std::move(bin_ranges));
 }
 
-size_t constexpr k{25};
-
 struct cmd_arguments
 {
     std::filesystem::path traversal_file{};
@@ -109,7 +107,8 @@ int main(int const argc, char const ** argv)
         {
             auto const seq_pos = sequence_names_positions.at(seq_id);
 
-            seqan::Shape<seqan::Iupac, seqan::UngappedShape<k> > myShape;
+            seqan::Shape<seqan::Iupac, seqan::SimpleShape> myShape;
+            resize(myShape, args.k);
             seqan::hashInit(myShape, seqan::begin(seqs[seq_pos]));
 
             if (end < begin + seqan::length(myShape) + 1)
