@@ -53,40 +53,18 @@ size_t compute_bin_size(build_config const & config, size_t const number_of_kmer
                    (std::log(1 - std::pow(10.0, std::log10(config.FPR) / config.hash_funs))));
 }
 
-auto compute_maximum_technical_bin_size(build_config const & config, data_file_record const & record)
+
+auto compute_maximum_technical_bin_size(build_config const & config,
+                                        std::vector<std::string> const & filenames)
 {
-    auto && info = read_sequences(record.filenames); // into random access containers
+    auto && info = read_sequences(filenames); // into random access containers
 
     std::set<size_t> kmer_count{};
 
-    if (starts_with(record.bin_name, split_bin_prefix) && record.bins != 1)
-    {
-        // choose bin index 0 as a representative
-        std::ifstream fin{config.traversal_path_prefix + record.bin_name + ".out"};
-
-        if (!fin.good() || !fin.is_open())
-            throw std::logic_error{"Could not open file '" + config.traversal_path_prefix +
-                                   record.bin_name + ".out' for reading."};
-
-        std::string line;
-        std::getline(fin, line); // skip header
-
-        while (std::getline(fin, line))
-        {
-            auto && [filename, id, begin, end, idx] = parse_traversal_file_line(line);
-
-            if (idx == 0)
-                for (auto hash : hash_infix(config, info[filename][id], begin, end))
-                    kmer_count.insert(hash);
-        }
-    }
-    else // merged bin or record.bin = 1
-    {
-        for (auto const & filename : record.filenames)
-            for (auto && [seq, id] : sequence_file_type{filename})
-                for (auto hash : seq | seqan3::views::kmer_hash(seqan3::ungapped{config.k}))
-                    kmer_count.insert(hash);
-    }
+    for (auto const & filename : filenames)
+        for (auto && [seq, id] : sequence_file_type{filename})
+            for (auto hash : seq | seqan3::views::kmer_hash(seqan3::ungapped{config.k}))
+                kmer_count.insert(hash);
 
     return compute_bin_size(config, kmer_count.size());
 }
@@ -221,7 +199,12 @@ auto create_ibfs_from_data_file(build_config const & config)
     // since the packing is supposedly done with minimizers and we probably have a different setting now
     // we need to calculate the maximum bin size. Since the relative number of minimizers should always correlate
     // wen can estimate it by calculating the kmer content of the "highest bin".
-    auto max_bin_size = compute_maximum_technical_bin_size(config, highest_record);
+    size_t max_bin_size{};
+
+    if (starts_with(highest_record.bin_name, split_bin_prefix) && highest_record.bins != 1)
+        max_bin_size = compute_maximum_technical_bin_size(config, highest_record.bin_name, highest_record.filenames, 0u);
+    else
+        max_bin_size = compute_maximum_technical_bin_size(config, highest_record.filenames);
 
     assert(high_level_ibf_num_technical_bins != 0);
     seqan3::interleaved_bloom_filter high_level_ibf{seqan3::bin_count{high_level_ibf_num_technical_bins},
