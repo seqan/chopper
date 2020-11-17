@@ -150,6 +150,8 @@ auto process_merged_bin(build_config const & config,
                                                                  record.bin_name,
                                                                  record.merged_bin_max_size_filenames,
                                                                  record.merged_bin_max_size_bin_idx);
+    if (config.verbose)
+        std::cerr << "   -> max_size of merged bin: " << max_bin_size << std::endl;
 
     assert(record.bins != 0);
     seqan3::interleaved_bloom_filter low_level{seqan3::bin_count{record.bins},
@@ -201,10 +203,16 @@ auto create_ibfs_from_data_file(build_config const & config)
     // wen can estimate it by calculating the kmer content of the "highest bin".
     size_t max_bin_size{};
 
+    if (config.verbose)
+        std::cerr << ">>> Computing maximum technical bin size for high level IBF " << std::endl;
+
     if (starts_with(highest_record.bin_name, split_bin_prefix) && highest_record.bins != 1)
         max_bin_size = compute_maximum_technical_bin_size(config, highest_record.bin_name, highest_record.filenames, 0u);
     else
         max_bin_size = compute_maximum_technical_bin_size(config, highest_record.filenames);
+
+    if (config.verbose)
+        std::cerr << "   -> max_size: " << max_bin_size << std::endl;
 
     assert(high_level_ibf_num_technical_bins != 0);
     seqan3::interleaved_bloom_filter high_level_ibf{seqan3::bin_count{high_level_ibf_num_technical_bins},
