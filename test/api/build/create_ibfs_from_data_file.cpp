@@ -74,7 +74,7 @@ TEST(chopper_count_test, small_example_parallel_2_threads)
     EXPECT_EQ(low_level_ibfs.size(), 1u);         // one low level IBF
 
     EXPECT_EQ(high_level_ibf.bin_size(), 114226);
-    EXPECT_EQ(low_level_ibfs[0].bin_size(), 8192);
+    EXPECT_EQ(low_level_ibfs[0].bin_size(), 76615);
 
     EXPECT_EQ(high_level_ibf.bin_count(), 7);
     EXPECT_EQ(low_level_ibfs[0].bin_count(), 5u); // with 5 user bins
@@ -160,11 +160,11 @@ TEST(chopper_count_test, small_example_parallel_2_threads)
         EXPECT_EQ(high_level_counts[5], 0);
         EXPECT_EQ(high_level_counts[6], expected);
 
-        EXPECT_EQ(low_level_counts[0], 1); // 1 by chance
+        EXPECT_EQ(low_level_counts[0], 0);
         EXPECT_EQ(low_level_counts[1], expected);
-        EXPECT_EQ(low_level_counts[2], 1); // 1 by chance
+        EXPECT_EQ(low_level_counts[2], 0);
         EXPECT_EQ(low_level_counts[3], expected);
-        EXPECT_EQ(low_level_counts[4], 1); // 1 by chance
+        EXPECT_EQ(low_level_counts[4], 0);
     }
 
     { // SEQ3 SPECIFIC

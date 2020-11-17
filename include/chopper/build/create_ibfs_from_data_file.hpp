@@ -91,6 +91,37 @@ auto compute_maximum_technical_bin_size(build_config const & config, data_file_r
     return compute_bin_size(config, kmer_count.size());
 }
 
+auto compute_maximum_technical_bin_size(build_config const & config,
+                                        std::string const & bin_name,
+                                        std::vector<std::string> const & filenames,
+                                        size_t const bin_idx)
+{
+    auto && info = read_sequences(filenames); // into random access containers
+
+    std::set<size_t> kmer_count{};
+
+    std::ifstream fin{config.traversal_path_prefix + bin_name + ".out"};
+
+    if (!fin.good() || !fin.is_open())
+        throw std::logic_error{"Could not open file '" + config.traversal_path_prefix +
+                               bin_name + ".out' for reading."};
+
+    std::string line;
+    std::getline(fin, line); // skip header
+
+    while (std::getline(fin, line))
+    {
+        auto && [filename, id, begin, end, idx] = parse_traversal_file_line(line);
+
+        if (idx == bin_idx)
+            for (auto hash : hash_infix(config, info[filename][id], begin, end))
+                kmer_count.insert(hash);
+    }
+
+
+    return compute_bin_size(config, kmer_count.size());
+}
+
 auto process_splitted_bin(build_config const & config,
                           data_file_record const & record,
                           seqan3::interleaved_bloom_filter<> & high_level_ibf,
@@ -136,9 +167,15 @@ auto process_merged_bin(build_config const & config,
                         size_t & bin_idx)
 {
     // we need to construct a low level ibf AND insert all kmers into the high level bin
+
+    auto const max_bin_size = compute_maximum_technical_bin_size(config,
+                                                                 record.bin_name,
+                                                                 record.merged_bin_max_size_filenames,
+                                                                 record.merged_bin_max_size_bin_idx);
+
     assert(record.bins != 0);
     seqan3::interleaved_bloom_filter low_level{seqan3::bin_count{record.bins},
-                                               seqan3::bin_size{8192u/*todo*/},
+                                               seqan3::bin_size{max_bin_size},
                                                seqan3::hash_function_count{2}};
 
     auto && info = read_sequences(record.filenames); // into random access containers

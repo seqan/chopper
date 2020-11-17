@@ -39,8 +39,15 @@ auto read_data_file_and_set_high_level_bins(build_config const & config)
             merged_bin_record.filenames.insert(merged_bin_record.filenames.end(),
                                                record.filenames.begin(),
                                                record.filenames.end());
+
+            if (record.max_size > merged_bin_record.max_size)
+            {
+                merged_bin_record.max_size = record.max_size;
+                merged_bin_record.merged_bin_max_size_bin_idx = merged_bin_record.bins;
+                merged_bin_record.merged_bin_max_size_filenames = record.filenames;
+            }
+
             merged_bin_record.bins += record.bins;
-            merged_bin_record.max_size = std::max(merged_bin_record.max_size, record.max_size);
         }
         else
         {
