@@ -20,21 +20,21 @@ constexpr std::string_view split_bin_prefix{"SPLIT_BIN"};
 #include <chopper/build/parse_traversal_file_line.hpp>
 #include <chopper/build/read_data_file_and_set_high_level_bins.hpp>
 
-struct mytraits : public seqan3::sequence_file_input_default_traits_dna
+struct file_type_traits : public seqan3::sequence_file_input_default_traits_dna
 {
     using sequence_alphabet = seqan3::dna4;
 };
 
-using sequence_file_type = seqan3::sequence_file_input<mytraits,
-                                                       seqan3::fields<seqan3::field::seq, seqan3::field::id>,
-                                                       seqan3::type_list<seqan3::format_fasta, seqan3::format_fastq>>;
+using seq_file_type = seqan3::sequence_file_input<file_type_traits,
+                                                  seqan3::fields<seqan3::field::seq, seqan3::field::id>,
+                                                  seqan3::type_list<seqan3::format_fasta, seqan3::format_fastq>>;
 
 auto read_sequences(std::vector<std::string> const & filenames)
 {
     std::unordered_map<std::string, std::unordered_map<std::string, seqan3::dna4_vector>> info;
 
     for (auto const & filename : filenames)
-        for (auto && [seq, id] : sequence_file_type{filename})
+        for (auto && [seq, id] : seq_file_type{filename})
             info[filename][id] = seq;
 
     return info;
@@ -62,7 +62,7 @@ auto compute_maximum_technical_bin_size(build_config const & config,
     std::set<size_t> kmer_count{};
 
     for (auto const & filename : filenames)
-        for (auto && [seq, id] : sequence_file_type{filename})
+        for (auto && [seq, id] : seq_file_type{filename})
             for (auto hash : seq | seqan3::views::kmer_hash(seqan3::ungapped{config.k}))
                 kmer_count.insert(hash);
 
@@ -132,7 +132,7 @@ auto process_splitted_bin(build_config const & config,
     {
         assert(bin_idx < high_level_ibf.bin_count());
         for (auto const & filename : record.filenames)
-            for (auto && [seq, id] : sequence_file_type{filename})
+            for (auto && [seq, id] : seq_file_type{filename})
                 for (auto hash : seq | seqan3::views::kmer_hash(seqan3::ungapped{config.k}))
                     high_level_ibf.emplace(hash, seqan3::bin_index{bin_idx});
     }
