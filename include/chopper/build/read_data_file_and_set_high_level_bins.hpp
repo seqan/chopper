@@ -40,6 +40,7 @@ auto read_data_file_and_set_high_level_bins(build_config const & config)
                                                record.filenames.begin(),
                                                record.filenames.end());
             merged_bin_record.bins += record.bins;
+            merged_bin_record.max_size = std::max(merged_bin_record.max_size, record.max_size);
         }
         else
         {

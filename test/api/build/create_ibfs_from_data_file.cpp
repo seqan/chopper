@@ -71,8 +71,12 @@ TEST(chopper_count_test, small_example_parallel_2_threads)
 
     auto && [high_level_ibf, low_level_ibfs] = create_ibfs_from_data_file(config);
 
-    EXPECT_EQ(high_level_ibf.bin_count(), 7);
     EXPECT_EQ(low_level_ibfs.size(), 1u);         // one low level IBF
+
+    EXPECT_EQ(high_level_ibf.bin_size(), 114226);
+    EXPECT_EQ(low_level_ibfs[0].bin_size(), 8192);
+
+    EXPECT_EQ(high_level_ibf.bin_count(), 7);
     EXPECT_EQ(low_level_ibfs[0].bin_count(), 5u); // with 5 user bins
 
     // The traversal files are made up like the following
@@ -149,11 +153,11 @@ TEST(chopper_count_test, small_example_parallel_2_threads)
         size_t expected = std::ranges::distance(seq2_specific | seqan3::views::kmer_hash(seqan3::ungapped{config.k}));
 
         EXPECT_EQ(high_level_counts[0], expected);
-        EXPECT_EQ(high_level_counts[1], 1); // 1 by chance
+        EXPECT_EQ(high_level_counts[1], 0);
         EXPECT_EQ(high_level_counts[2], expected);
-        EXPECT_EQ(high_level_counts[3], 1); // 1 by chance
+        EXPECT_EQ(high_level_counts[3], 0);
         EXPECT_EQ(high_level_counts[4], expected);
-        EXPECT_EQ(high_level_counts[5], 1); // 1 by chance
+        EXPECT_EQ(high_level_counts[5], 0);
         EXPECT_EQ(high_level_counts[6], expected);
 
         EXPECT_EQ(low_level_counts[0], 1); // 1 by chance
