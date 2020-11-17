@@ -111,15 +111,17 @@ int main(int const argc, char const ** argv)
             resize(myShape, args.k);
             seqan::hashInit(myShape, seqan::begin(seqs[seq_pos]));
 
-            if (end < begin + seqan::length(myShape) + 1)
+            size_t const overlap_end = std::min(seqan::length(seqs[seq_pos]), end + args.overlap);
+
+            if (overlap_end < begin + seqan::length(myShape) + 1)
             {
                 if (args.verbose)
-                    std::cout << "[WARNING] invalid range: [" << begin << "," << end << "]" << std::endl;
+                    std::cout << "[WARNING] invalid range: [" << begin << "," << overlap_end << "]" << std::endl;
                 continue;
             }
 
-            assert(end >= seqan::length(myShape) + 1);
-            for (uint32_t i = begin; i < end - seqan::length(myShape) + 1; ++i)
+            assert(overlap_end >= seqan::length(myShape) + 1);
+            for (uint32_t i = begin; i < overlap_end - seqan::length(myShape) + 1; ++i)
             {
                 auto hash = seqan::hashNext(myShape, seqan::begin(seqs[seq_pos]) + i);
                 kmer_occurence.insert(hash);

@@ -38,6 +38,7 @@ TEST_F(cli_test, small_example)
     seqan3::test::tmp_filename output_filename{"small_traverse.out"};
 
     cli_test_result result = execute_app("count_kmers_per_bin",
+                                         "-l", "0",
                                          "-f", traversal_filename.get_path().c_str());
 
     std::string expected_stdout{"165\t176\t186\t527\n"};
