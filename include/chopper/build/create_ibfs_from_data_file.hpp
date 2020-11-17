@@ -216,6 +216,12 @@ auto create_ibfs_from_data_file(build_config const & config)
     size_t bin_idx{};
     for (auto const & record : records)
     {
+        if (config.verbose)
+        {
+            std::cerr << ">>> Processing bin " << bin_idx << "/" << records.size()
+                      << " named " << record.bin_name << std::endl;
+        }
+
         if (starts_with(record.bin_name, split_bin_prefix))
         {
             process_splitted_bin(config, record, high_level_ibf, bin_idx);

@@ -5,6 +5,7 @@ struct build_config
     std::string traversal_path_prefix{};
     std::string binning_filename{};
     std::string output_prefix{"./"};
+    bool verbose{false};
 
     size_t hash_funs{2};
     double FPR{0.0001};
