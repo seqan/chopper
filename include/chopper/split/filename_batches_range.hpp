@@ -162,8 +162,6 @@ private:
 
                 if (it == host->colourful_bin_offsets.end()) // merged bin has not been seen yet
                     it = host->colourful_bin_offsets.emplace(merged_bin_id, 0u).first;
-                else
-                    current_config.append_traverse_output = true;
 
                 current_config.bin_index_offset = it->second;
                 it->second += bin_data.bins;

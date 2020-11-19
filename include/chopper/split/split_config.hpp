@@ -18,6 +18,5 @@ struct split_config
     bool write_out_weights{false};
     // For a merged low level IBF several splittings will come into the same file.
     // So the traversal output needs to be appended and the bin_index adjusted.
-    bool append_traverse_output{false};
     size_t bin_index_offset{0};
 };

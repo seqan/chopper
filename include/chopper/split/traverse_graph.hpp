@@ -538,10 +538,12 @@ void traverse_graph(split_data const & data, split_config const & config)
     assert(bin_contents.size() != 0);
     assert(bin_contents[0].size() == seqan::length(data.sequences));
 
-    auto const open_mode = (config.append_traverse_output) ? std::ios::binary | std::ios::app: std::ios::binary;
-    std::ofstream fout{config.out_path, open_mode};
+    // remember if this is the first time this file is opened, s.t. we write the header line
+    bool const output_file_exists = std::filesystem::exists(config.out_path);
 
-    if (!config.append_traverse_output)
+    std::ofstream fout{config.out_path, std::ios::binary | std::ios::app}; // append to file
+
+    if (!output_file_exists)
         fout << "FILE_ID\tSEQ_ID\tBEGIN\tEND\tBIN_NUMBER\n"; // header
 
     std::vector<bool> range_end_sanity_check(seqan::length(data.sequences), 0);
@@ -580,7 +582,7 @@ void traverse_graph(split_data const & data, split_config const & config)
     }
 
     seqan3::debug_stream << "Bin content "
-                         << ((config.append_traverse_output) ? "appended" : "written")
+                         << (output_file_exists ? "appended" : "written")
                          << " to : "
                          << config.out_path << std::endl;
 }

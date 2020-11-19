@@ -52,8 +52,6 @@ TEST(filename_batches_range_test, high_level_data_file)
         "/dummy/SPLIT_BIN_3.out"
     };
 
-    std::vector<bool> expected_append{false, false, true, true, false, true, false};
-
     std::vector<size_t> expected_offsets{0, 0, 16, 28, 0, 12, 0};
 
     auto it = r.begin();
@@ -62,7 +60,6 @@ TEST(filename_batches_range_test, high_level_data_file)
         EXPECT_RANGE_EQ((*it).seqfiles, expected_seqfiles_range[i]);
         EXPECT_EQ((*it).out_path.string(), expected_outfiles[i]);
         EXPECT_EQ((*it).bins, expected_bins_range[i]) << " failed at " << expected_outfiles[i] << std::endl;
-        EXPECT_EQ((*it).append_traverse_output, expected_append[i]) << " failed at " << expected_outfiles[i] << std::endl;
         EXPECT_EQ((*it).bin_index_offset, expected_offsets[i]) << " failed at " << expected_outfiles[i] << std::endl;
     }
     EXPECT_TRUE(it == r.end());
