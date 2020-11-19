@@ -309,3 +309,76 @@ TEST(chopper_count_test, config_overlap)
         EXPECT_EQ(high_level_counts[2], full_count);
     }
 }
+
+TEST(create_ibfs_from_data_file_test, high_level_size)
+{
+    std::string input_filename1 = DATADIR"small.fa";
+    seqan3::test::tmp_filename data_filename{"data.tsv"};
+
+    seqan3::test::tmp_filename traversal_dir{""};
+    std::string traversal_split_bin0{traversal_dir.get_path().string() + "/SPLIT_BIN_0.out"};
+    std::string traversal_merged_bin2{traversal_dir.get_path().string() + "/COLORFUL_MERGED_BIN_2.out"};
+
+    {
+        std::ofstream fout{traversal_split_bin0};
+        fout << "FILE_ID\tSEQ_ID\tBEGIN\tEND\tBIN_NUMBER\n"
+             << input_filename1 << "\tseq1\t0\t400\t0\n"
+             << input_filename1 << "\tseq2\t0\t480\t1\n"
+             << input_filename1 << "\tseq3\t0\t481\t2\n";
+    }
+    {
+        std::ofstream fout{traversal_merged_bin2};
+        fout << "FILE_ID\tSEQ_ID\tBEGIN\tEND\tBIN_NUMBER\n"
+             /*COLORFUL_MERGED_BIN_2_0*/
+             << input_filename1 << "\tseq1\t0\t400\t0\n"
+             << input_filename1 << "\tseq2\t0\t480\t1\n"
+             << input_filename1 << "\tseq3\t0\t481\t2\n";
+    }
+
+    build_config config{};
+    config.k = 15;
+    config.traversal_path_prefix = traversal_dir.get_path().string() + "/";
+    config.binning_filename = data_filename.get_path().string();
+
+    { // Split bin 1 is highest record
+        {
+            std::ofstream fout{data_filename.get_path()};
+            fout << "BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n"
+                 << "SPLIT_BIN_0\t" << input_filename1 << "\t3\t500\n"
+                 << "SPLIT_BIN_1\t" << input_filename1 + "\t1\t1000\n"
+                 << "COLORFUL_MERGED_BIN_2_0\t" << input_filename1 << "\t3\t500\n";
+        }
+
+        auto && [high_level_ibf, low_level_ibfs] = create_ibfs_from_data_file(config);
+
+        EXPECT_EQ(high_level_ibf.bin_size(), 114226);
+    }
+
+    { // merged bin is highest record - should result in same size as split bin 1, because of the same sequence content
+        {
+            std::ofstream fout{data_filename.get_path()};
+            fout << "BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n"
+                 << "SPLIT_BIN_0\t" << input_filename1 << "\t3\t500\n"
+                 << "SPLIT_BIN_1\t" << input_filename1 + "\t1\t500\n"
+                 << "COLORFUL_MERGED_BIN_2_0\t" << input_filename1 << "\t3\t1000\n";
+        }
+
+        auto && [high_level_ibf, low_level_ibfs] = create_ibfs_from_data_file(config);
+
+        EXPECT_EQ(high_level_ibf.bin_size(), 114226);
+    }
+
+    { // Split bin 0 is highest record - bin 0 DOES NOT inlcude all sequences
+        {
+            std::ofstream fout{data_filename.get_path()};
+            fout << "BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n"
+                 << "SPLIT_BIN_0\t" << input_filename1 << "\t3\t1000\n"
+                 << "SPLIT_BIN_1\t" << input_filename1 + "\t1\t500\n"
+                 << "COLORFUL_MERGED_BIN_2_0\t" << input_filename1 << "\t3\t500\n";
+        }
+
+        auto && [high_level_ibf, low_level_ibfs] = create_ibfs_from_data_file(config);
+
+        EXPECT_EQ(high_level_ibf.bin_size(), 76615);
+    }
+}
