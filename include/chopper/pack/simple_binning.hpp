@@ -28,7 +28,8 @@
  *  | **c_j** | The kmer content of User Bin $j$                                            |
  *  | **M**   | A DP matrix that tracks the maximum technical bin size \f$\max_{i} (b_i)\f$.|
  *
- *  \note The number of technical bins **x** must be greater that the number of user bins **y** for this algorithm.
+ *  \attention The number of technical bins **x** must be greater that the number of user bins **y** for this algorithm.
+     *            If you want to use less technical bins than user bins, see the hierarchical_binning algorithm.
  *
  * # Algorithm
  *
@@ -37,14 +38,14 @@
  * Let \f$r = x - y\f$ be the surplus of TBs
  *
  * ## Initialization
- * <img src="dp_algorithm_init.png" align="left"  width="10%"/>
+ * <img src="execute_init.png" align="left"  width="10%"/>
  *
  * <br><br>
  * \f$\qquad \forall_{i \in [0,r]} \quad M_{i,0} = \frac{c_0}{i + 1}\f$
  * <br><br><br><br><br><br><br><br><br><br>
  *
  * ## Recursion
- * <img src="dp_algorithm_recursion.png" align="left"  width="10%"/>
+ * <img src="execute_recursion.png" align="left"  width="10%"/>
  *
  * <br><br>
  * \f$\forall_{i,j} \quad M_{i,j} = \min_{i' \in [i - r - 1, i - 1]} \max(M_{i',j-1}, \frac{c_j}{i - i'})\f$
@@ -56,7 +57,7 @@
  *
  * We now want to recover the number of bins **n_j** for each User Bin **j**.
  *
- * <img src="dp_algorithm_backtracking.png" align="left"  width="10%"/>
+ * <img src="execute_backtracking.png" align="left"  width="10%"/>
  *
  * Backtracking pseudo code:
  * ```
@@ -76,9 +77,14 @@
  */
 struct simple_binning
 {
-    std::vector<size_t> const & user_bin_kmer_counts;
+private:
+    //!\brief The filenames of the respective user bins.
     std::vector<std::string> const & user_bin_names;
-    std::string const & ibf_name;
+    //!\brief The kmer counts of the respective user bins.
+    std::vector<size_t> const & user_bin_kmer_counts;
+    //!\brief The identifier of the (colorful) bin that is written into the file.
+    std::string const & bin_name;
+    //!\brief The output stream to write to.
     std::ostream & output_file;
 
     /*!\brief The number of User bins.
@@ -93,18 +99,33 @@ struct simple_binning
      * In the IBF, it stores its kmers in a **single Bloom Filter** (which is interleaved with all the other BFs).
      */
     size_t const num_technical_bins;
+    //!\brief The total sum of all values in user_bin_kmer_counts.
     size_t const kmer_count_sum;
+    //!\brief The average count calculated from kmer_count_sum / num_technical_bins.
     size_t const kmer_count_average_per_bin;
 
-    // ctor
+public:
+    /*!\brief The constructor from user bin names, their kmer counts and a configuration.
+     * \param[in] input The kmer counts associated with the user bin.
+     * \param[in] names The filenames associated with the user bin.
+     * \param[in] bin_name_ The bin identifier to write into the output file.
+     * \param[in] file_handle The stream handle to append the output to.
+     * \param[in] num_bins (optional) The number of technical bins.
+     *
+     * If the `num_bins` parameter is omitted or set to 0, then number of technical bins used in this algorithm
+     * is automatically set to the next multiple of 64 given the number of user bins (e.g. #UB = 88 -> #TB = 124).
+     *
+     * \attention The number of technical bins must be greater or equal to the number of user bins!
+     *            If you want to use less technical bins than user bins, see the hierarchical_binning algorithm.
+     */
     simple_binning(std::vector<size_t> const & input,
                    std::vector<std::string> const & names,
-                   std::string const & ibf_name_,
+                   std::string const & bin_name_,
                    std::ostream & file_handle,
                    size_t num_bins = 0) :
-        user_bin_kmer_counts{input},
         user_bin_names{names},
-        ibf_name{ibf_name_},
+        user_bin_kmer_counts{input},
+        bin_name{bin_name_},
         output_file{file_handle},
         num_user_bins{input.size()},
         num_technical_bins{(num_bins == 0) ? ((user_bin_kmer_counts.size() + 63) / 64 * 64) : num_bins},
@@ -113,15 +134,18 @@ struct simple_binning
     {
         std::cout << "#Techincal bins: " << num_technical_bins << std::endl;
         std::cout << "#User bins: " << input.size() << std::endl;
+
+        if (num_user_bins > num_technical_bins)
+        {
+            throw std::runtime_error{"You cannot have less technical bins than user bins for this simple binning "
+                                     "algorithm. Please see the hierarchical_binning algorithm or increase the number "
+                                     "of technical bins."};
+        }
     }
 
-    void dp_algorithm()
+    //!\brief Executes the simple binning algorithm and packs user bins into technical bins.
+    void execute()
     {
-        // write result to output_file
-
-        if (num_technical_bins < num_user_bins)
-            throw std::logic_error{"this algorithm only works if num_technical_bins >= num_user_bins."};
-
         std::vector<std::vector<size_t>> matrix(num_technical_bins); // rows
         for (auto & v : matrix)
             v.resize(num_user_bins, std::numeric_limits<size_t>::max()); // columns
@@ -175,8 +199,8 @@ struct simple_binning
             size_t const number_of_bins = (trace_i - next_i);
             size_t const kmer_count_per_bin = (kmer_count + number_of_bins - 1) / number_of_bins; // round up
 
-            // ouput_file << IBF_ID,NAME,NUM_TECHNICAL_BINS,ESTIMATED_TB_SIZE
-            output_file << ibf_name << '_' << bin_id << '\t'
+            // columns: IBF_ID,NAME,NUM_TECHNICAL_BINS,ESTIMATED_TB_SIZE
+            output_file << bin_name << '_' << bin_id << '\t'
                         << user_bin_names[trace_j] << '\t'
                         << number_of_bins << '\t'
                         << kmer_count_per_bin << '\n';
@@ -189,8 +213,8 @@ struct simple_binning
         size_t const kmer_count = user_bin_kmer_counts[0];
         size_t const kmer_count_per_bin =  (kmer_count + trace_i - 1) / trace_i;
 
-        // ouput_file << IBF_ID,NAME,NUM_TECHNICAL_BINS,ESTIMATED_TB_SIZE
-        output_file << ibf_name << '_' << bin_id << '\t'
+        // columns: IBF_ID,NAME,NUM_TECHNICAL_BINS,ESTIMATED_TB_SIZE
+        output_file << bin_name << '_' << bin_id << '\t'
                     << user_bin_names[0] << '\t'
                     << trace_i << '\t'
                     << kmer_count_per_bin << '\n';

@@ -13,7 +13,7 @@ TEST(simple_binning_test, small_example)
     std::ostringstream output{};
 
     simple_binning algo{input, names, "TEST_IBF", output, 9};
-    algo.dp_algorithm();
+    algo.execute();
 
     std::string expected
     {
@@ -33,7 +33,7 @@ TEST(simple_binning_test, uniform_distribution)
     std::ostringstream output{};
 
     simple_binning algo{input, names, "TEST_IBF", output, 4};
-    algo.dp_algorithm();
+    algo.execute();
 
     std::string expected
     {
@@ -52,6 +52,5 @@ TEST(simple_binning_test, user_bins_must_be_smaller_than_technical_bins)
     std::vector<std::string> const names{"seq1", "seq2", "seq3", "seq4"};
     std::ostringstream output{};
 
-    simple_binning algo{input, names, "TEST_IBF", output, 2};
-    EXPECT_THROW(algo.dp_algorithm(), std::logic_error);
+    EXPECT_THROW((simple_binning{input, names, "TEST_IBF", output, 2}), std::runtime_error);
 }

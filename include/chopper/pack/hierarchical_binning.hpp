@@ -18,19 +18,41 @@
 
 struct hierarchical_binning
 {
-    double const alpha{10}; // scale low-level IBF impact
+private:
+    /*\brief A scaling factor to influence the amount of merged bins produced by the algorithm.
+     *
+     * The higher alpha, the more weight is added artificially to the low level IBFs and thus the optimal
+     * solution will contain less merged bins in the end because it costs more to merge bins.
+     */
+    double const alpha{10};
 
+    //!\brief The file names of the user input. Since the input might be sorted, we need to keep track of the names.
     std::vector<std::string> & names;
+    //!\brief The kmer counts associated with the above files used to pack user bin into technical bins.
     std::vector<size_t> & user_bin_kmer_counts;
 
+    //!\brief The number of user bins, initialised with the length of user_bin_kmer_counts.
     size_t const num_user_bins;
+    //!\brief The number of technical bins requested by the user.
     size_t const num_technical_bins;
+    //!\brief The total sum of all values in user_bin_kmer_counts.
     size_t const kmer_count_sum;
+    //!\brief The average count calculated from kmer_count_sum / num_technical_bins.
     size_t const kmer_count_average_per_bin;
 
+    //!\brief The output stream to write the results to.
     std::ofstream output_file;
 
-    // ctor
+public:
+    /*!\brief The constructor from user bin names, their kmer counts and a configuration.
+     * \param[in, out] names_ The filenames associated with the user bin.
+     * \param[in, out] input  The kmer counts associated with the user bin.
+     * \param[in] config A configuration object that holds information from the user that influence the computation.
+     *
+     *
+     * Each entry in the names_ and input vector respectively is considered a user bin (both vectors must have the
+     * same length).
+     */
     hierarchical_binning(std::vector<std::string> & names_, std::vector<size_t> & input, pack_config const & config) :
         names{names_},
         user_bin_kmer_counts{input},
@@ -44,10 +66,47 @@ struct hierarchical_binning
         std::cout << "#User bins: " << input.size() << std::endl;
         std::cout << "Output file: " << config.output_filename.string() << std::endl;
 
+        if (names.size() != user_bin_kmer_counts.size())
+            throw std::runtime_error{"The filenames and kmer counts do not have the same length."};
+
         if (!output_file.good() || !output_file.is_open())
             throw std::runtime_error{"Could not open file " + config.output_filename.string() + "for reading."};
     }
 
+    //!\brief Executes the hierarchical binning algorithm and packs user bins into technical bins.
+    void execute()
+    {
+        sort_by_distribution(names, user_bin_kmer_counts);
+        // seqan3::debug_stream << std::endl << "Sorted list: " << user_bin_kmer_counts << std::endl << std::endl;
+
+        std::vector<std::vector<size_t>> matrix(num_technical_bins); // rows
+        for (auto & v : matrix)
+            v.resize(num_user_bins, std::numeric_limits<size_t>::max()); // columns
+
+        std::vector<std::vector<size_t>> ll_matrix(num_technical_bins); // rows
+        for (auto & v : ll_matrix)
+            v.resize(num_user_bins, 0u); // columns
+
+        std::vector<std::vector<std::pair<size_t, size_t>>> trace(num_technical_bins); // rows
+        for (auto & v : trace)
+            v.resize(num_user_bins, {std::numeric_limits<size_t>::max(), std::numeric_limits<size_t>::max()}); // columns
+
+        initialization(matrix, ll_matrix, trace);
+
+        recursion(matrix, ll_matrix, trace);
+
+        // print_matrix(matrix, num_technical_bins, num_user_bins, std::numeric_limits<size_t>::max());
+        // print_matrix(ll_matrix, num_technical_bins, num_user_bins, std::numeric_limits<size_t>::max());
+        // print_matrix(trace, num_technical_bins, num_user_bins, std::make_pair(std::numeric_limits<size_t>::max(), std::numeric_limits<size_t>::max()));
+
+        backtracking(matrix, ll_matrix, trace);
+    }
+
+private:
+    /*!\brief Sorts both input vectors (names and distribution) only by looking at the values in `distribution`.
+     * \param[in, out] names The names to be sorted in parallel to the `distribution` vector.
+     * \param[in, out] distribution The vector to be used to sort both input vectors by.
+     */
     template <typename names_type, typename distribution_type>
     void sort_by_distribution(names_type & names, distribution_type & distribution)
     {
@@ -198,6 +257,7 @@ struct hierarchical_binning
         }
     }
 
+    //!\brief Backtracks the trace matrix and writes the resulting binning into the output file.
     void backtracking(std::vector<std::vector<size_t>> const & matrix,
                       std::vector<std::vector<size_t>> const & ll_matrix,
                       std::vector<std::vector<std::pair<size_t, size_t>>> const & trace)
@@ -263,7 +323,7 @@ struct hierarchical_binning
                 // now do the binning for the low-level IBF:
                 std::string const merged_ibf_name{std::string{merged_bin_prefix} + "_" + std::to_string(bin_id)};
                 simple_binning algo{merged_bins, merged_bin_names, merged_ibf_name, output_file};
-                algo.dp_algorithm();
+                algo.execute();
 
                 // std::cout << "]: " << kmer_count << std::endl;
                 // std::cout << "\t I am now at " << trace_i << "," << trace_j << std::endl;
@@ -288,7 +348,7 @@ struct hierarchical_binning
                 // now do the binning for the low-level IBF:
                 std::string const merged_ibf_name{std::string{merged_bin_prefix} + "_" + std::to_string(bin_id)};
                 simple_binning algo{merged_bins, merged_bin_names, merged_ibf_name, output_file};
-                algo.dp_algorithm();
+                algo.execute();
                 // std::cout << "]: " << kmer_count << std::endl;
             }
             else
@@ -309,33 +369,5 @@ struct hierarchical_binning
         }
 
         output_file.close(); // make sure content is flushed
-    }
-
-    void dp_algorithm()
-    {
-        sort_by_distribution(names, user_bin_kmer_counts);
-        // seqan3::debug_stream << std::endl << "Sorted list: " << user_bin_kmer_counts << std::endl << std::endl;
-
-        std::vector<std::vector<size_t>> matrix(num_technical_bins); // rows
-        for (auto & v : matrix)
-            v.resize(num_user_bins, std::numeric_limits<size_t>::max()); // columns
-
-        std::vector<std::vector<size_t>> ll_matrix(num_technical_bins); // rows
-        for (auto & v : ll_matrix)
-            v.resize(num_user_bins, 0u); // columns
-
-        std::vector<std::vector<std::pair<size_t, size_t>>> trace(num_technical_bins); // rows
-        for (auto & v : trace)
-            v.resize(num_user_bins, {std::numeric_limits<size_t>::max(), std::numeric_limits<size_t>::max()}); // columns
-
-        initialization(matrix, ll_matrix, trace);
-
-        recursion(matrix, ll_matrix, trace);
-
-        // print_matrix(matrix, num_technical_bins, num_user_bins, std::numeric_limits<size_t>::max());
-        // print_matrix(ll_matrix, num_technical_bins, num_user_bins, std::numeric_limits<size_t>::max());
-        // print_matrix(trace, num_technical_bins, num_user_bins, std::make_pair(std::numeric_limits<size_t>::max(), std::numeric_limits<size_t>::max()));
-
-        backtracking(matrix, ll_matrix, trace);
     }
 };

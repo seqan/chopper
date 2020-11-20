@@ -20,7 +20,7 @@ TEST(hierarchical_binning_test, small_example)
     config.output_filename = output_filename.get_path();
 
     hierarchical_binning algo{seq_ids, counts, config};
-    algo.dp_algorithm();
+    algo.execute();
 
     std::string expected_file
     {
