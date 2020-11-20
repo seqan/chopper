@@ -11,6 +11,7 @@
 #include <seqan3/range/views/to.hpp>
 #include <seqan3/core/debug_stream.hpp>
 
+#include <chopper/detail_bin_prefixes.hpp>
 #include <chopper/pack/pack_config.hpp>
 #include <chopper/pack/print_matrix.hpp>
 #include <chopper/pack/simple_binning.hpp>
@@ -260,7 +261,7 @@ struct hierarchical_binning
                 --trace_j;
 
                 // now do the binning for the low-level IBF:
-                std::string const merged_ibf_name{"MERGED_BIN_" + std::to_string(bin_id)};
+                std::string const merged_ibf_name{std::string{merged_bin_prefix} + "_" + std::to_string(bin_id)};
                 simple_binning algo{merged_bins, merged_bin_names, merged_ibf_name, output_file};
                 algo.dp_algorithm();
 
@@ -285,7 +286,7 @@ struct hierarchical_binning
                 trace_j = next_j; // unneccessary?
 
                 // now do the binning for the low-level IBF:
-                std::string const merged_ibf_name{"COLORFUL_MERGED_BIN_" + std::to_string(bin_id)};
+                std::string const merged_ibf_name{std::string{merged_bin_prefix} + "_" + std::to_string(bin_id)};
                 simple_binning algo{merged_bins, merged_bin_names, merged_ibf_name, output_file};
                 algo.dp_algorithm();
                 // std::cout << "]: " << kmer_count << std::endl;

@@ -27,11 +27,11 @@ TEST(hierarchical_binning_test, small_example)
         "BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n"
         "SPLIT_BIN_0\tseq7\t1\t500\n"
         "SPLIT_BIN_1\tseq6\t1\t500\n"
-        "COLORFUL_MERGED_BIN_2_0\tseq0\t16\t32\n"
-        "COLORFUL_MERGED_BIN_2_1\tseq2\t12\t42\n"
-        "COLORFUL_MERGED_BIN_2_2\tseq3\t12\t42\n"
-        "COLORFUL_MERGED_BIN_2_3\tseq4\t12\t42\n"
-        "COLORFUL_MERGED_BIN_2_4\tseq5\t12\t42\n"
+        "MERGED_BIN_2_0\tseq0\t16\t32\n"
+        "MERGED_BIN_2_1\tseq2\t12\t42\n"
+        "MERGED_BIN_2_2\tseq3\t12\t42\n"
+        "MERGED_BIN_2_3\tseq4\t12\t42\n"
+        "MERGED_BIN_2_4\tseq5\t12\t42\n"
         "SPLIT_BIN_3\tseq1\t1\t1000\n"
     };
 

@@ -1,9 +1,9 @@
 #pragma once
 
-#include <chopper/detail_starts_with.hpp>
+#include <chopper/detail_bin_prefixes.hpp>
 #include <chopper/detail_parse_binning_line.hpp>
+#include <chopper/detail_starts_with.hpp>
 #include <chopper/split/split_config.hpp>
-
 
 // implements an input range
 class filename_batches_range
@@ -127,9 +127,6 @@ private:
         filename_batches_range * host{nullptr};
 
         split_config current_config;
-
-        static constexpr std::string_view merged_bin_prefix{"COLORFUL_MERGED_BIN"};
-        static constexpr size_t merged_bin_prefix_length{merged_bin_prefix.size()};
 
         bool parse_next_line()
         {

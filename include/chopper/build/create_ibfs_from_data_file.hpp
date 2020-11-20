@@ -13,13 +13,10 @@
 #include <seqan3/range/views/zip.hpp>
 #include <seqan3/search/dream_index/interleaved_bloom_filter.hpp>
 
-constexpr std::string_view merged_bin_prefix{"COLORFUL_MERGED_BIN"};
-constexpr size_t merged_bin_prefix_length{merged_bin_prefix.size()};
-constexpr std::string_view split_bin_prefix{"SPLIT_BIN"};
-
 #include <chopper/build/build_config.hpp>
 #include <chopper/build/parse_traversal_file_line.hpp>
 #include <chopper/build/read_data_file_and_set_high_level_bins.hpp>
+#include <chopper/detail_bin_prefixes.hpp>
 
 struct file_type_traits : public seqan3::sequence_file_input_default_traits_dna
 {

@@ -7,6 +7,7 @@
 #include <seqan3/std/charconv>
 
 #include <chopper/build/build_config.hpp>
+#include <chopper/detail_bin_prefixes.hpp>
 #include <chopper/detail_parse_binning_line.hpp>
 #include <chopper/detail_starts_with.hpp>
 
