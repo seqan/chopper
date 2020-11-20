@@ -9,8 +9,6 @@ target_use_datasources (chopper_split_test FILES small.fa)
 target_use_datasources (chopper_split_test FILES small2.fa)
 
 add_api_test (filename_batches_range_test.cpp)
-target_use_datasources (filename_batches_range_test FILES high_level_ibf.binning)
-target_use_datasources (filename_batches_range_test FILES low_level_ibfs.binning)
 
 add_api_test (neighbour_joining_test.cpp)
 add_api_test (map_distance_matrix_test.cpp)
