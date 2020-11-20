@@ -29,3 +29,7 @@ declare_datasource (FILE filenames_counts_and_extra_information.tsv
 declare_datasource (FILE seqinfo.tsv
                     URL ${CMAKE_SOURCE_DIR}/test/data/seqinfo.tsv
                     URL_HASH SHA256=c6e28cc4ebf4902c41b1c237b1410665994e0fd0b8d8473c38a8107041d78172)
+
+declare_datasource (FILE LOW_LEVEL_IBF_1.out
+                    URL ${CMAKE_SOURCE_DIR}/test/data/LOW_LEVEL_IBF_1.out
+                    URL_HASH SHA256=b80930e9dc280372c7cd54c4ab4a2bb28daf9d6e5ae3edfd31fcfe2a0652c5c2)

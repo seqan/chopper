@@ -57,6 +57,8 @@ int chopper_split(seqan3::argument_parser & parser)
 
     for (auto const & batch_config : filename_batches_range{config})
     {
+        std::cout << "Processing file " << batch_config.out_path << " with " << batch_config.bins << " number of bins." << std::endl;
+
         if (batch_config.bins == 1) // nothing to split here
         {
             std::string const low_level_prefix{config.out_path.string() + "LOW_LEVEL_IBF_"};
