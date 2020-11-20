@@ -14,6 +14,7 @@
 #include <seqan3/search/dream_index/interleaved_bloom_filter.hpp>
 
 constexpr std::string_view merged_bin_prefix{"COLORFUL_MERGED_BIN"};
+constexpr size_t merged_bin_prefix_length{merged_bin_prefix.size()};
 constexpr std::string_view split_bin_prefix{"SPLIT_BIN"};
 
 #include <chopper/build/build_config.hpp>
@@ -53,7 +54,6 @@ size_t compute_bin_size(build_config const & config, size_t const number_of_kmer
                    (std::log(1 - std::pow(10.0, std::log10(config.FPR) / config.hash_funs))));
 }
 
-
 auto compute_maximum_technical_bin_size(build_config const & config,
                                         std::vector<std::string> const & filenames)
 {
@@ -70,7 +70,7 @@ auto compute_maximum_technical_bin_size(build_config const & config,
 }
 
 auto compute_maximum_technical_bin_size(build_config const & config,
-                                        std::string const & bin_name,
+                                        std::string const & splitting_filename,
                                         std::vector<std::string> const & filenames,
                                         size_t const bin_idx)
 {
@@ -78,11 +78,10 @@ auto compute_maximum_technical_bin_size(build_config const & config,
 
     std::set<size_t> kmer_count{};
 
-    std::ifstream fin{config.traversal_path_prefix + bin_name + ".out"};
+    std::ifstream fin{splitting_filename};
 
     if (!fin.good() || !fin.is_open())
-        throw std::logic_error{"Could not open file '" + config.traversal_path_prefix +
-                               bin_name + ".out' for reading."};
+        throw std::logic_error{"Could not open file '" + splitting_filename + ".out' for reading."};
 
     std::string line;
     std::getline(fin, line); // skip header
@@ -95,7 +94,6 @@ auto compute_maximum_technical_bin_size(build_config const & config,
             for (auto hash : hash_infix(config, info[filename][id], begin, end))
                 kmer_count.insert(hash);
     }
-
 
     return compute_bin_size(config, kmer_count.size());
 }
@@ -145,9 +143,13 @@ auto process_merged_bin(build_config const & config,
                         size_t & bin_idx)
 {
     // we need to construct a low level ibf AND insert all kmers into the high level bin
+    auto const idx_end = std::find(record.bin_name.begin() + merged_bin_prefix_length + 1, record.bin_name.end(), '_');
+    std::string_view::size_type const idx_length = (idx_end - record.bin_name.begin()) - merged_bin_prefix_length - 1;
+    std::string const merged_bin_idx{&record.bin_name[0] + merged_bin_prefix_length + 1, idx_length};
+    std::string const merged_bin_file_name{config.traversal_path_prefix + "LOW_LEVEL_IBF_" + merged_bin_idx + ".out"};
 
     auto const max_bin_size = compute_maximum_technical_bin_size(config,
-                                                                 record.bin_name,
+                                                                 merged_bin_file_name,
                                                                  record.merged_bin_max_size_filenames,
                                                                  record.merged_bin_max_size_bin_idx);
     if (config.verbose)
@@ -160,11 +162,11 @@ auto process_merged_bin(build_config const & config,
 
     auto && info = read_sequences(record.filenames); // into random access containers
 
-    std::ifstream fin{config.traversal_path_prefix + record.bin_name + ".out"};
+    std::ifstream fin{merged_bin_file_name};
     std::string line;
 
     if (!fin.good() || !fin.is_open())
-        throw std::logic_error{"Could not open file '" + config.traversal_path_prefix + record.bin_name + ".out' for reading"};
+        throw std::logic_error{"Could not open file '" + merged_bin_file_name + ".out' for reading"};
 
     std::getline(fin, line); // skip header
     while (std::getline(fin, line))
@@ -207,9 +209,14 @@ auto create_ibfs_from_data_file(build_config const & config)
         std::cerr << ">>> Computing maximum technical bin size for high level IBF " << std::endl;
 
     if (starts_with(highest_record.bin_name, split_bin_prefix) && highest_record.bins != 1)
-        max_bin_size = compute_maximum_technical_bin_size(config, highest_record.bin_name, highest_record.filenames, 0u);
+    {
+        std::string const splitting_filename{config.traversal_path_prefix + highest_record.bin_name + ".out"};
+        max_bin_size = compute_maximum_technical_bin_size(config, splitting_filename, highest_record.filenames, 0u);
+    }
     else
+    {
         max_bin_size = compute_maximum_technical_bin_size(config, highest_record.filenames);
+    }
 
     if (config.verbose)
         std::cerr << "   -> max_size: " << max_bin_size << std::endl;

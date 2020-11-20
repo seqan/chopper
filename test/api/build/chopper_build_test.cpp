@@ -20,7 +20,7 @@ TEST(chopper_count_test, small_example_parallel_2_threads)
 
     seqan3::test::tmp_filename traversal_dir{""};
     std::string traversal_split_bin0{traversal_dir.get_path().string() + "SPLIT_BIN_0.out"};
-    std::string traversal_merged_bin2{traversal_dir.get_path().string() + "COLORFUL_MERGED_BIN_2.out"};
+    std::string traversal_merged_bin2{traversal_dir.get_path().string() + "LOW_LEVEL_IBF_2.out"};
     std::string traversal_split_bin3{traversal_dir.get_path().string() + "SPLIT_BIN_3.out"};
 
     // generate data files

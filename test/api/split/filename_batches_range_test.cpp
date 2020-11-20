@@ -44,11 +44,11 @@ TEST(filename_batches_range_test, high_level_data_file)
     {
         "/dummy/SPLIT_BIN_0.out",
         "/dummy/SPLIT_BIN_1.out",
-        "/dummy/COLORFUL_MERGED_BIN_2.out",
-        "/dummy/COLORFUL_MERGED_BIN_2.out",
-        "/dummy/COLORFUL_MERGED_BIN_2.out",
-        "/dummy/COLORFUL_MERGED_BIN_20.out",
-        "/dummy/COLORFUL_MERGED_BIN_20.out",
+        "/dummy/LOW_LEVEL_IBF_2.out",
+        "/dummy/LOW_LEVEL_IBF_2.out",
+        "/dummy/LOW_LEVEL_IBF_2.out",
+        "/dummy/LOW_LEVEL_IBF_20.out",
+        "/dummy/LOW_LEVEL_IBF_20.out",
         "/dummy/SPLIT_BIN_3.out"
     };
 

@@ -39,7 +39,7 @@ int chopper_split(seqan3::argument_parser & parser)
     split_config config;
 
     if (auto r = set_up_and_parse_subparser_split(parser, config); r != 0)
-        return r;
+    return r;
 
     // defaults set for every config
     config.output_graph_file = "/tmp/graph.dot";
@@ -59,9 +59,9 @@ int chopper_split(seqan3::argument_parser & parser)
     {
         if (batch_config.bins == 1) // nothing to split here
         {
-            std::string const merged_bin_prefix{config.out_path.string() + "COLORFUL_MERGED_BIN"};
+            std::string const low_level_prefix{config.out_path.string() + "LOW_LEVEL_IBF_"};
 
-            if (starts_with(batch_config.out_path, merged_bin_prefix))
+            if (starts_with(batch_config.out_path, low_level_prefix))
             {
                 bool const output_file_exists = std::filesystem::exists(batch_config.out_path);
 

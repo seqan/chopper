@@ -149,21 +149,22 @@ private:
 
             if (starts_with(bin_data.bin_name, merged_bin_prefix))
             {
-                auto const id_end = std::find(bin_data.bin_name.begin() + merged_bin_prefix_length + 1,
-                                              bin_data.bin_name.end(),
-                                              '_');
-                std::string const merged_bin_id{&bin_data.bin_name[0],
-                                                static_cast<std::string_view::size_type>(id_end - bin_data.bin_name.begin())};
+                auto const idx_end = std::find(bin_data.bin_name.begin() + merged_bin_prefix_length + 1,
+                                               bin_data.bin_name.end(),
+                                               '_');
+                std::string_view::size_type const idx_length = (idx_end - bin_data.bin_name.begin()) -
+                                                               merged_bin_prefix_length - 1;
+                std::string const merged_bin_idx{&bin_data.bin_name[0] + merged_bin_prefix_length + 1, idx_length};
 
-                auto it = host->colourful_bin_offsets.find(merged_bin_id);
+                auto it = host->colourful_bin_offsets.find(merged_bin_idx);
 
                 if (it == host->colourful_bin_offsets.end()) // merged bin has not been seen yet
-                    it = host->colourful_bin_offsets.emplace(merged_bin_id, 0u).first;
+                    it = host->colourful_bin_offsets.emplace(merged_bin_idx, 0u).first;
 
                 current_config.bin_index_offset = it->second;
                 it->second += bin_data.bins;
 
-                out_filename = host->config.out_path.string() + std::string{merged_bin_id} + ".out";
+                out_filename = host->config.out_path.string() + "LOW_LEVEL_IBF_" + std::string{merged_bin_idx} + ".out";
             }
             else
             {

@@ -137,7 +137,6 @@ TEST(chopper_split_test, data_file_as_input)
             input_filename1 + "\tseq1\t0\t400\t4\n" +
             input_filename1 + "\tseq2\t0\t480\t4\n" +
             input_filename1 + "\tseq3\t0\t481\t4\n"
-
         },
         {
             "FILE_ID\tSEQ_ID\tBEGIN\tEND\tBIN_NUMBER\n" +
@@ -153,18 +152,18 @@ TEST(chopper_split_test, data_file_as_input)
         }
     };
 
-    std::vector<std::string> const bin_names
+    std::vector<std::string> const file_prefix
     {
         "SPLIT_BIN_0",
         "SPLIT_BIN_1",
-        "COLORFUL_MERGED_BIN_2",
+        "LOW_LEVEL_IBF_2",
         "SPLIT_BIN_3",
     };
 
     // compare results
     for (size_t batch_number = 0; batch_number < 4; ++batch_number)
     {
-        std::ifstream output_file{output_filename.get_path().string() + bin_names[batch_number] + ".out"};
+        std::ifstream output_file{output_filename.get_path().string() + file_prefix[batch_number] + ".out"};
         std::string const output_file_str((std::istreambuf_iterator<char>(output_file)), std::istreambuf_iterator<char>());
         EXPECT_EQ(output_file_str, expected_output[batch_number]) << " failed at batch " << batch_number << std::endl;
     }
