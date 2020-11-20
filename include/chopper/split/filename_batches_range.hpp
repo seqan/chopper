@@ -142,9 +142,6 @@ private:
 
             auto const bin_data = parse_binning_line(host->current_line);
 
-            if (bin_data.bins == 1)
-                return false;
-
             current_config.seqfiles = std::move(bin_data.filenames);
             current_config.bins = bin_data.bins;
 

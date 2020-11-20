@@ -55,8 +55,39 @@ int chopper_split(seqan3::argument_parser & parser)
         throw std::runtime_error{"[CHOPPER SPLIT ERROR] You must specify EITHER files with -s OR give a data file "
                                  "with -f!"};
 
-    for (auto & batch_config : filename_batches_range{config})
+    for (auto const & batch_config : filename_batches_range{config})
     {
+        if (batch_config.bins == 1) // nothing to split here
+        {
+            std::string const merged_bin_prefix{config.out_path.string() + "COLORFUL_MERGED_BIN"};
+
+            if (starts_with(batch_config.out_path, merged_bin_prefix))
+            {
+                bool const output_file_exists = std::filesystem::exists(batch_config.out_path);
+
+                std::ofstream fout{batch_config.out_path, std::ios::binary | std::ios::app}; // append to file
+
+                if (!output_file_exists)
+                    fout << "FILE_ID\tSEQ_ID\tBEGIN\tEND\tBIN_NUMBER\n"; // header
+
+                for (auto const & filename : batch_config.seqfiles)
+                {
+                    seqan3::sequence_file_input fin{filename, seqan3::fields<seqan3::field::id, seqan3::field::seq>{}};
+
+                    for (auto const & [id, seq] : fin)
+                    {
+                        fout << filename << '\t'
+                             << id << '\t'
+                             << 0 << '\t'
+                             << seq.size() << '\t'
+                             << batch_config.bin_index_offset << '\n';
+                    }
+                }
+            }
+
+            continue;
+        }
+
         // Load data
         // -------------------------------------------------------------------------
         split_data data;

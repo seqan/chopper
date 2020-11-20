@@ -77,6 +77,7 @@ TEST(chopper_split_test, data_file_as_input)
              << "SPLIT_BIN_1\t" << input_filename1 + "\t2\t500\n"
              << "COLORFUL_MERGED_BIN_2_0\t" << input_filename1 << "\t2\t2500\n"
              << "COLORFUL_MERGED_BIN_2_1\t" << input_filename1 << ";" << input_filename2 << "\t2\t2500\n"
+             << "COLORFUL_MERGED_BIN_2_2\t" << input_filename1 << "\t1\t500\n"
              << "SPLIT_BIN_3\t" << input_filename2 + "\t3\t1000\n";
     }
 
@@ -131,7 +132,12 @@ TEST(chopper_split_test, data_file_as_input)
             input_filename1 + "\tseq3\t209\t481\t3\n" +
             input_filename2 + "\tseq10\t209\t400\t3\n" +
             input_filename2 + "\tseq20\t289\t480\t3\n" +
-            input_filename2 + "\tseq30\t209\t481\t3\n"
+            input_filename2 + "\tseq30\t209\t481\t3\n" +
+            /*COLORFUL_MERGED_BIN_2_2*/
+            input_filename1 + "\tseq1\t0\t400\t4\n" +
+            input_filename1 + "\tseq2\t0\t480\t4\n" +
+            input_filename1 + "\tseq3\t0\t481\t4\n"
+
         },
         {
             "FILE_ID\tSEQ_ID\tBEGIN\tEND\tBIN_NUMBER\n" +

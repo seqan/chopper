@@ -30,20 +30,20 @@ TEST(filename_batches_range_test, high_level_data_file)
              << "SPLIT_BIN_3\tseq1.1;seq1.2\t2\t1000\n";
     }
 
-    // NOTE: SPLIT_BIN_1 has only one bin so it does not appear in the range
     filename_batches_range r{config};
     EXPECT_TRUE(r.current_file_type == filename_batches_range::file_type::data_file);
 
     std::vector<std::vector<std::string>> expected_seqfiles_range
     {
-        {"seq7"}, {"seq0"}, {"seq2"}, {"seq3.1", "seq3.2", "seq3.3"}, {"seq4"}, {"seq5"}, {"seq1.1", "seq1.2"}
+        {"seq7"}, {"seq6"}, {"seq0"}, {"seq2"}, {"seq3.1", "seq3.2", "seq3.3"}, {"seq4"}, {"seq5"}, {"seq1.1", "seq1.2"}
     };
 
-    std::vector<int> expected_bins_range{2, 16, 12, 12, 12, 12, 2};
+    std::vector<int> expected_bins_range{2, 1, 16, 12, 12, 12, 12, 2};
 
     std::vector<std::string> expected_outfiles
     {
         "/dummy/SPLIT_BIN_0.out",
+        "/dummy/SPLIT_BIN_1.out",
         "/dummy/COLORFUL_MERGED_BIN_2.out",
         "/dummy/COLORFUL_MERGED_BIN_2.out",
         "/dummy/COLORFUL_MERGED_BIN_2.out",
@@ -52,7 +52,7 @@ TEST(filename_batches_range_test, high_level_data_file)
         "/dummy/SPLIT_BIN_3.out"
     };
 
-    std::vector<size_t> expected_offsets{0, 0, 16, 28, 0, 12, 0};
+    std::vector<size_t> expected_offsets{0, 0, 0, 16, 28, 0, 12, 0};
 
     auto it = r.begin();
     for (size_t i = 0; i < expected_seqfiles_range.size(); ++i, ++it)
