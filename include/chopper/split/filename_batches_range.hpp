@@ -28,11 +28,11 @@ private:
         //!\brief Difference type.
         using difference_type = int64_t;
         //!\brief Value type.
-        using value_type = split_config;
+        using value_type = batch_config;
         //!\brief Pointer type.
         using pointer = void;
         //!\brief Reference type.
-        using reference = split_config const &;
+        using reference = batch_config const &;
         //!\brief Iterator category.
         using iterator_category = std::input_iterator_tag;
         //!\}
@@ -54,11 +54,10 @@ private:
         ~iterator() = default;
 
         //!\brief Constructing from the underlying seqan3::single_pass_input_view.
-        iterator(filename_batches_range & host, split_config config) :
-            host{&host}, current_config{std::move(config)}
+        iterator(filename_batches_range & host, split_config const & config) :
+            host{&host}, current_config{config}
         {
-            if (!parse_next_line())
-                while (std::getline(this->host->data_file, this->host->current_line) && !parse_next_line());
+            parse_next_line();
         }
         //!\}
 
@@ -78,8 +77,7 @@ private:
         //!\brief Pre-increment.
         iterator & operator++() noexcept
         {
-            current_config.seqfiles.clear();
-            while (std::getline(host->data_file, host->current_line) && !parse_next_line());
+            at_end = parse_next_line();
             return *this;
         }
 
@@ -98,10 +96,7 @@ private:
         //!\brief Compares for equality with sentinel.
         bool operator==(std::default_sentinel_t const & s) const noexcept
         {
-            if (host->current_file_type == file_type::seqfiles_given)
-                return current_config.seqfiles.empty();
-            else
-                return host->data_file.eof();
+            return at_end;
         }
 
         //!\copydoc operator==
@@ -126,16 +121,25 @@ private:
     protected:
         filename_batches_range * host{nullptr};
 
-        split_config current_config;
+        batch_config current_config;
+
+        bool at_end{false};
 
         bool parse_next_line()
         {
             assert(host->current_file_type != file_type::unknown);
 
-            if (host->current_file_type == file_type::seqfiles_given)
-                return true;
+            current_config = batch_config{host->config}; // reset
 
-            current_config = host->config; // reset
+            if (host->current_file_type == file_type::seqfiles_given)
+            {
+                current_config.seqfiles = host->config.seqfiles;
+                current_config.out_path = host->config.out_path;
+                current_config.bins = host->config.bins;
+                return true; // end reached
+            }
+
+            std::getline(host->data_file, host->current_line);
 
             auto const bin_data = parse_binning_line(host->current_line);
 
@@ -170,7 +174,7 @@ private:
 
             current_config.out_path = std::filesystem::path{out_filename};
 
-            return true;
+            return host->data_file.eof(); // end not reached yet
         }
     };
 
@@ -233,7 +237,6 @@ private:
                 throw std::logic_error{"Could not open file for reading"};
 
             std::getline(data_file, current_line); // skip header line
-            std::getline(data_file, current_line); // read first line
         }
 
         return identified_file_type;

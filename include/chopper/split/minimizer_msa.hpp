@@ -18,7 +18,7 @@
 #include <chopper/split/seqan2_msa_alignment.hpp>
 #include <chopper/split/graph_output.hpp>
 
-inline void minimizer_msa(split_data & data, split_config const & config)
+inline void minimizer_msa(split_data & data, batch_config const & config)
 {
     // Alignment of the sequences
     typedef seqan::Graph<seqan::Alignment<seqan::StringSet<seqan::String<minimizer>, seqan::Dependent<> >, void, seqan::WithoutEdgeId> > TGraph;
