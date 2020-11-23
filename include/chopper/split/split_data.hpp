@@ -11,4 +11,6 @@ struct split_data
     seqan::StringSet<seqan::String<char> > ids;
     seqan::String<size_t> lengths;
     std::vector<std::string> files_of_origin;
+
+    std::stringstream * outstream{nullptr};
 };

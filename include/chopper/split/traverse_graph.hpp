@@ -538,14 +538,6 @@ void traverse_graph(split_data const & data, batch_config const & config)
     assert(bin_contents.size() != 0);
     assert(bin_contents[0].size() == seqan::length(data.sequences));
 
-    // remember if this is the first time this file is opened, s.t. we write the header line
-    bool const output_file_exists = std::filesystem::exists(config.out_path);
-
-    std::ofstream fout{config.out_path, std::ios::binary | std::ios::app}; // append to file
-
-    if (!output_file_exists)
-        fout << "FILE_ID\tSEQ_ID\tBEGIN\tEND\tBIN_NUMBER\n"; // header
-
     std::vector<bool> range_end_sanity_check(seqan::length(data.sequences), 0);
     size_t bin_index{};
     for (auto & bin : bin_contents)
@@ -554,11 +546,11 @@ void traverse_graph(split_data const & data, batch_config const & config)
         {
             if (bin[i].first != bin[i].second)
             {
-                fout << data.files_of_origin[i] << '\t'
-                     << data.ids[i] << '\t'
-                     << bin[i].first << '\t'
-                     << bin[i].second << '\t'
-                     << bin_index + config.bin_index_offset << '\n';
+                *data.outstream << data.files_of_origin[i] << '\t'
+                                << data.ids[i] << '\t'
+                                << bin[i].first << '\t'
+                                << bin[i].second << '\t'
+                                << bin_index + config.bin_index_offset << '\n';
             }
 
             if (bin[i].second == data.lengths[i])
@@ -581,8 +573,5 @@ void traverse_graph(split_data const & data, batch_config const & config)
         seqan3::debug_stream << "[WARNING] This should never happen. Please contact the developer." << std::endl;
     }
 
-    seqan3::debug_stream << "Bin content "
-                         << (output_file_exists ? "appended" : "written")
-                         << " to : "
-                         << config.out_path << std::endl;
+    seqan3::debug_stream << "Bin content appended to : " << config.out_path << std::endl;
 }

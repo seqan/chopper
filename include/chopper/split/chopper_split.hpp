@@ -1,5 +1,7 @@
 #pragma once
 
+#include <sstream>
+
 #include <seqan3/core/debug_stream.hpp>
 
 #include <chopper/split/split_data.hpp>
@@ -50,9 +52,20 @@ int chopper_split(seqan3::argument_parser & parser)
         throw std::runtime_error{"[CHOPPER SPLIT ERROR] You must specify EITHER files with -s OR give a data file "
                                  "with -f!"};
 
+    std::vector<std::stringstream> traversal_streams{};
+    std::unordered_map<std::string, size_t> id_to_position{};
+
     for (auto const & current_batch_config : filename_batches_range{config})
     {
         std::cout << "Processing file " << current_batch_config.out_path << " with " << current_batch_config.bins << " number of bins." << std::endl;
+
+        auto position_map_it = id_to_position.find(current_batch_config.bin_name);
+
+        if (position_map_it == id_to_position.end())
+        {
+            position_map_it = id_to_position.emplace(current_batch_config.bin_name, traversal_streams.size()).first;
+            traversal_streams.push_back(std::stringstream{});
+        }
 
         if (current_batch_config.bins == 1) // nothing to split here
         {
@@ -60,12 +73,7 @@ int chopper_split(seqan3::argument_parser & parser)
 
             if (starts_with(current_batch_config.out_path, low_level_prefix))
             {
-                bool const output_file_exists = std::filesystem::exists(current_batch_config.out_path);
-
-                std::ofstream fout{current_batch_config.out_path, std::ios::binary | std::ios::app}; // append to file
-
-                if (!output_file_exists)
-                    fout << "FILE_ID\tSEQ_ID\tBEGIN\tEND\tBIN_NUMBER\n"; // header
+                auto & ostm = traversal_streams[position_map_it->second];
 
                 for (auto const & filename : current_batch_config.seqfiles)
                 {
@@ -73,7 +81,7 @@ int chopper_split(seqan3::argument_parser & parser)
 
                     for (auto const & [id, seq] : fin)
                     {
-                        fout << filename << '\t'
+                        ostm << filename << '\t'
                              << id << '\t'
                              << 0 << '\t'
                              << seq.size() << '\t'
@@ -88,6 +96,7 @@ int chopper_split(seqan3::argument_parser & parser)
         // Load data
         // -------------------------------------------------------------------------
         split_data data;
+        data.outstream = &(traversal_streams[position_map_it->second]);
 
         auto start = std::chrono::steady_clock::now();
         for (auto const & file_name : current_batch_config.seqfiles)
@@ -107,6 +116,14 @@ int chopper_split(seqan3::argument_parser & parser)
         // Traverse graph
         // -------------------------------------------------------------------------
         traverse_graph(data, current_batch_config);
+    }
+
+    // write out files
+    for (auto const & [filename, stream_pos] : id_to_position)
+    {
+        std::ofstream fout{filename};
+        fout << "FILE_ID\tSEQ_ID\tBEGIN\tEND\tBIN_NUMBER\n"; // write header
+        fout << (traversal_streams[stream_pos]).rdbuf();
     }
 
     return 0;

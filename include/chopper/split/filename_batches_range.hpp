@@ -136,6 +136,7 @@ private:
                 current_config.seqfiles = host->config.seqfiles;
                 current_config.out_path = host->config.out_path;
                 current_config.bins = host->config.bins;
+                current_config.bin_name = host->config.out_path.string();
                 return true; // end reached
             }
 
@@ -165,14 +166,14 @@ private:
                 current_config.bin_index_offset = it->second;
                 it->second += bin_data.bins;
 
-                out_filename = host->config.out_path.string() + "LOW_LEVEL_IBF_" + std::string{merged_bin_idx} + ".out";
+                current_config.bin_name = host->config.out_path.string() + "LOW_LEVEL_IBF_" + std::string{merged_bin_idx} + ".out";
             }
             else
             {
-                out_filename = host->config.out_path.string() + bin_data.bin_name + ".out";
+                current_config.bin_name =  host->config.out_path.string() + bin_data.bin_name + ".out";
             }
 
-            current_config.out_path = std::filesystem::path{out_filename};
+            current_config.out_path = std::filesystem::path{current_config.bin_name};
 
             return host->data_file.eof(); // end not reached yet
         }
