@@ -146,6 +146,7 @@ private:
 
             current_config.seqfiles = std::move(bin_data.filenames);
             current_config.bins = bin_data.bins;
+            current_config.max_size = bin_data.max_size;
 
             std::string out_filename;
 
