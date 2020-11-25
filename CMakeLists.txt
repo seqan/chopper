@@ -33,8 +33,8 @@ find_package (SeqAn3 QUIET REQUIRED HINTS lib/seqan3/build_system)
 # Note: includes seqan-config.cmake manually to have
 # SEQAN_DEFINITIONS, SEQAN_CXX_FLAGS_LIST, SEQAN_LIBRARIES, SEQAN_INCLUDE_DIRS
 # defined. We don't want any seqan version but the submodule one!
-set(CMAKE_PREFIX_PATH "~/AGABI/Chopper/lib/seqan/util/cmake")
-set(CMAKE_INCLUDE_PATH "~/AGABI/Chopper/lib/seqan/include/")
+set(CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/lib/seqan/util/cmake")
+set(CMAKE_INCLUDE_PATH "${CMAKE_SOURCE_DIR}/lib/seqan/include/")
 include (${CMAKE_SOURCE_DIR}/lib/seqan/util/cmake/seqan-config.cmake)
 
 add_subdirectory (src)
