@@ -77,6 +77,7 @@ private:
         //!\brief Pre-increment.
         iterator & operator++() noexcept
         {
+            std::getline(host->data_file, host->current_line);
             at_end = parse_next_line();
             return *this;
         }
@@ -139,8 +140,6 @@ private:
                 current_config.bin_name = host->config.out_path.string();
                 return true; // end reached
             }
-
-            std::getline(host->data_file, host->current_line);
 
             auto const bin_data = parse_binning_line(host->current_line);
 
@@ -238,7 +237,7 @@ private:
             if (!data_file.good() || !data_file.is_open())
                 throw std::logic_error{"Could not open file for reading"};
 
-            std::getline(data_file, current_line); // skip header line
+            while (std::getline(data_file, current_line) && current_line[0] == '#');
         }
 
         return identified_file_type;

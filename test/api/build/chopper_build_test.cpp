@@ -26,7 +26,7 @@ TEST(chopper_count_test, small_example_parallel_2_threads)
     // generate data files
     {
         std::ofstream fout{data_filename.get_path()};
-        fout << "BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n"
+        fout << "#BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n"
              << "SPLIT_BIN_0\t" << input_filename1 << "\t2\t500\n"
              << "SPLIT_BIN_1\t" << input_filename1 + "\t1\t500\n"
              << "MERGED_BIN_2_0\t" << input_filename1 << "\t2\t2500\n"

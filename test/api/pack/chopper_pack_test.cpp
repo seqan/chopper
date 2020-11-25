@@ -36,7 +36,9 @@ TEST(chopper_pack_test, small_example)
 
     std::string expected_file
     {
-        "BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n"
+        "#MERGED_BIN_2 max_bin_id:1\n"
+        "#HIGH_LEVEL_IBF max_bin_id:MERGED_BIN_2\n"
+        "#BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n"
         "SPLIT_BIN_0\tseq7\t1\t500\n"
         "SPLIT_BIN_1\tseq6\t1\t500\n"
         "MERGED_BIN_2_0\tseq0\t16\t32\n"

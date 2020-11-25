@@ -13,7 +13,7 @@ TEST(simple_binning_test, small_example)
     std::ostringstream output{};
 
     simple_binning algo{input, names, "TEST_IBF", output, 9};
-    algo.execute();
+    size_t max_bin = algo.execute();
 
     std::string expected
     {
@@ -24,6 +24,7 @@ TEST(simple_binning_test, small_example)
     };
 
     EXPECT_EQ(output.str(), expected);
+    EXPECT_EQ(max_bin, 0);
 }
 
 TEST(simple_binning_test, uniform_distribution)
@@ -33,7 +34,7 @@ TEST(simple_binning_test, uniform_distribution)
     std::ostringstream output{};
 
     simple_binning algo{input, names, "TEST_IBF", output, 4};
-    algo.execute();
+    size_t max_bin = algo.execute();
 
     std::string expected
     {
@@ -44,6 +45,7 @@ TEST(simple_binning_test, uniform_distribution)
     };
 
     EXPECT_EQ(output.str(), expected);
+    EXPECT_EQ(max_bin, 0);
 }
 
 TEST(simple_binning_test, user_bins_must_be_smaller_than_technical_bins)

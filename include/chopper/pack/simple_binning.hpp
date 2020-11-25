@@ -144,7 +144,7 @@ public:
     }
 
     //!\brief Executes the simple binning algorithm and packs user bins into technical bins.
-    void execute()
+    size_t execute()
     {
         std::vector<std::vector<size_t>> matrix(num_technical_bins); // rows
         for (auto & v : matrix)
@@ -191,6 +191,9 @@ public:
         size_t trace_i = num_technical_bins - 1;
         size_t trace_j = num_user_bins - 1;
 
+        size_t max_id{};
+        size_t max_size{};
+
         size_t bin_id{};
         while (trace_j > 0)
         {
@@ -204,6 +207,13 @@ public:
                         << user_bin_names[trace_j] << '\t'
                         << number_of_bins << '\t'
                         << kmer_count_per_bin << '\n';
+
+            if (kmer_count_per_bin > max_size)
+            {
+                max_id = bin_id;
+                max_size = kmer_count_per_bin;
+            }
+
             ++bin_id;
 
             trace_i = trace[trace_i][trace_j];
@@ -213,10 +223,18 @@ public:
         size_t const kmer_count = user_bin_kmer_counts[0];
         size_t const kmer_count_per_bin =  (kmer_count + trace_i - 1) / trace_i;
 
+        if (kmer_count_per_bin > max_size)
+        {
+            max_id = bin_id;
+            max_size = kmer_count_per_bin;
+        }
+
         // columns: IBF_ID,NAME,NUM_TECHNICAL_BINS,ESTIMATED_TB_SIZE
         output_file << bin_name << '_' << bin_id << '\t'
                     << user_bin_names[0] << '\t'
                     << trace_i << '\t'
                     << kmer_count_per_bin << '\n';
+
+        return max_id;
     }
 };

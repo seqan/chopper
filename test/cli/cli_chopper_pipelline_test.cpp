@@ -63,7 +63,9 @@ TEST_F(cli_test, chopper_pipeline)
 
     std::string expected_file
     {
-        "BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n" +
+        "#MERGED_BIN_1 max_bin_id:0\n"
+        "#HIGH_LEVEL_IBF max_bin_id:MERGED_BIN_1\n"
+        "#BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n" +
         std::string{split_bin_prefix} + "_0\t" + seq_filename + "\t1\t95\n" +
         std::string{merged_bin_prefix} + "_1_0\t" + seq_filename + "\t32\t3\n" +
         std::string{merged_bin_prefix} + "_1_1\t" + seq_filename + ";" + seq_filename + "\t32\t3\n"

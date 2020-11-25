@@ -26,7 +26,7 @@ TEST(chopper_count_test, small_example_parallel_2_threads)
     // generate data files
     {
         std::ofstream fout{data_filename.get_path()};
-        fout << "BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n"
+        fout << "#BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n"
              << "SPLIT_BIN_0\t" << input_filename1 << "\t2\t500\n"
              << "SPLIT_BIN_1\t" << input_filename1 + "\t1\t500\n"
              << "MERGED_BIN_2_0\t" << input_filename1 << "\t3\t2500\n"
@@ -212,7 +212,7 @@ TEST(chopper_count_test, config_overlap)
     // generate data files
     {
         std::ofstream fout{data_filename.get_path()};
-        fout << "BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n"
+        fout << "#BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n"
              << "SPLIT_BIN_0\t" << input_filename1 << "\t3\t500\n";
     }
 
@@ -343,7 +343,7 @@ TEST(create_ibfs_from_data_file_test, high_level_size)
     { // Split bin 1 is highest record
         {
             std::ofstream fout{data_filename.get_path()};
-            fout << "BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n"
+            fout << "#BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n"
                  << "SPLIT_BIN_0\t" << input_filename1 << "\t3\t500\n"
                  << "SPLIT_BIN_1\t" << input_filename1 + "\t1\t1000\n"
                  << "MERGED_BIN_2_0\t" << input_filename1 << "\t3\t500\n";
@@ -357,7 +357,7 @@ TEST(create_ibfs_from_data_file_test, high_level_size)
     { // merged bin is highest record - should result in same size as split bin 1, because of the same sequence content
         {
             std::ofstream fout{data_filename.get_path()};
-            fout << "BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n"
+            fout << "#BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n"
                  << "SPLIT_BIN_0\t" << input_filename1 << "\t3\t500\n"
                  << "SPLIT_BIN_1\t" << input_filename1 + "\t1\t500\n"
                  << "MERGED_BIN_2_0\t" << input_filename1 << "\t3\t1000\n";
@@ -371,7 +371,7 @@ TEST(create_ibfs_from_data_file_test, high_level_size)
     { // Split bin 0 is highest record - bin 0 DOES NOT inlcude all sequences
         {
             std::ofstream fout{data_filename.get_path()};
-            fout << "BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n"
+            fout << "#BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n"
                  << "SPLIT_BIN_0\t" << input_filename1 << "\t3\t1000\n"
                  << "SPLIT_BIN_1\t" << input_filename1 + "\t1\t500\n"
                  << "MERGED_BIN_2_0\t" << input_filename1 << "\t3\t500\n";

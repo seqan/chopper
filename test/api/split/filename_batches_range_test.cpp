@@ -19,7 +19,7 @@ TEST(filename_batches_range_test, high_level_data_file)
 
     {
         std::ofstream fout{binning_filename.get_path()};
-        fout << "BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n"
+        fout << "#BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n"
              << "SPLIT_BIN_0\tseq7\t2\t500\n"
              << "SPLIT_BIN_1\tseq6\t1\t500\n"
              << "MERGED_BIN_2_0\tseq0\t16\t32\n"

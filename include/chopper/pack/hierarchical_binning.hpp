@@ -42,6 +42,8 @@ private:
 
     //!\brief The output stream to cache the results to.
     std::stringstream output_buff;
+    //!\brief The stream to cache the header to.
+    std::stringstream header_buff;
     //!\brief The filename to write the output to.
     std::string output_filename;
 
@@ -269,7 +271,10 @@ private:
         std::cout << "optimum: " << matrix[trace_i][trace_j] << std::endl;
         std::cout << std::endl;
 
-        output_buff << "BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE" << std::endl;
+        output_buff << "#BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE" << std::endl;
+
+        std::string high_level_max_id{};
+        size_t high_level_max_size{};
 
         size_t bin_id{};
 
@@ -295,6 +300,12 @@ private:
                             << names[0] << '\t'
                             << trace_i << '\t'
                             << average_bin_size << '\n';
+
+                if (average_bin_size > high_level_max_size)
+                {
+                    high_level_max_id = "SPLIT_BIN_" + std::to_string(bin_id);
+                    high_level_max_size = average_bin_size;
+                }
 
                 --trace_j;
                 // std::cout << "split " << trace_j << " into " << trace_i << ": " << kmer_count / trace_i << std::endl;
@@ -324,7 +335,14 @@ private:
                 // now do the binning for the low-level IBF:
                 std::string const merged_ibf_name{std::string{merged_bin_prefix} + "_" + std::to_string(bin_id)};
                 simple_binning algo{merged_bins, merged_bin_names, merged_ibf_name, output_buff};
-                algo.execute();
+                auto max_bin_id = algo.execute();
+                header_buff << "#" << merged_ibf_name << " max_bin_id:" << max_bin_id << '\n';
+
+                if (kmer_count > high_level_max_size)
+                {
+                    high_level_max_id = merged_ibf_name;
+                    high_level_max_size = kmer_count;
+                }
 
                 // std::cout << "]: " << kmer_count << std::endl;
                 // std::cout << "\t I am now at " << trace_i << "," << trace_j << std::endl;
@@ -349,7 +367,14 @@ private:
                 // now do the binning for the low-level IBF:
                 std::string const merged_ibf_name{std::string{merged_bin_prefix} + "_" + std::to_string(bin_id)};
                 simple_binning algo{merged_bins, merged_bin_names, merged_ibf_name, output_buff};
-                algo.execute();
+                auto max_bin_id = algo.execute();
+                header_buff << "#" << merged_ibf_name << " max_bin_id:" << max_bin_id << '\n';
+
+                if (kmer_count > high_level_max_size)
+                {
+                    high_level_max_id = merged_ibf_name;
+                    high_level_max_size = kmer_count;
+                }
                 // std::cout << "]: " << kmer_count << std::endl;
             }
             else
@@ -363,17 +388,26 @@ private:
 
                 // std::cout << "split " << trace_j << " into " << number_of_bins << ": " << kmer_count_per_bin << std::endl;
 
+                if (kmer_count_per_bin > high_level_max_size)
+                {
+                    high_level_max_id = "SPLIT_BIN_" + std::to_string(bin_id);
+                    high_level_max_size = kmer_count_per_bin;
+                }
+
                 trace_i = trace[trace_i][trace_j].first;
                 --trace_j;
             }
             ++bin_id;
         }
+
+        header_buff << "#HIGH_LEVEL_IBF max_bin_id:" << high_level_max_id << '\n';
     }
 
     //!\brief Write the output to the result file.
     void write_result_file()
     {
         std::ofstream fout{output_filename};
+        fout << header_buff.rdbuf();
         fout << output_buff.rdbuf();
     }
 };

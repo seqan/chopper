@@ -72,7 +72,7 @@ TEST(chopper_split_test, data_file_as_input)
 
     {
         std::ofstream fout{data_filename.get_path()};
-        fout << "BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n"
+        fout << "#BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n"
              << "SPLIT_BIN_0\t" << input_filename1 + "\t2\t500\n"
              << "SPLIT_BIN_1\t" << input_filename1 + "\t2\t500\n"
              << "MERGED_BIN_2_0\t" << input_filename1 << "\t2\t2500\n"
@@ -163,8 +163,10 @@ TEST(chopper_split_test, data_file_as_input)
     // compare results
     for (size_t batch_number = 0; batch_number < 4; ++batch_number)
     {
-        std::ifstream output_file{output_filename.get_path().string() + file_prefix[batch_number] + ".out"};
-        std::string const output_file_str((std::istreambuf_iterator<char>(output_file)), std::istreambuf_iterator<char>());
-        EXPECT_EQ(output_file_str, expected_output[batch_number]) << " failed at batch " << batch_number << std::endl;
+        std::string const filename{output_filename.get_path().string() + file_prefix[batch_number] + ".out"};
+        ASSERT_TRUE(std::filesystem::exists(filename)) << "File " << filename << " doesn't exist :(" << std::endl;
+        std::ifstream fout{filename};
+        std::string const fout_str((std::istreambuf_iterator<char>(fout)), std::istreambuf_iterator<char>());
+        EXPECT_EQ(fout_str, expected_output[batch_number]) << " failed at batch " << batch_number << std::endl;
     }
 }

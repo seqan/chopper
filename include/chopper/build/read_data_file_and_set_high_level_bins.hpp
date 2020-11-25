@@ -23,9 +23,9 @@ auto read_data_file_and_set_high_level_bins(build_config const & config)
         throw std::logic_error{"Could not open file for reading"};
 
     std::string current_line;
-    std::getline(binning_file, current_line); // skip header line
+    while (std::getline(binning_file, current_line) && current_line[0] == '#'); // skip header line
 
-    while (std::getline(binning_file, current_line))
+    do
     {
         auto && record = parse_binning_line(current_line);
 
@@ -55,7 +55,7 @@ auto read_data_file_and_set_high_level_bins(build_config const & config)
             // add split record
             records.push_back(record);
         }
-    }
+    } while (std::getline(binning_file, current_line));
 
     for (auto & [bin_name, rec] : low_level_records)
     {
