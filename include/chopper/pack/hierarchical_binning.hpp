@@ -40,8 +40,10 @@ private:
     //!\brief The average count calculated from kmer_count_sum / num_technical_bins.
     size_t const kmer_count_average_per_bin;
 
-    //!\brief The output stream to write the results to.
-    std::ofstream output_file;
+    //!\brief The output stream to cache the results to.
+    std::stringstream output_buff;
+    //!\brief The filename to write the output to.
+    std::string output_filename;
 
 public:
     /*!\brief The constructor from user bin names, their kmer counts and a configuration.
@@ -60,7 +62,7 @@ public:
         num_technical_bins{(config.bins == 0) ? ((user_bin_kmer_counts.size() + 63) / 64 * 64) : config.bins},
         kmer_count_sum{std::accumulate(user_bin_kmer_counts.begin(), user_bin_kmer_counts.end(), 0u)},
         kmer_count_average_per_bin{std::max<size_t>(1u, kmer_count_sum / num_technical_bins)},
-        output_file{config.output_filename}
+        output_filename{config.output_filename}
     {
         std::cout << "#Techincal bins: " << num_technical_bins << std::endl;
         std::cout << "#User bins: " << input.size() << std::endl;
@@ -68,9 +70,6 @@ public:
 
         if (names.size() != user_bin_kmer_counts.size())
             throw std::runtime_error{"The filenames and kmer counts do not have the same length."};
-
-        if (!output_file.good() || !output_file.is_open())
-            throw std::runtime_error{"Could not open file " + config.output_filename.string() + "for reading."};
     }
 
     //!\brief Executes the hierarchical binning algorithm and packs user bins into technical bins.
@@ -100,6 +99,8 @@ public:
         // print_matrix(trace, num_technical_bins, num_user_bins, std::make_pair(std::numeric_limits<size_t>::max(), std::numeric_limits<size_t>::max()));
 
         backtracking(matrix, ll_matrix, trace);
+
+        write_result_file();
     }
 
 private:
@@ -268,7 +269,7 @@ private:
         std::cout << "optimum: " << matrix[trace_i][trace_j] << std::endl;
         std::cout << std::endl;
 
-        output_file << "BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE" << std::endl;
+        output_buff << "BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE" << std::endl;
 
         size_t bin_id{};
 
@@ -290,7 +291,7 @@ private:
                 int const kmer_count = user_bin_kmer_counts[0];
                 int const average_bin_size = kmer_count / trace_i;
 
-                output_file << "SPLIT_BIN_" << bin_id << '\t'
+                output_buff << "SPLIT_BIN_" << bin_id << '\t'
                             << names[0] << '\t'
                             << trace_i << '\t'
                             << average_bin_size << '\n';
@@ -322,7 +323,7 @@ private:
 
                 // now do the binning for the low-level IBF:
                 std::string const merged_ibf_name{std::string{merged_bin_prefix} + "_" + std::to_string(bin_id)};
-                simple_binning algo{merged_bins, merged_bin_names, merged_ibf_name, output_file};
+                simple_binning algo{merged_bins, merged_bin_names, merged_ibf_name, output_buff};
                 algo.execute();
 
                 // std::cout << "]: " << kmer_count << std::endl;
@@ -347,7 +348,7 @@ private:
 
                 // now do the binning for the low-level IBF:
                 std::string const merged_ibf_name{std::string{merged_bin_prefix} + "_" + std::to_string(bin_id)};
-                simple_binning algo{merged_bins, merged_bin_names, merged_ibf_name, output_file};
+                simple_binning algo{merged_bins, merged_bin_names, merged_ibf_name, output_buff};
                 algo.execute();
                 // std::cout << "]: " << kmer_count << std::endl;
             }
@@ -355,7 +356,7 @@ private:
             {
                 size_t const kmer_count_per_bin = kmer_count / number_of_bins; // round down
 
-                output_file << "SPLIT_BIN_" << bin_id << '\t'
+                output_buff << "SPLIT_BIN_" << bin_id << '\t'
                             << names[trace_j] << '\t'
                             << number_of_bins << '\t'
                             << kmer_count_per_bin << '\n';
@@ -367,7 +368,12 @@ private:
             }
             ++bin_id;
         }
+    }
 
-        output_file.close(); // make sure content is flushed
+    //!\brief Write the output to the result file.
+    void write_result_file()
+    {
+        std::ofstream fout{output_filename};
+        fout << output_buff.rdbuf();
     }
 };
