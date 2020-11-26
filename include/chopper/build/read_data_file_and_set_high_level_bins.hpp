@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdlib>
 #include <set>
 #include <string>
 #include <vector>
@@ -33,6 +34,19 @@ auto read_data_file_and_set_high_level_bins(build_config const & config)
             header.hibf_max_bin_id = current_line.substr(hibf_prefix.size() + 13,
                                                          current_line.size() - hibf_prefix.size() - 13);
         }
+        else if (current_line.substr(1, merged_bin_prefix.size()) == merged_bin_prefix)
+        {
+            std::string const name(current_line.begin() + 1,
+                                   std::find(current_line.begin() + merged_bin_prefix.size() + 2,
+                                             current_line.end(),
+                                             ' '));
+
+            assert(current_line.substr(name.size() + 2, 11) == "max_bin_id:");
+            std::string const bin_idx_str = current_line.substr(name.size() + 13, current_line.size() - name.size() - 13);
+            size_t const bin_idx = std::atoi(bin_idx_str.c_str());
+
+            header.merged_bin_map[name] = bin_idx;
+        }
     }
 
     size_t record_idx{};
@@ -51,14 +65,6 @@ auto read_data_file_and_set_high_level_bins(build_config const & config)
             merged_bin_record.filenames.insert(merged_bin_record.filenames.end(),
                                                record.filenames.begin(),
                                                record.filenames.end());
-
-            if (record.max_size > merged_bin_record.max_size)
-            {
-                merged_bin_record.max_size = record.max_size;
-                merged_bin_record.merged_bin_max_size_bin_idx = merged_bin_record.bins;
-                merged_bin_record.merged_bin_max_size_filenames = record.filenames;
-            }
-
             merged_bin_record.bins += record.bins;
         }
         else

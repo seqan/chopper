@@ -7,4 +7,6 @@ struct header_data
     size_t hibf_num_technical_bins{};
     std::string hibf_max_bin_id{};
     data_file_record * hibf_max_record{nullptr};
+
+    std::unordered_map<std::string, size_t> merged_bin_map{};
 };

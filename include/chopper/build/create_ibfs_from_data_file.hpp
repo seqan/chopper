@@ -135,6 +135,7 @@ auto process_splitted_bin(build_config const & config,
 
 auto process_merged_bin(build_config const & config,
                         data_file_record const & record,
+                        header_data const & header,
                         seqan3::interleaved_bloom_filter<> & high_level_ibf,
                         std::vector<seqan3::interleaved_bloom_filter<>> & low_level_ibfs,
                         size_t & bin_idx)
@@ -147,8 +148,8 @@ auto process_merged_bin(build_config const & config,
 
     auto const max_bin_size = compute_maximum_technical_bin_size(config,
                                                                  merged_bin_file_name,
-                                                                 record.merged_bin_max_size_filenames,
-                                                                 record.merged_bin_max_size_bin_idx);
+                                                                 record.filenames,
+                                                                 header.merged_bin_map.at(record.bin_name));
     if (config.verbose)
         std::cerr << "   -> max_size of merged bin: " << max_bin_size << std::endl;
 
@@ -233,7 +234,7 @@ auto create_ibfs_from_data_file(build_config const & config)
         }
         else if (starts_with(record.bin_name, merged_bin_prefix))
         {
-            process_merged_bin(config, record, high_level_ibf, low_level_ibfs, bin_idx);
+            process_merged_bin(config, record, header, high_level_ibf, low_level_ibfs, bin_idx);
         }
 
         ++bin_idx;

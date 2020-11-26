@@ -14,10 +14,6 @@ struct data_file_record
     std::vector<std::string> filenames{};
     size_t bins{};
     size_t max_size{};
-
-    // only if this is a merged bin the following are set and meaningful
-    size_t merged_bin_max_size_bin_idx{};
-    std::vector<std::string> merged_bin_max_size_filenames{};
 };
 
 auto parse_binning_line(std::string const & current_line)
