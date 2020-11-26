@@ -52,7 +52,6 @@ int chopper_split(seqan3::argument_parser & parser)
         throw std::runtime_error{"[CHOPPER SPLIT ERROR] You must specify EITHER files with -s OR give a data file "
                                  "with -f!"};
 
-    std::vector<std::pair<size_t, size_t>> bin_idx_max_size{};
     std::vector<std::stringstream> traversal_streams{};
     std::unordered_map<std::string, size_t> id_to_position{};
 
@@ -65,16 +64,7 @@ int chopper_split(seqan3::argument_parser & parser)
         if (position_map_it == id_to_position.end())
         {
             position_map_it = id_to_position.emplace(current_batch_config.bin_name, traversal_streams.size()).first;
-            bin_idx_max_size.emplace_back(current_batch_config.bin_index_offset, current_batch_config.max_size);
             traversal_streams.push_back(std::stringstream{});
-        }
-
-        // keep track of the highest max record to identify the maximum technical bin to test
-        auto & [max_idx, max_idx_size] = bin_idx_max_size[position_map_it->second];
-        if (current_batch_config.max_size > max_idx_size)
-        {
-            max_idx = current_batch_config.bin_index_offset;
-            max_idx_size = current_batch_config.max_size;
         }
 
         if (current_batch_config.bins == 1) // nothing to split here
@@ -129,11 +119,11 @@ int chopper_split(seqan3::argument_parser & parser)
     }
 
     // write out files
-    for (auto const & [filename, pos] : id_to_position)
+    for (auto const & [filename, stream_pos] : id_to_position)
     {
         std::ofstream fout{filename};
         fout << "FILE_ID\tSEQ_ID\tBEGIN\tEND\tBIN_NUMBER\n"; // write header
-        fout << (traversal_streams[pos]).rdbuf();
+        fout << (traversal_streams[stream_pos]).rdbuf();
     }
 
     return 0;
