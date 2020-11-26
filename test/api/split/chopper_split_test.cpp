@@ -161,12 +161,12 @@ TEST(chopper_split_test, data_file_as_input)
     };
 
     // compare results
-    for (size_t batch_number = 0; batch_number < 4; ++batch_number)
+    for (size_t i = 0; i < expected_output.size(); ++i)
     {
-        std::string const filename{output_filename.get_path().string() + file_prefix[batch_number] + ".out"};
+        std::string const filename{output_filename.get_path().string() + file_prefix[i] + ".out"};
         ASSERT_TRUE(std::filesystem::exists(filename)) << "File " << filename << " doesn't exist :(" << std::endl;
         std::ifstream fout{filename};
         std::string const fout_str((std::istreambuf_iterator<char>(fout)), std::istreambuf_iterator<char>());
-        EXPECT_EQ(fout_str, expected_output[batch_number]) << " failed at batch " << batch_number << std::endl;
+        EXPECT_EQ(fout_str, expected_output[i]) << " failed at batch " << i << std::endl;
     }
 }
