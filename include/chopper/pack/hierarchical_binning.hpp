@@ -400,7 +400,7 @@ private:
             ++bin_id;
         }
 
-        header_buff << "#HIGH_LEVEL_IBF max_bin_id:" << high_level_max_id << '\n';
+        header_buff << "#" << hibf_prefix << " max_bin_id:" << high_level_max_id << '\n';
     }
 
     //!\brief Write the output to the result file.

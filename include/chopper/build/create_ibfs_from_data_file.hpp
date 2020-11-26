@@ -185,26 +185,19 @@ auto process_merged_bin(build_config const & config,
 auto create_ibfs_from_data_file(build_config const & config)
 {
     // the data file records, e.g. {bin_name, filenames, number_of_technical_bins}
-    auto records = read_data_file_and_set_high_level_bins(config);
+    auto [header, records] = read_data_file_and_set_high_level_bins(config);
 
     size_t high_level_ibf_num_technical_bins{};
-    data_file_record highest_record{};
 
     for (auto const & record : records)
-    {
         high_level_ibf_num_technical_bins += (starts_with(record.bin_name, split_bin_prefix)) ? record.bins : 1;
-        if (highest_record.max_size < record.max_size)
-            highest_record = record;
-    }
 
     // since the packing is supposedly done with minimizers and we probably have a different setting now
     // we need to calculate the maximum bin size. Since the relative number of minimizers should always correlate
     // wen can estimate it by calculating the kmer content of the "highest bin".
     size_t max_bin_size{};
 
-    if (config.verbose)
-        std::cerr << ">>> Computing maximum technical bin size for high level IBF " << std::endl;
-
+    auto const & highest_record = *header.hibf_max_record;
     if (starts_with(highest_record.bin_name, split_bin_prefix) && highest_record.bins != 1)
     {
         std::string const splitting_filename{config.traversal_path_prefix + highest_record.bin_name + ".out"};

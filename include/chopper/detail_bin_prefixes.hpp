@@ -1,5 +1,7 @@
 #pragma once
 
+constexpr std::string_view hibf_prefix{"HIGH_LEVEL_IBF"};
+
 constexpr std::string_view merged_bin_prefix{"MERGED_BIN"};
 
 constexpr std::string_view split_bin_prefix{"SPLIT_BIN"};
