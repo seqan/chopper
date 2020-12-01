@@ -170,3 +170,44 @@ TEST(chopper_split_test, data_file_as_input)
         EXPECT_EQ(fout_str, expected_output[i]) << " failed at batch " << i << std::endl;
     }
 }
+
+
+TEST(chopper_split_test, big_fat_nodes)
+{
+    // big fat nodes (e.g. the extreme is a single node if only one sequence was given)
+    // should be split several times, not only once.
+
+    seqan3::test::tmp_filename seq_file{"one_seq.fasta"};
+
+    {
+        std::ofstream fout{seq_file.get_path()};
+        fout << ">seq1\n"
+             << "ACTGATCAGGGAGCTAGCAGGCAGGCAGCAGCTAGCGAGCGATCGAGCATCGAGCATCGAGCGATCGACGATCGACTAGC\n";
+    }
+
+    seqan3::test::tmp_filename output_filename{"small_traverse.out"};
+    const char * argv[] = {"./chopper-split", "-k", "5", "-w", "7", "-b", "5",
+                           "-s", seq_file.get_path().c_str(),
+                           "-o", output_filename.get_path().c_str()};
+    int argc = 11;
+    seqan3::argument_parser split_parser{"chopper-split", argc, argv, false};
+
+    chopper_split(split_parser);
+
+    // compare results
+    std::string expected_file_str
+    {
+        "FILE_ID\tSEQ_ID\tBEGIN\tEND\tBIN_NUMBER\n" +
+        seq_file.get_path().string() + "\tseq1\t0\t17\t0\n" +
+        seq_file.get_path().string() + "\tseq1\t17\t34\t1\n" +
+        seq_file.get_path().string() + "\tseq1\t34\t51\t2\n" +
+        seq_file.get_path().string() + "\tseq1\t51\t68\t3\n" +
+        seq_file.get_path().string() + "\tseq1\t68\t80\t4\n"
+    };
+
+    // compare results
+    std::ifstream output_file{output_filename.get_path()};
+    std::string const output_file_str((std::istreambuf_iterator<char>(output_file)), std::istreambuf_iterator<char>());
+    EXPECT_EQ(output_file_str, expected_file_str);
+
+}

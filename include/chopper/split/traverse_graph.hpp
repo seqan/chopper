@@ -434,31 +434,36 @@ void traverse_graph(split_data const & data, batch_config const & config)
 
             if (count + node_weigths[next_node] > weight_per_bin * 1.05) // big fat node coming -> split node
             {
-                auto surplus = count + node_weigths[next_node] - weight_per_bin - 1;
+                count = count + node_weigths[next_node];
 
-                if (config.write_out_weights)
-                    weights_file << (count + node_weigths[next_node] - surplus) << "\t";
-
-                for (auto && [curr, next] : seqan3::views::zip(current_ranges, node_map[next_node]))
+                while (count > weight_per_bin * 1.05)
                 {
-                    if (next.first != 0 || next.second != 0) // TODO is next.second != 0 sufficient?
+                    auto surplus = count - weight_per_bin - 1;
+
+                    if (config.write_out_weights)
+                        weights_file << (count - surplus) << "\t";
+
+                    for (auto && [curr, next] : seqan3::views::zip(current_ranges, node_map[next_node]))
                     {
-                        uint32_t new_end = std::max<uint32_t>(next.first, ((next.second >= surplus) ? next.second - surplus : 0u));
-                        curr.second = new_end;
-                        next.first = new_end;
+                        if (next.first != 0 || next.second != 0) // TODO is next.second != 0 sufficient?
+                        {
+                            uint32_t new_end = std::max<uint32_t>(next.first, ((next.second >= surplus) ? next.second - surplus : 0u));
+                            curr.second = new_end;
+                            next.first = new_end;
+                        }
                     }
+
+                    // seqan3::debug_stream << " surplus: " << surplus
+                    //                      << " new_ranges: " << node_map[next_node]
+                    //                      << " current_ranges:" << current_ranges
+                    //                      << std::endl;
+
+                    bin_contents.push_back(current_ranges);
+                    for (auto & [begin, end] : current_ranges)
+                        begin = end;
+
+                    count = surplus;
                 }
-
-                // seqan3::debug_stream << " surplus: " << surplus
-                //                      << " new_ranges: " << split_ranges
-                //                      << " current_ranges:" << current_ranges
-                //                      << std::endl;
-
-                bin_contents.push_back(current_ranges);
-                for (auto & [begin, end] : current_ranges)
-                    begin = end;
-
-                count = surplus;
 
                 for (auto && [curr, next] : seqan3::views::zip(current_ranges, node_map[next_node]))
                 {
