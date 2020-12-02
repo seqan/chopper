@@ -95,7 +95,8 @@ void merge_properties_into(node_map_type            & node_map,
 void read_graph(lemon::ListDigraph & g,
                 std::vector<lemon::ListDigraph::Node> & nodes,
                 lemon::ListDigraph::NodeMap<std::vector<std::pair<uint32_t, uint32_t>>> & node_map,
-                std::filesystem::path const & graph_file_name)
+                std::filesystem::path const & graph_file_name,
+                batch_config const & config)
 {
     std::ifstream stream{graph_file_name};
 
@@ -213,7 +214,8 @@ void read_graph(lemon::ListDigraph & g,
         node_map.set(node, node_property);
     }
 
-    seqan3::debug_stream << "[LOG] inserted " <<  lemon::countNodes(g) << " nodes into the graph." << std::endl;
+    if (config.verbose)
+        seqan3::debug_stream << "[LOG] inserted " <<  lemon::countNodes(g) << " nodes into the graph." << std::endl;
 
     // read directed edges:
     if (!std::ranges::equal(file_view | seqan3::views::take_line, std::string{"/*directed edges*/"}))
@@ -234,7 +236,8 @@ void read_graph(lemon::ListDigraph & g,
         g.addArc(nodes[source + 2], nodes[target + 2]); // plus 2 because ids were shifted when we inserted a source/sink node
     }
 
-    seqan3::debug_stream << "[LOG] inserted " <<  lemon::countArcs(g) << " arcs into the graph." << std::endl;
+    if (config.verbose)
+        seqan3::debug_stream << "[LOG] inserted " <<  lemon::countArcs(g) << " arcs into the graph." << std::endl;
 
     // read undirected edges:
     if (!std::ranges::equal(file_view | seqan3::views::take_line, std::string{"/* Edges */"}))
@@ -307,10 +310,13 @@ void traverse_graph(split_data const & data, batch_config const & config)
     std::vector<lemon::ListDigraph::Node> nodes;
     lemon::ListDigraph::NodeMap<std::vector<std::pair<uint32_t, uint32_t>>> node_map{g};
 
-    read_graph(g, nodes, node_map, config.output_graph_file); // also merges nodes along undirected edges
+    read_graph(g, nodes, node_map, config.output_graph_file,config); // also merges nodes along undirected edges
 
-    seqan3::debug_stream << "[LOG] " <<  lemon::countNodes(g) << " nodes remain after merging." << std::endl;
-    seqan3::debug_stream << "[LOG] " <<  lemon::countArcs(g) << " arcs remain after merging." << std::endl;
+    if (config.verbose)
+    {
+        seqan3::debug_stream << "[LOG] " <<  lemon::countNodes(g) << " nodes remain after merging." << std::endl;
+        seqan3::debug_stream << "[LOG] " <<  lemon::countArcs(g) << " arcs remain after merging." << std::endl;
+    }
 
     if (config.write_out_graph)
     {
@@ -349,9 +355,14 @@ void traverse_graph(split_data const & data, batch_config const & config)
         node_weigths.set(node_it, max);
         weight_per_bin += max;
     }
-    seqan3::debug_stream << "[LOG] total weight:" << weight_per_bin << std::endl;
+
+    if (config.verbose)
+        seqan3::debug_stream << "[LOG] total weight:" << weight_per_bin << std::endl;
+
     weight_per_bin = weight_per_bin / config.bins;
-    seqan3::debug_stream << "[LOG] weight per bin :" << weight_per_bin << std::endl;
+
+    if (config.verbose)
+        seqan3::debug_stream << "[LOG] weight per bin :" << weight_per_bin << std::endl;
 
     // int32_t nodes_per_bin{lemon::countNodes(g) / config.bins}; // #nodes == #minimizers
     std::vector<std::vector<std::pair<uint32_t, uint32_t>>> bin_contents{};
@@ -538,7 +549,8 @@ void traverse_graph(split_data const & data, batch_config const & config)
 
     bin_contents.push_back(current_ranges); // push_back last bin content
 
-    seqan3::debug_stream << "[LOG] " <<  lemon::countNodes(g) << " nodes remain. (should be 1 only the sink)" << std::endl;
+    if (config.verbose)
+        seqan3::debug_stream << "[LOG] " <<  lemon::countNodes(g) << " nodes remain. (should be 1 only the sink)" << std::endl;
 
     assert(bin_contents.size() != 0);
     assert(bin_contents[0].size() == seqan::length(data.sequences));
@@ -578,5 +590,6 @@ void traverse_graph(split_data const & data, batch_config const & config)
         seqan3::debug_stream << "[WARNING] This should never happen. Please contact the developer." << std::endl;
     }
 
-    seqan3::debug_stream << "Bin content appended to : " << config.out_path << std::endl;
+    if (config.verbose)
+        seqan3::debug_stream << "Bin content appended to : " << config.out_path << std::endl;
 }

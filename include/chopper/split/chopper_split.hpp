@@ -15,6 +15,7 @@
 int set_up_and_parse_subparser_split(seqan3::argument_parser & parser, split_config & config)
 {
     parser.info.version = "1.0.0";
+    parser.add_flag(config.verbose, 'v', "verbose", "Ooutput verbose logging information.");
     parser.add_option(config.data_filename, 'f', "binning-file", "A high_level_ibf.binning or low_level_ibfs.binning file.");
     parser.add_option(config.seqfiles, 's', "seq", "Name of multi-fasta input file.");
     parser.add_option(config.out_path, 'o', "outfile", "Name of the traversal output file.");
@@ -103,9 +104,13 @@ int chopper_split(seqan3::argument_parser & parser)
             if (!load_minimizer_sequences(data, current_batch_config, file_name.c_str()))
                 throw std::runtime_error{"Something went wrong when reading file " + file_name};
         auto end = std::chrono::steady_clock::now();
-        seqan3::debug_stream << ">>> Loading " << seqan::length(data.sequences)
-                             << " sequences and computing minimizers complete "
-                             << distance_matrix_initialiser::secs(start, end) << std::endl;
+
+        if (config.verbose)
+        {
+            seqan3::debug_stream << ">>> Loading " << seqan::length(data.sequences)
+                                 << " sequences and computing minimizers complete "
+                                 << distance_matrix_initialiser::secs(start, end) << std::endl;
+        }
 
         // Compute minimizer MSA
         // -------------------------------------------------------------------------

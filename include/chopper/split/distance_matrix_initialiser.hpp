@@ -12,7 +12,7 @@ struct distance_matrix_initialiser
         return "(" + std::to_string(std::chrono::duration_cast<std::chrono::seconds>(end - start).count()) + "s)";
     }
 
-    auto mash_distance(split_data & data)
+    auto mash_distance(split_data & data, batch_config const & config)
     {
         map_distance_matrix distance_matrix{num_seq{length(data.sequences)},
                                             dummy_value{1.0},
@@ -36,7 +36,8 @@ struct distance_matrix_initialiser
         }
 
         auto end = std::chrono::steady_clock::now();
-        seqan3::debug_stream << ">>> Sorting individual minimizer sequences done. (" << secs(start, end) << std::endl;
+        if (config.verbose)
+            seqan3::debug_stream << ">>> Sorting individual minimizer sequences done. (" << secs(start, end) << std::endl;
 
         // -----------------------------------------------------------------------------
         // fill distance matrix
@@ -88,7 +89,8 @@ struct distance_matrix_initialiser
         // std::cout << std::endl;
 
         end = std::chrono::steady_clock::now();
-        seqan3::debug_stream << ">>> Done filling distance matrix (" << secs(start, end) << std::endl;
+        if (config.verbose)
+            seqan3::debug_stream << ">>> Done filling distance matrix (" << secs(start, end) << std::endl;
         // -----------------------------------------------------------------------------
 
         // sort minimizer back

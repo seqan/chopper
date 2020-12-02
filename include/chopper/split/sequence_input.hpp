@@ -17,7 +17,9 @@ bool load_minimizer_sequences(split_data & data,
         return false;
     }
 
-    std::cerr << ">>> Processing file " << fileName << std::endl;
+    if (config.verbose)
+        std::cerr << ">>> Processing file " << fileName << std::endl;
+
     seqan::StringSet<seqan::String<seqan::Dna>, seqan::Owner<>> sequences;
     {
         seqan::StringSet<seqan::String<seqan::Iupac>, seqan::Owner<>> iupac_sequences;

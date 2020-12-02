@@ -47,7 +47,8 @@ inline void append_all_to_all_matches(seqan::StringSet<TString, seqan::Dependent
 template <typename TStringSet, typename TCargo, typename TSpec, typename TStringSet1>
 void seqan2_msa_alignment(seqan::Graph<seqan::Alignment<TStringSet, TCargo, TSpec> > & gAlign,
                           TStringSet1 const & sequenceSet,
-                          map_distance_matrix & distance_matrix)
+                          map_distance_matrix & distance_matrix,
+                          batch_config const & config)
 {
     typedef seqan::Score<int> TScore;
     typedef typename seqan::Value<TScore>::Type TScoreValue;
@@ -56,7 +57,9 @@ void seqan2_msa_alignment(seqan::Graph<seqan::Alignment<TStringSet, TCargo, TSpe
     typedef seqan::String<seqan::Fragment<> > TFragmentString;
     typedef seqan::String<TScoreValue> TScoreValues;
 
-    std::cout << "Start" << std::endl;
+    if (config.verbose)
+        std::cerr << "Start" << std::endl;
+
     double current_time = seqan::sysTime();
 
     // Initialize alignment object
@@ -72,7 +75,9 @@ void seqan2_msa_alignment(seqan::Graph<seqan::Alignment<TStringSet, TCargo, TSpe
     TFragmentString matches;
     TScoreValues scores;
     append_all_to_all_matches(seqSet, matches, scores); // all-to-all no segment matches
-    std::cout << std::setw(30) << std::left << "Segment-match generation:" << std::setw(10) << std::right << seqan::sysTime() - current_time << " s" << std::endl;
+
+    if (config.verbose)
+        std::cerr << std::setw(30) << std::left << "Segment-match generation:" << std::setw(10) << std::right << seqan::sysTime() - current_time << " s" << std::endl;
 
     // Build Alignment Graph from matches
     // -------------------------------------------------------------------------
@@ -82,8 +87,12 @@ void seqan2_msa_alignment(seqan::Graph<seqan::Alignment<TStringSet, TCargo, TSpe
     seqan::buildAlignmentGraph(matches, scores, g, seqan::FractionalScore());
     seqan::clear(matches);
     seqan::clear(scores);
-    std::cout << std::setw(30) << std::left << "Build alignment graph:" << std::setw(10) << std::right << seqan::sysTime() - current_time << " s" << std::endl;
-    std::cout << std::setw(30) << std::left << "Number of vertices:" << std::setw(10) << std::right << seqan::numVertices(g) << std::endl;
+
+    if (config.verbose)
+    {
+        std::cerr << std::setw(30) << std::left << "Build alignment graph:" << std::setw(10) << std::right << seqan::sysTime() - current_time << " s" << std::endl;
+        std::cerr << std::setw(30) << std::left << "Number of vertices:" << std::setw(10) << std::right << seqan::numVertices(g) << std::endl;
+    }
 
     // Build guide Tree
     // -------------------------------------------------------------------------
@@ -91,7 +100,9 @@ void seqan2_msa_alignment(seqan::Graph<seqan::Alignment<TStringSet, TCargo, TSpe
     // Guide tree
     assert(!distance_matrix.empty()); // Check if we have a valid distance matrix
     auto guide_tree = neighbour_joining(std::move(distance_matrix));
-    std::cout << std::setw(30) << std::left << "Build Guide Tree:" << std::setw(10) << std::right << seqan::sysTime() - current_time << " s" << std::endl;
+
+    if (config.verbose)
+        std::cerr << std::setw(30) << std::left << "Build Guide Tree:" << std::setw(10) << std::right << seqan::sysTime() - current_time << " s" << std::endl;
 
     // Triplet extension
     // -------------------------------------------------------------------------
@@ -105,7 +116,9 @@ void seqan2_msa_alignment(seqan::Graph<seqan::Alignment<TStringSet, TCargo, TSpe
         seqan::tripletLibraryExtension(g);
     else
         seqan::tripletLibraryExtension(g, guide_tree, threshold / 2);
-    std::cout << std::setw(30) << std::left << "Triplet extension:" << std::setw(10) << std::right << seqan::sysTime() - current_time << "  " << std::endl;
+
+    if (config.verbose)
+        std::cerr << std::setw(30) << std::left << "Triplet extension:" << std::setw(10) << std::right << seqan::sysTime() - current_time << "  " << std::endl;
 
     // Progressive Alignment
     // -------------------------------------------------------------------------
@@ -113,5 +126,7 @@ void seqan2_msa_alignment(seqan::Graph<seqan::Alignment<TStringSet, TCargo, TSpe
     seqan::progressive_alignment(g, guide_tree, gAlign);
     seqan::clear(guide_tree);
     seqan::clear(g);
-    std::cout << std::setw(30) << std::left << "Progressive Alignment:" << std::setw(10) << std::right << seqan::sysTime() - current_time << " s" << std::endl;
+
+    if (config.verbose)
+        std::cerr << std::setw(30) << std::left << "Progressive Alignment:" << std::setw(10) << std::right << seqan::sysTime() - current_time << " s" << std::endl;
 }

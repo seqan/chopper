@@ -25,12 +25,12 @@ inline void minimizer_msa(split_data & data, batch_config const & config)
     TGraph gAlign;
 
     distance_matrix_initialiser initialiser{};
-    auto distance_matrix = initialiser.mash_distance(data);
+    auto distance_matrix = initialiser.mash_distance(data, config);
 
     // MSA
     try
     {
-        seqan2_msa_alignment(gAlign, data.sequences, distance_matrix);
+        seqan2_msa_alignment(gAlign, data.sequences, distance_matrix, config);
     }
     catch (const std::bad_alloc & exception)
     {
