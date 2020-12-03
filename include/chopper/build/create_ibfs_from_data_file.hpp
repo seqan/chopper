@@ -217,6 +217,7 @@ auto create_ibfs_from_data_file(build_config const & config)
                                                     seqan3::bin_size{max_bin_size},
                                                     seqan3::hash_function_count{config.hash_funs}};
 
+    std::vector<std::string> low_level_ibf_ids;
     std::vector<seqan3::interleaved_bloom_filter<>> low_level_ibfs;
 
     size_t bin_idx{};
@@ -224,7 +225,7 @@ auto create_ibfs_from_data_file(build_config const & config)
     {
         if (config.verbose)
         {
-            std::cerr << ">>> Processing bin " << bin_idx << "/" << records.size()
+            std::cerr << ">>> Processing bin " << (bin_idx + 1) << "/" << high_level_ibf_num_technical_bins
                       << " named " << record.bin_name << std::endl;
         }
 
@@ -235,10 +236,11 @@ auto create_ibfs_from_data_file(build_config const & config)
         else if (starts_with(record.bin_name, merged_bin_prefix))
         {
             process_merged_bin(config, record, header, high_level_ibf, low_level_ibfs, bin_idx);
+            low_level_ibf_ids.push_back(std::to_string(bin_idx));
         }
 
         ++bin_idx;
     }
 
-    return std::make_pair(std::move(high_level_ibf), std::move(low_level_ibfs));
+    return std::make_tuple(std::move(high_level_ibf), std::move(low_level_ibf_ids), std::move(low_level_ibfs));
 }

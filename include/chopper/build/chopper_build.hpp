@@ -43,7 +43,7 @@ int chopper_build(seqan3::argument_parser & parser)
         return -1;
     }
 
-    auto && [high_level_ibf, low_level_ibfs] = create_ibfs_from_data_file(config);
+    auto && [high_level_ibf, low_level_ibf_ids, low_level_ibfs] = create_ibfs_from_data_file(config);
 
     {
         std::string const out_filename{config.output_prefix + "high_level.ibf"};
@@ -56,16 +56,17 @@ int chopper_build(seqan3::argument_parser & parser)
         archive(high_level_ibf);
     }
 
-    for (auto const & low_level_ibf : low_level_ibfs)
+    assert(low_level_ibfs.size() == low_level_ibf_ids.size());
+    for (size_t i = 0; i < low_level_ibf_ids.size(); ++i)
     {
-        std::string const out_filename{config.output_prefix + "low_level.ibf"};
+        std::string const out_filename{config.output_prefix + "low_level_" + low_level_ibf_ids[i] + ".ibf"};
         std::ofstream fout(out_filename, std::ios::binary);
 
         if (!fout.good() || !fout.is_open())
             throw std::runtime_error{"Could not open " + out_filename + " for writing."};
 
         cereal::BinaryOutputArchive archive(fout);
-        archive(low_level_ibf);
+        archive(low_level_ibfs[i]);
     }
 
     return 0;

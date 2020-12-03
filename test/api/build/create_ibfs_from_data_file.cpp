@@ -71,9 +71,12 @@ TEST(chopper_count_test, small_example_parallel_2_threads)
     config.traversal_path_prefix = traversal_dir.get_path().string() + "/";
     config.binning_filename = data_filename.get_path().string();
 
-    auto && [high_level_ibf, low_level_ibfs] = create_ibfs_from_data_file(config);
+    auto && [high_level_ibf, low_level_ibf_ids, low_level_ibfs] = create_ibfs_from_data_file(config);
 
     EXPECT_EQ(low_level_ibfs.size(), 1u);         // one low level IBF
+    EXPECT_EQ(low_level_ibf_ids.size(), 1u);      // one low level IBF
+
+    EXPECT_EQ(low_level_ibf_ids[0], "6");      // one low level IBF
 
     EXPECT_EQ(high_level_ibf.bin_size(), 114226);
     EXPECT_EQ(low_level_ibfs[0].bin_size(), 76615);
@@ -244,7 +247,7 @@ TEST(chopper_count_test, config_overlap)
         config.binning_filename = data_filename.get_path().string();
         config.k = 15;
 
-        auto && [high_level_ibf, low_level_ibfs] = create_ibfs_from_data_file(config);
+        auto && [high_level_ibf, low_level_ibf_ids, low_level_ibfs] = create_ibfs_from_data_file(config);
 
         EXPECT_EQ(high_level_ibf.bin_count(), 3);
         EXPECT_EQ(low_level_ibfs.size(), 0u); // no low level IBF
@@ -354,7 +357,7 @@ TEST(create_ibfs_from_data_file_test, high_level_size)
                  << "MERGED_BIN_2_0\t" << input_filename1 << "\t3\t500\n";
         }
 
-        auto && [high_level_ibf, low_level_ibfs] = create_ibfs_from_data_file(config);
+        auto && [high_level_ibf, low_level_ibf_ids, low_level_ibfs] = create_ibfs_from_data_file(config);
 
         EXPECT_EQ(high_level_ibf.bin_size(), 114226);
     }
@@ -370,7 +373,7 @@ TEST(create_ibfs_from_data_file_test, high_level_size)
                  << "MERGED_BIN_2_0\t" << input_filename1 << "\t3\t1000\n";
         }
 
-        auto && [high_level_ibf, low_level_ibfs] = create_ibfs_from_data_file(config);
+        auto && [high_level_ibf, low_level_ibf_ids, low_level_ibfs] = create_ibfs_from_data_file(config);
 
         EXPECT_EQ(high_level_ibf.bin_size(), 114226);
     }
@@ -386,7 +389,7 @@ TEST(create_ibfs_from_data_file_test, high_level_size)
                  << "MERGED_BIN_2_0\t" << input_filename1 << "\t3\t500\n";
         }
 
-        auto && [high_level_ibf, low_level_ibfs] = create_ibfs_from_data_file(config);
+        auto && [high_level_ibf, low_level_ibf_ids, low_level_ibfs] = create_ibfs_from_data_file(config);
 
         EXPECT_EQ(high_level_ibf.bin_size(), 76615);
     }
