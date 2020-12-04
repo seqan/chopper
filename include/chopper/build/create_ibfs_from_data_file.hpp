@@ -27,13 +27,17 @@ using seq_file_type = seqan3::sequence_file_input<file_type_traits,
                                                   seqan3::fields<seqan3::field::seq, seqan3::field::id>,
                                                   seqan3::type_list<seqan3::format_fasta, seqan3::format_fastq>>;
 
+using seq_file_type2 = seqan3::sequence_file_input<file_type_traits,
+                                                   seqan3::fields<seqan3::field::seq>,
+                                                   seqan3::type_list<seqan3::format_fasta, seqan3::format_fastq>>;
+
 auto read_sequences(std::vector<std::string> const & filenames)
 {
-    std::unordered_map<std::string, std::unordered_map<std::string, seqan3::dna4_vector>> info;
+    std::unordered_map<std::string, seqan3::dna4_vector> info;
 
     for (auto const & filename : filenames)
         for (auto && [seq, id] : seq_file_type{filename})
-            info[filename][id] = seq;
+            info.emplace(filename + id, std::move(seq));
 
     return info;
 }
@@ -54,12 +58,10 @@ size_t compute_bin_size(build_config const & config, size_t const number_of_kmer
 auto compute_maximum_technical_bin_size(build_config const & config,
                                         std::vector<std::string> const & filenames)
 {
-    auto && info = read_sequences(filenames); // into random access containers
-
     std::set<size_t> kmer_count{};
 
     for (auto const & filename : filenames)
-        for (auto && [seq, id] : seq_file_type{filename})
+        for (auto && [seq] : seq_file_type2{filename})
             for (auto hash : seq | seqan3::views::kmer_hash(seqan3::ungapped{config.k}))
                 kmer_count.insert(hash);
 
@@ -88,7 +90,7 @@ auto compute_maximum_technical_bin_size(build_config const & config,
         auto && [filename, id, begin, end, idx] = parse_traversal_file_line(line);
 
         if (idx == bin_idx)
-            for (auto hash : hash_infix(config, info[filename][id], begin, end))
+            for (auto hash : hash_infix(config, info[filename + id], begin, end))
                 kmer_count.insert(hash);
     }
 
@@ -100,10 +102,10 @@ auto process_splitted_bin(build_config const & config,
                           seqan3::interleaved_bloom_filter<> & high_level_ibf,
                           size_t & bin_idx)
 {
-    auto && info = read_sequences(record.filenames); // into random access containers
-
     if (record.bins != 1)
     {
+        auto && info = read_sequences(record.filenames); // into random access containers
+
         std::ifstream fin{config.traversal_path_prefix + record.bin_name + ".out"};
 
         if (!fin.good() || !fin.is_open())
@@ -118,7 +120,7 @@ auto process_splitted_bin(build_config const & config,
             assert(bin_idx + idx < high_level_ibf.bin_count());
 
             // insert into high level
-            for (auto hash : hash_infix(config, info[filename][id], begin, end))
+            for (auto hash : hash_infix(config, info[filename + id], begin, end))
                 high_level_ibf.emplace(hash, seqan3::bin_index{bin_idx + idx});
         }
         bin_idx += record.bins - 1;
@@ -127,7 +129,7 @@ auto process_splitted_bin(build_config const & config,
     {
         assert(bin_idx < high_level_ibf.bin_count());
         for (auto const & filename : record.filenames)
-            for (auto && [seq, id] : seq_file_type{filename})
+            for (auto && [seq] : seq_file_type2{filename})
                 for (auto hash : seq | seqan3::views::kmer_hash(seqan3::ungapped{config.k}))
                     high_level_ibf.emplace(hash, seqan3::bin_index{bin_idx});
     }
@@ -173,7 +175,7 @@ auto process_merged_bin(build_config const & config,
         assert(bin_idx < high_level_ibf.bin_count());
         assert(idx < low_level.bin_count());
 
-        for (auto hash : hash_infix(config, info[filename][id], begin, end))
+        for (auto hash : hash_infix(config, info[filename + id], begin, end))
         {
             high_level_ibf.emplace(hash, seqan3::bin_index{bin_idx});
             low_level.emplace(hash, seqan3::bin_index{idx});
