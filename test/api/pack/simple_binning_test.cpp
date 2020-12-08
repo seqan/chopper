@@ -20,7 +20,7 @@ TEST(simple_binning_test, small_example)
         "TEST_IBF_0\tseq4\t1\t20\n"
         "TEST_IBF_1\tseq3\t1\t20\n"
         "TEST_IBF_2\tseq2\t2\t20\n"
-        "TEST_IBF_3\tseq1\t5\t20\n"
+        "TEST_IBF_4\tseq1\t5\t20\n"
     };
 
     EXPECT_EQ(output.str(), expected);

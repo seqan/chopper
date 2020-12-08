@@ -214,7 +214,7 @@ public:
                 max_size = kmer_count_per_bin;
             }
 
-            ++bin_id;
+            bin_id += number_of_bins;
 
             trace_i = trace[trace_i][trace_j];
             --trace_j;
