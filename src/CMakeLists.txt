@@ -17,3 +17,7 @@ target_compile_definitions (count_kmers_per_bin PUBLIC ${SEQAN_DEFINITIONS})
 target_compile_options (count_kmers_per_bin PUBLIC ${SEQAN_CXX_FLAGS_LIST})
 target_link_libraries (count_kmers_per_bin PUBLIC "${SEQAN_LIBRARIES}")
 target_include_directories (count_kmers_per_bin PUBLIC "${SEQAN_INCLUDE_DIRS}")
+
+add_executable (count_HIBF_kmers_based_on_binning count_HIBF_kmers_based_on_binning.cpp)
+target_link_libraries (count_HIBF_kmers_based_on_binning PUBLIC seqan3::seqan3)
+target_include_directories (count_HIBF_kmers_based_on_binning PUBLIC ../include)
