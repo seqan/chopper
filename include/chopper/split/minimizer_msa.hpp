@@ -16,9 +16,9 @@
 #include <chopper/split/distance_matrix_initialiser.hpp>
 #include <chopper/split/minimizer.hpp>
 #include <chopper/split/seqan2_msa_alignment.hpp>
-#include <chopper/split/graph_output.hpp>
+#include <chopper/split/transform_graphs.hpp>
 
-inline void minimizer_msa(split_data & data, batch_config const & config)
+inline auto minimizer_msa(split_data & data, batch_config const & config)
 {
     // Alignment of the sequences
     typedef seqan::Graph<seqan::Alignment<seqan::StringSet<seqan::String<minimizer>, seqan::Dependent<> >, void, seqan::WithoutEdgeId> > TGraph;
@@ -39,40 +39,7 @@ inline void minimizer_msa(split_data & data, batch_config const & config)
         std::exit(EXIT_FAILURE);
     }
 
-    seqan::String<seqan::String<char> > nodeMap;
-    seqan::String<seqan::String<char> > edgeMap;
-    seqan::_createEdgeAttributes(gAlign, edgeMap);
+    seqan2_write_graph(gAlign, data, config);
 
-    // create node attributes
-    typedef typename seqan::Id<TGraph>::Type TIdType;
-    seqan::resizeVertexMap(nodeMap, gAlign);
-
-    typedef typename seqan::Iterator<TGraph, seqan::VertexIterator>::Type TConstIter;
-    TConstIter it(gAlign);
-    for(;!seqan::atEnd(it);++it) {
-        TIdType id = seqan::sequenceId(gAlign, *it);
-        std::ostringstream outs;
-        outs << "label = \"";
-        outs << "[";
-        auto regStart = seqan::fragmentBegin(gAlign, *it);
-        if (regStart == 0)
-            outs << "0"; // if it is the very first minimizer, include beginning of the sequence
-        else
-            outs << data.sequences[id][regStart].position;
-        outs << ",";
-        auto regEnd = seqan::fragmentBegin(gAlign, *it) + seqan::fragmentLength(gAlign, *it);
-        if (regEnd >= seqan::length(data.sequences[id]))
-            outs << data.lengths[id];
-        else
-            outs << data.sequences[id][regEnd].position;
-        outs << ")";
-        outs << "\", group = ";
-        outs << id;
-        seqan::append(seqan::property(nodeMap, *it), outs.str().c_str());
-        //std::cout << property(nodeMap, *it) << std::endl;
-    }
-
-    std::ofstream dotFile(config.output_graph_file);
-    write_graph(dotFile, gAlign, nodeMap, edgeMap, data.ids, data.lengths, seqan::DotDrawing());
-    dotFile.close();
+    /*return gAlign;*/
 }

@@ -3,6 +3,7 @@
 #include <sstream>
 
 #include <seqan3/core/debug_stream.hpp>
+#include <seqan3/io/sequence_file/input.hpp>
 
 #include <chopper/split/split_data.hpp>
 #include <chopper/split/split_config.hpp>
