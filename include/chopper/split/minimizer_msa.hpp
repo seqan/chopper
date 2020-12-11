@@ -16,7 +16,6 @@
 #include <chopper/split/distance_matrix_initialiser.hpp>
 #include <chopper/split/minimizer.hpp>
 #include <chopper/split/seqan2_msa_alignment.hpp>
-#include <chopper/split/transform_graphs.hpp>
 
 inline auto minimizer_msa(split_data & data, batch_config const & config)
 {
@@ -39,7 +38,5 @@ inline auto minimizer_msa(split_data & data, batch_config const & config)
         std::exit(EXIT_FAILURE);
     }
 
-    seqan2_write_graph(gAlign, data, config);
-
-    /*return gAlign;*/
+    return gAlign;
 }

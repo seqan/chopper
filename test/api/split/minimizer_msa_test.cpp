@@ -10,6 +10,7 @@
 #include <chopper/split/split_data.hpp>
 #include <chopper/split/sequence_input.hpp>
 #include <chopper/split/minimizer_msa.hpp>
+#include <chopper/split/transform_graphs.hpp>
 
 TEST(minimizer_msa_test, simple_example)
 {
@@ -28,7 +29,8 @@ TEST(minimizer_msa_test, simple_example)
     ASSERT_EQ(seqan::length(data.lengths), 3); // sanity check
 
     // run MSA
-    minimizer_msa(data, config); // writes graph.out as a result
+    auto g = minimizer_msa(data, config); // writes graph.out as a result
+    seqan2_write_graph(g, data, config);
 
     // compare results
     std::ifstream expected_file{DATADIR"small_graph.dot"};

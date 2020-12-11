@@ -13,6 +13,8 @@
 #include <chopper/split/traverse_graph.hpp>
 #include <chopper/split/filename_batches_range.hpp>
 
+#include <chopper/split/transform_graphs.hpp>
+
 int set_up_and_parse_subparser_split(seqan3::argument_parser & parser, split_config & config)
 {
     parser.info.version = "1.0.0";
@@ -116,12 +118,19 @@ int chopper_split(seqan3::argument_parser & parser)
         // Compute minimizer MSA
         // -------------------------------------------------------------------------
 
-        minimizer_msa(data, current_batch_config);
-        // currently writes graph to an output file.
+        auto seqan2_graph = minimizer_msa(data, current_batch_config);
+
+        // Transform seqan2 graph to lemon graph
+        // -------------------------------------------------------------------------
+        lemon::ListDigraph g;
+        std::vector<lemon::ListDigraph::Node> nodes;
+        lemon::ListDigraph::NodeMap<std::vector<std::pair<uint32_t, uint32_t>>> node_map{g};
+
+        transform_graphs(g, nodes, node_map, seqan2_graph, data, current_batch_config);
 
         // Traverse graph
         // -------------------------------------------------------------------------
-        traverse_graph(data, current_batch_config);
+        traverse_graph(g, nodes, node_map, data, current_batch_config);
     }
 
     // write out files

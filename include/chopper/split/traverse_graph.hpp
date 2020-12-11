@@ -21,7 +21,6 @@
 #include <seqan3/std/ranges>
 
 #include <chopper/split/split_config.hpp>
-#include <chopper/split/transform_graphs.hpp>
 
 namespace lemon {
 
@@ -79,14 +78,12 @@ edge [fontname = "Times-Italic", arrowsize = 0.75, fontsize = 16];
     fout << std::endl << "}" << std::endl;
 }
 
-void traverse_graph(split_data const & data, batch_config const & config)
+void traverse_graph(lemon::ListDigraph & g,
+                    std::vector<lemon::ListDigraph::Node> const & nodes,
+                    lemon::ListDigraph::NodeMap<std::vector<std::pair<uint32_t, uint32_t>>> & node_map,
+                    split_data const & data,
+                    batch_config const & config)
 {
-    lemon::ListDigraph g;
-    std::vector<lemon::ListDigraph::Node> nodes;
-    lemon::ListDigraph::NodeMap<std::vector<std::pair<uint32_t, uint32_t>>> node_map{g};
-
-    read_graph(g, nodes, node_map, config.output_graph_file, data, config); // also merges nodes along undirected edges
-
     if (config.verbose)
     {
         seqan3::debug_stream << "[LOG] " <<  lemon::countNodes(g) << " nodes remain after merging." << std::endl;

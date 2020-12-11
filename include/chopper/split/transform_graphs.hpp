@@ -271,3 +271,17 @@ void read_graph(lemon::ListDigraph & g,
         }
     }
 }
+
+// currently through an output file
+template <typename graph_type>
+void transform_graphs(lemon::ListDigraph & g,
+                      std::vector<lemon::ListDigraph::Node> & nodes,
+                      lemon::ListDigraph::NodeMap<std::vector<std::pair<uint32_t, uint32_t>>> & node_map,
+                      graph_type const & seqan2_graph,
+                      split_data const & data,
+                      batch_config const & config)
+{
+    seqan2_write_graph(seqan2_graph, data, config);
+
+    read_graph(g, nodes, node_map, config.output_graph_file, data, config); // also merges nodes along undirected edges
+}
