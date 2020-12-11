@@ -1,14 +1,3 @@
-graph G {
-
-/* Graph Attributes */
-graph [rankdir = LR];
-
-/* Node Attributes */
-node [shape = rectangle, fillcolor = white, style = filled, fontname = "Times-Italic"];
-
-/* Edge Attributes */
-edge [fontname = "Times-Italic", arrowsize = 0.75, fontsize = 16];
-
 /* Sequence Lengths */
 seq1	400
 seq2	480

@@ -17,17 +17,34 @@
 template <typename graph_type>
 void seqan2_write_graph(graph_type const & gAlign, split_data const & data, batch_config const & config)
 {
-    seqan::String<seqan::String<char> > nodeMap;
     seqan::String<seqan::String<char> > edgeMap;
     seqan::_createEdgeAttributes(gAlign, edgeMap);
 
     // create node attributes
     typedef typename seqan::Id<graph_type>::Type TIdType;
-    seqan::resizeVertexMap(nodeMap, gAlign);
 
+    std::ofstream dotFile(config.output_graph_file);
+
+    typedef typename seqan::VertexDescriptor<graph_type>::Type TVertexDescriptor;
+    typename seqan::DirectionIterator<std::ofstream, seqan::Output>::Type iter = directionIterator(dotFile, seqan::Output());
+
+    seqan::write(iter, "/* Sequence Lengths */\n");
+    for (size_t i = 0; i < seqan::length(data.ids); ++i)
+    {
+        seqan::write(iter, data.ids[i]);
+        seqan::writeValue(iter, '\t');
+        seqan::write(iter, data.lengths[i]);
+        seqan::writeValue(iter, '\n');
+    }
+    seqan::writeValue(iter, '\n');
+
+    seqan::write(iter, "/* Nodes */\n");
     typedef typename seqan::Iterator<graph_type, seqan::VertexIterator>::Type TConstIter;
 
-    for(TConstIter it(gAlign); !seqan::atEnd(it);++it) {
+    for(TConstIter it(gAlign);!seqan::atEnd(it);++it) {
+        seqan::appendNumber(iter, (int)*it);
+        seqan::write(iter, " [");
+
         TIdType id = seqan::sequenceId(gAlign, *it);
         std::ostringstream outs;
         outs << "label = \"";
@@ -46,44 +63,8 @@ void seqan2_write_graph(graph_type const & gAlign, split_data const & data, batc
         outs << ")";
         outs << "\", group = ";
         outs << id;
-        seqan::append(seqan::property(nodeMap, *it), outs.str().c_str());
-        //std::cout << property(nodeMap, *it) << std::endl;
-    }
 
-    std::ofstream dotFile(config.output_graph_file);
-
-    typedef typename seqan::VertexDescriptor<graph_type>::Type TVertexDescriptor;
-    typename seqan::DirectionIterator<std::ofstream, seqan::Output>::Type iter = directionIterator(dotFile, seqan::Output());
-
-    seqan::_writeGraphType(iter, gAlign, seqan::DotDrawing());
-    seqan::write(iter, " G {\n");
-    seqan::writeValue(iter, '\n');
-    seqan::write(iter, "/* Graph Attributes */\n");
-    seqan::write(iter, "graph [rankdir = LR];\n");
-    seqan::writeValue(iter, '\n');
-    seqan::write(iter, "/* Node Attributes */\n");
-    seqan::write(iter, "node [shape = rectangle, fillcolor = white, style = filled, fontname = \"Times-Italic\"];\n");
-    seqan::writeValue(iter, '\n');
-    seqan::write(iter, "/* Edge Attributes */\n");
-    seqan::write(iter, "edge [fontname = \"Times-Italic\", arrowsize = 0.75, fontsize = 16];\n");
-    seqan::writeValue(iter, '\n');
-    seqan::write(iter, "/* Sequence Lengths */\n");
-    for (size_t i = 0; i < seqan::length(data.ids); ++i)
-    {
-        seqan::write(iter, data.ids[i]);
-        seqan::writeValue(iter, '\t');
-        seqan::write(iter, data.lengths[i]);
-        seqan::writeValue(iter, '\n');
-    }
-    seqan::writeValue(iter, '\n');
-
-    seqan::write(iter, "/* Nodes */\n");
-    typedef typename seqan::Iterator<graph_type, seqan::VertexIterator>::Type TConstIter;
-
-    for(TConstIter it(gAlign);!seqan::atEnd(it);++it) {
-        seqan::appendNumber(iter, (int)*it);
-        seqan::write(iter, " [");
-        seqan::write(iter, seqan::getProperty(nodeMap, *it));
+        seqan::write(iter, outs.str());
         seqan::write(iter, "];\n");
     }
     seqan::writeValue(iter, '\n');
@@ -166,18 +147,7 @@ void read_graph(lemon::ListDigraph & g,
                         {std::istreambuf_iterator<char>{stream},
                          std::istreambuf_iterator<char>{}};
 
-    if (!std::ranges::equal(file_view | seqan3::views::take_line, std::string{"graph G {"}))
-            throw std::runtime_error{"not in dot format: graph G { not found in the beginning."};
-
-    seqan3::detail::consume(file_view | seqan3::views::take_until_or_throw_and_consume(seqan3::is_char<'/'>));
-    seqan3::detail::consume(file_view | seqan3::views::take_until_or_throw_and_consume(seqan3::is_char<'/'>)); /* Graph Attributes */
-    seqan3::detail::consume(file_view | seqan3::views::take_until_or_throw_and_consume(seqan3::is_char<'/'>));
-    seqan3::detail::consume(file_view | seqan3::views::take_until_or_throw_and_consume(seqan3::is_char<'/'>)); /* Node Attributes */
-    seqan3::detail::consume(file_view | seqan3::views::take_until_or_throw_and_consume(seqan3::is_char<'/'>));
-    seqan3::detail::consume(file_view | seqan3::views::take_until_or_throw_and_consume(seqan3::is_char<'/'>)); /* Edge Attributes */
-    seqan3::detail::consume(file_view | seqan3::views::take_until_or_throw_and_consume(seqan3::is_char<'/'>));
-
-    if (!std::ranges::equal(file_view | seqan3::views::take_line, std::string{"* Sequence Lengths */"}))
+    if (!std::ranges::equal(file_view | seqan3::views::take_line, std::string{"/* Sequence Lengths */"}))
             throw std::runtime_error{"no sequence lengths :( you have on old tcofee-seqan version."};
 
     std::vector<uint32_t> seq_lengths{};
