@@ -20,44 +20,10 @@ void seqan2_write_graph(graph_type const & gAlign, split_data const & data, batc
     seqan::String<seqan::String<char> > edgeMap;
     seqan::_createEdgeAttributes(gAlign, edgeMap);
 
-    // create node attributes
-    typedef typename seqan::Id<graph_type>::Type TIdType;
-
     std::ofstream dotFile(config.output_graph_file);
 
     typedef typename seqan::VertexDescriptor<graph_type>::Type TVertexDescriptor;
     typename seqan::DirectionIterator<std::ofstream, seqan::Output>::Type iter = directionIterator(dotFile, seqan::Output());
-
-    seqan::write(iter, "/* Nodes */\n");
-    typedef typename seqan::Iterator<graph_type, seqan::VertexIterator>::Type TConstIter;
-
-    for(TConstIter it(gAlign);!seqan::atEnd(it);++it) {
-        seqan::appendNumber(iter, (int)*it);
-        seqan::write(iter, " [");
-
-        TIdType id = seqan::sequenceId(gAlign, *it);
-        std::ostringstream outs;
-        outs << "label = \"";
-        outs << "[";
-        auto regStart = seqan::fragmentBegin(gAlign, *it);
-        if (regStart == 0)
-            outs << "0"; // if it is the very first minimizer, include beginning of the sequence
-        else
-            outs << data.sequences[id][regStart].position;
-        outs << ",";
-        auto regEnd = seqan::fragmentBegin(gAlign, *it) + seqan::fragmentLength(gAlign, *it);
-        if (regEnd >= seqan::length(data.sequences[id]))
-            outs << data.lengths[id];
-        else
-            outs << data.sequences[id][regEnd].position;
-        outs << ")";
-        outs << "\", group = ";
-        outs << id;
-
-        seqan::write(iter, outs.str());
-        seqan::write(iter, "];\n");
-    }
-    seqan::writeValue(iter, '\n');
 
     seqan::write(iter, "/*directed edges*/\n");
     seqan::_writeGraphFooter(iter, gAlign, seqan::DotDrawing()); // somehow this writes directed edges :shrug:
@@ -138,87 +104,6 @@ void read_graph(lemon::ListDigraph & g,
                         {std::istreambuf_iterator<char>{stream},
                          std::istreambuf_iterator<char>{}};
 
-    if (seqan::length(data.lengths) > 65536u)
-        throw std::logic_error{"Currently node ids are uint16_t, not all ids can be represented!"};
-
-    // seqan3::debug_stream << data.lengths << std::endl;
-
-    if (!std::ranges::equal(file_view | seqan3::views::take_line, std::string{"/* Nodes */"}))
-            throw std::runtime_error{"not in dot format: No nodes :("};
-
-    // read in nodes
-    std::set<uint16_t> unique_groups{};
-    std::vector<uint16_t> group{};
-    std::vector<std::pair<uint32_t, uint32_t>> range{};
-
-    // read in nodes
-    while (!seqan3::is_char<'/'>(*std::ranges::begin(file_view)))
-    {
-        char buffer[100];
-        std::ranges::copy(file_view | seqan3::views::take_line, &buffer[0]);
-        char * ptr = &buffer[0];
-
-        uint32_t range_start{};
-        uint32_t range_end{};
-        uint16_t gr{};
-
-        while (!seqan3::is_char<'"'>(*ptr)) ++ptr;
-        auto res = std::from_chars(ptr + 2, &buffer[100], range_start);
-
-        if (std::string(res.ptr + 1, res.ptr + 4) == "end")
-            throw std::logic_error{"You have an outdated graph. Please run seqan_tcoffee again."};
-
-        res = std::from_chars(res.ptr + 1, &buffer[100], range_end);
-        while (!seqan3::is_char<'='>(*ptr)) ++ptr;
-        std::from_chars(ptr + 2, &buffer[100], gr);
-
-        if (range_end < range_start)
-        {
-            seqan3::debug_stream << "wrong range: [" << range_start << "," << range_end << "]" << std::endl;
-        }
-
-        range.emplace_back(std::move(range_start), std::move(range_end));
-
-        unique_groups.insert(gr);
-        group.emplace_back(std::move(gr));
-    }
-    // Note: we assume that the order of the node read before is sorted by id!
-
-    nodes.reserve(group.size() + 1);
-    g.reserveNode(group.size() + 1);
-    g.reserveArc(group.size() + 1);
-
-    lemon::ListDigraph::Node source_node = g.addNode();
-    lemon::ListDigraph::Node sink_node = g.addNode();
-    nodes.push_back(source_node);
-    nodes.push_back(sink_node);
-    node_map.set(source_node, std::vector<std::pair<uint32_t, uint32_t>>(unique_groups.size()));
-    node_map.set(sink_node, std::vector<std::pair<uint32_t, uint32_t>>(unique_groups.size()));
-
-    for (size_t i = 0; i < group.size(); ++i)
-    {
-        auto node = g.addNode();
-        nodes.push_back(node);
-
-        // add arc from source node to node if it is a start node (start of sequence range)
-        if (range[i].first == 0) // [unlikely]
-            g.addArc(source_node, node);
-        if (range[i].second == data.lengths[group[i]]) // [unlikely]
-        {
-            // seqan3::debug_stream << "i:" << i << " group[i]:" << group[i] << " data.lengths[group[i]]:" << data.lengths[group[i]] << std::endl;
-            g.addArc(node, sink_node);
-        }
-
-        // fill node map of 'node'
-        std::vector<std::pair<uint32_t, uint32_t>> node_property(unique_groups.size());
-        assert(group[i] < unique_groups.size());
-        node_property[group[i]] = range[i];
-        node_map.set(node, node_property);
-    }
-
-    if (config.verbose)
-        seqan3::debug_stream << "[LOG] inserted " <<  lemon::countNodes(g) << " nodes into the graph." << std::endl;
-
     // read directed edges:
     if (!std::ranges::equal(file_view | seqan3::views::take_line, std::string{"/*directed edges*/"}))
         throw std::runtime_error{"please reorder you dot file in case undirected edges were first."};
@@ -272,6 +157,75 @@ void read_graph(lemon::ListDigraph & g,
     }
 }
 
+template <typename graph_type>
+void transfer_nodes(lemon::ListDigraph & lemon_graph,
+                    std::vector<lemon::ListDigraph::Node> & nodes,
+                    lemon::ListDigraph::NodeMap<std::vector<std::pair<uint32_t, uint32_t>>> & node_map,
+                    graph_type const & seqan2_graph,
+                    split_data const & data)
+{
+    typedef typename seqan::Id<graph_type>::Type TIdType;
+    typedef typename seqan::Iterator<graph_type, seqan::VertexIterator>::Type TConstIter;
+
+    // temporary storage
+    size_t const number_of_sequences = length(data.sequences);
+    size_t const number_of_nodes = seqan::numVertices(seqan2_graph);
+
+    nodes.reserve(number_of_nodes + 1);
+    lemon_graph.reserveNode(number_of_nodes + 1);
+    lemon_graph.reserveArc(number_of_nodes + 1);
+
+    lemon::ListDigraph::Node source_node = lemon_graph.addNode();
+    lemon::ListDigraph::Node sink_node = lemon_graph.addNode();
+    nodes.push_back(source_node);
+    nodes.push_back(sink_node);
+    node_map.set(source_node, std::vector<std::pair<uint32_t, uint32_t>>(number_of_sequences));
+    node_map.set(sink_node, std::vector<std::pair<uint32_t, uint32_t>>(number_of_sequences));
+
+    for (TConstIter it(seqan2_graph); !seqan::atEnd(it); ++it) // iterate over seqan2 nodes
+    {
+        TIdType id = seqan::sequenceId(seqan2_graph, *it);
+
+        // fragment start and end
+        auto regStart = seqan::fragmentBegin(seqan2_graph, *it);
+        auto regEnd = seqan::fragmentBegin(seqan2_graph, *it) + seqan::fragmentLength(seqan2_graph, *it);
+
+        uint32_t range_start{};
+        uint32_t range_end{};
+
+        if (regStart == 0)
+            range_start = 0; // if it is the very first minimizer, include beginning of the sequence
+        else
+            range_start = data.sequences[id][regStart].position;
+
+        if (regEnd >= seqan::length(data.sequences[id]))
+            range_end = data.lengths[id];
+        else
+            range_end = data.sequences[id][regEnd].position;
+
+        assert(range_end >= range_start);
+
+        auto node = lemon_graph.addNode();
+        nodes.push_back(node);
+
+        // add arc from source node to node if it is a start node (start of sequence range)
+        if (range_start == 0) // [unlikely]
+            lemon_graph.addArc(source_node, node);
+
+        if (range_end == data.lengths[id]) // [unlikely]
+        {
+            // seqan3::debug_stream << "i:" << i << " group[i]:" << group[i] << " data.lengths[group[i]]:" << data.lengths[group[i]] << std::endl;
+            lemon_graph.addArc(node, sink_node);
+        }
+
+        // fill node map of 'node'
+        std::vector<std::pair<uint32_t, uint32_t>> node_property(number_of_sequences);
+        assert(id < number_of_sequences);
+        node_property[id] = std::make_pair(range_start, range_end);
+        node_map.set(node, node_property);
+    }
+}
+
 // currently through an output file
 template <typename graph_type>
 void transform_graphs(lemon::ListDigraph & g,
@@ -281,6 +235,11 @@ void transform_graphs(lemon::ListDigraph & g,
                       split_data const & data,
                       batch_config const & config)
 {
+    transfer_nodes(g, nodes, node_map, seqan2_graph, data);
+
+    if (config.verbose)
+        seqan3::debug_stream << "[LOG] inserted " <<  lemon::countNodes(g) << " nodes into the graph." << std::endl;
+
     seqan2_write_graph(seqan2_graph, data, config);
 
     read_graph(g, nodes, node_map, config.output_graph_file, data, config); // also merges nodes along undirected edges
