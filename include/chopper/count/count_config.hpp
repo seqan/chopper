@@ -10,4 +10,5 @@ struct count_config
     size_t num_threads{std::thread::hardware_concurrency()};
     uint8_t k{25};
     unsigned int w{500};
+    bool disable_minimizers{false};
 };
