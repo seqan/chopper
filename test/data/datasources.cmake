@@ -4,7 +4,7 @@ include (cmake/app_datasources.cmake)
 
 declare_datasource (FILE small_graph.dot
                     URL ${CMAKE_SOURCE_DIR}/test/data/small_graph.dot
-                    URL_HASH SHA256=5ff2eb48e65a6e28dc0f4f03d27c8176be0b7252ed11eb3201f849bd348f4abd)
+                    URL_HASH SHA256=089cf5f5f9ac12d927db08a254f9892fd42fa0e11151f97ca7e4712dfb76b9fb)
 
 declare_datasource (FILE small.fa
                     URL ${CMAKE_SOURCE_DIR}/test/data/small.fa

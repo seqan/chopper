@@ -85,7 +85,7 @@ void traverse_graph(split_data const & data, batch_config const & config)
     std::vector<lemon::ListDigraph::Node> nodes;
     lemon::ListDigraph::NodeMap<std::vector<std::pair<uint32_t, uint32_t>>> node_map{g};
 
-    read_graph(g, nodes, node_map, config.output_graph_file,config); // also merges nodes along undirected edges
+    read_graph(g, nodes, node_map, config.output_graph_file, data, config); // also merges nodes along undirected edges
 
     if (config.verbose)
     {

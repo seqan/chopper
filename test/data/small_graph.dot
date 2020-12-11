@@ -1,8 +1,3 @@
-/* Sequence Lengths */
-seq1	400
-seq2	480
-seq3	481
-
 /* Nodes */
 0 [label = "[0,10)", group = 1];
 1 [label = "[0,10)", group = 0];

@@ -28,16 +28,6 @@ void seqan2_write_graph(graph_type const & gAlign, split_data const & data, batc
     typedef typename seqan::VertexDescriptor<graph_type>::Type TVertexDescriptor;
     typename seqan::DirectionIterator<std::ofstream, seqan::Output>::Type iter = directionIterator(dotFile, seqan::Output());
 
-    seqan::write(iter, "/* Sequence Lengths */\n");
-    for (size_t i = 0; i < seqan::length(data.ids); ++i)
-    {
-        seqan::write(iter, data.ids[i]);
-        seqan::writeValue(iter, '\t');
-        seqan::write(iter, data.lengths[i]);
-        seqan::writeValue(iter, '\n');
-    }
-    seqan::writeValue(iter, '\n');
-
     seqan::write(iter, "/* Nodes */\n");
     typedef typename seqan::Iterator<graph_type, seqan::VertexIterator>::Type TConstIter;
 
@@ -138,6 +128,7 @@ void read_graph(lemon::ListDigraph & g,
                 std::vector<lemon::ListDigraph::Node> & nodes,
                 lemon::ListDigraph::NodeMap<std::vector<std::pair<uint32_t, uint32_t>>> & node_map,
                 std::filesystem::path const & graph_file_name,
+                split_data const & data,
                 batch_config const & config)
 {
     std::ifstream stream{graph_file_name};
@@ -147,30 +138,10 @@ void read_graph(lemon::ListDigraph & g,
                         {std::istreambuf_iterator<char>{stream},
                          std::istreambuf_iterator<char>{}};
 
-    if (!std::ranges::equal(file_view | seqan3::views::take_line, std::string{"/* Sequence Lengths */"}))
-            throw std::runtime_error{"no sequence lengths :( you have on old tcofee-seqan version."};
-
-    std::vector<uint32_t> seq_lengths{};
-
-    while (!seqan3::is_char<'/'>(*std::ranges::begin(file_view)))
-    {
-        char buffer[1000];
-        auto end_ptr = std::ranges::copy(file_view | seqan3::views::take_line, &buffer[0]).out;
-        *end_ptr = '\0'; // ensure that string ends here to avoid parsing errors if the previous line was longer
-        char * ptr = &buffer[0];
-
-        uint32_t len{};
-
-        while (!seqan3::is_char<'\t'>(*ptr)) ++ptr; // skip name for now
-        std::from_chars(ptr + 1, &buffer[1000], len);
-
-        seq_lengths.push_back(len);
-    }
-
-    if (seq_lengths.size() > 65536u)
+    if (seqan::length(data.lengths) > 65536u)
         throw std::logic_error{"Currently node ids are uint16_t, not all ids can be represented!"};
 
-    // seqan3::debug_stream << seq_lengths << std::endl;
+    // seqan3::debug_stream << data.lengths << std::endl;
 
     if (!std::ranges::equal(file_view | seqan3::views::take_line, std::string{"/* Nodes */"}))
             throw std::runtime_error{"not in dot format: No nodes :("};
@@ -232,9 +203,9 @@ void read_graph(lemon::ListDigraph & g,
         // add arc from source node to node if it is a start node (start of sequence range)
         if (range[i].first == 0) // [unlikely]
             g.addArc(source_node, node);
-        if (range[i].second == seq_lengths[group[i]]) // [unlikely]
+        if (range[i].second == data.lengths[group[i]]) // [unlikely]
         {
-            // seqan3::debug_stream << "i:" << i << " group[i]:" << group[i] << " seq_lengths[group[i]]:" << seq_lengths[group[i]] << std::endl;
+            // seqan3::debug_stream << "i:" << i << " group[i]:" << group[i] << " data.lengths[group[i]]:" << data.lengths[group[i]] << std::endl;
             g.addArc(node, sink_node);
         }
 
