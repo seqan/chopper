@@ -1,6 +1,9 @@
 #pragma once
 
+#include <chopper/split/map_distance_matrix.hpp>
 #include <chopper/split/minimizer.hpp>
+#include <chopper/split/split_config.hpp>
+#include <chopper/split/split_data.hpp>
 
 struct distance_matrix_initialiser
 {

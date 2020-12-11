@@ -5,15 +5,15 @@
 #include <seqan3/core/debug_stream.hpp>
 #include <seqan3/io/sequence_file/input.hpp>
 
-#include <chopper/split/split_data.hpp>
-#include <chopper/split/split_config.hpp>
-#include <chopper/split/minimizer.hpp>
-#include <chopper/split/minimizer_msa.hpp>
-#include <chopper/split/sequence_input.hpp>
-#include <chopper/split/traverse_graph.hpp>
+#include <chopper/split/distance_matrix_initialiser.hpp>
 #include <chopper/split/filename_batches_range.hpp>
-
+#include <chopper/split/minimizer.hpp>
+#include <chopper/split/seqan2_msa_alignment.hpp>
+#include <chopper/split/sequence_input.hpp>
+#include <chopper/split/split_config.hpp>
+#include <chopper/split/split_data.hpp>
 #include <chopper/split/transform_graphs.hpp>
+#include <chopper/split/traverse_graph.hpp>
 
 int set_up_and_parse_subparser_split(seqan3::argument_parser & parser, split_config & config)
 {
@@ -118,7 +118,24 @@ int chopper_split(seqan3::argument_parser & parser)
         // Compute minimizer MSA
         // -------------------------------------------------------------------------
 
-        auto seqan2_graph = minimizer_msa(data, current_batch_config);
+        // Alignment of the sequences
+        typedef seqan::Graph<seqan::Alignment<seqan::StringSet<seqan::String<minimizer>, seqan::Dependent<> >, void, seqan::WithoutEdgeId> > TGraph;
+        TGraph seqan2_graph;
+
+        distance_matrix_initialiser initialiser{};
+        auto distance_matrix = initialiser.mash_distance(data, config);
+
+        // MSA
+        try
+        {
+            seqan2_msa_alignment(seqan2_graph, data.sequences, distance_matrix, config);
+        }
+        catch (const std::bad_alloc & exception)
+        {
+            std::cerr << "Allocation for globalAlignment failed. Use smaller data or try a seeded alignment. \n"
+                      << exception.what() << std::endl;
+            std::exit(EXIT_FAILURE);
+        }
 
         // Transform seqan2 graph to lemon graph
         // -------------------------------------------------------------------------
