@@ -25,9 +25,6 @@ void seqan2_write_graph(graph_type const & gAlign, split_data const & data, batc
     typedef typename seqan::VertexDescriptor<graph_type>::Type TVertexDescriptor;
     typename seqan::DirectionIterator<std::ofstream, seqan::Output>::Type iter = directionIterator(dotFile, seqan::Output());
 
-    seqan::write(iter, "/*directed edges*/\n");
-    seqan::_writeGraphFooter(iter, gAlign, seqan::DotDrawing()); // somehow this writes directed edges :shrug:
-
     seqan::write(iter, "/* Edges */\n");
     typedef typename seqan::Iterator<graph_type, seqan::EdgeIterator>::Type TConstEdIter;
     TConstEdIter itEd(gAlign);
@@ -103,28 +100,6 @@ void read_graph(lemon::ListDigraph & g,
                                            decltype(std::istreambuf_iterator<char>{})>
                         {std::istreambuf_iterator<char>{stream},
                          std::istreambuf_iterator<char>{}};
-
-    // read directed edges:
-    if (!std::ranges::equal(file_view | seqan3::views::take_line, std::string{"/*directed edges*/"}))
-        throw std::runtime_error{"please reorder you dot file in case undirected edges were first."};
-
-    while (!seqan3::is_char<'/'>(*std::ranges::begin(file_view)))
-    {
-        char buffer[100];
-        std::ranges::copy(file_view | seqan3::views::take_line, &buffer[0]);
-
-        uint32_t source{};
-        uint32_t target{};
-
-        auto res = std::from_chars(&buffer[0], &buffer[100], source);
-        while (!seqan3::is_char<'-'>(*res.ptr)) ++res.ptr;
-        std::from_chars(res.ptr + 3, &buffer[100], target);
-
-        g.addArc(nodes[source + 2], nodes[target + 2]); // plus 2 because ids were shifted when we inserted a source/sink node
-    }
-
-    if (config.verbose)
-        seqan3::debug_stream << "[LOG] inserted " <<  lemon::countArcs(g) << " arcs into the graph." << std::endl;
 
     // read undirected edges:
     if (!std::ranges::equal(file_view | seqan3::views::take_line, std::string{"/* Edges */"}))
@@ -226,6 +201,45 @@ void transfer_nodes(lemon::ListDigraph & lemon_graph,
     }
 }
 
+template <typename graph_type>
+void transfer_directed_edges(lemon::ListDigraph & lemon_graph,
+                             std::vector<lemon::ListDigraph::Node> & nodes,
+                             graph_type const & seqan2_graph)
+{
+    typedef typename seqan::Size<graph_type>::Type TSize;
+    typedef typename seqan::Id<graph_type>::Type TId;
+    typedef typename seqan::VertexDescriptor<graph_type>::Type TVertexDescriptor;
+
+    auto const & str = seqan::stringSet(seqan2_graph);
+    TSize len = seqan::length(str);
+    TVertexDescriptor nilVertex = seqan::getNil<TVertexDescriptor>();
+
+    for (TSize i = 0; i < len; ++i)
+    {
+        TId seqId = seqan::positionToId(str, i);
+        TSize j = 0;
+        TVertexDescriptor previousVertex = nilVertex;
+
+        while (j < seqan::length(str[i]))
+        {
+            TVertexDescriptor nextVertex = seqan::findVertex(const_cast<graph_type&>(seqan2_graph), seqId, j);
+
+            if (nextVertex == nilVertex)
+            {
+                ++j;
+                continue;
+            }
+
+            // plus 2 because ids were shifted when we inserted a source/sink node
+            if (previousVertex != nilVertex)
+                lemon_graph.addArc(nodes[previousVertex + 2], nodes[nextVertex + 2]);
+
+            previousVertex = nextVertex;
+            j += seqan::fragmentLength(seqan2_graph, nextVertex);
+        }
+    }
+}
+
 // currently through an output file
 template <typename graph_type>
 void transform_graphs(lemon::ListDigraph & g,
@@ -239,6 +253,11 @@ void transform_graphs(lemon::ListDigraph & g,
 
     if (config.verbose)
         seqan3::debug_stream << "[LOG] inserted " <<  lemon::countNodes(g) << " nodes into the graph." << std::endl;
+
+    transfer_directed_edges(g, nodes, seqan2_graph);
+
+    if (config.verbose)
+        seqan3::debug_stream << "[LOG] inserted " <<  lemon::countArcs(g) << " arcs into the graph." << std::endl;
 
     seqan2_write_graph(seqan2_graph, data, config);
 
