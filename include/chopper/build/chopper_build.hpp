@@ -26,7 +26,7 @@ void initialize_argument_parser(seqan3::argument_parser & parser, build_config &
     parser.add_option(config.overlap, 'l', "overlap", "The overlap between split regions of the same sequence.");
     parser.add_option(config.FPR, 'r', "false-positive-rate", "The minimum false positive rate of every IBF.");
     parser.add_option(config.output_prefix, 'o', "out-prefix", "Prefix of the output files.");
-    parser.add_option(config.verbose, 'v', "verbose", "Output logging/progress information.");
+    parser.add_flag(config.verbose, 'v', "verbose", "Output logging/progress information.");
 }
 
 int chopper_build(seqan3::argument_parser & parser)
