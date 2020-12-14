@@ -116,6 +116,13 @@ struct map_distance_matrix : std::unordered_map<size_t, double>
         set_distance_value(j * nseq + i, dis_score.score);
     }
 
+    void set_distance_value(size_t i, size_t j, double score)
+    {
+        assert(nseq != 0);
+        set_distance_value(i * nseq + j, score);
+        set_distance_value(j * nseq + i, score);
+    }
+
 // private:
     void set_distance_value(size_t index, value_type distance_value)
     {

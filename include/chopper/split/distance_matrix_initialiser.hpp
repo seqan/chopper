@@ -5,9 +5,16 @@
 #include <chopper/split/split_config.hpp>
 #include <chopper/split/split_data.hpp>
 
+template <typename matrix_type = map_distance_matrix>
 struct distance_matrix_initialiser
 {
     static constexpr size_t sketch_size{100};
+
+    size_t const number_of_sequences{};
+
+    distance_matrix_initialiser(size_t const number_of_sequences_) :
+        number_of_sequences{number_of_sequences_}
+    {}
 
     template <typename time_point>
     static std::string secs(time_point start, time_point end)
@@ -15,11 +22,31 @@ struct distance_matrix_initialiser
         return "(" + std::to_string(std::chrono::duration_cast<std::chrono::seconds>(end - start).count()) + "s)";
     }
 
-    auto mash_distance(split_data & data, batch_config const & config)
+    matrix_type initialise_matrix()
     {
-        map_distance_matrix distance_matrix{num_seq{length(data.sequences)},
-                                            dummy_value{1.0},
-                                            upper_distance_threshold{0.9}};
+        map_distance_matrix matrix{num_seq{number_of_sequences}, dummy_value{1.0}, upper_distance_threshold{0.9}};
+        return matrix;
+    }
+
+    void set_distance_value(map_distance_matrix & matrix, size_t const i, size_t const j, double const dist)
+    {
+        matrix.set_distance_value(i, j, dist);
+    }
+
+    void set_distance_value(matrix_type & matrix, size_t const i, size_t const j, similarity_score const sim_score)
+    {
+        set_distance_value(matrix, i, j, 1.0 - sim_score.score);
+    }
+
+    void set_distance_value(matrix_type & matrix, size_t const i, size_t const j, distance_score const dis_score)
+    {
+        set_distance_value(matrix, i, j, dis_score.score);
+    }
+
+    matrix_type mash_distance(split_data & data, batch_config const & config)
+    {
+        assert(seqan::length(data.sequences) == number_of_sequences);
+        matrix_type distance_matrix = initialise_matrix();
 
         // -----------------------------------------------------------------------------
         //                              SORT
@@ -27,10 +54,10 @@ struct distance_matrix_initialiser
         auto start = std::chrono::steady_clock::now();
 
         // store the length s' < s of each sketch (some sequences are too small for full sketches)
-        std::vector<size_t> sketch_lengths(length(data.sequences));
+        std::vector<size_t> sketch_lengths(number_of_sequences);
 
         // sort minimizer by value to get sketches
-        for (size_t i = 0; i < length(data.sequences); ++i)
+        for (size_t i = 0; i < number_of_sequences; ++i)
         {
             std::sort(seqan::begin(data.sequences[i]), seqan::end(data.sequences[i]));
             auto new_end_it = std::unique(seqan::begin(data.sequences[i]), seqan::end(data.sequences[i]));
@@ -47,9 +74,9 @@ struct distance_matrix_initialiser
         // -----------------------------------------------------------------------------
         start = std::chrono::steady_clock::now();
 
-        for (size_t i = 0; i < seqan::length(data.sequences); ++i)
+        for (size_t i = 0; i < number_of_sequences; ++i)
         {
-            for (size_t j = i + 1; j < seqan::length(data.sequences); ++j)
+            for (size_t j = i + 1; j < number_of_sequences; ++j)
             {
                 size_t common_hashes{0u};
                 size_t unique_processed_hashes{0u};
@@ -80,10 +107,10 @@ struct distance_matrix_initialiser
 
                 // Jaquard Index is approximated with x/s' -> common_hashes / unique_processed_hashes
                 double const sim_score = (double)common_hashes / (double)unique_processed_hashes;
-                distance_matrix.set_distance_value(i, j, similarity_score{sim_score}); // set to 1-score for distance
+                set_distance_value(distance_matrix, i, j, similarity_score{sim_score}); // set to 1-score for distance
             }
 
-            distance_matrix.set_distance_value(i, i, similarity_score{1.0}); // same sequence => similarity = 1
+            set_distance_value(distance_matrix, i, i, similarity_score{1.0}); // same sequence => similarity = 1
         }
 
         // std::cout << "distance matrices: ";
@@ -97,7 +124,7 @@ struct distance_matrix_initialiser
         // -----------------------------------------------------------------------------
 
         // sort minimizer back
-        for (size_t i = 0; i < length(data.sequences); ++i)
+        for (size_t i = 0; i < number_of_sequences; ++i)
         {
             auto compare = [](minimizer const & m1, minimizer const & m2) { return m1.position < m2.position; };
             std::sort(seqan::begin(data.sequences[i]), seqan::end(data.sequences[i]), compare);

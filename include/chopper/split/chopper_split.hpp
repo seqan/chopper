@@ -112,7 +112,7 @@ int chopper_split(seqan3::argument_parser & parser)
         {
             seqan3::debug_stream << ">>> Loading " << seqan::length(data.sequences)
                                  << " sequences and computing minimizers complete "
-                                 << distance_matrix_initialiser::secs(start, end) << std::endl;
+                                 << distance_matrix_initialiser<>::secs(start, end) << std::endl;
         }
 
         // Compute minimizer MSA
@@ -122,7 +122,7 @@ int chopper_split(seqan3::argument_parser & parser)
         typedef seqan::Graph<seqan::Alignment<seqan::StringSet<seqan::String<minimizer>, seqan::Dependent<> >, void, seqan::WithoutEdgeId> > TGraph;
         TGraph seqan2_graph;
 
-        distance_matrix_initialiser initialiser{};
+        distance_matrix_initialiser initialiser{seqan::length(data.sequences)};
         auto distance_matrix = initialiser.mash_distance(data, config);
 
         // MSA
