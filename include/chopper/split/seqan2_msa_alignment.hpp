@@ -44,10 +44,10 @@ inline void append_all_to_all_matches(seqan::StringSet<TString, seqan::Dependent
     }
 }
 
-template <typename TStringSet, typename TCargo, typename TSpec, typename TStringSet1>
+template <typename TStringSet, typename TCargo, typename TSpec, typename TStringSet1, typename TDistanceMatrix>
 void seqan2_msa_alignment(seqan::Graph<seqan::Alignment<TStringSet, TCargo, TSpec> > & gAlign,
                           TStringSet1 const & sequenceSet,
-                          map_distance_matrix & distance_matrix,
+                          TDistanceMatrix & distance_matrix,
                           batch_config const & config)
 {
     typedef seqan::Score<int> TScore;
@@ -98,7 +98,6 @@ void seqan2_msa_alignment(seqan::Graph<seqan::Alignment<TStringSet, TCargo, TSpe
     // -------------------------------------------------------------------------
     current_time = seqan::sysTime();
     // Guide tree
-    assert(!distance_matrix.empty()); // Check if we have a valid distance matrix
     auto guide_tree = neighbour_joining(std::move(distance_matrix));
 
     if (config.verbose)

@@ -1,11 +1,15 @@
 #pragma once
 
+#include <seqan3/std/concepts>
+
 #include <chopper/split/map_distance_matrix.hpp>
 #include <chopper/split/minimizer.hpp>
 #include <chopper/split/split_config.hpp>
 #include <chopper/split/split_data.hpp>
 
 template <typename matrix_type = map_distance_matrix>
+    requires std::same_as<matrix_type, map_distance_matrix> ||
+             std::same_as<matrix_type, seqan::String<double>>
 struct distance_matrix_initialiser
 {
     static constexpr size_t sketch_size{100};
@@ -24,13 +28,26 @@ struct distance_matrix_initialiser
 
     matrix_type initialise_matrix()
     {
-        map_distance_matrix matrix{num_seq{number_of_sequences}, dummy_value{1.0}, upper_distance_threshold{0.9}};
-        return matrix;
+        if constexpr (std::same_as<matrix_type, map_distance_matrix>)
+        {
+            return map_distance_matrix{num_seq{number_of_sequences}, dummy_value{1.0}, upper_distance_threshold{0.9}};
+        }
+        else
+        {
+            matrix_type matrix{};
+            seqan::resize(matrix, (number_of_sequences * number_of_sequences), 0.0);
+            return matrix;
+        }
     }
 
     void set_distance_value(map_distance_matrix & matrix, size_t const i, size_t const j, double const dist)
     {
         matrix.set_distance_value(i, j, dist);
+    }
+
+    void set_distance_value(seqan::String<double> & matrix, size_t const i, size_t const j, double const dist)
+    {
+        matrix[i * number_of_sequences + j] = dist;
     }
 
     void set_distance_value(matrix_type & matrix, size_t const i, size_t const j, similarity_score const sim_score)
