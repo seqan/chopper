@@ -27,7 +27,7 @@ TEST(chopper_split_test, simple_example)
     // compare results
     std::string expected_file_str
     {
-        "FILE_ID\tSEQ_ID\tBEGIN\tEND\tHIBF_BIN_IDX\tLIBF_BIN_IDX\n" +
+        "#FILE_ID\tSEQ_ID\tBEGIN\tEND\tHIBF_BIN_IDX\tLIBF_BIN_IDX\n" +
         input_filename1 + "\tseq1\t0\t163\t0\t-\n" +
         input_filename1 + "\tseq2\t0\t186\t0\t-\n" +
         input_filename1 + "\tseq3\t0\t163\t0\t-\n" +
@@ -93,7 +93,7 @@ TEST(chopper_split_test, data_file_as_input)
 
     std::string const expected_output_str
     {
-        "FILE_ID\tSEQ_ID\tBEGIN\tEND\tHIBF_BIN_IDX\tLIBF_BIN_IDX\n" +
+        "#FILE_ID\tSEQ_ID\tBEGIN\tEND\tHIBF_BIN_IDX\tLIBF_BIN_IDX\n" +
         /*SPLIT_BIN_0*/
         input_filename1 + "\tseq1\t0\t209\t0\t-\n" +
         input_filename1 + "\tseq2\t0\t289\t0\t-\n" +
@@ -176,7 +176,7 @@ TEST(chopper_split_test, big_fat_nodes)
     // compare results
     std::string expected_file_str
     {
-        "FILE_ID\tSEQ_ID\tBEGIN\tEND\tHIBF_BIN_IDX\tLIBF_BIN_IDX\n" +
+        "#FILE_ID\tSEQ_ID\tBEGIN\tEND\tHIBF_BIN_IDX\tLIBF_BIN_IDX\n" +
         seq_file.get_path().string() + "\tseq1\t0\t17\t0\t-\n" +
         seq_file.get_path().string() + "\tseq1\t17\t34\t1\t-\n" +
         seq_file.get_path().string() + "\tseq1\t34\t51\t2\t-\n" +

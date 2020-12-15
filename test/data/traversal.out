@@ -1,4 +1,6 @@
-FILE_ID	SEQ_ID	BEGIN	END	HIBF_BIN_IDX	LIBF_BIN_IDX
+#MERGED_BIN_1 max_bin_id:0
+#HIGH_LEVEL_IBF max_bin_id:MERGED_BIN_1
+#FILE_ID	SEQ_ID	BEGIN	END	HIBF_BIN_IDX	LIBF_BIN_IDX
 /home/svenja/AGABI/Chopper/build/test/data/small.fa	seq1	0	400	0	-
 /home/svenja/AGABI/Chopper/build/test/data/small.fa	seq2	0	480	0	-
 /home/svenja/AGABI/Chopper/build/test/data/small.fa	seq3	0	481	0	-

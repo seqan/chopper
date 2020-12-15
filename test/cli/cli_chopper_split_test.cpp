@@ -35,7 +35,7 @@ TEST_F(cli_test, with_out_file)
     // compare results
     std::string expected_file_str
     {
-        "FILE_ID\tSEQ_ID\tBEGIN\tEND\tHIBF_BIN_IDX\tLIBF_BIN_IDX\n" +
+        "#FILE_ID\tSEQ_ID\tBEGIN\tEND\tHIBF_BIN_IDX\tLIBF_BIN_IDX\n" +
         data("small.fa").string() + "\tseq1\t0\t163\t0\t-\n" +
         data("small.fa").string() + "\tseq2\t0\t186\t0\t-\n" +
         data("small.fa").string() + "\tseq3\t0\t163\t0\t-\n" +

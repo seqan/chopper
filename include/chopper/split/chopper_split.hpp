@@ -57,7 +57,16 @@ int chopper_split(seqan3::argument_parser & parser)
                                  "with -f!"};
 
     std::ofstream fout{config.out_path};
-    fout << "FILE_ID\tSEQ_ID\tBEGIN\tEND\tHIBF_BIN_IDX\tLIBF_BIN_IDX\n";
+
+    // transfer header from binning file to traversal
+    {
+        std::ifstream data_file{config.data_filename};
+        std::string line;
+        while (std::getline(data_file, line) && line.substr(0, 7) != "#BIN_ID")
+            fout << line << '\n';
+    }
+
+    fout << "#FILE_ID\tSEQ_ID\tBEGIN\tEND\tHIBF_BIN_IDX\tLIBF_BIN_IDX\n";
 
     for (auto const & current_batch_config : filename_batches_range{config})
     {
