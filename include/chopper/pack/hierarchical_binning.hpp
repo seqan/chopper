@@ -397,7 +397,8 @@ private:
                 trace_i = trace[trace_i][trace_j].first;
                 --trace_j;
             }
-            ++bin_id;
+
+            bin_id += number_of_bins;
         }
 
         header_buff << "#" << hibf_prefix << " max_bin_id:" << high_level_max_id << '\n';

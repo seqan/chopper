@@ -167,6 +167,7 @@ private:
                 current_config.hibf_bin_idx_offset = it->second.first;
                 current_config.libf_bin_idx_offset = it->second.second;
                 it->second.second += bin_data.bins;
+                assert(merged_bin_idx == std::to_string(current_config.hibf_bin_idx_offset));
 
                 current_config.bin_name = host->config.out_path.string() + "LOW_LEVEL_IBF_" + std::string{merged_bin_idx} + ".out";
                 current_config.merged_bin = true;
