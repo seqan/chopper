@@ -339,7 +339,9 @@ void traverse_graph(lemon::ListDigraph & g,
                                 << data.ids[i] << '\t'
                                 << bin[i].first << '\t'
                                 << bin[i].second << '\t'
-                                << bin_index + config.libf_bin_idx_offset << '\n';
+                                << ((config.merged_bin) ? 0 : bin_index) + config.hibf_bin_idx_offset << '\t'
+                                << ((config.merged_bin) ? std::to_string(bin_index + config.libf_bin_idx_offset) : "-")
+                                << '\n';
             }
 
             if (bin[i].second == data.lengths[i])
@@ -361,7 +363,4 @@ void traverse_graph(lemon::ListDigraph & g,
                 std::cerr << "[WARNING] End did not match for " << data.ids[i] << " of length " << data.lengths[i] << std::endl;
         seqan3::debug_stream << "[WARNING] This should never happen. Please contact the developer." << std::endl;
     }
-
-    if (config.verbose)
-        seqan3::debug_stream << "Bin content appended to : " << config.out_path << std::endl;
 }

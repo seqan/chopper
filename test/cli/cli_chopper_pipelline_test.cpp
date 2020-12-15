@@ -81,31 +81,23 @@ TEST_F(cli_test, chopper_pipeline)
 
     // CHOPPER SPLIT
     // =========================================================================
-    seqan3::test::tmp_filename const traversal_path_prefix{""};
+    seqan3::test::tmp_filename const traversal_filename{"traversal.out"};
 
     cli_test_result split_result = execute_app("chopper", "split",
                                                "-k", "15",
                                                "-w", "25",
                                                "-f", binning_filename.get_path().c_str(),
-                                               "-o", traversal_path_prefix.get_path().c_str());
-
-    std::vector<std::string> const traversal_filenames
-    {
-        "LOW_LEVEL_IBF_1.out"
-    };
+                                               "-o", traversal_filename.get_path().c_str());
 
     // compare results
-    for (size_t i = 0; i < traversal_filenames.size(); ++i)
-    {
-        std::string const output_filename{traversal_path_prefix.get_path().string() + traversal_filenames[i]};
-        ASSERT_TRUE(std::filesystem::exists(output_filename));
+    ASSERT_TRUE(std::filesystem::exists(traversal_filename.get_path()));
+    ASSERT_TRUE(std::filesystem::exists(data("traversal.out")));
 
-        std::ifstream output_file{output_filename};
-        std::string const output_file_str((std::istreambuf_iterator<char>(output_file)), std::istreambuf_iterator<char>());
+    std::ifstream output_file{traversal_filename.get_path()};
+    std::ifstream expected_traversal_file{data("traversal.out")};
 
-        std::ifstream expected_file{(DATADIR + traversal_filenames[i])};
-        std::string const expected_file_str((std::istreambuf_iterator<char>(expected_file)), std::istreambuf_iterator<char>());
+    std::string const output_file_str((std::istreambuf_iterator<char>(output_file)), std::istreambuf_iterator<char>());
+    std::string const expected_file_str((std::istreambuf_iterator<char>(expected_traversal_file)), std::istreambuf_iterator<char>());
 
-        EXPECT_EQ(output_file_str, expected_file_str) << " failed at file " << traversal_filenames[i] << std::endl;
-    }
+    EXPECT_EQ(output_file_str, expected_file_str);
 }

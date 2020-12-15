@@ -40,17 +40,7 @@ TEST(filename_batches_range_test, high_level_data_file)
 
     std::vector<int> expected_bins_range{2, 1, 16, 12, 12, 12, 12, 2};
 
-    std::vector<std::string> expected_outfiles
-    {
-        "/dummy/SPLIT_BIN_0.out",
-        "/dummy/SPLIT_BIN_1.out",
-        "/dummy/LOW_LEVEL_IBF_2.out",
-        "/dummy/LOW_LEVEL_IBF_2.out",
-        "/dummy/LOW_LEVEL_IBF_2.out",
-        "/dummy/LOW_LEVEL_IBF_20.out",
-        "/dummy/LOW_LEVEL_IBF_20.out",
-        "/dummy/SPLIT_BIN_3.out"
-    };
+    std::vector<bool> expected_merged{false, false, true, true, true, true, true, false};
 
     std::vector<std::pair<size_t, size_t>> expected_offsets
     {
@@ -61,11 +51,11 @@ TEST(filename_batches_range_test, high_level_data_file)
     for (size_t i = 0; i < expected_seqfiles_range.size(); ++i, ++it)
     {
         EXPECT_RANGE_EQ((*it).seqfiles, expected_seqfiles_range[i]);
-        EXPECT_EQ((*it).out_path.string(), expected_outfiles[i]);
-        EXPECT_EQ((*it).bins, expected_bins_range[i]) << " failed at " << expected_outfiles[i] << std::endl;
+        EXPECT_EQ((*it).bins, expected_bins_range[i]) << " failed at " << i << std::endl;
+        EXPECT_EQ((*it).merged_bin, expected_merged[i]) << " failed at " << i << std::endl;
         auto [ho, lo] = expected_offsets[i];
-        EXPECT_EQ((*it).hibf_bin_idx_offset, ho) << " failed at " << expected_outfiles[i] << std::endl;
-        EXPECT_EQ((*it).libf_bin_idx_offset, lo) << " failed at " << expected_outfiles[i] << std::endl;
+        EXPECT_EQ((*it).hibf_bin_idx_offset, ho) << " failed at " << i << std::endl;
+        EXPECT_EQ((*it).libf_bin_idx_offset, lo) << " failed at " << i << std::endl;
     }
     EXPECT_TRUE(it == r.end());
 }

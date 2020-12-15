@@ -18,4 +18,4 @@ add_dependencies (cli_count_HIBF_kmers_based_on_binning_test count_HIBF_kmers_ba
 add_cli_test (cli_chopper_pipelline_test.cpp)
 target_use_datasources (cli_chopper_pipelline_test FILES small.fa)
 target_use_datasources (cli_chopper_pipelline_test FILES small2.fa)
-target_use_datasources (cli_chopper_pipelline_test FILES LOW_LEVEL_IBF_1.out)
+target_use_datasources (cli_chopper_pipelline_test FILES traversal.out)

@@ -35,10 +35,9 @@ struct batch_config
     uint16_t window_size{100};
 
     // traverse config
-    std::filesystem::path out_path{"/tmp/traverse_graph.out"};
     std::string bin_name{};
+    bool merged_bin{false};
     int16_t bins{64};
-    std::stringstream * outstream{nullptr};
     bool write_out_graph{false};
     bool write_out_weights{false};
 

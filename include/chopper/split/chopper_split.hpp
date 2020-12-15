@@ -45,7 +45,7 @@ int chopper_split(seqan3::argument_parser & parser)
     split_config config;
 
     if (auto r = set_up_and_parse_subparser_split(parser, config); r != 0)
-    return r;
+        return r;
 
     // Check config
     // -------------------------------------------------------------------------
@@ -56,41 +56,31 @@ int chopper_split(seqan3::argument_parser & parser)
         throw std::runtime_error{"[CHOPPER SPLIT ERROR] You must specify EITHER files with -s OR give a data file "
                                  "with -f!"};
 
-    std::vector<std::stringstream> traversal_streams{};
-    std::unordered_map<std::string, size_t> id_to_position{};
+    std::ofstream fout{config.out_path};
+    fout << "FILE_ID\tSEQ_ID\tBEGIN\tEND\tHIBF_BIN_IDX\tLIBF_BIN_IDX\n";
 
     for (auto const & current_batch_config : filename_batches_range{config})
     {
-        std::cout << "Processing file " << current_batch_config.out_path << " with " << current_batch_config.bins << " number of bins." << std::endl;
-
-        auto position_map_it = id_to_position.find(current_batch_config.bin_name);
-
-        if (position_map_it == id_to_position.end())
-        {
-            position_map_it = id_to_position.emplace(current_batch_config.bin_name, traversal_streams.size()).first;
-            traversal_streams.push_back(std::stringstream{});
-        }
+        std::cout << "Processing file " << current_batch_config.bin_name << " with " << current_batch_config.bins << " number of bins." << std::endl;
 
         if (current_batch_config.bins == 1) // nothing to split here
         {
-            std::string const low_level_prefix{config.out_path.string() + "LOW_LEVEL_IBF_"};
-
-            if (starts_with(current_batch_config.out_path, low_level_prefix))
+            for (auto const & filename : current_batch_config.seqfiles)
             {
-                auto & ostm = traversal_streams[position_map_it->second];
+                seqan3::sequence_file_input fin{filename, seqan3::fields<seqan3::field::id, seqan3::field::seq>{}};
 
-                for (auto const & filename : current_batch_config.seqfiles)
+                for (auto const & [id, seq] : fin)
                 {
-                    seqan3::sequence_file_input fin{filename, seqan3::fields<seqan3::field::id, seqan3::field::seq>{}};
-
-                    for (auto const & [id, seq] : fin)
-                    {
-                        ostm << filename << '\t'
-                             << id << '\t'
-                             << 0 << '\t'
-                             << seq.size() << '\t'
-                             << current_batch_config.libf_bin_idx_offset << '\n';
-                    }
+                    fout << filename << '\t'
+                         << id << '\t'
+                         << 0 << '\t'
+                         << seq.size() << '\t'
+                         << current_batch_config.hibf_bin_idx_offset << '\t';
+                    if (current_batch_config.merged_bin)
+                        fout << current_batch_config.libf_bin_idx_offset;
+                    else
+                        fout << '-';
+                    fout << '\n';
                 }
             }
 
@@ -100,7 +90,7 @@ int chopper_split(seqan3::argument_parser & parser)
         // Load data
         // -------------------------------------------------------------------------
         split_data data;
-        data.outstream = &(traversal_streams[position_map_it->second]);
+        data.outstream = &fout;
 
         auto start = std::chrono::steady_clock::now();
         for (auto const & file_name : current_batch_config.seqfiles)
@@ -148,14 +138,6 @@ int chopper_split(seqan3::argument_parser & parser)
         // Traverse graph
         // -------------------------------------------------------------------------
         traverse_graph(g, nodes, node_map, data, current_batch_config);
-    }
-
-    // write out files
-    for (auto const & [filename, stream_pos] : id_to_position)
-    {
-        std::ofstream fout{filename};
-        fout << "FILE_ID\tSEQ_ID\tBEGIN\tEND\tBIN_NUMBER\n"; // write header
-        fout << (traversal_streams[stream_pos]).rdbuf();
     }
 
     return 0;

@@ -27,25 +27,25 @@ TEST(chopper_split_test, simple_example)
     // compare results
     std::string expected_file_str
     {
-        "FILE_ID\tSEQ_ID\tBEGIN\tEND\tBIN_NUMBER\n" +
-        input_filename1 + "\tseq1\t0\t163\t0\n" +
-        input_filename1 + "\tseq2\t0\t186\t0\n" +
-        input_filename1 + "\tseq3\t0\t163\t0\n" +
-        input_filename2 + "\tseq10\t0\t163\t0\n" +
-        input_filename2 + "\tseq20\t0\t186\t0\n" +
-        input_filename2 + "\tseq30\t0\t163\t0\n" +
-        input_filename1 + "\tseq1\t163\t247\t1\n" +
-        input_filename1 + "\tseq2\t186\t327\t1\n" +
-        input_filename1 + "\tseq3\t163\t284\t1\n" +
-        input_filename2 + "\tseq10\t163\t247\t1\n" +
-        input_filename2 + "\tseq20\t186\t327\t1\n" +
-        input_filename2 + "\tseq30\t163\t284\t1\n" +
-        input_filename1 + "\tseq1\t247\t400\t2\n" +
-        input_filename1 + "\tseq2\t327\t480\t2\n" +
-        input_filename1 + "\tseq3\t284\t481\t2\n" +
-        input_filename2 + "\tseq10\t247\t400\t2\n" +
-        input_filename2 + "\tseq20\t327\t480\t2\n" +
-        input_filename2 + "\tseq30\t284\t481\t2\n"
+        "FILE_ID\tSEQ_ID\tBEGIN\tEND\tHIBF_BIN_IDX\tLIBF_BIN_IDX\n" +
+        input_filename1 + "\tseq1\t0\t163\t0\t-\n" +
+        input_filename1 + "\tseq2\t0\t186\t0\t-\n" +
+        input_filename1 + "\tseq3\t0\t163\t0\t-\n" +
+        input_filename2 + "\tseq10\t0\t163\t0\t-\n" +
+        input_filename2 + "\tseq20\t0\t186\t0\t-\n" +
+        input_filename2 + "\tseq30\t0\t163\t0\t-\n" +
+        input_filename1 + "\tseq1\t163\t247\t1\t-\n" +
+        input_filename1 + "\tseq2\t186\t327\t1\t-\n" +
+        input_filename1 + "\tseq3\t163\t284\t1\t-\n" +
+        input_filename2 + "\tseq10\t163\t247\t1\t-\n" +
+        input_filename2 + "\tseq20\t186\t327\t1\t-\n" +
+        input_filename2 + "\tseq30\t163\t284\t1\t-\n" +
+        input_filename1 + "\tseq1\t247\t400\t2\t-\n" +
+        input_filename1 + "\tseq2\t327\t480\t2\t-\n" +
+        input_filename1 + "\tseq3\t284\t481\t2\t-\n" +
+        input_filename2 + "\tseq10\t247\t400\t2\t-\n" +
+        input_filename2 + "\tseq20\t327\t480\t2\t-\n" +
+        input_filename2 + "\tseq30\t284\t481\t2\t-\n"
     };
 
     // compare results
@@ -91,84 +91,63 @@ TEST(chopper_split_test, data_file_as_input)
 
     EXPECT_EQ(chopper_split(split_parser), 0);
 
-    std::vector<std::string> const expected_output
+    std::string const expected_output_str
     {
-        {
-            "FILE_ID\tSEQ_ID\tBEGIN\tEND\tBIN_NUMBER\n" +
-            input_filename1 + "\tseq1\t0\t209\t0\n" +
-            input_filename1 + "\tseq2\t0\t289\t0\n" +
-            input_filename1 + "\tseq3\t0\t209\t0\n" +
-            input_filename1 + "\tseq1\t209\t400\t1\n" +
-            input_filename1 + "\tseq2\t289\t480\t1\n" +
-            input_filename1 + "\tseq3\t209\t481\t1\n"
-        },
-        {
-            "FILE_ID\tSEQ_ID\tBEGIN\tEND\tBIN_NUMBER\n" +
-            input_filename1 + "\tseq1\t0\t209\t0\n" +
-            input_filename1 + "\tseq2\t0\t289\t0\n" +
-            input_filename1 + "\tseq3\t0\t209\t0\n" +
-            input_filename1 + "\tseq1\t209\t400\t1\n" +
-            input_filename1 + "\tseq2\t289\t480\t1\n" +
-            input_filename1 + "\tseq3\t209\t481\t1\n"
-        },
-        {
-            "FILE_ID\tSEQ_ID\tBEGIN\tEND\tBIN_NUMBER\n" +
-            /*MERGED_BIN_2_0*/
-            input_filename1 + "\tseq1\t0\t209\t0\n" +
-            input_filename1 + "\tseq2\t0\t289\t0\n" +
-            input_filename1 + "\tseq3\t0\t209\t0\n" +
-            input_filename1 + "\tseq1\t209\t400\t1\n" +
-            input_filename1 + "\tseq2\t289\t480\t1\n" +
-            input_filename1 + "\tseq3\t209\t481\t1\n" +
-            /*MERGED_BIN_2_1*/
-            input_filename1 + "\tseq1\t0\t209\t2\n" +
-            input_filename1 + "\tseq2\t0\t289\t2\n" +
-            input_filename1 + "\tseq3\t0\t209\t2\n" +
-            input_filename2 + "\tseq10\t0\t209\t2\n" +
-            input_filename2 + "\tseq20\t0\t289\t2\n" +
-            input_filename2 + "\tseq30\t0\t209\t2\n" +
-            input_filename1 + "\tseq1\t209\t400\t3\n" +
-            input_filename1 + "\tseq2\t289\t480\t3\n" +
-            input_filename1 + "\tseq3\t209\t481\t3\n" +
-            input_filename2 + "\tseq10\t209\t400\t3\n" +
-            input_filename2 + "\tseq20\t289\t480\t3\n" +
-            input_filename2 + "\tseq30\t209\t481\t3\n" +
-            /*MERGED_BIN_2_2*/
-            input_filename1 + "\tseq1\t0\t400\t4\n" +
-            input_filename1 + "\tseq2\t0\t480\t4\n" +
-            input_filename1 + "\tseq3\t0\t481\t4\n"
-        },
-        {
-            "FILE_ID\tSEQ_ID\tBEGIN\tEND\tBIN_NUMBER\n" +
-            input_filename2 + "\tseq10\t0\t163\t0\n" +
-            input_filename2 + "\tseq20\t0\t186\t0\n" +
-            input_filename2 + "\tseq30\t0\t163\t0\n" +
-            input_filename2 + "\tseq10\t163\t247\t1\n" +
-            input_filename2 + "\tseq20\t186\t327\t1\n" +
-            input_filename2 + "\tseq30\t163\t284\t1\n" +
-            input_filename2 + "\tseq10\t247\t400\t2\n" +
-            input_filename2 + "\tseq20\t327\t480\t2\n" +
-            input_filename2 + "\tseq30\t284\t481\t2\n"
-        }
-    };
-
-    std::vector<std::string> const file_prefix
-    {
-        "SPLIT_BIN_0",
-        "SPLIT_BIN_1",
-        "LOW_LEVEL_IBF_2",
-        "SPLIT_BIN_3",
+        "FILE_ID\tSEQ_ID\tBEGIN\tEND\tHIBF_BIN_IDX\tLIBF_BIN_IDX\n" +
+        /*SPLIT_BIN_0*/
+        input_filename1 + "\tseq1\t0\t209\t0\t-\n" +
+        input_filename1 + "\tseq2\t0\t289\t0\t-\n" +
+        input_filename1 + "\tseq3\t0\t209\t0\t-\n" +
+        input_filename1 + "\tseq1\t209\t400\t1\t-\n" +
+        input_filename1 + "\tseq2\t289\t480\t1\t-\n" +
+        input_filename1 + "\tseq3\t209\t481\t1\t-\n" +
+        /*SPLIT_BIN_1*/
+        input_filename1 + "\tseq1\t0\t209\t2\t-\n" +
+        input_filename1 + "\tseq2\t0\t289\t2\t-\n" +
+        input_filename1 + "\tseq3\t0\t209\t2\t-\n" +
+        input_filename1 + "\tseq1\t209\t400\t3\t-\n" +
+        input_filename1 + "\tseq2\t289\t480\t3\t-\n" +
+        input_filename1 + "\tseq3\t209\t481\t3\t-\n" +
+        /*MERGED_BIN_2_0*/
+        input_filename1 + "\tseq1\t0\t209\t4\t0\n" +
+        input_filename1 + "\tseq2\t0\t289\t4\t0\n" +
+        input_filename1 + "\tseq3\t0\t209\t4\t0\n" +
+        input_filename1 + "\tseq1\t209\t400\t4\t1\n" +
+        input_filename1 + "\tseq2\t289\t480\t4\t1\n" +
+        input_filename1 + "\tseq3\t209\t481\t4\t1\n" +
+        /*MERGED_BIN_2_1*/
+        input_filename1 + "\tseq1\t0\t209\t4\t2\n" +
+        input_filename1 + "\tseq2\t0\t289\t4\t2\n" +
+        input_filename1 + "\tseq3\t0\t209\t4\t2\n" +
+        input_filename2 + "\tseq10\t0\t209\t4\t2\n" +
+        input_filename2 + "\tseq20\t0\t289\t4\t2\n" +
+        input_filename2 + "\tseq30\t0\t209\t4\t2\n" +
+        input_filename1 + "\tseq1\t209\t400\t4\t3\n" +
+        input_filename1 + "\tseq2\t289\t480\t4\t3\n" +
+        input_filename1 + "\tseq3\t209\t481\t4\t3\n" +
+        input_filename2 + "\tseq10\t209\t400\t4\t3\n" +
+        input_filename2 + "\tseq20\t289\t480\t4\t3\n" +
+        input_filename2 + "\tseq30\t209\t481\t4\t3\n" +
+        /*MERGED_BIN_2_2*/
+        input_filename1 + "\tseq1\t0\t400\t4\t4\n" +
+        input_filename1 + "\tseq2\t0\t480\t4\t4\n" +
+        input_filename1 + "\tseq3\t0\t481\t4\t4\n" +
+        /*SPLIT_BIN_3*/
+        input_filename2 + "\tseq10\t0\t163\t5\t-\n" +
+        input_filename2 + "\tseq20\t0\t186\t5\t-\n" +
+        input_filename2 + "\tseq30\t0\t163\t5\t-\n" +
+        input_filename2 + "\tseq10\t163\t247\t6\t-\n" +
+        input_filename2 + "\tseq20\t186\t327\t6\t-\n" +
+        input_filename2 + "\tseq30\t163\t284\t6\t-\n" +
+        input_filename2 + "\tseq10\t247\t400\t7\t-\n" +
+        input_filename2 + "\tseq20\t327\t480\t7\t-\n" +
+        input_filename2 + "\tseq30\t284\t481\t7\t-\n"
     };
 
     // compare results
-    for (size_t i = 0; i < expected_output.size(); ++i)
-    {
-        std::string const filename{output_filename.get_path().string() + file_prefix[i] + ".out"};
-        ASSERT_TRUE(std::filesystem::exists(filename)) << "File " << filename << " doesn't exist :(" << std::endl;
-        std::ifstream fout{filename};
-        std::string const fout_str((std::istreambuf_iterator<char>(fout)), std::istreambuf_iterator<char>());
-        EXPECT_EQ(fout_str, expected_output[i]) << " failed at batch " << i << std::endl;
-    }
+    std::ifstream output_file{output_filename.get_path()};
+    std::string const output_file_str((std::istreambuf_iterator<char>(output_file)), std::istreambuf_iterator<char>());
+    EXPECT_EQ(output_file_str, expected_output_str);
 }
 
 
@@ -197,17 +176,16 @@ TEST(chopper_split_test, big_fat_nodes)
     // compare results
     std::string expected_file_str
     {
-        "FILE_ID\tSEQ_ID\tBEGIN\tEND\tBIN_NUMBER\n" +
-        seq_file.get_path().string() + "\tseq1\t0\t17\t0\n" +
-        seq_file.get_path().string() + "\tseq1\t17\t34\t1\n" +
-        seq_file.get_path().string() + "\tseq1\t34\t51\t2\n" +
-        seq_file.get_path().string() + "\tseq1\t51\t68\t3\n" +
-        seq_file.get_path().string() + "\tseq1\t68\t80\t4\n"
+        "FILE_ID\tSEQ_ID\tBEGIN\tEND\tHIBF_BIN_IDX\tLIBF_BIN_IDX\n" +
+        seq_file.get_path().string() + "\tseq1\t0\t17\t0\t-\n" +
+        seq_file.get_path().string() + "\tseq1\t17\t34\t1\t-\n" +
+        seq_file.get_path().string() + "\tseq1\t34\t51\t2\t-\n" +
+        seq_file.get_path().string() + "\tseq1\t51\t68\t3\t-\n" +
+        seq_file.get_path().string() + "\tseq1\t68\t80\t4\t-\n"
     };
 
     // compare results
     std::ifstream output_file{output_filename.get_path()};
     std::string const output_file_str((std::istreambuf_iterator<char>(output_file)), std::istreambuf_iterator<char>());
     EXPECT_EQ(output_file_str, expected_file_str);
-
 }

@@ -30,6 +30,6 @@ declare_datasource (FILE seqinfo.tsv
                     URL ${CMAKE_SOURCE_DIR}/test/data/seqinfo.tsv
                     URL_HASH SHA256=c6e28cc4ebf4902c41b1c237b1410665994e0fd0b8d8473c38a8107041d78172)
 
-declare_datasource (FILE LOW_LEVEL_IBF_1.out
-                    URL ${CMAKE_SOURCE_DIR}/test/data/LOW_LEVEL_IBF_1.out
-                    URL_HASH SHA256=4656fffdb75f048e46e0329f5987bb3ada92683987f6647541799706ef35a85b)
+declare_datasource (FILE traversal.out
+                    URL ${CMAKE_SOURCE_DIR}/test/data/traversal.out
+                    URL_HASH SHA256=84899c100e747fc656e4bf49e63c7792cf6eaf4f0b572c632c2e2b8c5c60134e)
