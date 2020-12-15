@@ -339,7 +339,7 @@ void traverse_graph(lemon::ListDigraph & g,
                                 << data.ids[i] << '\t'
                                 << bin[i].first << '\t'
                                 << bin[i].second << '\t'
-                                << bin_index + config.bin_index_offset << '\n';
+                                << bin_index + config.libf_bin_idx_offset << '\n';
             }
 
             if (bin[i].second == data.lengths[i])

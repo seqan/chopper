@@ -44,5 +44,6 @@ struct batch_config
 
     // For a merged low level IBF several splittings will come into the same file.
     // So the traversal output needs to be appended and the bin_index adjusted.
-    size_t bin_index_offset{0};
+    size_t hibf_bin_idx_offset{0};
+    size_t libf_bin_idx_offset{0};
 };

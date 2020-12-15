@@ -89,7 +89,7 @@ int chopper_split(seqan3::argument_parser & parser)
                              << id << '\t'
                              << 0 << '\t'
                              << seq.size() << '\t'
-                             << current_batch_config.bin_index_offset << '\n';
+                             << current_batch_config.libf_bin_idx_offset << '\n';
                     }
                 }
             }

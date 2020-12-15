@@ -157,19 +157,25 @@ private:
                                                                merged_bin_prefix_length - 1;
                 std::string const merged_bin_idx{&bin_data.bin_name[0] + merged_bin_prefix_length + 1, idx_length};
 
-                auto it = host->colourful_bin_offsets.find(merged_bin_idx);
+                auto it = host->libf_bin_offsets.find(merged_bin_idx);
 
-                if (it == host->colourful_bin_offsets.end()) // merged bin has not been seen yet
-                    it = host->colourful_bin_offsets.emplace(merged_bin_idx, 0u).first;
+                if (it == host->libf_bin_offsets.end()) // merged bin has not been seen yet
+                {
+                    it = host->libf_bin_offsets.emplace(merged_bin_idx, std::make_pair(host->hibf_bin_offset, 0u)).first;
+                    ++(host->hibf_bin_offset);
+                }
 
-                current_config.bin_index_offset = it->second;
-                it->second += bin_data.bins;
+                current_config.hibf_bin_idx_offset = it->second.first;
+                current_config.libf_bin_idx_offset = it->second.second;
+                it->second.second += bin_data.bins;
 
                 current_config.bin_name = host->config.out_path.string() + "LOW_LEVEL_IBF_" + std::string{merged_bin_idx} + ".out";
             }
             else
             {
                 current_config.bin_name =  host->config.out_path.string() + bin_data.bin_name + ".out";
+                current_config.hibf_bin_idx_offset = host->hibf_bin_offset;
+                host->hibf_bin_offset += bin_data.bins;
             }
 
             current_config.out_path = std::filesystem::path{current_config.bin_name};
@@ -214,7 +220,9 @@ private:
 
     std::string current_line{""};
 
-    std::unordered_map<std::string, size_t> colourful_bin_offsets{};
+    size_t hibf_bin_offset{};
+
+    std::unordered_map<std::string, std::pair<size_t, size_t>> libf_bin_offsets{};
 
 public:
     file_type const current_file_type{file_type::unknown};

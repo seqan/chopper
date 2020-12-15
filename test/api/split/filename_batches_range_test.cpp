@@ -52,7 +52,10 @@ TEST(filename_batches_range_test, high_level_data_file)
         "/dummy/SPLIT_BIN_3.out"
     };
 
-    std::vector<size_t> expected_offsets{0, 0, 0, 16, 28, 0, 12, 0};
+    std::vector<std::pair<size_t, size_t>> expected_offsets
+    {
+        {0, 0}, {2, 0}, {3, 0}, {3, 16}, {3, 28}, {4, 0}, {4, 12}, {5, 0}
+    };
 
     auto it = r.begin();
     for (size_t i = 0; i < expected_seqfiles_range.size(); ++i, ++it)
@@ -60,7 +63,9 @@ TEST(filename_batches_range_test, high_level_data_file)
         EXPECT_RANGE_EQ((*it).seqfiles, expected_seqfiles_range[i]);
         EXPECT_EQ((*it).out_path.string(), expected_outfiles[i]);
         EXPECT_EQ((*it).bins, expected_bins_range[i]) << " failed at " << expected_outfiles[i] << std::endl;
-        EXPECT_EQ((*it).bin_index_offset, expected_offsets[i]) << " failed at " << expected_outfiles[i] << std::endl;
+        auto [ho, lo] = expected_offsets[i];
+        EXPECT_EQ((*it).hibf_bin_idx_offset, ho) << " failed at " << expected_outfiles[i] << std::endl;
+        EXPECT_EQ((*it).libf_bin_idx_offset, lo) << " failed at " << expected_outfiles[i] << std::endl;
     }
     EXPECT_TRUE(it == r.end());
 }
