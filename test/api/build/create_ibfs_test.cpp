@@ -8,87 +8,49 @@
 #include <seqan3/test/tmp_filename.hpp>
 #include <seqan3/alphabet/nucleotide/dna4.hpp>
 
-#include <chopper/build/create_ibfs_from_data_file.hpp>
+#include <chopper/build/create_ibfs.hpp>
 
 using seqan3::operator""_dna4;
 
-TEST(chopper_count_test, small_example_parallel_2_threads)
+TEST(create_ibfs_test, small_example)
 {
     std::string input_filename1 = DATADIR"small.fa";
     std::string input_filename2 = DATADIR"small2.fa";
     seqan3::test::tmp_filename data_filename{"data.tsv"};
 
-    seqan3::test::tmp_filename traversal_dir{""};
-    std::string traversal_split_bin0{traversal_dir.get_path().string() + "/SPLIT_BIN_0.out"};
-    std::string traversal_merged_bin2{traversal_dir.get_path().string() + "/LOW_LEVEL_IBF_2.out"};
-    std::string traversal_split_bin3{traversal_dir.get_path().string() + "/SPLIT_BIN_3.out"};
+    seqan3::test::tmp_filename traversal_filename{"small.traverse"};
 
     // generate data files
     {
-        std::ofstream fout{data_filename.get_path()};
-        fout << "#MERGED_BIN_2 max_bin_id:0\n"
-             << "#HIGH_LEVEL_IBF max_bin_id:MERGED_BIN_2\n"
-             << "#BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n"
-             << "SPLIT_BIN_0\t" << input_filename1 << "\t2\t500\n"
-             << "SPLIT_BIN_1\t" << input_filename1 + "\t1\t500\n"
-             << "MERGED_BIN_2_0\t" << input_filename1 << "\t3\t2500\n"
-             << "MERGED_BIN_2_1\t" << input_filename1 << ";" << input_filename2 << "\t2\t2500\n"
-             << "SPLIT_BIN_3\t" << input_filename2 + "\t3\t1000\n";
+        std::ofstream fout{traversal_filename.get_path()};
+        fout << "#MERGED_BIN_6 max_bin_id:0\n"
+             << "#HIGH_LEVEL_IBF max_bin_id:MERGED_BIN_6\n"
+             << "#FILE_ID\tSEQ_ID\tBEGIN\tEND\tHIBF_BIN_IDX\tLIBF_BIN_IDX\n"
+             /*SPLIT_BIN_0*/
+             << input_filename1 << "\tseq1\t0\t400\t0\t-\n"
+             << input_filename1 << "\tseq2\t0\t480\t0\t-\n"
+             << input_filename1 << "\tseq3\t0\t481\t1\t-\n"
+             /*SPLIT_BIN_2*/
+             << input_filename2 << "\tseq10\t0\t400\t2\t-\n"
+             << input_filename2 << "\tseq20\t0\t480\t2\t-\n"
+             << input_filename2 << "\tseq30\t0\t481\t2\t-\n"
+             /*SPLIT_BIN_3*/
+             << input_filename2 << "\tseq10\t0\t400\t3\t-\n"
+             << input_filename2 << "\tseq20\t0\t480\t4\t-\n"
+             << input_filename2 << "\tseq30\t0\t481\t5\t-\n"
+             /*MERGED_BIN_6*/
+             << input_filename1 << "\tseq1\t0\t400\t6\t0\n"
+             << input_filename1 << "\tseq2\t0\t480\t6\t1\n"
+             << input_filename1 << "\tseq3\t0\t481\t6\t2\n"
+             << input_filename1 << "\tseq1\t0\t400\t6\t3\n"
+             << input_filename1 << "\tseq1\t0\t400\t6\t3\n"
+             << input_filename1 << "\tseq2\t0\t480\t6\t3\n"
+             << input_filename1 << "\tseq2\t0\t480\t6\t3\n"
+             << input_filename1 << "\tseq3\t0\t481\t6\t4\n"
+             << input_filename1 << "\tseq3\t0\t481\t6\t4\n";
     }
 
-    {
-        std::ofstream fout{traversal_split_bin0};
-        fout << "FILE_ID\tSEQ_ID\tBEGIN\tEND\tBIN_NUMBER\n"
-             << input_filename1 << "\tseq1\t0\t400\t0\n"
-             << input_filename1 << "\tseq2\t0\t480\t0\n"
-             << input_filename1 << "\tseq3\t0\t481\t1\n";
-    }
-    {
-        std::ofstream fout{traversal_merged_bin2};
-        fout << "FILE_ID\tSEQ_ID\tBEGIN\tEND\tBIN_NUMBER\n"
-             /*MERGED_BIN_2_0*/
-             << input_filename1 << "\tseq1\t0\t400\t0\n"
-             << input_filename1 << "\tseq2\t0\t480\t1\n"
-             << input_filename1 << "\tseq3\t0\t481\t2\n"
-             /*MERGED_BIN_2_1*/
-             << input_filename1 << "\tseq1\t0\t400\t3\n"
-             << input_filename2 << "\tseq10\t0\t400\t3\n"
-             << input_filename1 << "\tseq2\t0\t480\t3\n"
-             << input_filename2 << "\tseq20\t0\t480\t3\n"
-             << input_filename1 << "\tseq3\t0\t481\t4\n"
-             << input_filename2 << "\tseq30\t0\t481\t4\n";
-    }
-    {
-        std::ofstream fout{traversal_split_bin3};
-        fout << "FILE_ID\tSEQ_ID\tBEGIN\tEND\tBIN_NUMBER\n"
-             << input_filename2 << "\tseq10\t0\t400\t0\n"
-             << input_filename2 << "\tseq20\t0\t480\t1\n"
-             << input_filename2 << "\tseq30\t0\t481\t2\n";
-    }
-
-    build_config config{};
-    config.k = 15;
-    config.traversal_path_prefix = traversal_dir.get_path().string() + "/";
-    config.binning_filename = data_filename.get_path().string();
-
-    auto && [high_level_ibf, low_level_ibf_ids, low_level_ibfs] = create_ibfs_from_data_file(config);
-
-    EXPECT_EQ(low_level_ibfs.size(), 1u);         // one low level IBF
-    EXPECT_EQ(low_level_ibf_ids.size(), 1u);      // one low level IBF
-
-    EXPECT_EQ(low_level_ibf_ids[0], "6");      // one low level IBF
-
-    EXPECT_EQ(high_level_ibf.bin_size(), 114226);
-    EXPECT_EQ(low_level_ibfs[0].bin_size(), 76615);
-
-    EXPECT_EQ(high_level_ibf.bin_count(), 7);
-    EXPECT_EQ(low_level_ibfs[0].bin_count(), 5u); // with 5 user bins
-
-    // The traversal files are made up like the following
-    // Note that the function `read_data_file_and_set_high_level_bins()` will output all split bin first
-    // and only then the merged bins, so the order of high level bins does not correspond exactly to the
-    // order of the traversal file.
-
+    // The traversal file is made up like the following
     // HIGH LEVEL IBF
     // --------------
     // Bin 0: seq1, seq2
@@ -107,12 +69,30 @@ TEST(chopper_count_test, small_example_parallel_2_threads)
     // Bin 3: seq1, seq2
     // Bin 4: seq3
 
+    build_config config{};
+    config.k = 15;
+    config.traversal_filename = traversal_filename.get_path().string();
+
+    auto && [high_level_ibf/*, low_level_ibf_ids*/, low_level_ibfs] = create_ibfs(config);
+
+    EXPECT_EQ(low_level_ibfs.size(), 7u);
+    for (size_t i = 0; i < low_level_ibfs.size(); ++i)
+    {
+        if (i != 6)
+            EXPECT_EQ(low_level_ibfs[i].bin_size(), 1u); // dummy bin
+    }
+    EXPECT_EQ(high_level_ibf.bin_size(), 114226);
+    EXPECT_EQ(low_level_ibfs[6].bin_size(), 76615);
+
+    EXPECT_EQ(high_level_ibf.bin_count(), 7);
+    EXPECT_EQ(low_level_ibfs[6].bin_count(), 5u); // with 5 user bins
+
     auto unspecific = "ACGATCGACTAGGAGCGATTACGACTGACTACATCTAGCTAGCTAGAGATTCTTCAGAGCTTAGCGATCTCGAGCTATCG"_dna4;
     auto seq2_specific = "ATATCGATCGAGCGAGGCAGGCAGCGATCGAGCGAGCGCATGCAGCGACTAGCTACGACAGCTACTATCAGCAGCGAGCG"_dna4;
     auto seq3_specific = "ATCGATCACGATCAGCGAGCGATATCTTATCGTAGGCATCGAGCATCGAGGAGCGATCTATCTATCTATCATCTATCTAT"_dna4;
 
     auto high_level_agent = high_level_ibf.membership_agent();
-    auto low_level_agent = low_level_ibfs[0].membership_agent();
+    auto low_level_agent = low_level_ibfs[6].membership_agent();
 
     { // UNSPECIFIC - unspecific region should be found in all bins
         std::vector<size_t> high_level_counts(high_level_agent.result_buffer.size());
@@ -206,29 +186,19 @@ TEST(chopper_count_test, small_example_parallel_2_threads)
     }
 }
 
-TEST(chopper_count_test, config_overlap)
+TEST(create_ibfs_test, config_overlap)
 {
     std::string input_filename1 = DATADIR"small.fa";
-    seqan3::test::tmp_filename data_filename{"data.tsv"};
+    seqan3::test::tmp_filename traversal_filename{"test.traverse"};
 
-    seqan3::test::tmp_filename traversal_dir{""};
-    std::string traversal_split_bin0{traversal_dir.get_path().string() + "/SPLIT_BIN_0.out"};
-
-    // generate data files
-    {
-        std::ofstream fout{data_filename.get_path()};
+    { // generate traversal file
+        std::ofstream fout{traversal_filename.get_path()};
         fout << "#HIGH_LEVEL_IBF max_bin_id:SPLIT_BIN_0\n"
-             << "#BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n"
-             << "SPLIT_BIN_0\t" << input_filename1 << "\t3\t500\n";
-    }
-
-    {
-        std::ofstream fout{traversal_split_bin0};
-        fout << "FILE_ID\tSEQ_ID\tBEGIN\tEND\tBIN_NUMBER\n"
-             << input_filename1 << "\tseq1\t0\t400\t0\n"
-             << input_filename1 << "\tseq2\t0\t480\t0\n"
-             << input_filename1 << "\tseq3\t0\t240\t1\n"
-             << input_filename1 << "\tseq3\t240\t481\t2\n";
+             << "#FILE_ID\tSEQ_ID\tBEGIN\tEND\tHIBF_BIN_IDX\tLIBF_BIN_IDX\n"
+             << input_filename1 << "\tseq1\t0\t400\t0\t-\n"
+             << input_filename1 << "\tseq2\t0\t480\t0\t-\n"
+             << input_filename1 << "\tseq3\t0\t240\t1\t-\n"
+             << input_filename1 << "\tseq3\t240\t481\t2\t-\n";
     }
 
     // The traversal files are made up like the following
@@ -243,14 +213,15 @@ TEST(chopper_count_test, config_overlap)
 
     auto produce_results = [&] (auto & config)
     {
-        config.traversal_path_prefix = traversal_dir.get_path().string() + "/";
-        config.binning_filename = data_filename.get_path().string();
+        config.traversal_filename = traversal_filename.get_path().string();
         config.k = 15;
 
-        auto && [high_level_ibf, low_level_ibf_ids, low_level_ibfs] = create_ibfs_from_data_file(config);
+        auto && [high_level_ibf, low_level_ibfs] = create_ibfs(config);
 
         EXPECT_EQ(high_level_ibf.bin_count(), 3);
-        EXPECT_EQ(low_level_ibfs.size(), 0u); // no low level IBF
+        EXPECT_EQ(low_level_ibfs.size(), 3u); // but all LIBFS in list are dummys
+        for (size_t i = 0; i < low_level_ibfs.size(); ++i)
+            EXPECT_EQ(low_level_ibfs[i].bin_size(), 1u); // dummy bin
 
         auto high_level_agent = high_level_ibf.membership_agent();
         std::vector<size_t> high_level_counts(high_level_agent.result_buffer.size());
@@ -316,81 +287,66 @@ TEST(chopper_count_test, config_overlap)
     }
 }
 
-TEST(create_ibfs_from_data_file_test, high_level_size)
+TEST(create_ibfs_test, high_level_size)
 {
     std::string input_filename1 = DATADIR"small.fa";
     seqan3::test::tmp_filename data_filename{"data.tsv"};
 
-    seqan3::test::tmp_filename traversal_dir{""};
-    std::string traversal_split_bin0{traversal_dir.get_path().string() + "/SPLIT_BIN_0.out"};
-    std::string traversal_merged_bin2{traversal_dir.get_path().string() + "/LOW_LEVEL_IBF_2.out"};
+    seqan3::test::tmp_filename traversal_file{"test.traverse"};
 
+    std::string travsersal_file_body
     {
-        std::ofstream fout{traversal_split_bin0};
-        fout << "FILE_ID\tSEQ_ID\tBEGIN\tEND\tBIN_NUMBER\n"
-             << input_filename1 << "\tseq1\t0\t400\t0\n"
-             << input_filename1 << "\tseq2\t0\t480\t1\n"
-             << input_filename1 << "\tseq3\t0\t481\t2\n";
-    }
-    {
-        std::ofstream fout{traversal_merged_bin2};
-        fout << "FILE_ID\tSEQ_ID\tBEGIN\tEND\tBIN_NUMBER\n"
-             /*MERGED_BIN_2_0*/
-             << input_filename1 << "\tseq1\t0\t400\t0\n"
-             << input_filename1 << "\tseq2\t0\t480\t1\n"
-             << input_filename1 << "\tseq3\t0\t481\t2\n";
-    }
+        "#FILE_ID\tSEQ_ID\tBEGIN\tEND\tHIBF_BIN_IDX\tLIBF_BIN_IDX\n" +
+        /*SPLIT_BIN_0*/
+        input_filename1 + "\tseq1\t0\t400\t0\t-\n" +
+        input_filename1 + "\tseq2\t0\t480\t1\t-\n" +
+        input_filename1 + "\tseq3\t0\t481\t2\t-\n" +
+        /*MERGED_BIN_3*/
+        input_filename1 + "\tseq1\t0\t400\t3\t0\n" +
+        input_filename1 + "\tseq2\t0\t480\t3\t1\n" +
+        input_filename1 + "\tseq3\t0\t481\t3\t2\n"
+    };
 
     build_config config{};
     config.k = 15;
-    config.traversal_path_prefix = traversal_dir.get_path().string() + "/";
-    config.binning_filename = data_filename.get_path().string();
+    config.traversal_filename = traversal_file.get_path().string();
 
-    { // Split bin 1 is highest record
+    { // Split bin 0 is highest record - bin 0 DOES NOT include all sequences
         {
-            std::ofstream fout{data_filename.get_path()};
-            fout << "#MERGED_BIN_2 max_bin_id:0\n"
-                 << "#HIGH_LEVEL_IBF max_bin_id:SPLIT_BIN_1\n"
-                 << "#BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n"
-                 << "SPLIT_BIN_0\t" << input_filename1 << "\t3\t500\n"
-                 << "SPLIT_BIN_1\t" << input_filename1 + "\t1\t1000\n"
-                 << "MERGED_BIN_2_0\t" << input_filename1 << "\t3\t500\n";
+            std::ofstream fout{traversal_file.get_path()};
+            fout << "#MERGED_BIN_3 max_bin_id:0\n"
+                 << "#HIGH_LEVEL_IBF max_bin_id:SPLIT_BIN_0\n"
+                 << travsersal_file_body;
         }
 
-        auto && [high_level_ibf, low_level_ibf_ids, low_level_ibfs] = create_ibfs_from_data_file(config);
+        auto && [high_level_ibf, low_level_ibfs] = create_ibfs(config);
 
-        EXPECT_EQ(high_level_ibf.bin_size(), 114226);
+        EXPECT_EQ(high_level_ibf.bin_size(), 76615);
+    }
+
+    { // Split bin 1 is highest record - bin 1 DOES NOT include all sequences but more that bin 0
+        {
+            std::ofstream fout{traversal_file.get_path()};
+            fout << "#MERGED_BIN_3 max_bin_id:0\n"
+                 << "#HIGH_LEVEL_IBF max_bin_id:SPLIT_BIN_1\n"
+                 << travsersal_file_body;
+        }
+
+        auto && [high_level_ibf, low_level_ibfs] = create_ibfs(config);
+
+        EXPECT_EQ(high_level_ibf.bin_size(), 92535);
     }
 
     { // merged bin is highest record - should result in same size as split bin 1, because of the same sequence content
         {
-            std::ofstream fout{data_filename.get_path()};
-            fout << "#MERGED_BIN_2 max_bin_id:0\n"
-                 << "#HIGH_LEVEL_IBF max_bin_id:MERGED_BIN_2\n"
-                 << "#BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n"
-                 << "SPLIT_BIN_0\t" << input_filename1 << "\t3\t500\n"
-                 << "SPLIT_BIN_1\t" << input_filename1 + "\t1\t500\n"
-                 << "MERGED_BIN_2_0\t" << input_filename1 << "\t3\t1000\n";
+            std::ofstream fout{traversal_file.get_path()};
+            fout << "#MERGED_BIN_3 max_bin_id:0\n"
+                 << "#HIGH_LEVEL_IBF max_bin_id:MERGED_BIN_3\n"
+                 << travsersal_file_body;
         }
 
-        auto && [high_level_ibf, low_level_ibf_ids, low_level_ibfs] = create_ibfs_from_data_file(config);
+        auto && [high_level_ibf, low_level_ibfs] = create_ibfs(config);
 
         EXPECT_EQ(high_level_ibf.bin_size(), 114226);
-    }
-
-    { // Split bin 0 is highest record - bin 0 DOES NOT inlcude all sequences
-        {
-            std::ofstream fout{data_filename.get_path()};
-            fout << "#MERGED_BIN_2 max_bin_id:0\n"
-                 << "#HIGH_LEVEL_IBF max_bin_id:SPLIT_BIN_0\n"
-                 << "#BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n"
-                 << "SPLIT_BIN_0\t" << input_filename1 << "\t3\t1000\n"
-                 << "SPLIT_BIN_1\t" << input_filename1 + "\t1\t500\n"
-                 << "MERGED_BIN_2_0\t" << input_filename1 << "\t3\t500\n";
-        }
-
-        auto && [high_level_ibf, low_level_ibf_ids, low_level_ibfs] = create_ibfs_from_data_file(config);
-
-        EXPECT_EQ(high_level_ibf.bin_size(), 76615);
     }
 }

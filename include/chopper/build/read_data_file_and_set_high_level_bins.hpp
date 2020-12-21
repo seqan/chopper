@@ -8,14 +8,14 @@
 #include <seqan3/std/charconv>
 
 #include <chopper/build/build_config.hpp>
-#include <chopper/build/header_data.hpp>
+#include <chopper/build/build_data.hpp>
 #include <chopper/detail_bin_prefixes.hpp>
 #include <chopper/detail_parse_binning_line.hpp>
 #include <chopper/detail_starts_with.hpp>
 
 auto read_data_file_and_set_high_level_bins(build_config const & config)
 {
-    header_data header;
+    build_data header;
     std::vector<data_file_record> records{};
 
     std::unordered_map<std::string, data_file_record> low_level_records{};

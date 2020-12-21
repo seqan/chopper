@@ -2,7 +2,7 @@
 
 struct build_config
 {
-    std::string traversal_path_prefix{};
+    std::string traversal_filename{};
     std::string binning_filename{};
     std::string output_prefix{"./"};
     bool verbose{false};

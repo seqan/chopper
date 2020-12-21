@@ -5,6 +5,8 @@
 
 #include <seqan3/std/charconv>
 
+#include <chopper/build/region.hpp>
+
 auto parse_traversal_file_line(std::string const & line)
 {
     char const * buffer = line.c_str();
@@ -23,25 +25,34 @@ auto parse_traversal_file_line(std::string const & line)
 
     std::string const id(field_start, field_end);
 
+    region reg{};
+
     // read begin
-    size_t begin{};
     assert(*field_end == '\t');
     ++field_end;
-    auto res = std::from_chars(field_end, buffer_end, begin);
+    auto res = std::from_chars(field_end, buffer_end, reg.begin);
     field_end = res.ptr;
 
     // read end
-    size_t end{};
     assert(*field_end == '\t');
     ++field_end;
-    res = std::from_chars(field_end, buffer_end, end);
+    res = std::from_chars(field_end, buffer_end, reg.end);
     field_end = res.ptr;
 
-    // read bin index
-    size_t bin_index{};
+    // read hibf bin index
     assert(*field_end == '\t');
     ++field_end;
-    res = std::from_chars(field_end, buffer_end, bin_index);
+    res = std::from_chars(field_end, buffer_end, reg.hidx);
+    field_end = res.ptr;
 
-    return std::make_tuple(std::move(filename), std::move(id), begin, end, bin_index);
+    // read libf bin index
+    assert(*field_end == '\t');
+    ++field_end;
+
+    if (*field_end == '-')
+        reg.lidx = -1;
+    else
+        res = std::from_chars(field_end, buffer_end, reg.lidx);
+
+    return std::make_tuple(std::move(filename), std::move(id), std::move(reg));
 }
