@@ -25,6 +25,9 @@ int set_up_and_parse_subparser_split(seqan3::argument_parser & parser, pack_conf
     parser.add_option(config.bins, 'b', "technical-bins",
                       "Into how many technical bins do you want your sequence data to be packed?");
 
+    parser.add_option(config.alpha, 'a', "alpha",
+                      "The scaling factor to influence the number of merged bins.");
+
     parser.add_option(config.output_filename, 'o', "outfile",
                       "An output file name for the binning results.");
 
