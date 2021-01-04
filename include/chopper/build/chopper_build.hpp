@@ -19,7 +19,7 @@ void initialize_argument_parser(seqan3::argument_parser & parser, build_config &
     parser.info.short_description = "Build IBF on results from chopper-split.";
     parser.info.version = "1.0.0";
 
-    parser.add_option(config.traversal_filename, 'p', "traversal", "Provide the traversal files from chopper split.");
+    parser.add_option(config.chopper_split_filename, 's', "split-file", "Provide the file produced by chopper split.");
     parser.add_option(config.k, 'k', "kmer-size", "The kmer size to build kmers.");
     parser.add_option(config.overlap, 'l', "overlap", "The overlap between split regions of the same sequence.");
     parser.add_option(config.FPR, 'r', "false-positive-rate", "The minimum false positive rate of every IBF.");

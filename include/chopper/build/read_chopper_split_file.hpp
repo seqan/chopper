@@ -16,7 +16,7 @@
 #include <chopper/detail_parse_binning_line.hpp>
 #include <chopper/detail_starts_with.hpp>
 
-void parse_traversal_header_line(std::string const & line, build_data & data)
+void parse_chopper_split_header_line(std::string const & line, build_data & data)
 {
     if (line.substr(1, hibf_prefix.size()) == hibf_prefix)
     {
@@ -42,7 +42,7 @@ void parse_traversal_header_line(std::string const & line, build_data & data)
     }
 }
 
-auto parse_traversal_line(std::string const & line)
+auto parse_chopper_split_line(std::string const & line)
 {
     char const * buffer = line.c_str();
     auto field_start = &buffer[0];
@@ -92,22 +92,22 @@ auto parse_traversal_line(std::string const & line)
     return std::make_tuple(std::move(filename), std::move(id), std::move(reg));
 }
 
-auto read_traversal_file(std::string const & traversal_filename)
+auto read_chopper_split_file(std::string const & chopper_split_filename)
 {
     build_data data;
     std::vector<data_file_record> records{};
     std::vector<batch> batches{};
 
-    std::ifstream traversal_file{traversal_filename};
+    std::ifstream chopper_split_file{chopper_split_filename};
 
-    if (!traversal_file.good() || !traversal_file.is_open())
+    if (!chopper_split_file.good() || !chopper_split_file.is_open())
         throw std::logic_error{"Could not open file for reading"};
 
     // parse data
     // -------------------------------------------------------------------------
     std::string current_line;
-    while (std::getline(traversal_file, current_line) && current_line[0] == '#')
-        parse_traversal_header_line(current_line, data);
+    while (std::getline(chopper_split_file, current_line) && current_line[0] == '#')
+        parse_chopper_split_header_line(current_line, data);
 
     // parse lines into vectors which are parsed into batches in the next step
     // -------------------------------------------------------------------------
@@ -115,7 +115,7 @@ auto read_traversal_file(std::string const & traversal_filename)
     std::vector<int64_t> libf_bins_per_hbin{}; // temporary storage for number of low level bins if any
     do
     {
-        auto const && [filename, seq_id, region_record] = parse_traversal_line(current_line);
+        auto const && [filename, seq_id, region_record] = parse_chopper_split_line(current_line);
         data.num_libfs += (region_record.lidx != -1);
 
         std::string const file_seq_id{filename + seq_id};
@@ -130,7 +130,7 @@ auto read_traversal_file(std::string const & traversal_filename)
         files_per_hbin[region_record.hidx].insert(filename);
         libf_bins_per_hbin[region_record.hidx] = std::max(libf_bins_per_hbin[region_record.hidx], region_record.lidx + 1);
 
-    } while (std::getline(traversal_file, current_line));
+    } while (std::getline(chopper_split_file, current_line));
 
     // process files_per_hbin into batches
     // -------------------------------------------------------------------------

@@ -10,10 +10,10 @@
 
 TEST_F(cli_test, small_example_only_high_level_bins)
 {
-    seqan3::test::tmp_filename traversal_filename{"traversal.out"};
+    seqan3::test::tmp_filename chopper_split_filename{"small.split"};
 
     {
-        std::ofstream fout{traversal_filename.get_path()};
+        std::ofstream fout{chopper_split_filename.get_path()};
         fout << data("small.fa").string() << "\tseq1\t0\t163\t0\t-\n"
              << data("small.fa").string() << "\tseq2\t0\t186\t0\t-\n"
              << data("small.fa").string() << "\tseq3\t0\t163\t0\t-\n"
@@ -34,11 +34,9 @@ TEST_F(cli_test, small_example_only_high_level_bins)
              << data("small2.fa").string() << "\tseq30\t284\t481\t2\t-\n";
     };
 
-    seqan3::test::tmp_filename output_filename{"small_traverse.out"};
-
     cli_test_result result = execute_app("count_kmers_per_bin",
                                          "-l", "0",
-                                         "-f", traversal_filename.get_path().c_str());
+                                         "-f", chopper_split_filename.get_path().c_str());
 
     std::string expected_stdout
     {

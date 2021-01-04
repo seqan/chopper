@@ -4,37 +4,37 @@
 #include <seqan3/test/expect_range_eq.hpp>
 #include <seqan3/test/tmp_filename.hpp>
 
-#include <chopper/build/read_traversal_file.hpp>
+#include <chopper/build/read_chopper_split_file.hpp>
 
-TEST(parse_traversal_header_line_test, max_hibf_bin_line)
+TEST(parse_chopper_split_header_line_test, max_hibf_bin_line)
 {
     std::string const line{"#HIGH_LEVEL_IBF max_bin_id:MERGED_BIN_2"};
 
     build_data data;
-    parse_traversal_header_line(line, data);
+    parse_chopper_split_header_line(line, data);
 
     EXPECT_EQ(data.hibf_max_bin, 2);
 }
 
-TEST(parse_traversal_header_line_test, max_libf_bin_line)
+TEST(parse_chopper_split_header_line_test, max_libf_bin_line)
 {
     std::string const line1{"#MERGED_BIN_2 max_bin_id:16"};
     std::string const line2{"#MERGED_BIN_24 max_bin_id:160"};
 
     build_data data;
-    parse_traversal_header_line(line1, data);
-    parse_traversal_header_line(line2, data);
+    parse_chopper_split_header_line(line1, data);
+    parse_chopper_split_header_line(line2, data);
 
     EXPECT_EQ(data.merged_max_bin_map.size(), 2);
     EXPECT_EQ(data.merged_max_bin_map.at(2), 16);
     EXPECT_EQ(data.merged_max_bin_map.at(24), 160);
 }
 
-TEST(parse_traversal_line_test, small_example)
+TEST(parse_chopper_split_line_test, small_example)
 {
     std::string const example_line{"file1\tseq1\t216\t400\t10\t5\n"};
 
-    auto && [filename, id, reg] = parse_traversal_line(example_line);
+    auto && [filename, id, reg] = parse_chopper_split_line(example_line);
 
     EXPECT_EQ(filename, "file1");
     EXPECT_EQ(id, "seq1");
@@ -44,11 +44,11 @@ TEST(parse_traversal_line_test, small_example)
     EXPECT_EQ(reg.lidx, 5);
 }
 
-TEST(parse_traversal_line_test, low_level_idx_not_given)
+TEST(parse_chopper_split_line_test, low_level_idx_not_given)
 {
     std::string const example_line{"file1\tseq1\t216\t400\t10\t-\n"};
 
-    auto && [filename, id, reg] = parse_traversal_line(example_line);
+    auto && [filename, id, reg] = parse_chopper_split_line(example_line);
 
     EXPECT_EQ(filename, "file1");
     EXPECT_EQ(id, "seq1");
@@ -58,15 +58,15 @@ TEST(parse_traversal_line_test, low_level_idx_not_given)
     EXPECT_EQ(reg.lidx, -1);
 }
 
-TEST(read_traversal_file_test, small_example)
+TEST(read_chopper_split_file_test, small_example)
 {
     std::string seq_filename = "test.fa";
     std::string seq_filename2 = "test1.fa";
     std::string seq_filename3 = "test2.fa";
-    seqan3::test::tmp_filename traversal_filename{"test.traverse"};
+    seqan3::test::tmp_filename chopper_split_filename{"test.split"};
 
     { // write example file
-        std::ofstream fout{traversal_filename.get_path()};
+        std::ofstream fout{chopper_split_filename.get_path()};
         fout << "#MERGED_BIN_2 max_bin_id:1\n"
              << "#HIGH_LEVEL_IBF max_bin_id:MERGED_BIN_2\n"
              << "#FILE_ID\tSEQ_ID\tBEGIN\tEND\tHIBF_BIN_IDX\tLIBF_BIN_IDX\n"
@@ -100,7 +100,7 @@ TEST(read_traversal_file_test, small_example)
              << seq_filename3 + "\tseq3\t284\t481\t5\t-\n";
     }
 
-    auto const && [data, batches] = read_traversal_file(traversal_filename.get_path().string());
+    auto const && [data, batches] = read_chopper_split_file(chopper_split_filename.get_path().string());
 
     // check data from header information
     EXPECT_EQ(data.hibf_max_bin, 2);
@@ -175,14 +175,14 @@ TEST(read_traversal_file_test, small_example)
     EXPECT_EQ(*data.hibf_max_batch_record, expected_batches[0]); // MERGED_BIN_2
 }
 
-TEST(read_traversal_file_test, merged_file_in_the_end)
+TEST(read_chopper_split_file_test, merged_file_in_the_end)
 {
     std::string seq_filename = "test.fa";
     std::string seq_filename2 = "test2.fa";
-    seqan3::test::tmp_filename traversal_filename{"test.traverse"};
+    seqan3::test::tmp_filename chopper_split_filename{"test.split"};
 
     { // write example file
-        std::ofstream fout{traversal_filename.get_path()};
+        std::ofstream fout{chopper_split_filename.get_path()};
         fout << "#MERGED_BIN_2 max_bin_id:1\n"
              << "#HIGH_LEVEL_IBF max_bin_id:MERGED_BIN_2\n"
              << "#FILE_ID\tSEQ_ID\tBEGIN\tEND\tHIBF_BIN_IDX\tLIBF_BIN_IDX\n"
@@ -206,7 +206,7 @@ TEST(read_traversal_file_test, merged_file_in_the_end)
              << seq_filename2 + "\tseq30\t0\t481\t2\t2\n";
     }
 
-    auto const && [data, batches] = read_traversal_file(traversal_filename.get_path().string());
+    auto const && [data, batches] = read_chopper_split_file(chopper_split_filename.get_path().string());
 
     // check data from header information
     EXPECT_EQ(data.hibf_max_bin, 2);
@@ -226,14 +226,14 @@ TEST(read_traversal_file_test, merged_file_in_the_end)
     EXPECT_RANGE_EQ(batches, expected_batches);
 }
 
-TEST(read_traversal_file_test, merged_file_with_distinct_files)
+TEST(read_chopper_split_file_test, merged_file_with_distinct_files)
 {
     std::string seq_filename = "test.fa";
     std::string seq_filename2 = "test2.fa";
-    seqan3::test::tmp_filename traversal_filename{"test.traverse"};
+    seqan3::test::tmp_filename chopper_split_filename{"test.split"};
 
     { // write example file
-        std::ofstream fout{traversal_filename.get_path()};
+        std::ofstream fout{chopper_split_filename.get_path()};
         fout << "#MERGED_BIN_0 max_bin_id:1\n"
              << "#HIGH_LEVEL_IBF max_bin_id:MERGED_BIN_0\n"
              << "#FILE_ID\tSEQ_ID\tBEGIN\tEND\tHIBF_BIN_IDX\tLIBF_BIN_IDX\n"
@@ -250,7 +250,7 @@ TEST(read_traversal_file_test, merged_file_with_distinct_files)
              << seq_filename + "\tseq3\t0\t481\t0\t2\n";
     }
 
-    auto const && [data, batches] = read_traversal_file(traversal_filename.get_path().string());
+    auto const && [data, batches] = read_chopper_split_file(chopper_split_filename.get_path().string());
 
     // check data from header information
     EXPECT_EQ(data.hibf_max_bin, 0);
@@ -269,14 +269,14 @@ TEST(read_traversal_file_test, merged_file_with_distinct_files)
     EXPECT_RANGE_EQ(batches, expected_batches);
 }
 
-TEST(read_traversal_file_test, split_file_with_distinct_files)
+TEST(read_chopper_split_file_test, split_file_with_distinct_files)
 {
     std::string seq_filename = "test.fa";
     std::string seq_filename2 = "test2.fa";
-    seqan3::test::tmp_filename traversal_filename{"test.traverse"};
+    seqan3::test::tmp_filename chopper_split_filename{"test.split"};
 
     { // write example file
-        std::ofstream fout{traversal_filename.get_path()};
+        std::ofstream fout{chopper_split_filename.get_path()};
         fout << "#MERGED_BIN_3 max_bin_id:1\n"
              << "#HIGH_LEVEL_IBF max_bin_id:MERGED_BIN_3\n"
              << "#FILE_ID\tSEQ_ID\tBEGIN\tEND\tHIBF_BIN_IDX\tLIBF_BIN_IDX\n"
@@ -299,7 +299,7 @@ TEST(read_traversal_file_test, split_file_with_distinct_files)
              << seq_filename + "\tseq3\t209\t481\t3\t1\n";
     }
 
-    auto const && [data, batches] = read_traversal_file(traversal_filename.get_path().string());
+    auto const && [data, batches] = read_chopper_split_file(chopper_split_filename.get_path().string());
 
     // check data from header information
     EXPECT_EQ(data.hibf_max_bin, 3);
@@ -320,13 +320,13 @@ TEST(read_traversal_file_test, split_file_with_distinct_files)
     EXPECT_RANGE_EQ(batches, expected_batches);
 }
 
-TEST(read_traversal_file_test, split_bin_is_highest_bin)
+TEST(read_chopper_split_file_test, split_bin_is_highest_bin)
 {
     std::string seq_filename = "test.fa";
-    seqan3::test::tmp_filename traversal_filename{"test.traverse"};
+    seqan3::test::tmp_filename chopper_split_filename{"test.split"};
 
     { // write example file
-        std::ofstream fout{traversal_filename.get_path()};
+        std::ofstream fout{chopper_split_filename.get_path()};
         fout << "#MERGED_BIN_3 max_bin_id:1\n"
              << "#HIGH_LEVEL_IBF max_bin_id:SPLIT_BIN_0\n"
              << "#FILE_ID\tSEQ_ID\tBEGIN\tEND\tHIBF_BIN_IDX\tLIBF_BIN_IDX\n"
@@ -343,7 +343,7 @@ TEST(read_traversal_file_test, split_bin_is_highest_bin)
              << seq_filename + "\tseq3\t209\t481\t3\t1\n";
     }
 
-    auto const && [data, batches] = read_traversal_file(traversal_filename.get_path().string());
+    auto const && [data, batches] = read_chopper_split_file(chopper_split_filename.get_path().string());
 
     EXPECT_EQ(data.hibf_max_bin, 0);
 

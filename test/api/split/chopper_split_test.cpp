@@ -15,7 +15,7 @@ TEST(chopper_split_test, simple_example)
 {
     std::string input_filename1 = DATADIR"small.fa";
     std::string input_filename2 = DATADIR"small2.fa";
-    seqan3::test::tmp_filename output_filename{"small_traverse.out"};
+    seqan3::test::tmp_filename output_filename{"small.split"};
     const char * argv[] = {"./chopper-split", "-k", "15", "-w", "25", "-b", "3",
                            "-s", input_filename1.c_str(), "-s", input_filename2.c_str(),
                            "-o", output_filename.get_path().c_str()};
@@ -81,7 +81,7 @@ TEST(chopper_split_test, data_file_as_input)
              << "SPLIT_BIN_5\t" << input_filename2 + "\t3\t1000\n";
     }
 
-    seqan3::test::tmp_filename output_filename{"traverse"};
+    seqan3::test::tmp_filename output_filename{"small.split"};
 
     const char * argv[] = {"./chopper-split", "-k", "15", "-w", "25",
                            "-f", data_filename.get_path().c_str(),
@@ -164,7 +164,7 @@ TEST(chopper_split_test, big_fat_nodes)
              << "ACTGATCAGGGAGCTAGCAGGCAGGCAGCAGCTAGCGAGCGATCGAGCATCGAGCATCGAGCGATCGACGATCGACTAGC\n";
     }
 
-    seqan3::test::tmp_filename output_filename{"small_traverse.out"};
+    seqan3::test::tmp_filename output_filename{"small.split"};
     const char * argv[] = {"./chopper-split", "-k", "5", "-w", "7", "-b", "5",
                            "-s", seq_file.get_path().c_str(),
                            "-o", output_filename.get_path().c_str()};

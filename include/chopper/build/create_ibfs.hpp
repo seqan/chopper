@@ -16,9 +16,9 @@
 
 #include <chopper/build/batch.hpp>
 #include <chopper/build/build_config.hpp>
-#include <chopper/build/parse_traversal_file_line.hpp>
+#include <chopper/build/parse_chopper_split_file_line.hpp>
 #include <chopper/build/read_data_file_and_set_high_level_bins.hpp>
-#include <chopper/build/read_traversal_file.hpp>
+#include <chopper/build/read_chopper_split_file.hpp>
 #include <chopper/detail_bin_prefixes.hpp>
 
 struct file_type_traits : public seqan3::sequence_file_input_default_traits_dna
@@ -176,7 +176,7 @@ auto process_bin(build_config const & config,
 
 auto create_ibfs(build_config const & config)
 {
-    auto const [data, batches] = read_traversal_file(config.traversal_filename);
+    auto const [data, batches] = read_chopper_split_file(config.chopper_split_filename);
 
     auto high_level_ibf = initialise_hibf(config, data);
 

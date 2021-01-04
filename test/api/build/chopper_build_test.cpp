@@ -18,11 +18,11 @@ TEST(chopper_count_test, small_example_parallel_2_threads)
     std::string input_filename2 = DATADIR"small2.fa";
     seqan3::test::tmp_filename data_filename{"data.tsv"};
 
-    seqan3::test::tmp_filename traversal_filename{"test.traverse"};
+    seqan3::test::tmp_filename chopper_split_filename{"test.split"};
 
     // generate data files
     {
-        std::ofstream fout{traversal_filename.get_path()};
+        std::ofstream fout{chopper_split_filename.get_path()};
         fout << "#MERGED_BIN_6 max_bin_id:0\n"
              << "#HIGH_LEVEL_IBF max_bin_id:MERGED_BIN_6\n"
              << "#FILE_ID\tSEQ_ID\tBEGIN\tEND\tHIBF_BIN_IDX\tLIBF_BIN_IDX\n"
@@ -53,7 +53,7 @@ TEST(chopper_count_test, small_example_parallel_2_threads)
     seqan3::test::tmp_filename output_prefix{"TEST_"};
     const char * argv[] = {"./chopper-build",
                            "-k", "15",
-                           "-p", traversal_filename.get_path().c_str(),
+                           "-s", chopper_split_filename.get_path().c_str(),
                            "-o", output_prefix.get_path().c_str()};
     int argc = 7;
     seqan3::argument_parser build_parser{"chopper-build", argc, argv, false};

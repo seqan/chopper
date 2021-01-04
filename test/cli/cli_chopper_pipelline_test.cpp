@@ -81,23 +81,23 @@ TEST_F(cli_test, chopper_pipeline)
 
     // CHOPPER SPLIT
     // =========================================================================
-    seqan3::test::tmp_filename const traversal_filename{"traversal.out"};
+    seqan3::test::tmp_filename const chopper_split_filename{"small.split"};
 
     cli_test_result split_result = execute_app("chopper", "split",
                                                "-k", "15",
                                                "-w", "25",
                                                "-f", binning_filename.get_path().c_str(),
-                                               "-o", traversal_filename.get_path().c_str());
+                                               "-o", chopper_split_filename.get_path().c_str());
 
     // compare results
-    ASSERT_TRUE(std::filesystem::exists(traversal_filename.get_path()));
-    ASSERT_TRUE(std::filesystem::exists(data("traversal.out")));
+    ASSERT_TRUE(std::filesystem::exists(chopper_split_filename.get_path()));
+    ASSERT_TRUE(std::filesystem::exists(data("small.split")));
 
-    std::ifstream output_file{traversal_filename.get_path()};
-    std::ifstream expected_traversal_file{data("traversal.out")};
+    std::ifstream output_file{chopper_split_filename.get_path()};
+    std::ifstream expected_chopper_split_file{data("small.split")};
 
     std::string const output_file_str((std::istreambuf_iterator<char>(output_file)), std::istreambuf_iterator<char>());
-    std::string const expected_file_str((std::istreambuf_iterator<char>(expected_traversal_file)), std::istreambuf_iterator<char>());
+    std::string const expected_file_str((std::istreambuf_iterator<char>(expected_chopper_split_file)), std::istreambuf_iterator<char>());
 
     EXPECT_EQ(output_file_str, expected_file_str);
 }

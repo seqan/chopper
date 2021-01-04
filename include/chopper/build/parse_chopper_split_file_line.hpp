@@ -7,7 +7,7 @@
 
 #include <chopper/build/region.hpp>
 
-auto parse_traversal_file_line(std::string const & line)
+auto parse_chopper_split_file_line(std::string const & line)
 {
     char const * buffer = line.c_str();
     auto field_start = &buffer[0];

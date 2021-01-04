@@ -24,7 +24,7 @@ TEST_F(cli_test, no_options)
 
 TEST_F(cli_test, with_out_file)
 {
-    seqan3::test::tmp_filename output_filename{"small_traverse.out"};
+    seqan3::test::tmp_filename output_filename{"small.split"};
 
     cli_test_result result = execute_app("chopper", "split",
                                          "-k", "15", "-w", "25", "-b", "3",

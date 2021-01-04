@@ -30,6 +30,6 @@ declare_datasource (FILE seqinfo.tsv
                     URL ${CMAKE_SOURCE_DIR}/test/data/seqinfo.tsv
                     URL_HASH SHA256=c6e28cc4ebf4902c41b1c237b1410665994e0fd0b8d8473c38a8107041d78172)
 
-declare_datasource (FILE traversal.out
-                    URL ${CMAKE_SOURCE_DIR}/test/data/traversal.out
+declare_datasource (FILE small.split
+                    URL ${CMAKE_SOURCE_DIR}/test/data/small.split
                     URL_HASH SHA256=508f08905e2844f3cdfbad4d12488a474a24fa40e1da7c51025561fca821f07b)

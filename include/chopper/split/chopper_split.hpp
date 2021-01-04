@@ -21,7 +21,7 @@ int set_up_and_parse_subparser_split(seqan3::argument_parser & parser, split_con
     parser.add_flag(config.verbose, 'v', "verbose", "Ooutput verbose logging information.");
     parser.add_option(config.data_filename, 'f', "binning-file", "A high_level_ibf.binning or low_level_ibfs.binning file.");
     parser.add_option(config.seqfiles, 's', "seq", "Name of multi-fasta input file.");
-    parser.add_option(config.out_path, 'o', "outfile", "Name of the traversal output file.");
+    parser.add_option(config.out_path, 'o', "outfile", "Name of the output file (file extension should be .split).");
     parser.add_option(config.kmer_size, 'k', "kmer-size", "The kmer size to compute minimizer.");
     parser.add_option(config.window_size, 'w', "window-size", "The window size to compute minimizer.");
     parser.add_option(config.bins, 'b', "technical-bins", "How many technical bins do you want you sequences to be split?.");
@@ -58,7 +58,7 @@ int chopper_split(seqan3::argument_parser & parser)
 
     std::ofstream fout{config.out_path};
 
-    // transfer header from binning file to traversal
+    // transfer header from binning file to chopper_split
     {
         std::ifstream data_file{config.data_filename};
         std::string line;

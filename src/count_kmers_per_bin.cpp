@@ -10,11 +10,11 @@
 #include <seqan3/io/sequence_file/input.hpp>
 #include <seqan3/range/views/kmer_hash.hpp>
 
-#include <chopper/build/read_traversal_file.hpp>
+#include <chopper/build/read_chopper_split_file.hpp>
 
 struct cmd_arguments
 {
-    std::filesystem::path traversal_file{};
+    std::filesystem::path chopper_split_filename{};
     uint8_t k{25};
     size_t overlap{250};
     bool verbose;
@@ -26,7 +26,8 @@ void initialize_argument_parser(seqan3::argument_parser & parser, cmd_arguments 
     parser.info.short_description = "Count unique kmers in bins.";
     parser.info.version = "1.0.0";
 
-    parser.add_option(args.traversal_file, 'f', "files", "Give me a file.", seqan3::option_spec::REQUIRED);
+    parser.add_option(args.chopper_split_filename, 'f', "files", "Give me a file produced by chopper split.",
+                      seqan3::option_spec::REQUIRED);
     parser.add_option(args.k, 'k', "kmer-size", "The kmer to count with.");
     parser.add_option(args.overlap, 'l', "overlap", "The overlap between splitted bins.");
     parser.add_flag(args.verbose, 'v', "verbose", "Display more information.");
@@ -75,7 +76,7 @@ int main(int const argc, char const ** argv)
         return -1;
     }
 
-    auto [data, batches] = read_traversal_file(args.traversal_file);
+    auto [data, batches] = read_chopper_split_file(args.chopper_split_filename);
 
     std::vector<std::unordered_set<uint64_t>> kmer_counts;
 

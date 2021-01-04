@@ -1,13 +1,13 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
-#include <chopper/build/parse_traversal_file_line.hpp>
+#include <chopper/build/parse_chopper_split_file_line.hpp>
 
-TEST(parse_traversal_file_line_test, small_example)
+TEST(parse_chopper_split_file_line_test, small_example)
 {
     std::string const example_line{"file1\tseq1\t216\t400\t10\t5\n"};
 
-    auto && [filename, id, reg] = parse_traversal_file_line(example_line);
+    auto && [filename, id, reg] = parse_chopper_split_file_line(example_line);
 
     EXPECT_EQ(filename, "file1");
     EXPECT_EQ(id, "seq1");
@@ -17,11 +17,11 @@ TEST(parse_traversal_file_line_test, small_example)
     EXPECT_EQ(reg.lidx, 5);
 }
 
-TEST(parse_traversal_file_line_test, low_level_idx_not_given)
+TEST(parse_chopper_split_file_line_test, low_level_idx_not_given)
 {
     std::string const example_line{"file1\tseq1\t216\t400\t10\t-\n"};
 
-    auto && [filename, id, reg] = parse_traversal_file_line(example_line);
+    auto && [filename, id, reg] = parse_chopper_split_file_line(example_line);
 
     EXPECT_EQ(filename, "file1");
     EXPECT_EQ(id, "seq1");
