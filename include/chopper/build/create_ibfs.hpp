@@ -16,7 +16,6 @@
 
 #include <chopper/build/batch.hpp>
 #include <chopper/build/build_config.hpp>
-#include <chopper/build/parse_chopper_split_file_line.hpp>
 #include <chopper/build/read_data_file_and_set_high_level_bins.hpp>
 #include <chopper/build/read_chopper_split_file.hpp>
 #include <chopper/detail_bin_prefixes.hpp>
