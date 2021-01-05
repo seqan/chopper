@@ -60,7 +60,7 @@ size_t compute_bin_size(build_config const & config, size_t const number_of_kmer
 auto initialise_hibf(build_config const & config, build_data const & data)
 {
     assert(data.hibf_num_technical_bins != 0);
-    std::set<size_t> kmers{};
+    std::unordered_set<size_t> kmers{};
 
     // since the packing is supposedly done with minimizers and we probably have a different setting now
     // we need to calculate the maximum bin size. Since the relative number of minimizers should always correlate
@@ -135,7 +135,7 @@ auto process_bin(build_config const & config,
         assert(batch_record.hibf_bins.size() == 1); // a merged record only corresponds to a single bin in the HIBF
         size_t const hidx = batch_record.hibf_bins[0];
 
-        std::set<size_t> kmers{};
+        std::unordered_set<size_t> kmers{};
         size_t const highest_libf_bin_idx = data.merged_max_bin_map.at(hidx);
 
         for (auto const & [combined_id, seq] : info)
