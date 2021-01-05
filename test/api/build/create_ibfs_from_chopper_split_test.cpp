@@ -8,11 +8,11 @@
 #include <seqan3/test/tmp_filename.hpp>
 #include <seqan3/alphabet/nucleotide/dna4.hpp>
 
-#include <chopper/build/create_ibfs.hpp>
+#include <chopper/build/create_ibfs_from_chopper_split.hpp>
 
 using seqan3::operator""_dna4;
 
-TEST(create_ibfs_test, small_example)
+TEST(create_ibfs_from_chopper_split_test, small_example)
 {
     std::string input_filename1 = DATADIR"small.fa";
     std::string input_filename2 = DATADIR"small2.fa";
@@ -73,7 +73,7 @@ TEST(create_ibfs_test, small_example)
     config.k = 15;
     config.chopper_split_filename = chopper_split_filename.get_path().string();
 
-    auto && [high_level_ibf/*, low_level_ibf_ids*/, low_level_ibfs] = create_ibfs(config);
+    auto && [high_level_ibf/*, low_level_ibf_ids*/, low_level_ibfs] = create_ibfs_from_chopper_split(config);
 
     EXPECT_EQ(low_level_ibfs.size(), 7u);
     for (size_t i = 0; i < low_level_ibfs.size(); ++i)
@@ -186,7 +186,7 @@ TEST(create_ibfs_test, small_example)
     }
 }
 
-TEST(create_ibfs_test, config_overlap)
+TEST(create_ibfs_from_chopper_split_test, config_overlap)
 {
     std::string input_filename1 = DATADIR"small.fa";
     seqan3::test::tmp_filename chopper_split_filename{"test.split"};
@@ -216,7 +216,7 @@ TEST(create_ibfs_test, config_overlap)
         config.chopper_split_filename = chopper_split_filename.get_path().string();
         config.k = 15;
 
-        auto && [high_level_ibf, low_level_ibfs] = create_ibfs(config);
+        auto && [high_level_ibf, low_level_ibfs] = create_ibfs_from_chopper_split(config);
 
         EXPECT_EQ(high_level_ibf.bin_count(), 3);
         EXPECT_EQ(low_level_ibfs.size(), 3u); // but all LIBFS in list are dummys
@@ -287,7 +287,7 @@ TEST(create_ibfs_test, config_overlap)
     }
 }
 
-TEST(create_ibfs_test, high_level_size)
+TEST(create_ibfs_from_chopper_split_test, high_level_size)
 {
     std::string input_filename1 = DATADIR"small.fa";
     seqan3::test::tmp_filename data_filename{"data.tsv"};
@@ -319,7 +319,7 @@ TEST(create_ibfs_test, high_level_size)
                  << travsersal_file_body;
         }
 
-        auto && [high_level_ibf, low_level_ibfs] = create_ibfs(config);
+        auto && [high_level_ibf, low_level_ibfs] = create_ibfs_from_chopper_split(config);
 
         EXPECT_EQ(high_level_ibf.bin_size(), 76615);
     }
@@ -332,7 +332,7 @@ TEST(create_ibfs_test, high_level_size)
                  << travsersal_file_body;
         }
 
-        auto && [high_level_ibf, low_level_ibfs] = create_ibfs(config);
+        auto && [high_level_ibf, low_level_ibfs] = create_ibfs_from_chopper_split(config);
 
         EXPECT_EQ(high_level_ibf.bin_size(), 92535);
     }
@@ -345,7 +345,7 @@ TEST(create_ibfs_test, high_level_size)
                  << travsersal_file_body;
         }
 
-        auto && [high_level_ibf, low_level_ibfs] = create_ibfs(config);
+        auto && [high_level_ibf, low_level_ibfs] = create_ibfs_from_chopper_split(config);
 
         EXPECT_EQ(high_level_ibf.bin_size(), 114226);
     }

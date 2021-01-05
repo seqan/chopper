@@ -11,7 +11,7 @@
 #include <seqan3/core/debug_stream.hpp>
 
 #include <chopper/build/build_config.hpp>
-#include <chopper/build/create_ibfs.hpp>
+#include <chopper/build/create_ibfs_from_chopper_split.hpp>
 
 void initialize_argument_parser(seqan3::argument_parser & parser, build_config & config)
 {
@@ -42,7 +42,7 @@ int chopper_build(seqan3::argument_parser & parser)
         return -1;
     }
 
-    auto && [high_level_ibf, low_level_ibfs] = create_ibfs(config);
+    auto && [high_level_ibf, low_level_ibfs] = create_ibfs_from_chopper_split(config);
 
     {
         std::string const out_filename{config.output_prefix + "high_level.ibf"};

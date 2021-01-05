@@ -1,8 +1,8 @@
 cmake_minimum_required (VERSION 3.8)
 
-add_api_test (create_ibfs_test.cpp)
-target_use_datasources (create_ibfs_test FILES small.fa)
-target_use_datasources (create_ibfs_test FILES small2.fa)
+add_api_test (create_ibfs_from_chopper_split_test.cpp)
+target_use_datasources (create_ibfs_from_chopper_split_test FILES small.fa)
+target_use_datasources (create_ibfs_from_chopper_split_test FILES small2.fa)
 
 add_api_test (read_chopper_split_file_test.cpp)
 

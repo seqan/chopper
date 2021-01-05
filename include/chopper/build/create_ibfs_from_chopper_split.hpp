@@ -173,7 +173,7 @@ auto process_bin(build_config const & config,
     }
 }
 
-auto create_ibfs(build_config const & config)
+auto create_ibfs_from_chopper_split(build_config const & config)
 {
     auto const [data, batches] = read_chopper_split_file(config.chopper_split_filename);
 
