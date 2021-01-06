@@ -77,8 +77,7 @@ private:
         //!\brief Pre-increment.
         iterator & operator++() noexcept
         {
-            std::getline(host->data_file, host->current_line);
-            at_end = parse_next_line();
+            at_end = !std::getline(host->data_file, host->current_line) || parse_next_line();
             return *this;
         }
 
@@ -140,6 +139,7 @@ private:
                 return true; // end reached
             }
 
+            assert(!host->current_line.empty());
             auto const bin_data = parse_chopper_pack_line(host->current_line);
 
             current_config.seqfiles = std::move(bin_data.filenames);
