@@ -16,7 +16,7 @@ struct data_file_record
     size_t max_size{};
 };
 
-auto parse_binning_line(std::string const & current_line)
+auto parse_chopper_pack_line(std::string const & current_line)
 {
     data_file_record result{};
 

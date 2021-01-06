@@ -1,7 +1,7 @@
 #pragma once
 
 #include <chopper/detail_bin_prefixes.hpp>
-#include <chopper/detail_parse_binning_line.hpp>
+#include <chopper/detail_parse_chopper_pack_line.hpp>
 #include <chopper/detail_starts_with.hpp>
 #include <chopper/split/split_config.hpp>
 
@@ -140,7 +140,7 @@ private:
                 return true; // end reached
             }
 
-            auto const bin_data = parse_binning_line(host->current_line);
+            auto const bin_data = parse_chopper_pack_line(host->current_line);
 
             current_config.seqfiles = std::move(bin_data.filenames);
             current_config.bins = bin_data.bins;

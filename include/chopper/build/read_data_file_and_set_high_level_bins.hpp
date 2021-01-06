@@ -10,7 +10,7 @@
 #include <chopper/build/build_config.hpp>
 #include <chopper/build/build_data.hpp>
 #include <chopper/detail_bin_prefixes.hpp>
-#include <chopper/detail_parse_binning_line.hpp>
+#include <chopper/detail_parse_chopper_pack_line.hpp>
 #include <chopper/detail_starts_with.hpp>
 
 auto read_data_file_and_set_high_level_bins(build_config const & config)
@@ -52,7 +52,7 @@ auto read_data_file_and_set_high_level_bins(build_config const & config)
     size_t record_idx{};
     do
     {
-        auto && record = parse_binning_line(current_line);
+        auto && record = parse_chopper_pack_line(current_line);
 
         if (starts_with(record.bin_name, merged_bin_prefix))
         {

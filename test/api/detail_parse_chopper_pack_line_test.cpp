@@ -3,7 +3,7 @@
 
 #include <seqan3/test/expect_range_eq.hpp>
 
-#include <chopper/detail_parse_binning_line.hpp>
+#include <chopper/detail_parse_chopper_pack_line.hpp>
 
 TEST(filename_batches_range_test, high_level_data_file)
 {
@@ -42,7 +42,7 @@ TEST(filename_batches_range_test, high_level_data_file)
 
     for (size_t i = 0; i < expected_filenames.size(); ++i)
     {
-        data_file_record && record = parse_binning_line(lines[i]);
+        data_file_record && record = parse_chopper_pack_line(lines[i]);
 
         EXPECT_EQ(record.bin_name, expected_bin_names[i]);
         EXPECT_RANGE_EQ(record.filenames, expected_filenames[i]);

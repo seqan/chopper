@@ -13,7 +13,6 @@
 #include <chopper/build/build_data.hpp>
 #include <chopper/build/region.hpp>
 #include <chopper/detail_bin_prefixes.hpp>
-#include <chopper/detail_parse_binning_line.hpp>
 #include <chopper/detail_starts_with.hpp>
 
 void parse_chopper_split_header_line(std::string const & line, build_data & data)
