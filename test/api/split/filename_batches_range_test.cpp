@@ -42,9 +42,9 @@ TEST(filename_batches_range_test, high_level_data_file)
 
     std::vector<bool> expected_merged{false, false, true, true, true, true, true, false};
 
-    std::vector<std::pair<size_t, size_t>> expected_offsets
+    std::vector<std::pair<int64_t, int64_t>> expected_offsets
     {
-        {0, 0}, {2, 0}, {3, 0}, {3, 16}, {3, 28}, {4, 0}, {4, 12}, {5, 0}
+        {0, -1}, {2, -1}, {3, 0}, {3, 16}, {3, 28}, {4, 0}, {4, 12}, {5, -1}
     };
 
     auto it = r.begin();

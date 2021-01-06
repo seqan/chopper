@@ -43,6 +43,6 @@ struct batch_config
 
     // For a merged low level IBF several splittings will come into the same file.
     // So the chopper_split output needs to be appended and the bin_index adjusted.
-    size_t hibf_bin_idx_offset{0};
-    size_t libf_bin_idx_offset{0};
+    int64_t hibf_bin_idx_offset{0};
+    int64_t libf_bin_idx_offset{0};
 };

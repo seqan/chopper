@@ -140,43 +140,26 @@ private:
             }
 
             assert(!host->current_line.empty());
-            auto const bin_data = parse_chopper_pack_line(host->current_line);
+            auto const pack_record = parse_chopper_pack_line(host->current_line);
 
-            current_config.seqfiles = std::move(bin_data.filenames);
-            current_config.bins = bin_data.bins;
+            current_config.seqfiles = std::move(pack_record.filenames);
+            current_config.bins = pack_record.bins;
+
+            current_config.hibf_bin_idx_offset = pack_record.hidx;
+            current_config.libf_bin_idx_offset = pack_record.lidx;
 
             std::string out_filename;
 
-            if (starts_with(bin_data.bin_name, merged_bin_prefix))
+            if (starts_with(pack_record.bin_name, merged_bin_prefix))
             {
-                auto const idx_end = std::find(bin_data.bin_name.begin() + merged_bin_prefix_length + 1,
-                                               bin_data.bin_name.end(),
-                                               '_');
-                std::string_view::size_type const idx_length = (idx_end - bin_data.bin_name.begin()) -
-                                                               merged_bin_prefix_length - 1;
-                std::string const merged_bin_idx{&bin_data.bin_name[0] + merged_bin_prefix_length + 1, idx_length};
-
-                auto it = host->libf_bin_offsets.find(merged_bin_idx);
-
-                if (it == host->libf_bin_offsets.end()) // merged bin has not been seen yet
-                {
-                    it = host->libf_bin_offsets.emplace(merged_bin_idx, std::make_pair(host->hibf_bin_offset, 0u)).first;
-                    ++(host->hibf_bin_offset);
-                }
-
-                current_config.hibf_bin_idx_offset = it->second.first;
-                current_config.libf_bin_idx_offset = it->second.second;
-                it->second.second += bin_data.bins;
-                assert(merged_bin_idx == std::to_string(current_config.hibf_bin_idx_offset));
-
-                current_config.bin_name = host->config.out_path.string() + "LOW_LEVEL_IBF_" + std::string{merged_bin_idx} + ".out";
+                current_config.bin_name = host->config.out_path.string() + "LOW_LEVEL_IBF_" +
+                                          std::to_string(current_config.hibf_bin_idx_offset) + ".out";
                 current_config.merged_bin = true;
             }
             else
             {
-                current_config.bin_name =  host->config.out_path.string() + bin_data.bin_name + ".out";
-                current_config.hibf_bin_idx_offset = host->hibf_bin_offset;
-                host->hibf_bin_offset += bin_data.bins;
+                current_config.bin_name =  host->config.out_path.string() + pack_record.bin_name + ".out";
+                current_config.merged_bin = false;
             }
 
             return host->data_file.eof(); // end not reached yet
@@ -218,10 +201,6 @@ private:
     std::ifstream data_file;
 
     std::string current_line{""};
-
-    size_t hibf_bin_offset{};
-
-    std::unordered_map<std::string, std::pair<size_t, size_t>> libf_bin_offsets{};
 
 public:
     file_type const current_file_type{file_type::unknown};

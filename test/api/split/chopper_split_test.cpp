@@ -76,8 +76,8 @@ TEST(chopper_split_test, data_file_as_input)
              << "SPLIT_BIN_0\t" << input_filename1 + "\t2\t500\n"
              << "SPLIT_BIN_2\t" << input_filename1 + "\t2\t500\n"
              << "MERGED_BIN_4_0\t" << input_filename1 << "\t2\t2500\n"
-             << "MERGED_BIN_4_1\t" << input_filename1 << ";" << input_filename2 << "\t2\t2500\n"
-             << "MERGED_BIN_4_2\t" << input_filename1 << "\t1\t500\n"
+             << "MERGED_BIN_4_2\t" << input_filename1 << ";" << input_filename2 << "\t2\t2500\n"
+             << "MERGED_BIN_4_4\t" << input_filename1 << "\t1\t500\n"
              << "SPLIT_BIN_5\t" << input_filename2 + "\t3\t1000\n";
     }
 

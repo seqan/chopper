@@ -57,6 +57,8 @@ size_t compute_bin_size(build_config const & config, size_t const number_of_kmer
                    (std::log(1 - std::pow(10.0, std::log10(config.FPR) / config.hash_funs))));
 }
 
+// TODO this will miss the low level IBF of a merged bin currently!
+// But it's no bug yet as the highest record is parsed again in the create_ibfs loop below.
 auto initialise_hibf(build_config const & config, build_data const & data)
 {
     assert(data.hibf_num_technical_bins != 0);
@@ -185,7 +187,7 @@ auto create_ibfs_from_chopper_split(build_config const & config)
     std::vector<seqan3::interleaved_bloom_filter<>> low_level_ibfs(data.hibf_num_technical_bins, dummy);
 
     size_t bin_idx{};
-    // todo: leave out highest record
+    // todo: leave out highest record but fix initialise_ibf before!
     for (auto const & batch_record : batches)
     {
         if (config.verbose)
