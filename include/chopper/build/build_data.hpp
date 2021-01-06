@@ -10,7 +10,7 @@ struct build_data
     size_t num_libfs{};
     std::string hibf_max_bin_id{};
     size_t hibf_max_bin{};
-    data_file_record * hibf_max_record{nullptr};
+    chopper_pack_record * hibf_max_record{nullptr};
     batch * hibf_max_batch_record{nullptr};
 
     std::unordered_map<size_t, size_t> merged_max_bin_map{};

@@ -94,7 +94,6 @@ auto parse_chopper_split_line(std::string const & line)
 auto read_chopper_split_file(std::string const & chopper_split_filename)
 {
     build_data data;
-    std::vector<data_file_record> records{};
     std::vector<batch> batches{};
 
     std::ifstream chopper_split_file{chopper_split_filename};

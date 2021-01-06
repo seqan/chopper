@@ -42,7 +42,7 @@ TEST(filename_batches_range_test, high_level_data_file)
 
     for (size_t i = 0; i < expected_filenames.size(); ++i)
     {
-        data_file_record && record = parse_chopper_pack_line(lines[i]);
+        chopper_pack_record && record = parse_chopper_pack_line(lines[i]);
 
         EXPECT_EQ(record.bin_name, expected_bin_names[i]);
         EXPECT_RANGE_EQ(record.filenames, expected_filenames[i]);

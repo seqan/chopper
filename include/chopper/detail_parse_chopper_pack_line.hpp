@@ -8,7 +8,7 @@
 
 #include <seqan3/range/views/to.hpp>
 
-struct data_file_record
+struct chopper_pack_record
 {
     std::string bin_name{};
     std::vector<std::string> filenames{};
@@ -18,7 +18,7 @@ struct data_file_record
 
 auto parse_chopper_pack_line(std::string const & current_line)
 {
-    data_file_record result{};
+    chopper_pack_record result{};
 
     // start parsing
     char const * buffer = current_line.c_str();

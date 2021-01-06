@@ -27,7 +27,7 @@ struct file_type_traits : public seqan3::sequence_file_input_default_traits_dna
     using sequence_alphabet = seqan3::dna4;
 };
 
-auto print_kmer_content(data_file_record const & record, size_t const num_bins, uint8_t const k)
+auto print_kmer_content(chopper_pack_record const & record, size_t const num_bins, uint8_t const k)
 {
     using seq_file_type = seqan3::sequence_file_input<file_type_traits,
                                                       seqan3::fields<seqan3::field::seq>,

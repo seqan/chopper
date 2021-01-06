@@ -16,9 +16,9 @@
 auto read_data_file_and_set_high_level_bins(build_config const & config)
 {
     build_data header;
-    std::vector<data_file_record> records{};
+    std::vector<chopper_pack_record> records{};
 
-    std::unordered_map<std::string, data_file_record> low_level_records{};
+    std::unordered_map<std::string, chopper_pack_record> low_level_records{};
 
     std::ifstream binning_file{config.binning_filename};
 
