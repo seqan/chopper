@@ -40,6 +40,10 @@ TEST(filename_batches_range_test, high_level_data_file)
 
     std::vector<int> expected_max_size{500, 500, 32, 42, 42, 42, 42, 1000};
 
+    std::vector<int64_t> expected_hidxs{0, 1, 2, 2, 2, 20, 20, 3};
+
+    std::vector<int64_t> expected_lidxs{-1, -1, 0, 16, 28, 0, 12, -1};
+
     for (size_t i = 0; i < expected_filenames.size(); ++i)
     {
         chopper_pack_record && record = parse_chopper_pack_line(lines[i]);
@@ -48,5 +52,7 @@ TEST(filename_batches_range_test, high_level_data_file)
         EXPECT_RANGE_EQ(record.filenames, expected_filenames[i]);
         EXPECT_EQ(record.bins, expected_bins[i]) << " failed at " << expected_bin_names[i] << std::endl;
         EXPECT_EQ(record.max_size, expected_max_size[i]) << " failed at " << expected_bin_names[i] << std::endl;
+        EXPECT_EQ(record.hidx, expected_hidxs[i]) << " failed at " << expected_bin_names[i] << std::endl;
+        EXPECT_EQ(record.lidx, expected_lidxs[i]) << " failed at " << expected_bin_names[i] << std::endl;
     }
 }
