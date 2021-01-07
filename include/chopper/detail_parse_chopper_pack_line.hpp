@@ -18,7 +18,35 @@ struct chopper_pack_record
     std::vector<std::string> filenames{};
     size_t bins{};
     size_t max_size{};
+
+    bool operator==(chopper_pack_record const & other) const
+    {
+        return std::tie(bin_name, hidx, lidx, filenames, bins, max_size) ==
+               std::tie(other.bin_name, other.hidx, other.lidx, other.filenames, other.bins, other.max_size);
+    }
+
+    bool operator!=(chopper_pack_record const & other) const
+    {
+        return std::tie(bin_name, hidx, lidx, filenames, bins, max_size) !=
+               std::tie(other.bin_name, other.hidx, other.lidx, other.filenames, other.bins, other.max_size);
+    }
 };
+
+std::ostream & operator<<(std::ostream & s, chopper_pack_record const & r)
+{
+    s << "PACK RECORD:"
+      << "\n  -> bin_name:" << r.bin_name
+      << "\n  -> hidx:" << r.hidx
+      << "\n  -> lidx:" << r.lidx
+      << "\n  -> filenames: ";
+    for (auto const & filename : r.filenames)
+        s << filename << ",";
+    s << "\n  -> bins:" << r.bins
+      << "\n  -> max_size:" << r.max_size
+      << '\n';
+
+      return s;
+}
 
 auto parse_bin_name(std::string const & name)
 {

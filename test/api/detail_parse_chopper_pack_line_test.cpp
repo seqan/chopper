@@ -5,7 +5,19 @@
 
 #include <chopper/detail_parse_chopper_pack_line.hpp>
 
-TEST(filename_batches_range_test, high_level_data_file)
+TEST(chopper_pack_record_test, euality_operator)
+{
+    chopper_pack_record r1{"SPLIT_BIN_0", 0, -1, {"file7"}, 2, 500};
+    chopper_pack_record r2{"SPLIT_BIN_0", 0, -1, {"file7"}, 2, 500};
+
+    chopper_pack_record r3{"SPLIT_BIN_0", 0, -1, {"FOO"}, 2, 500};
+
+    EXPECT_EQ(r1, r2);
+    EXPECT_NE(r1, r3);
+    EXPECT_NE(r2, r3);
+}
+
+TEST(parse_chopper_pack_line_test, high_level_data_file)
 {
     std::vector<std::string> const lines
     {
