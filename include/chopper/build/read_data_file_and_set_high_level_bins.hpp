@@ -23,7 +23,7 @@ auto read_data_file_and_set_high_level_bins(build_config const & config)
     std::ifstream binning_file{config.binning_filename};
 
     if (!binning_file.good() || !binning_file.is_open())
-        throw std::logic_error{"Could not open file for reading"};
+        throw std::logic_error{"Could not open file " + config.binning_filename + " for reading"};
 
     std::string current_line;
     while (std::getline(binning_file, current_line) && current_line[0] == '#')

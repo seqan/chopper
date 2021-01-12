@@ -99,7 +99,7 @@ auto read_chopper_split_file(std::string const & chopper_split_filename)
     std::ifstream chopper_split_file{chopper_split_filename};
 
     if (!chopper_split_file.good() || !chopper_split_file.is_open())
-        throw std::logic_error{"Could not open file for reading"};
+        throw std::logic_error{"Could not open file " + chopper_split_filename + " for reading"};
 
     // parse data
     // -------------------------------------------------------------------------

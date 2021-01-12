@@ -12,7 +12,7 @@
 
 using seqan3::operator""_dna4;
 
-TEST(chopper_count_test, small_example_parallel_2_threads)
+TEST(chopper_build_test, chopper_split_file)
 {
     std::string input_filename1 = DATADIR"small.fa";
     std::string input_filename2 = DATADIR"small2.fa";
@@ -63,3 +63,77 @@ TEST(chopper_count_test, small_example_parallel_2_threads)
     EXPECT_TRUE(std::filesystem::exists(output_prefix.get_path().string() + "high_level.ibf"));
     EXPECT_TRUE(std::filesystem::exists(output_prefix.get_path().string() + "low_level_6.ibf"));
 }
+
+TEST(chopper_build_test, chopper_pack_file)
+{
+    std::string input_filename1 = DATADIR"small.fa";
+    std::string input_filename2 = DATADIR"small2.fa";
+    seqan3::test::tmp_filename data_filename{"data.tsv"};
+
+    seqan3::test::tmp_filename chopper_pack_filename{"test.pack"};
+
+    // generate data files
+    {
+        std::ofstream fout{chopper_pack_filename.get_path()};
+        fout << "#MERGED_BIN_6 max_bin_id:0\n"
+             << "#HIGH_LEVEL_IBF max_bin_id:MERGED_BIN_6\n"
+             << "#BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n"
+             << "SPLIT_BIN_0\t" << input_filename1 << "\t2\t300\n"
+             << "SPLIT_BIN_2\t" << input_filename2 << "\t1\t600\n"
+             << "SPLIT_BIN_3\t" << input_filename2 << "\t3\t200\n"
+             << "MERGED_BIN_6_0\t" << input_filename1 << "\t3\t200\n"
+             << "MERGED_BIN_6_3\t" << input_filename1 << "\t2\t300\n";
+    }
+
+    seqan3::test::tmp_filename output_prefix{"TEST_"};
+    const char * argv[] = {"./chopper-build",
+                           "-k", "15",
+                           "-p", chopper_pack_filename.get_path().c_str(),
+                           "-o", output_prefix.get_path().c_str()};
+    int argc = 7;
+    seqan3::argument_parser build_parser{"chopper-build", argc, argv, seqan3::update_notifications::off};
+
+    chopper_build(build_parser);
+
+    EXPECT_TRUE(std::filesystem::exists(output_prefix.get_path().string() + "high_level.ibf"));
+    EXPECT_TRUE(std::filesystem::exists(output_prefix.get_path().string() + "low_level_6.ibf"));
+}
+
+// TEST(chopper_build_test, pack_and_split_file_given)
+// {
+//     std::string input_filename1 = DATADIR"small.fa";
+//     std::string input_filename2 = DATADIR"small2.fa";
+//     seqan3::test::tmp_filename data_filename{"data.tsv"};
+
+//     seqan3::test::tmp_filename chopper_split_filename{"test.split"};
+//     seqan3::test::tmp_filename chopper_pack_filename{"test.pack"};
+
+//     // generate data files
+//     {
+//         std::ofstream fout{chopper_pack_filename.get_path()};
+//         fout << "#HIGH_LEVEL_IBF max_bin_id:SPLIT_BIN_0\n"
+//              << "#BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n"
+//              << "SPLIT_BIN_0\t" << input_filename1 << "\t2\t300\n";
+
+//         std::ofstream fout{chopper_split_filename.get_path()};
+//         fout << "#HIGH_LEVEL_IBF max_bin_id:SPLIT_BIN_0\n"
+//              << "#FILE_ID\tSEQ_ID\tBEGIN\tEND\tHIBF_BIN_IDX\tLIBF_BIN_IDX\n"
+//              << input_filename1 << "\tseq1\t0\t400\t0\t-\n"
+//              << input_filename1 << "\tseq2\t0\t480\t0\t-\n"
+//              << input_filename1 << "\tseq3\t0\t481\t1\t-\n";
+//     }
+
+//     seqan3::test::tmp_filename output_prefix{"TEST_"};
+//     const char * argv[] = {"./chopper-build",
+//                            "-k", "15",
+//                            "-p", chopper_pack_filename.get_path().c_str(),
+//                            "-s", chopper_split_filename.get_path().c_str(),
+//                            "-o", output_prefix.get_path().c_str()};
+//     int argc = 9;
+//     seqan3::argument_parser build_parser{"chopper-build", argc, argv, seqan3::update_notifications::off};
+
+//     EXPECT_EQ(chopper_build(build_parser), -1);
+
+//     EXPECT_FALSE(std::filesystem::exists(output_prefix.get_path().string() + "high_level.ibf"));
+//     EXPECT_FALSE(std::filesystem::exists(output_prefix.get_path().string() + "low_level_6.ibf"));
+// }

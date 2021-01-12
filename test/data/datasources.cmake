@@ -10,6 +10,18 @@ declare_datasource (FILE small.fa
                     URL ${CMAKE_SOURCE_DIR}/test/data/small.fa
                     URL_HASH SHA256=215a646ccd2d156eeabdd792108fc0ba385e244a25218afc095658189d2a3c0d)
 
+declare_datasource (FILE seq1.fa
+                    URL ${CMAKE_SOURCE_DIR}/test/data/seq1.fa
+                    URL_HASH SHA256=f60b985d9f3be1d3dd6105d62f4321eeb617bc52f4fb0435b016bf1873aa2eac)
+
+declare_datasource (FILE seq2.fa
+                    URL ${CMAKE_SOURCE_DIR}/test/data/seq2.fa
+                    URL_HASH SHA256=4153dfac5993b6ddeebf76fabeaaaad838b68f4abe0c3c03cc95b9196832af7a)
+
+declare_datasource (FILE seq3.fa
+                    URL ${CMAKE_SOURCE_DIR}/test/data/seq3.fa
+                    URL_HASH SHA256=aa440a61539216096680e53a1d68b245e5a7cac67e7eca315996d51b863d9915)
+
 declare_datasource (FILE small2.fa
                     URL ${CMAKE_SOURCE_DIR}/test/data/small2.fa
                     URL_HASH SHA256=3a444c41f71586d62514eea8faf3c699ac5f2cfce94fd3fc7c3e47d3ff3a8383)
