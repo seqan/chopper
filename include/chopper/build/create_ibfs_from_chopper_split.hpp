@@ -16,6 +16,7 @@
 
 #include <chopper/build/batch.hpp>
 #include <chopper/build/build_config.hpp>
+#include <chopper/build/compute_bin_size.hpp>
 #include <chopper/build/read_data_file_and_set_high_level_bins.hpp>
 #include <chopper/build/read_chopper_split_file.hpp>
 #include <chopper/detail_bin_prefixes.hpp>
@@ -50,12 +51,6 @@ auto hash_infix(build_config const & config, auto const & seq, auto const begin,
                | seqan3::views::take(end + config.overlap - begin) // views::take never goes over the end
                | seqan3::views::kmer_hash(seqan3::ungapped{config.k});
 };
-
-size_t compute_bin_size(build_config const & config, size_t const number_of_kmers_to_be_stored)
-{
-    return (size_t)std::ceil((-(double)(config.hash_funs * number_of_kmers_to_be_stored)) /
-                   (std::log(1 - std::pow(10.0, std::log10(config.FPR) / config.hash_funs))));
-}
 
 // TODO this will miss the low level IBF of a merged bin currently!
 // But it's no bug yet as the highest record is parsed again in the create_ibfs loop below.
