@@ -26,7 +26,7 @@ TEST(chopper_count_test, small_example_parallel_2_threads)
     const char * argv[] = {"./chopper-count", "-k", "15", "-w", "25", "-t", "2", "-c", "2",
                            "-f", data_filename.get_path().c_str()};
     int argc = 11;
-    seqan3::argument_parser count_parser{"chopper-count", argc, argv, false};
+    seqan3::argument_parser count_parser{"chopper-count", argc, argv, seqan3::update_notifications::off};
 
     std::string expected
     {
@@ -61,7 +61,7 @@ TEST(chopper_count_test, disable_minimizers)
                            "--disable-minimizers",
                            "-f", data_filename.get_path().c_str()};
     int argc = 10;
-    seqan3::argument_parser count_parser{"chopper-count", argc, argv, false};
+    seqan3::argument_parser count_parser{"chopper-count", argc, argv, seqan3::update_notifications::off};
 
     std::string expected
     {

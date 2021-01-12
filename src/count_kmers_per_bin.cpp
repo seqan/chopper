@@ -27,7 +27,7 @@ void initialize_argument_parser(seqan3::argument_parser & parser, cmd_arguments 
     parser.info.version = "1.0.0";
 
     parser.add_option(args.chopper_split_filename, 'f', "files", "Give me a file produced by chopper split.",
-                      seqan3::option_spec::REQUIRED);
+                      seqan3::option_spec::required);
     parser.add_option(args.k, 'k', "kmer-size", "The kmer to count with.");
     parser.add_option(args.overlap, 'l', "overlap", "The overlap between splitted bins.");
     parser.add_flag(args.verbose, 'v', "verbose", "Display more information.");

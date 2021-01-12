@@ -18,7 +18,7 @@ void initialize_argument_parser(seqan3::argument_parser & parser, cmd_arguments 
     parser.info.short_description = "Count unique kmers in bins.";
     parser.info.version = "1.0.0";
 
-    parser.add_option(args.binning_file, 'f', "files", "Give me a file.", seqan3::option_spec::REQUIRED);
+    parser.add_option(args.binning_file, 'f', "files", "Give me a file.", seqan3::option_spec::required);
     parser.add_option(args.k, 'k', "kmer-size", "The kmer to count with.");
 }
 

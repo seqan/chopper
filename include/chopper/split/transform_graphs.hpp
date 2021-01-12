@@ -9,7 +9,7 @@
 #include <lemon/list_graph.h>
 #include <lemon/static_graph.h>
 
-#include <seqan3/core/char_operations/predicate.hpp>
+#include <seqan3/utility/char_operations/predicate.hpp>
 #include <seqan3/range/detail/misc.hpp>
 #include <seqan3/range/views/take_until.hpp>
 #include <seqan3/range/views/take_line.hpp>

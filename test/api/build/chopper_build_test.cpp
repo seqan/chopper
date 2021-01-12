@@ -56,7 +56,7 @@ TEST(chopper_count_test, small_example_parallel_2_threads)
                            "-s", chopper_split_filename.get_path().c_str(),
                            "-o", output_prefix.get_path().c_str()};
     int argc = 7;
-    seqan3::argument_parser build_parser{"chopper-build", argc, argv, false};
+    seqan3::argument_parser build_parser{"chopper-build", argc, argv, seqan3::update_notifications::off};
 
     chopper_build(build_parser);
 

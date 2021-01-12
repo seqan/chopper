@@ -20,7 +20,7 @@ TEST(chopper_split_test, simple_example)
                            "-s", input_filename1.c_str(), "-s", input_filename2.c_str(),
                            "-o", output_filename.get_path().c_str()};
     int argc = 13;
-    seqan3::argument_parser split_parser{"chopper-split", argc, argv, false};
+    seqan3::argument_parser split_parser{"chopper-split", argc, argv, seqan3::update_notifications::off};
 
     chopper_split(split_parser);
 
@@ -59,7 +59,7 @@ TEST(chopper_split_test, no_s_or_f_option)
     std::string input_filename = DATADIR"small.fa";
     const char * argv[] = {"./chopper-split", "-k", "15"};
     int argc = 3;
-    seqan3::argument_parser split_parser{"chopper-split", argc, argv, false};
+    seqan3::argument_parser split_parser{"chopper-split", argc, argv, seqan3::update_notifications::off};
 
     EXPECT_THROW(chopper_split(split_parser), std::runtime_error);
 }
@@ -87,7 +87,7 @@ TEST(chopper_split_test, data_file_as_input)
                            "-f", data_filename.get_path().c_str(),
                            "-o", output_filename.get_path().c_str()};
     int argc = 9;
-    seqan3::argument_parser split_parser{"chopper-split", argc, argv, false};
+    seqan3::argument_parser split_parser{"chopper-split", argc, argv, seqan3::update_notifications::off};
 
     EXPECT_EQ(chopper_split(split_parser), 0);
 
@@ -169,7 +169,7 @@ TEST(chopper_split_test, big_fat_nodes)
                            "-s", seq_file.get_path().c_str(),
                            "-o", output_filename.get_path().c_str()};
     int argc = 11;
-    seqan3::argument_parser split_parser{"chopper-split", argc, argv, false};
+    seqan3::argument_parser split_parser{"chopper-split", argc, argv, seqan3::update_notifications::off};
 
     chopper_split(split_parser);
 

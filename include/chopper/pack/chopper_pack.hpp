@@ -20,7 +20,7 @@ int set_up_and_parse_subparser_split(seqan3::argument_parser & parser, pack_conf
                       "The second column must contain the (kmer) count you want you data to be packed into bins. "
                       " See the submodule count for more details on how to add kmer counts to your sequences\n."
                       "All other columns are optional and can be used to aggregate your data (e.g. taxonmic ids).",
-                      seqan3::option_spec::REQUIRED);
+                      seqan3::option_spec::required);
 
     parser.add_option(config.bins, 'b', "technical-bins",
                       "Into how many technical bins do you want your sequence data to be packed?");
@@ -33,7 +33,7 @@ int set_up_and_parse_subparser_split(seqan3::argument_parser & parser, pack_conf
 
     parser.add_option(config.aggregate_by_column, 'y', "aggregate-by",
                       "Which column do you want to aggregate your files by? Start counting your columns from 1!",
-                      seqan3::option_spec::DEFAULT,
+                      seqan3::option_spec::standard,
                       seqan3::arithmetic_range_validator{3, std::numeric_limits<int>::max()});
 
     try

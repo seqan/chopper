@@ -8,7 +8,8 @@
 
 int main(int argc, const char *argv [])
 {
-    seqan3::argument_parser top_level_parser{"chopper", argc, argv, false, {"count", "pack", "split", "build"}};
+    seqan3::argument_parser top_level_parser{"chopper", argc, argv, seqan3::update_notifications::off,
+                                             {"count", "pack", "split", "build"}};
     top_level_parser.info.version = "1.0.0";
 
     try

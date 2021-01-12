@@ -30,7 +30,7 @@ TEST(chopper_pack_test, small_example)
     const char * argv[] = {"./chopper-pack", "-b", "4",
                            "-f", data_filename.get_path().c_str(), "-o", output_filename.get_path().c_str()};
     int argc = 7;
-    seqan3::argument_parser pack_parser{"chopper-pack", argc, argv, false};
+    seqan3::argument_parser pack_parser{"chopper-pack", argc, argv, seqan3::update_notifications::off};
 
     chopper_pack(pack_parser);
 
