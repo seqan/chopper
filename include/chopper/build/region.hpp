@@ -21,4 +21,6 @@ struct region
 std::ostream & operator<<(std::ostream & s, region const & r)
 {
     s << "<" << r.hidx << "," << r.lidx << "," << r.begin << "," << r.end << ">";
+
+    return s;
 }

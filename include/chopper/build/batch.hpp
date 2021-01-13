@@ -30,4 +30,6 @@ std::ostream & operator<<(std::ostream & s, batch const & b)
     for (auto const & hidx : b.hibf_bins)
         s << hidx << ",";
     s << "\n  -> libf_num_bins: " << b.libf_num_bins << '\n';
+
+    return s;
 }
