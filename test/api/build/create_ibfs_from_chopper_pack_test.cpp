@@ -114,17 +114,11 @@ TEST_F(create_ibfs_from_chopper_pack_test, small_example)
         EXPECT_EQ(hibf_counts[0], expected);
         EXPECT_EQ(hibf_counts[1], expected);
         EXPECT_EQ(hibf_counts[2], expected);
-        EXPECT_EQ(hibf_counts[3], 28);
-        EXPECT_EQ(hibf_counts[4], 31);
-        EXPECT_EQ(hibf_counts[5], 7);
         EXPECT_EQ(hibf_counts[3] + hibf_counts[4] + hibf_counts[5], expected);
         EXPECT_EQ(hibf_counts[6], expected);
 
         EXPECT_EQ(libf_counts[0], expected);
         EXPECT_EQ(libf_counts[1], expected);
-        EXPECT_EQ(libf_counts[2], 28);
-        EXPECT_EQ(libf_counts[3], 31);
-        EXPECT_EQ(libf_counts[4], 7);
         EXPECT_EQ(libf_counts[2] + libf_counts[3] + libf_counts[4], expected);
         EXPECT_EQ(libf_counts[5], expected);
     }
@@ -137,17 +131,11 @@ TEST_F(create_ibfs_from_chopper_pack_test, small_example)
         EXPECT_EQ(hibf_counts[0], expected);
         EXPECT_EQ(hibf_counts[1], 0);
         EXPECT_EQ(hibf_counts[2], expected);
-        EXPECT_EQ(hibf_counts[3], 8);
-        EXPECT_EQ(hibf_counts[4], 13);
-        EXPECT_EQ(hibf_counts[5], 45);
         EXPECT_EQ(hibf_counts[3] + hibf_counts[4] + hibf_counts[5], expected);
         EXPECT_EQ(hibf_counts[6], expected);
 
         EXPECT_EQ(libf_counts[0], 0);
         EXPECT_EQ(libf_counts[1], expected);
-        EXPECT_EQ(libf_counts[2], 8);
-        EXPECT_EQ(libf_counts[3], 13);
-        EXPECT_EQ(libf_counts[4], 45);
         EXPECT_EQ(libf_counts[2] + libf_counts[3] + libf_counts[4], expected);
         EXPECT_EQ(libf_counts[5], 0);
     }
@@ -160,17 +148,11 @@ TEST_F(create_ibfs_from_chopper_pack_test, small_example)
         EXPECT_EQ(hibf_counts[0], 0);
         EXPECT_EQ(hibf_counts[1], expected);
         EXPECT_EQ(hibf_counts[2], expected);
-        EXPECT_EQ(hibf_counts[3], 23);
-        EXPECT_EQ(hibf_counts[4], 11);
-        EXPECT_EQ(hibf_counts[5], 32);
         EXPECT_EQ(hibf_counts[3] + hibf_counts[4] + hibf_counts[5], expected);
         EXPECT_EQ(hibf_counts[6], expected);
 
         EXPECT_EQ(libf_counts[0], 0);
         EXPECT_EQ(libf_counts[1], 0);
-        EXPECT_EQ(libf_counts[2], 23);
-        EXPECT_EQ(libf_counts[3], 11);
-        EXPECT_EQ(libf_counts[4], 32);
         EXPECT_EQ(libf_counts[2] + libf_counts[3] + libf_counts[4], expected);
         EXPECT_EQ(libf_counts[5], expected);
     }
@@ -252,17 +234,11 @@ TEST_F(create_ibfs_from_chopper_pack_test, same_example_but_split_bin_as_hibf_ma
         EXPECT_EQ(hibf_counts[0], expected);
         EXPECT_EQ(hibf_counts[1], expected);
         EXPECT_EQ(hibf_counts[2], expected);
-        EXPECT_EQ(hibf_counts[3], 28);
-        EXPECT_EQ(hibf_counts[4], 31);
-        EXPECT_EQ(hibf_counts[5], 7);
         EXPECT_EQ(hibf_counts[3] + hibf_counts[4] + hibf_counts[5], expected);
         EXPECT_EQ(hibf_counts[6], expected);
 
         EXPECT_EQ(libf_counts[0], expected);
         EXPECT_EQ(libf_counts[1], expected);
-        EXPECT_EQ(libf_counts[2], 28);
-        EXPECT_EQ(libf_counts[3], 31);
-        EXPECT_EQ(libf_counts[4], 7);
         EXPECT_EQ(libf_counts[2] + libf_counts[3] + libf_counts[4], expected);
         EXPECT_EQ(libf_counts[5], expected);
     }
@@ -275,17 +251,11 @@ TEST_F(create_ibfs_from_chopper_pack_test, same_example_but_split_bin_as_hibf_ma
         EXPECT_EQ(hibf_counts[0], expected);
         EXPECT_EQ(hibf_counts[1], 0);
         EXPECT_EQ(hibf_counts[2], expected);
-        EXPECT_EQ(hibf_counts[3], 8);
-        EXPECT_EQ(hibf_counts[4], 13);
-        EXPECT_EQ(hibf_counts[5], 45);
         EXPECT_EQ(hibf_counts[3] + hibf_counts[4] + hibf_counts[5], expected);
         EXPECT_EQ(hibf_counts[6], expected);
 
         EXPECT_EQ(libf_counts[0], 0);
         EXPECT_EQ(libf_counts[1], expected);
-        EXPECT_EQ(libf_counts[2], 8);
-        EXPECT_EQ(libf_counts[3], 13);
-        EXPECT_EQ(libf_counts[4], 45);
         EXPECT_EQ(libf_counts[2] + libf_counts[3] + libf_counts[4], expected);
         EXPECT_EQ(libf_counts[5], 0);
     }
@@ -298,17 +268,11 @@ TEST_F(create_ibfs_from_chopper_pack_test, same_example_but_split_bin_as_hibf_ma
         EXPECT_EQ(hibf_counts[0], 0);
         EXPECT_EQ(hibf_counts[1], expected);
         EXPECT_EQ(hibf_counts[2], expected);
-        EXPECT_EQ(hibf_counts[3], 23);
-        EXPECT_EQ(hibf_counts[4], 11);
-        EXPECT_EQ(hibf_counts[5], 32);
         EXPECT_EQ(hibf_counts[3] + hibf_counts[4] + hibf_counts[5], expected);
         EXPECT_EQ(hibf_counts[6], expected);
 
         EXPECT_EQ(libf_counts[0], 0);
         EXPECT_EQ(libf_counts[1], 0);
-        EXPECT_EQ(libf_counts[2], 23);
-        EXPECT_EQ(libf_counts[3], 11);
-        EXPECT_EQ(libf_counts[4], 32);
         EXPECT_EQ(libf_counts[2] + libf_counts[3] + libf_counts[4], expected);
         EXPECT_EQ(libf_counts[5], expected);
     }
