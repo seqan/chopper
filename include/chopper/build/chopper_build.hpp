@@ -50,13 +50,13 @@ int chopper_build(seqan3::argument_parser & parser)
         if (parser.is_option_set('p') && parser.is_option_set('s'))
         {
             seqan3::debug_stream << "[CHOPPER BIULD ERROR] Options -p/--pack-file and -s/--split_file "
-                                 << "are mututal exclusive\n";
+                                 << "are mututal exclusive.\n";
             return -1;
         }
         else if (!parser.is_option_set('p') && !parser.is_option_set('s'))
         {
             seqan3::debug_stream << "[CHOPPER BIULD ERROR] Either option -p/--pack-file or -s/--split_file "
-                                 << "must be provided\n";
+                                 << "must be provided.\n";
             return -1;
         }
     }

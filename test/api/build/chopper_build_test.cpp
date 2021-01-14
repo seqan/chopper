@@ -99,41 +99,51 @@ TEST(chopper_build_test, chopper_pack_file)
     EXPECT_TRUE(std::filesystem::exists(output_prefix.get_path().string() + "low_level_6.ibf"));
 }
 
-// TEST(chopper_build_test, pack_and_split_file_given)
-// {
-//     std::string input_filename1 = DATADIR"small.fa";
-//     std::string input_filename2 = DATADIR"small2.fa";
-//     seqan3::test::tmp_filename data_filename{"data.tsv"};
+TEST(chopper_build_test, pack_and_split_file_given)
+{
+    seqan3::test::tmp_filename chopper_split_filename{"test.split"};
+    seqan3::test::tmp_filename chopper_pack_filename{"test.pack"};
 
-//     seqan3::test::tmp_filename chopper_split_filename{"test.split"};
-//     seqan3::test::tmp_filename chopper_pack_filename{"test.pack"};
+    { // generate data files
+        std::ofstream fout{chopper_pack_filename.get_path()};
+        fout << "#HIGH_LEVEL_IBF max_bin_id:SPLIT_BIN_0\n"
+             << "#BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n"
+             << "SPLIT_BIN_0\tfile1\t1\t300\n";
 
-//     // generate data files
-//     {
-//         std::ofstream fout{chopper_pack_filename.get_path()};
-//         fout << "#HIGH_LEVEL_IBF max_bin_id:SPLIT_BIN_0\n"
-//              << "#BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n"
-//              << "SPLIT_BIN_0\t" << input_filename1 << "\t2\t300\n";
+        std::ofstream fout2{chopper_split_filename.get_path()};
+        fout2 << "#HIGH_LEVEL_IBF max_bin_id:SPLIT_BIN_0\n"
+              << "#FILE_ID\tSEQ_ID\tBEGIN\tEND\tHIBF_BIN_IDX\tLIBF_BIN_IDX\n"
+              << "file1\tseq1\t0\t400\t0\t-\n";
+    }
 
-//         std::ofstream fout{chopper_split_filename.get_path()};
-//         fout << "#HIGH_LEVEL_IBF max_bin_id:SPLIT_BIN_0\n"
-//              << "#FILE_ID\tSEQ_ID\tBEGIN\tEND\tHIBF_BIN_IDX\tLIBF_BIN_IDX\n"
-//              << input_filename1 << "\tseq1\t0\t400\t0\t-\n"
-//              << input_filename1 << "\tseq2\t0\t480\t0\t-\n"
-//              << input_filename1 << "\tseq3\t0\t481\t1\t-\n";
-//     }
+    seqan3::test::tmp_filename output_prefix{"TEST_"};
+    const char * argv[] = {"./chopper-build",
+                           "-k", "15",
+                           "-p", chopper_pack_filename.get_path().c_str(),
+                           "-s", chopper_split_filename.get_path().c_str(),
+                           "-o", output_prefix.get_path().c_str()};
+    int argc = 9;
+    seqan3::argument_parser build_parser{"chopper-build", argc, argv, seqan3::update_notifications::off};
 
-//     seqan3::test::tmp_filename output_prefix{"TEST_"};
-//     const char * argv[] = {"./chopper-build",
-//                            "-k", "15",
-//                            "-p", chopper_pack_filename.get_path().c_str(),
-//                            "-s", chopper_split_filename.get_path().c_str(),
-//                            "-o", output_prefix.get_path().c_str()};
-//     int argc = 9;
-//     seqan3::argument_parser build_parser{"chopper-build", argc, argv, seqan3::update_notifications::off};
+    testing::internal::CaptureStderr();
+    EXPECT_EQ(chopper_build(build_parser), -1);
+    std::string std_cerr = testing::internal::GetCapturedStderr();
+    EXPECT_EQ(std_cerr, "[CHOPPER BIULD ERROR] Options -p/--pack-file and -s/--split_file are mututal exclusive.\n");
 
-//     EXPECT_EQ(chopper_build(build_parser), -1);
+    EXPECT_FALSE(std::filesystem::exists(output_prefix.get_path().string() + "high_level.ibf"));
+}
 
-//     EXPECT_FALSE(std::filesystem::exists(output_prefix.get_path().string() + "high_level.ibf"));
-//     EXPECT_FALSE(std::filesystem::exists(output_prefix.get_path().string() + "low_level_6.ibf"));
-// }
+TEST(chopper_build_test, neither_pack_nor_split_file_given)
+{
+    seqan3::test::tmp_filename output_prefix{"TEST_"};
+    const char * argv[] = {"./chopper-build",
+                           "-k", "15",
+                           "-o", output_prefix.get_path().c_str()};
+    int argc = 5;
+    seqan3::argument_parser build_parser{"chopper-build", argc, argv, seqan3::update_notifications::off};
+
+    testing::internal::CaptureStderr();
+    EXPECT_EQ(chopper_build(build_parser), -1);
+    std::string std_cerr = testing::internal::GetCapturedStderr();
+    EXPECT_EQ(std_cerr, "[CHOPPER BIULD ERROR] Either option -p/--pack-file or -s/--split_file must be provided.\n");
+}
