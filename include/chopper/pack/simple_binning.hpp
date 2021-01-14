@@ -80,7 +80,7 @@ struct simple_binning
 {
 private:
     //!\brief The filenames of the respective user bins.
-    std::vector<std::string> const & user_bin_names;
+    std::vector<std::string> const & names;
     //!\brief The kmer counts of the respective user bins.
     std::vector<size_t> const & user_bin_kmer_counts;
     //!\brief The identifier of the (colorful) bin that is written into the file.
@@ -108,7 +108,6 @@ private:
 public:
     /*!\brief The constructor from user bin names, their kmer counts and a configuration.
      * \param[in] data The filenames and kmer counts associated with the user bin, as well as the ostream buffer.
-     * \param[in] bin_name_ The bin identifier to write into the output file.
      * \param[in] num_bins (optional) The number of technical bins.
      *
      * If the `num_bins` parameter is omitted or set to 0, then number of technical bins used in this algorithm
@@ -117,10 +116,9 @@ public:
      * \attention The number of technical bins must be greater or equal to the number of user bins!
      *            If you want to use less technical bins than user bins, see the hierarchical_binning algorithm.
      */
-    simple_binning(pack_data & data, std::string const & bin_name_, size_t num_bins = 0) :
-        user_bin_names{data.filenames},
+    simple_binning(pack_data & data, size_t num_bins = 0) :
+        names{data.filenames},
         user_bin_kmer_counts{data.kmer_counts},
-        bin_name{bin_name_},
         output_file{*data.output_buffer},
         num_user_bins{data.kmer_counts.size()},
         num_technical_bins{(num_bins == 0) ? ((user_bin_kmer_counts.size() + 63) / 64 * 64) : num_bins},
@@ -199,7 +197,7 @@ public:
 
             // columns: IBF_ID,NAME,NUM_TECHNICAL_BINS,ESTIMATED_TB_SIZE
             output_file << bin_name << '_' << bin_id << '\t'
-                        << user_bin_names[trace_j] << '\t'
+                        << names[trace_j] << '\t'
                         << number_of_bins << '\t'
                         << kmer_count_per_bin << '\n';
 
@@ -226,7 +224,7 @@ public:
 
         // columns: IBF_ID,NAME,NUM_TECHNICAL_BINS,ESTIMATED_TB_SIZE
         output_file << bin_name << '_' << bin_id << '\t'
-                    << user_bin_names[0] << '\t'
+                    << names[0] << '\t'
                     << trace_i << '\t'
                     << kmer_count_per_bin << '\n';
 
