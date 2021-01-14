@@ -94,10 +94,17 @@ TEST_F(cli_test, chopper_pipeline)
     ASSERT_TRUE(std::filesystem::exists(data("small.split")));
 
     std::ifstream output_file{chopper_split_filename.get_path()};
-    std::ifstream expected_chopper_split_file{data("small.split")};
+    std::filesystem::path expected_output_filename{data("small.split")};
+    std::ifstream expected_chopper_split_file{expected_output_filename};
 
-    std::string const output_file_str((std::istreambuf_iterator<char>(output_file)), std::istreambuf_iterator<char>());
-    std::string const expected_file_str((std::istreambuf_iterator<char>(expected_chopper_split_file)), std::istreambuf_iterator<char>());
-
-    EXPECT_EQ(output_file_str, expected_file_str);
+    // note that file small.split does not contain the full filename (with directory)
+    // since the directory changes on every system
+    std::string const directory{expected_output_filename.parent_path().string() + "/"};
+    std::string output_line;
+    std::string expected_line;
+    while (std::getline(output_file, output_line) && std::getline(expected_chopper_split_file, expected_line))
+    {
+        std::string full_expected_line{(expected_line[0] == '#') ? expected_line : directory + expected_line};
+        EXPECT_EQ(output_line, full_expected_line);
+    }
 }
