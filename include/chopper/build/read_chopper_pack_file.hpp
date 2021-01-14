@@ -36,7 +36,7 @@ auto read_chopper_pack_file(std::string const & chopper_pack_filename)
         data.num_libfs += (record.lidx != -1);
 
         if (records_per_hibf_bin.size() <= record.hidx)
-            records_per_hibf_bin.resize(record.hidx + 1);
+            records_per_hibf_bin.resize(record.hidx + ((record.lidx == -1) ? record.bins : 1));
 
         records_per_hibf_bin[record.hidx].push_back(record);
 
