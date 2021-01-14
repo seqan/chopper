@@ -147,3 +147,38 @@ TEST(chopper_build_test, neither_pack_nor_split_file_given)
     std::string std_cerr = testing::internal::GetCapturedStderr();
     EXPECT_EQ(std_cerr, "[CHOPPER BIULD ERROR] Either option -p/--pack-file or -s/--split_file must be provided.\n");
 }
+
+TEST(chopper_build_test, create_output_dir_if_it_does_not_exist)
+{
+    std::string input_filename1 = DATADIR"small.fa";
+    std::string input_filename2 = DATADIR"small2.fa";
+
+    seqan3::test::tmp_filename chopper_pack_filename{"test.pack"};
+
+    // generate data files
+    {
+        std::ofstream fout{chopper_pack_filename.get_path()};
+        fout << "#MERGED_BIN_6 max_bin_id:0\n"
+             << "#HIGH_LEVEL_IBF max_bin_id:MERGED_BIN_6\n"
+             << "#BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n"
+             << "SPLIT_BIN_0\t" << input_filename1 << "\t2\t300\n"
+             << "SPLIT_BIN_2\t" << input_filename2 << "\t1\t600\n"
+             << "SPLIT_BIN_3\t" << input_filename2 << "\t3\t200\n"
+             << "MERGED_BIN_6_0\t" << input_filename1 << "\t3\t200\n"
+             << "MERGED_BIN_6_3\t" << input_filename1 << "\t2\t300\n";
+    }
+
+    seqan3::test::tmp_filename output_prefix{"some/deep/directory/TEST_"};
+    const char * argv[] = {"./chopper-build",
+                           "-k", "15",
+                           "-p", chopper_pack_filename.get_path().c_str(),
+                           "-o", output_prefix.get_path().c_str()};
+    int argc = 7;
+    seqan3::argument_parser build_parser{"chopper-build", argc, argv, seqan3::update_notifications::off};
+
+    chopper_build(build_parser);
+
+    ASSERT_TRUE(std::filesystem::exists(output_prefix.get_path().parent_path()));
+    EXPECT_TRUE(std::filesystem::exists(output_prefix.get_path().string() + "high_level.ibf"));
+    EXPECT_TRUE(std::filesystem::exists(output_prefix.get_path().string() + "low_level_6.ibf"));
+}

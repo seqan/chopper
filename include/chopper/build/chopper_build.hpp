@@ -68,6 +68,12 @@ int chopper_build(seqan3::argument_parser & parser)
 
     auto && [high_level_ibf, low_level_ibfs] = create_ibfs(parser, config);
 
+    // Create output directory if it does not exist
+    std::filesystem::path directory = std::filesystem::path{config.output_prefix}.parent_path();
+    if (!std::filesystem::exists(directory))
+        if (!std::filesystem::create_directories(directory)) // recursively creates every directory needed
+            throw std::runtime_error{"Could not create directory " + directory.string()};
+
     {
         std::string const out_filename{config.output_prefix + "high_level.ibf"};
         std::ofstream fout(out_filename, std::ios::binary);
