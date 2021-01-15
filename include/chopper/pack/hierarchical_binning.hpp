@@ -13,6 +13,7 @@
 
 #include <chopper/detail_bin_prefixes.hpp>
 #include <chopper/pack/pack_config.hpp>
+#include <chopper/pack/pack_data.hpp>
 #include <chopper/pack/print_matrix.hpp>
 #include <chopper/pack/simple_binning.hpp>
 
@@ -48,26 +49,25 @@ private:
 
 public:
     /*!\brief The constructor from user bin names, their kmer counts and a configuration.
-     * \param[in, out] names_ The filenames associated with the user bin.
-     * \param[in, out] input  The kmer counts associated with the user bin.
+     * \param[in, out] data The data input: filenames associated with the user bin and a kmer count per user bin.
      * \param[in] config A configuration object that holds information from the user that influence the computation.
      *
      *
      * Each entry in the names_ and input vector respectively is considered a user bin (both vectors must have the
      * same length).
      */
-    hierarchical_binning(std::vector<std::string> & names_, std::vector<size_t> & input, pack_config const & config) :
-        names{names_},
-        user_bin_kmer_counts{input},
+    hierarchical_binning(pack_data & data, pack_config const & config) :
+        names{data.filenames},
+        user_bin_kmer_counts{data.kmer_counts},
         alpha{config.alpha},
-        num_user_bins{input.size()},
+        num_user_bins{data.kmer_counts.size()},
         num_technical_bins{(config.bins == 0) ? ((user_bin_kmer_counts.size() + 63) / 64 * 64) : config.bins},
         kmer_count_sum{std::accumulate(user_bin_kmer_counts.begin(), user_bin_kmer_counts.end(), 0u)},
         kmer_count_average_per_bin{std::max<size_t>(1u, kmer_count_sum / num_technical_bins)},
         output_filename{config.output_filename}
     {
         std::cout << "#Techincal bins: " << num_technical_bins << std::endl;
-        std::cout << "#User bins: " << input.size() << std::endl;
+        std::cout << "#User bins: " << data.kmer_counts.size() << std::endl;
         std::cout << "Output file: " << config.output_filename.string() << std::endl;
 
         if (names.size() != user_bin_kmer_counts.size())

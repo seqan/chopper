@@ -11,15 +11,17 @@
 
 TEST(hierarchical_binning_test, small_example)
 {
-    std::vector<std::string> seq_ids{"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6",  "seq7"};
-    std::vector<size_t> counts{500, 1000, 500, 500, 500, 500, 500, 500};
     seqan3::test::tmp_filename output_filename{"output.binning"};
 
     pack_config config;
     config.bins = 4;
     config.output_filename = output_filename.get_path();
 
-    hierarchical_binning algo{seq_ids, counts, config};
+    pack_data data;
+    data.filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6",  "seq7"};
+    data.kmer_counts = {500, 1000, 500, 500, 500, 500, 500, 500};
+
+    hierarchical_binning algo{data, config};
     algo.execute();
 
     std::string expected_file
@@ -45,15 +47,17 @@ TEST(hierarchical_binning_test, small_example)
 
 TEST(hierarchical_binning_test, another_example)
 {
-    std::vector<std::string> seq_ids{"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6",  "seq7"};
-    std::vector<size_t> counts{50, 1000, 1000, 50, 5, 10, 10, 5};
     seqan3::test::tmp_filename output_filename{"output.binning"};
 
     pack_config config;
     config.bins = 5;
     config.output_filename = output_filename.get_path();
 
-    hierarchical_binning algo{seq_ids, counts, config};
+    pack_data data;
+    data.filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6",  "seq7"};
+    data.kmer_counts = {50, 1000, 1000, 50, 5, 10, 10, 5};
+
+    hierarchical_binning algo{data, config};
     algo.execute();
 
     std::string expected_file
@@ -79,8 +83,6 @@ TEST(hierarchical_binning_test, another_example)
 
 TEST(hierarchical_binning_test, knuts_example)
 {
-    std::vector<std::string> seq_ids{"seq0", "seq1", "seq2", "seq3", "seq4"};
-    std::vector<size_t> counts{60, 600, 1000, 800, 800};
     seqan3::test::tmp_filename output_filename{"output.binning"};
 
     pack_config config;
@@ -88,7 +90,11 @@ TEST(hierarchical_binning_test, knuts_example)
     config.bins = 5;
     config.output_filename = output_filename.get_path();
 
-    hierarchical_binning algo{seq_ids, counts, config};
+    pack_data data;
+    data.filenames = {"seq0", "seq1", "seq2", "seq3", "seq4"};
+    data.kmer_counts = {60, 600, 1000, 800, 800};
+
+    hierarchical_binning algo{data, config};
     algo.execute();
 
     std::string expected_file

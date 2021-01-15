@@ -76,7 +76,7 @@ int chopper_pack(seqan3::argument_parser & parser)
         aggregate_by(data, config.aggregate_by_column);
 
     // Execute the actual algorithm:
-    hierarchical_binning algo{data.filenames, data.kmer_counts, config};
+    hierarchical_binning algo{data, config};
     algo.execute();
 
     return 0;
