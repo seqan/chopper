@@ -36,17 +36,18 @@ TEST(chopper_pack_test, small_example)
 
     std::string expected_file
     {
-        "#MERGED_BIN_2 max_bin_id:16\n"
-        "#HIGH_LEVEL_IBF max_bin_id:MERGED_BIN_2\n"
-        "#BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n"
-        "SPLIT_BIN_0\tseq7\t1\t500\n"
-        "SPLIT_BIN_1\tseq6\t1\t500\n"
-        "MERGED_BIN_2_0\tseq0\t16\t32\n"
-        "MERGED_BIN_2_16\tseq2\t12\t42\n"
-        "MERGED_BIN_2_28\tseq3\t12\t42\n"
-        "MERGED_BIN_2_40\tseq4\t12\t42\n"
-        "MERGED_BIN_2_52\tseq5\t12\t42\n"
-        "SPLIT_BIN_3\tseq1\t1\t1000\n"
+        "#HIGH_LEVEL_IBF max_bin_id:2\n"
+        "#MERGED_BIN_2;3 max_bin_id:0\n"
+        "#MERGED_BIN_2 max_bin_id:3\n"
+        "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\tEST_MAX_TB_SIZES\n"
+        "seq7\t0\t1\t500\n"
+        "seq6\t1\t1\t500\n"
+        "seq0\t2;0\t1;1\t2500;500\n"
+        "seq2\t2;1\t1;1\t2500;500\n"
+        "seq3\t2;2\t1;1\t2500;500\n"
+        "seq5\t2;3;0\t1;1;32\t2500;1000;16\n"
+        "seq4\t2;3;32\t1;1;32\t2500;1000;16\n"
+        "seq1\t3\t1\t1000\n"
     };
 
     std::ifstream output_file{output_filename.get_path()};

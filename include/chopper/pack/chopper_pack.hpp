@@ -82,10 +82,11 @@ int chopper_pack(seqan3::argument_parser & parser)
 
     // Execute the actual algorithm:
     hierarchical_binning algo{data, config};
-    algo.execute();
+    size_t max_hibf_id = algo.execute();
 
     // brief Write the output to the result file.
     std::ofstream fout{config.output_filename};
+    fout << "#" << hibf_prefix << " max_bin_id:" << max_hibf_id << '\n';
     fout << header_buffer.rdbuf();
     fout << output_buffer.rdbuf();
 

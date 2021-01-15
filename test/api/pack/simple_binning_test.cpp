@@ -14,15 +14,15 @@ TEST(simple_binning_test, small_example)
     data.kmer_counts = {100, 40, 20, 20};
     data.filenames = {"seq1", "seq2", "seq3", "seq4"};
 
-    simple_binning algo{data, "TEST_IBF",  9};
+    simple_binning algo{data, 9};
     size_t max_bin = algo.execute();
 
     std::string expected
     {
-        "TEST_IBF_0\tseq4\t1\t20\n"
-        "TEST_IBF_1\tseq3\t1\t20\n"
-        "TEST_IBF_2\tseq2\t2\t20\n"
-        "TEST_IBF_4\tseq1\t5\t20\n"
+        "seq4\t;0\t;1\t;20\n"
+        "seq3\t;1\t;1\t;20\n"
+        "seq2\t;2\t;2\t;20\n"
+        "seq1\t;4\t;5\t;20\n"
     };
 
     EXPECT_EQ(output_buffer.str(), expected);
@@ -37,15 +37,15 @@ TEST(simple_binning_test, uniform_distribution)
     data.kmer_counts = {20, 20, 20, 20};
     data.filenames = {"seq1", "seq2", "seq3", "seq4"};
 
-    simple_binning algo{data, "TEST_IBF",  4};
+    simple_binning algo{data, 4};
     size_t max_bin = algo.execute();
 
     std::string expected
     {
-        "TEST_IBF_0\tseq4\t1\t20\n"
-        "TEST_IBF_1\tseq3\t1\t20\n"
-        "TEST_IBF_2\tseq2\t1\t20\n"
-        "TEST_IBF_3\tseq1\t1\t20\n"
+        "seq4\t;0\t;1\t;20\n"
+        "seq3\t;1\t;1\t;20\n"
+        "seq2\t;2\t;1\t;20\n"
+        "seq1\t;3\t;1\t;20\n"
     };
 
     EXPECT_EQ(output_buffer.str(), expected);
@@ -60,5 +60,5 @@ TEST(simple_binning_test, user_bins_must_be_smaller_than_technical_bins)
     data.kmer_counts = {100, 40, 20, 20};
     data.filenames = {"seq1", "seq2", "seq3", "seq4"};
 
-    EXPECT_THROW((simple_binning{data, "TEST_IBF",  2}), std::runtime_error);
+    EXPECT_THROW((simple_binning{data, 2}), std::runtime_error);
 }

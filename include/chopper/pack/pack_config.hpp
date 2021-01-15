@@ -2,6 +2,8 @@
 
 #include <seqan3/std/filesystem>
 
+#include <chopper/pack/previous_level.hpp>
+
 struct pack_config
 {
     std::filesystem::path data_file;

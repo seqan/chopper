@@ -9,6 +9,7 @@
 
 #include <chopper/pack/pack_data.hpp>
 #include <chopper/pack/print_matrix.hpp>
+#include <chopper/pack/previous_level.hpp>
 
 /*!\brief Distributes x Technical Bins across y User Bins while minimizing the maximal Technical Bin size
  *
@@ -84,7 +85,7 @@ private:
     //!\brief The kmer counts of the respective user bins.
     std::vector<size_t> const & user_bin_kmer_counts;
     //!\brief The identifier of the (colorful) bin that is written into the file.
-    std::string const & bin_name;
+    previous_level const & previous;
     //!\brief The output stream to write to.
     std::ostream & output_file;
 
@@ -119,6 +120,7 @@ public:
     simple_binning(pack_data & data, size_t num_bins = 0) :
         names{data.filenames},
         user_bin_kmer_counts{data.kmer_counts},
+        previous{data.previous},
         output_file{*data.output_buffer},
         num_user_bins{data.kmer_counts.size()},
         num_technical_bins{(num_bins == 0) ? ((user_bin_kmer_counts.size() + 63) / 64 * 64) : num_bins},
@@ -196,10 +198,10 @@ public:
             size_t const kmer_count_per_bin = (kmer_count + number_of_bins - 1) / number_of_bins; // round up
 
             // columns: IBF_ID,NAME,NUM_TECHNICAL_BINS,ESTIMATED_TB_SIZE
-            output_file << bin_name << '_' << bin_id << '\t'
-                        << names[trace_j] << '\t'
-                        << number_of_bins << '\t'
-                        << kmer_count_per_bin << '\n';
+            output_file << names[trace_j] << '\t'
+                        << previous.bin_indices  << ';' << bin_id << '\t'
+                        << previous.num_of_bins  << ';' << number_of_bins << '\t'
+                        << previous.estimated_sizes << ';' << kmer_count_per_bin << '\n';
 
             if (kmer_count_per_bin > max_size)
             {
@@ -223,10 +225,10 @@ public:
         }
 
         // columns: IBF_ID,NAME,NUM_TECHNICAL_BINS,ESTIMATED_TB_SIZE
-        output_file << bin_name << '_' << bin_id << '\t'
-                    << names[0] << '\t'
-                    << trace_i << '\t'
-                    << kmer_count_per_bin << '\n';
+        output_file << names[0] << '\t'
+                    << previous.bin_indices  << ';' << bin_id << '\t'
+                    << previous.num_of_bins  << ';' << trace_i << '\t'
+                    << previous.estimated_sizes << ';' << kmer_count_per_bin << '\n';
 
         return max_id;
     }

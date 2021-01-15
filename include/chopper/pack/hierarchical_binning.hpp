@@ -14,6 +14,7 @@
 #include <chopper/detail_bin_prefixes.hpp>
 #include <chopper/pack/pack_config.hpp>
 #include <chopper/pack/pack_data.hpp>
+#include <chopper/pack/previous_level.hpp>
 #include <chopper/pack/print_matrix.hpp>
 #include <chopper/pack/simple_binning.hpp>
 
@@ -24,6 +25,12 @@ private:
     std::vector<std::string> & names;
     //!\brief The kmer counts associated with the above files used to pack user bin into technical bins.
     std::vector<size_t> & user_bin_kmer_counts;
+
+    //!\brief Information about previous levels of the IBF if the algorithm is called recursively.
+    previous_level const previous;
+
+    //!\brief The user configuration passed down from the command line.
+    pack_config const config;
 
     /*\brief A scaling factor to influence the amount of merged bins produced by the algorithm.
      *
@@ -48,15 +55,17 @@ private:
 public:
     /*!\brief The constructor from user bin names, their kmer counts and a configuration.
      * \param[in, out] data The data input: filenames associated with the user bin and a kmer count per user bin.
-     * \param[in] config A configuration object that holds information from the user that influence the computation.
+     * \param[in] config_ A configuration object that holds information from the user that influence the computation.
      *
      *
      * Each entry in the names_ and input vector respectively is considered a user bin (both vectors must have the
      * same length).
      */
-    hierarchical_binning(pack_data & data, pack_config const & config) :
+    hierarchical_binning(pack_data & data, pack_config const & config_) :
         names{data.filenames},
         user_bin_kmer_counts{data.kmer_counts},
+        previous{data.previous},
+        config{config_},
         alpha{config.alpha},
         num_user_bins{data.kmer_counts.size()},
         num_technical_bins{(config.bins == 0) ? ((user_bin_kmer_counts.size() + 63) / 64 * 64) : config.bins},
@@ -74,7 +83,7 @@ public:
     }
 
     //!\brief Executes the hierarchical binning algorithm and packs user bins into technical bins.
-    void execute()
+    size_t execute()
     {
         sort_by_distribution(names, user_bin_kmer_counts);
         // seqan3::debug_stream << std::endl << "Sorted list: " << user_bin_kmer_counts << std::endl << std::endl;
@@ -99,7 +108,9 @@ public:
         // print_matrix(ll_matrix, num_technical_bins, num_user_bins, std::numeric_limits<size_t>::max());
         // print_matrix(trace, num_technical_bins, num_user_bins, std::make_pair(std::numeric_limits<size_t>::max(), std::numeric_limits<size_t>::max()));
 
-        backtracking(matrix, ll_matrix, trace);
+        size_t max_bin_id = backtracking(matrix, ll_matrix, trace);
+
+        return max_bin_id;
     }
 
 private:
@@ -267,19 +278,22 @@ private:
     }
 
     //!\brief Backtracks the trace matrix and writes the resulting binning into the output file.
-    void backtracking(std::vector<std::vector<size_t>> const & matrix,
-                      std::vector<std::vector<size_t>> const & ll_matrix,
-                      std::vector<std::vector<std::pair<size_t, size_t>>> const & trace)
+    size_t backtracking(std::vector<std::vector<size_t>> const & matrix,
+                        std::vector<std::vector<size_t>> const & ll_matrix,
+                        std::vector<std::vector<std::pair<size_t, size_t>>> const & trace)
     {
+        bool const high = previous.empty();
+
         // backtracking
         size_t trace_i = num_technical_bins - 1;
         int trace_j = num_user_bins - 1;
         std::cout << "optimum: " << matrix[trace_i][trace_j] << std::endl;
         std::cout << std::endl;
 
-        output_buff << "#BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE" << std::endl;
+        if (output_buff.tellp() == 0) // beginning of the file
+            output_buff << "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\tEST_MAX_TB_SIZES" << std::endl;
 
-        std::string high_level_max_id{};
+        size_t high_level_max_id{};
         size_t high_level_max_size{};
 
         size_t bin_id{};
@@ -302,14 +316,14 @@ private:
                 int const kmer_count = user_bin_kmer_counts[0];
                 int const average_bin_size = kmer_count / trace_i;
 
-                output_buff << "SPLIT_BIN_" << bin_id << '\t'
-                            << names[0] << '\t'
-                            << trace_i << '\t'
-                            << average_bin_size << '\n';
+                output_buff << names[0] << '\t'
+                            << previous.bin_indices  << (high ? "" : ";") << bin_id << '\t'
+                            << previous.num_of_bins  << (high ? "" : ";") << trace_i << '\t'
+                            << previous.estimated_sizes << (high ? "" : ";") << average_bin_size << '\n';
 
                 if (average_bin_size > high_level_max_size)
                 {
-                    high_level_max_id = "SPLIT_BIN_" + std::to_string(bin_id);
+                    high_level_max_id = bin_id;
                     high_level_max_size = average_bin_size;
                 }
 
@@ -318,42 +332,54 @@ private:
             }
             else if (number_of_bins == 0) // start of merged bin
             {
-                std::vector<size_t> merged_bins{kmer_count};
-                std::vector<std::string> merged_bin_names{names[trace_j]};
+                pack_data libf_data{};
+                libf_data.output_buffer = &output_buff;
+                libf_data.header_buffer = &header_buff;
+
+                libf_data.kmer_counts = {kmer_count};
+                libf_data.filenames = {names[trace_j]};
                 // std::cout << "merged [" << trace_j;
                 while (trace_j > 0 && next_i == trace_i)
                 {
                     trace_i = next_i; // unnecessary?
                     --trace_j;
                     kmer_count += user_bin_kmer_counts[trace_j];
-                    merged_bins.push_back(user_bin_kmer_counts[trace_j]);
-                    merged_bin_names.push_back(names[trace_j]);
+                    libf_data.kmer_counts.push_back(user_bin_kmer_counts[trace_j]);
+                    libf_data.filenames.push_back(names[trace_j]);
                     next_i = trace[trace_i][trace_j].first;
                     // std::cout << "," << trace_j;
                 }
                 assert(trace_j == 0 || trace_i - next_i == 1);
-                assert(kmer_count == std::accumulate(merged_bins.begin(), merged_bins.end(), 0u));
+                assert(kmer_count == std::accumulate(libf_data.kmer_counts.begin(), libf_data.kmer_counts.end(), 0u));
 
                 ++number_of_bins;
                 trace_i = next_i;
                 --trace_j;
 
+                libf_data.previous = previous;
+                libf_data.previous.bin_indices += (high ? "" : ";") + std::to_string(bin_id);
+                libf_data.previous.num_of_bins  += (high ? "" : ";") + std::string{"1"};
+                libf_data.previous.estimated_sizes += (high ? "" : ";") + std::to_string(kmer_count);
+
+                std::string const merged_ibf_name{std::string{merged_bin_prefix} + "_" + libf_data.previous.bin_indices};
+
                 // now do the binning for the low-level IBF:
-                std::string const merged_ibf_name{std::string{merged_bin_prefix} + "_" + std::to_string(bin_id)};
-
-                pack_data libf_data{};
-                libf_data.filenames = std::move(merged_bin_names);
-                libf_data.kmer_counts = std::move(merged_bins);
-                libf_data.output_buffer = &output_buff;
-                libf_data.header_buffer = &header_buff;
-
-                simple_binning algo{libf_data, merged_ibf_name};
-                auto max_bin_id = algo.execute();
-                header_buff << "#" << merged_ibf_name << " max_bin_id:" << max_bin_id << '\n';
+                size_t merged_max_bin_id;
+                if (libf_data.kmer_counts.size() > num_technical_bins)
+                {
+                    hierarchical_binning algo{libf_data, config};
+                    merged_max_bin_id = algo.execute();
+                }
+                else
+                {
+                    simple_binning algo{libf_data};
+                    merged_max_bin_id = algo.execute();
+                }
+                header_buff << "#" << merged_ibf_name << " max_bin_id:" << merged_max_bin_id << '\n';
 
                 if (kmer_count > high_level_max_size)
                 {
-                    high_level_max_id = merged_ibf_name;
+                    high_level_max_id = bin_id;
                     high_level_max_size = kmer_count;
                 }
 
@@ -362,37 +388,49 @@ private:
             }
             else if (number_of_bins == 1 && next_j != static_cast<size_t>(trace_j) - 1) // merged bin
             {
-                std::vector<size_t> merged_bins{kmer_count};
-                std::vector<std::string> merged_bin_names{names[trace_j]};
+                pack_data libf_data{};
+                libf_data.output_buffer = &output_buff;
+                libf_data.header_buffer = &header_buff;
+
+                libf_data.kmer_counts = {kmer_count};
+                libf_data.filenames = {names[trace_j]};
                 // std::cout << "merged [" << trace_j;
                 --trace_j;
                 while (static_cast<size_t>(trace_j) != next_j)
                 {
                     kmer_count += user_bin_kmer_counts[trace_j];
-                    merged_bins.push_back(user_bin_kmer_counts[trace_j]);
-                    merged_bin_names.push_back(names[trace_j]);
+                    libf_data.kmer_counts.push_back(user_bin_kmer_counts[trace_j]);
+                    libf_data.filenames.push_back(names[trace_j]);
                     // std::cout << "," << trace_j;
                     --trace_j;
                 }
                 trace_i = next_i;
                 trace_j = next_j; // unneccessary?
 
+                libf_data.previous = previous;
+                libf_data.previous.bin_indices += (high ? "" : ";") + std::to_string(bin_id);
+                libf_data.previous.num_of_bins  += (high ? "" : ";") + std::string{"1"};
+                libf_data.previous.estimated_sizes += (high ? "" : ";") + std::to_string(kmer_count);
+
+                std::string const merged_ibf_name{std::string{merged_bin_prefix} + "_" + libf_data.previous.bin_indices};
+
+                size_t merged_max_bin_id;
                 // now do the binning for the low-level IBF:
-                std::string const merged_ibf_name{std::string{merged_bin_prefix} + "_" + std::to_string(bin_id)};
-
-                pack_data libf_data{};
-                libf_data.filenames = std::move(merged_bin_names);
-                libf_data.kmer_counts = std::move(merged_bins);
-                libf_data.output_buffer = &output_buff;
-                libf_data.header_buffer = &header_buff;
-
-                simple_binning algo{libf_data, merged_ibf_name};
-                auto max_bin_id = algo.execute();
-                header_buff << "#" << merged_ibf_name << " max_bin_id:" << max_bin_id << '\n';
+                if (libf_data.kmer_counts.size() > num_technical_bins)
+                {
+                    hierarchical_binning algo{libf_data, config};
+                    merged_max_bin_id = algo.execute();
+                }
+                else
+                {
+                    simple_binning algo{libf_data};
+                    merged_max_bin_id = algo.execute();
+                }
+                header_buff << "#" << merged_ibf_name << " max_bin_id:" << merged_max_bin_id << '\n';
 
                 if (kmer_count > high_level_max_size)
                 {
-                    high_level_max_id = merged_ibf_name;
+                    high_level_max_id = bin_id;
                     high_level_max_size = kmer_count;
                 }
                 // std::cout << "]: " << kmer_count << std::endl;
@@ -401,16 +439,16 @@ private:
             {
                 size_t const kmer_count_per_bin = kmer_count / number_of_bins; // round down
 
-                output_buff << "SPLIT_BIN_" << bin_id << '\t'
-                            << names[trace_j] << '\t'
-                            << number_of_bins << '\t'
-                            << kmer_count_per_bin << '\n';
+                output_buff << names[trace_j] << '\t'
+                            << previous.bin_indices  << (high ? "" : ";") << bin_id << '\t'
+                            << previous.num_of_bins  << (high ? "" : ";") << number_of_bins << '\t'
+                            << previous.estimated_sizes << (high ? "" : ";") << kmer_count_per_bin << '\n';
 
                 // std::cout << "split " << trace_j << " into " << number_of_bins << ": " << kmer_count_per_bin << std::endl;
 
                 if (kmer_count_per_bin > high_level_max_size)
                 {
-                    high_level_max_id = "SPLIT_BIN_" + std::to_string(bin_id);
+                    high_level_max_id = bin_id;
                     high_level_max_size = kmer_count_per_bin;
                 }
 
@@ -421,6 +459,6 @@ private:
             bin_id += number_of_bins;
         }
 
-        header_buff << "#" << hibf_prefix << " max_bin_id:" << high_level_max_id << '\n';
+        return high_level_max_id;
     }
 };
