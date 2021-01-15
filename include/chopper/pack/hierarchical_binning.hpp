@@ -340,7 +340,14 @@ private:
 
                 // now do the binning for the low-level IBF:
                 std::string const merged_ibf_name{std::string{merged_bin_prefix} + "_" + std::to_string(bin_id)};
-                simple_binning algo{merged_bins, merged_bin_names, merged_ibf_name, output_buff};
+
+                pack_data libf_data{};
+                libf_data.filenames = std::move(merged_bin_names);
+                libf_data.kmer_counts = std::move(merged_bins);
+                libf_data.output_buffer = &output_buff;
+                libf_data.header_buffer = &header_buff;
+
+                simple_binning algo{libf_data, merged_ibf_name};
                 auto max_bin_id = algo.execute();
                 header_buff << "#" << merged_ibf_name << " max_bin_id:" << max_bin_id << '\n';
 
@@ -372,7 +379,14 @@ private:
 
                 // now do the binning for the low-level IBF:
                 std::string const merged_ibf_name{std::string{merged_bin_prefix} + "_" + std::to_string(bin_id)};
-                simple_binning algo{merged_bins, merged_bin_names, merged_ibf_name, output_buff};
+
+                pack_data libf_data{};
+                libf_data.filenames = std::move(merged_bin_names);
+                libf_data.kmer_counts = std::move(merged_bins);
+                libf_data.output_buffer = &output_buff;
+                libf_data.header_buffer = &header_buff;
+
+                simple_binning algo{libf_data, merged_ibf_name};
                 auto max_bin_id = algo.execute();
                 header_buff << "#" << merged_ibf_name << " max_bin_id:" << max_bin_id << '\n';
 

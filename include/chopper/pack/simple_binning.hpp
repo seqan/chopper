@@ -7,6 +7,7 @@
 #include <numeric>
 #include <vector>
 
+#include <chopper/pack/pack_data.hpp>
 #include <chopper/pack/print_matrix.hpp>
 
 /*!\brief Distributes x Technical Bins across y User Bins while minimizing the maximal Technical Bin size
@@ -106,10 +107,8 @@ private:
 
 public:
     /*!\brief The constructor from user bin names, their kmer counts and a configuration.
-     * \param[in] input The kmer counts associated with the user bin.
-     * \param[in] names The filenames associated with the user bin.
+     * \param[in] data The filenames and kmer counts associated with the user bin, as well as the ostream buffer.
      * \param[in] bin_name_ The bin identifier to write into the output file.
-     * \param[in] file_handle The stream handle to append the output to.
      * \param[in] num_bins (optional) The number of technical bins.
      *
      * If the `num_bins` parameter is omitted or set to 0, then number of technical bins used in this algorithm
@@ -118,22 +117,18 @@ public:
      * \attention The number of technical bins must be greater or equal to the number of user bins!
      *            If you want to use less technical bins than user bins, see the hierarchical_binning algorithm.
      */
-    simple_binning(std::vector<size_t> const & input,
-                   std::vector<std::string> const & names,
-                   std::string const & bin_name_,
-                   std::ostream & file_handle,
-                   size_t num_bins = 0) :
-        user_bin_names{names},
-        user_bin_kmer_counts{input},
+    simple_binning(pack_data & data, std::string const & bin_name_, size_t num_bins = 0) :
+        user_bin_names{data.filenames},
+        user_bin_kmer_counts{data.kmer_counts},
         bin_name{bin_name_},
-        output_file{file_handle},
-        num_user_bins{input.size()},
+        output_file{*data.output_buffer},
+        num_user_bins{data.kmer_counts.size()},
         num_technical_bins{(num_bins == 0) ? ((user_bin_kmer_counts.size() + 63) / 64 * 64) : num_bins},
         kmer_count_sum{std::accumulate(user_bin_kmer_counts.begin(), user_bin_kmer_counts.end(), 0u)},
         kmer_count_average_per_bin{std::max<size_t>(1u, kmer_count_sum / num_technical_bins)}
     {
         std::cout << "#Techincal bins: " << num_technical_bins << std::endl;
-        std::cout << "#User bins: " << input.size() << std::endl;
+        std::cout << "#User bins: " << data.kmer_counts.size() << std::endl;
 
         if (num_user_bins > num_technical_bins)
         {
