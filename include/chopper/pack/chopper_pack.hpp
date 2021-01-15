@@ -75,9 +75,19 @@ int chopper_pack(seqan3::argument_parser & parser)
     if (config.aggregate_by_column != -1)
         aggregate_by(data, config.aggregate_by_column);
 
+    std::stringstream output_buffer;
+    std::stringstream header_buffer;
+    data.output_buffer = &output_buffer;
+    data.header_buffer = &header_buffer;
+
     // Execute the actual algorithm:
     hierarchical_binning algo{data, config};
     algo.execute();
+
+    // brief Write the output to the result file.
+    std::ofstream fout{config.output_filename};
+    fout << header_buffer.rdbuf();
+    fout << output_buffer.rdbuf();
 
     return 0;
 }

@@ -40,12 +40,10 @@ private:
     //!\brief The average count calculated from kmer_count_sum / num_technical_bins.
     size_t const kmer_count_average_per_bin;
 
-    //!\brief The output stream to cache the results to.
-    std::stringstream output_buff;
-    //!\brief The stream to cache the header to.
-    std::stringstream header_buff;
-    //!\brief The filename to write the output to.
-    std::string output_filename;
+    //!\brief A reference to the output stream to cache the results to.
+    std::stringstream & output_buff;
+    //!\brief A reference to the stream to cache the header to.
+    std::stringstream & header_buff;
 
 public:
     /*!\brief The constructor from user bin names, their kmer counts and a configuration.
@@ -64,7 +62,8 @@ public:
         num_technical_bins{(config.bins == 0) ? ((user_bin_kmer_counts.size() + 63) / 64 * 64) : config.bins},
         kmer_count_sum{std::accumulate(user_bin_kmer_counts.begin(), user_bin_kmer_counts.end(), 0u)},
         kmer_count_average_per_bin{std::max<size_t>(1u, kmer_count_sum / num_technical_bins)},
-        output_filename{config.output_filename}
+        output_buff{*data.output_buffer},
+        header_buff{*data.header_buffer}
     {
         std::cout << "#Techincal bins: " << num_technical_bins << std::endl;
         std::cout << "#User bins: " << data.kmer_counts.size() << std::endl;
@@ -101,8 +100,6 @@ public:
         // print_matrix(trace, num_technical_bins, num_user_bins, std::make_pair(std::numeric_limits<size_t>::max(), std::numeric_limits<size_t>::max()));
 
         backtracking(matrix, ll_matrix, trace);
-
-        write_result_file();
     }
 
 private:
@@ -411,13 +408,5 @@ private:
         }
 
         header_buff << "#" << hibf_prefix << " max_bin_id:" << high_level_max_id << '\n';
-    }
-
-    //!\brief Write the output to the result file.
-    void write_result_file()
-    {
-        std::ofstream fout{output_filename};
-        fout << header_buff.rdbuf();
-        fout << output_buff.rdbuf();
     }
 };
