@@ -7,10 +7,10 @@
 
 TEST(chopper_pack_record_test, euality_operator)
 {
-    chopper_pack_record r1{"SPLIT_BIN_0", 0, -1, {"file7"}, 2, 500};
-    chopper_pack_record r2{"SPLIT_BIN_0", 0, -1, {"file7"}, 2, 500};
+    chopper_pack_record r1{{"file7"}, {0, 1}, {1, 2}, {500, 20}};
+    chopper_pack_record r2{{"file7"}, {0, 1}, {1, 2}, {500, 20}};
 
-    chopper_pack_record r3{"SPLIT_BIN_0", 0, -1, {"FOO"}, 2, 500};
+    chopper_pack_record r3{{"FOO"}, {0, 1}, {1, 2}, {500, 20}};
 
     EXPECT_EQ(r1, r2);
     EXPECT_NE(r1, r3);
@@ -21,14 +21,14 @@ TEST(parse_chopper_pack_line_test, high_level_data_file)
 {
     std::vector<std::string> const lines
     {
-        "SPLIT_BIN_0\tseq7\t2\t500\n",
-        "SPLIT_BIN_1\tseq6\t1\t500\n",
-        "MERGED_BIN_2_0\tseq0\t16\t32\n",
-        "MERGED_BIN_2_16\tseq2\t12\t42\n",
-        "MERGED_BIN_2_28\tseq3.1;seq3.2;seq3.3\t12\t42\n",
-        "MERGED_BIN_20_0\tseq4\t12\t42\n",
-        "MERGED_BIN_20_12\tseq5\t12\t42\n",
-        "SPLIT_BIN_3\tseq1.1;seq1.2\t2\t1000\n"
+        "seq7\t0\t2\t500\n",
+        "seq6\t1\t1\t500\n",
+        "seq0\t2;0\t1;16\t400;32\n",
+        "seq2\t2;16\t1;12\t400;42\n",
+        "seq3.1;seq3.2;seq3.3\t2;28\t1;12\t400;42\n",
+        "seq4\t20;0\t1;12\t200;42\n",
+        "seq5\t20;12\t1;12\t200;42\n",
+        "seq1.1;seq1.2\t3\t2\t1000\n"
     };
 
     std::vector<std::vector<std::string>> expected_filenames
@@ -36,35 +36,28 @@ TEST(parse_chopper_pack_line_test, high_level_data_file)
         {"seq7"}, {"seq6"}, {"seq0"}, {"seq2"}, {"seq3.1", "seq3.2", "seq3.3"}, {"seq4"}, {"seq5"}, {"seq1.1", "seq1.2"}
     };
 
-    std::vector<int> expected_bins{2, 1, 16, 12, 12, 12, 12, 2};
-
-    std::vector<std::string> expected_bin_names
+    std::vector<std::vector<size_t>> expected_bin_indices
     {
-        "SPLIT_BIN_0",
-        "SPLIT_BIN_1",
-        "MERGED_BIN_2_0",
-        "MERGED_BIN_2_16",
-        "MERGED_BIN_2_28",
-        "MERGED_BIN_20_0",
-        "MERGED_BIN_20_12",
-        "SPLIT_BIN_3"
+        {0}, {1}, {2, 0}, {2, 16}, {2, 28}, {20, 0}, {20, 12}, {3}
     };
 
-    std::vector<int> expected_max_size{500, 500, 32, 42, 42, 42, 42, 1000};
+    std::vector<std::vector<size_t>> expected_number_of_bins
+    {
+        {2}, {1}, {1, 16}, {1, 12}, {1, 12}, {1, 12}, {1, 12}, {2}
+    };
 
-    std::vector<int64_t> expected_hidxs{0, 1, 2, 2, 2, 20, 20, 3};
-
-    std::vector<int64_t> expected_lidxs{-1, -1, 0, 16, 28, 0, 12, -1};
+    std::vector<std::vector<size_t>> expected_estimated_sizes
+    {
+        {500}, {500}, {400, 32}, {400, 42}, {400, 42}, {200, 42}, {200, 42}, {1000}
+    };
 
     for (size_t i = 0; i < expected_filenames.size(); ++i)
     {
         chopper_pack_record && record = parse_chopper_pack_line(lines[i]);
 
-        EXPECT_EQ(record.bin_name, expected_bin_names[i]);
         EXPECT_RANGE_EQ(record.filenames, expected_filenames[i]);
-        EXPECT_EQ(record.bins, expected_bins[i]) << " failed at " << expected_bin_names[i] << std::endl;
-        EXPECT_EQ(record.max_size, expected_max_size[i]) << " failed at " << expected_bin_names[i] << std::endl;
-        EXPECT_EQ(record.hidx, expected_hidxs[i]) << " failed at " << expected_bin_names[i] << std::endl;
-        EXPECT_EQ(record.lidx, expected_lidxs[i]) << " failed at " << expected_bin_names[i] << std::endl;
+        EXPECT_RANGE_EQ(record.bin_indices, expected_bin_indices[i]);
+        EXPECT_RANGE_EQ(record.number_of_bins, expected_number_of_bins[i]);
+        EXPECT_RANGE_EQ(record.estimated_sizes, expected_estimated_sizes[i]);
     }
 }
