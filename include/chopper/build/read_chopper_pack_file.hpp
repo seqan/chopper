@@ -9,7 +9,7 @@
 #include <seqan3/std/ranges>
 
 #include <chopper/build/build_data.hpp>
-#include <chopper/build/read_chopper_split_file.hpp> // for header parsing
+#include <chopper/detail_parse_chopper_pack_header_line.hpp>
 #include <chopper/detail_parse_chopper_pack_line.hpp>
 
 auto read_chopper_pack_file(std::string const & chopper_pack_filename)
@@ -26,7 +26,7 @@ auto read_chopper_pack_file(std::string const & chopper_pack_filename)
     // -------------------------------------------------------------------------
     std::string current_line;
     while (std::getline(chopper_pack_file, current_line) && current_line[0] == '#')
-        parse_chopper_split_header_line(current_line, data); // pack and split header are the same
+        parse_chopper_pack_header_line(current_line, data); // pack and split header are the same
 
     // parse lines
     // -------------------------------------------------------------------------
