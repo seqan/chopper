@@ -21,6 +21,7 @@
 #include <seqan3/std/ranges>
 
 #include <chopper/split/split_config.hpp>
+#include <chopper/split/split_data.hpp>
 
 namespace lemon {
 

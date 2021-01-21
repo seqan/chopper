@@ -24,9 +24,8 @@ auto read_chopper_pack_file(std::string const & chopper_pack_filename)
 
     // parse header
     // -------------------------------------------------------------------------
-    std::string current_line;
-    while (std::getline(chopper_pack_file, current_line) && current_line[0] == '#')
-        parse_chopper_pack_header_line(current_line, data); // pack and split header are the same
+    lemon::ListDigraph & ibf_initialiser_graph{};
+    parse_chopper_pack_header(ibf_initialiser_graph, chopper_pack_file);
 
     // parse lines
     // -------------------------------------------------------------------------

@@ -35,6 +35,16 @@ std::unordered_set<size_t> compute_kmers(build_config const & config, chopper_pa
     return kmers;
 }
 
+void compute_kmers(std::unordered_set<size_t> & kmers,
+                   build_config const & config,
+                   chopper_pack_record const & record)
+{
+    for (auto const & filename : record.filenames)
+        for (auto && [seq] : sequence_file_t{filename})
+            for (auto hash : seq | seqan3::views::kmer_hash(seqan3::ungapped{config.k}))
+                kmers.insert(hash);
+}
+
 void insert_into_ibf(std::unordered_set<size_t> const & kmers,
                      size_t const number_of_bins,
                      size_t const bin_index,
@@ -205,6 +215,74 @@ auto process_split_bin(build_config const & config,
         std::unordered_set<size_t> kmers{compute_kmers(config, record)};
         insert_into_ibf(kmers, record.bins, record.hidx, high_level_ibf);
     }
+}
+
+// node muss speichern:
+// - IBF (referenz oder position)
+// - max bin id
+// - user bins
+// - all the other user bins in this IBF
+
+void build(std::unordered_set<size_t> & parent_kmers,
+           const & current_node,
+           const & tree,
+           build_config const & config)
+{
+    std::unordered_set<size_t> current_node_kmers{};
+
+    if (there is a favourite child, I am not a leaf) // favourite child -> max bin is a merged bin
+    {
+        initialize_favourite_child();
+    }
+    else // there a max bin, that is ot a merged bin
+    {
+        compute_kmers(current_node_kmers, config, max_record/*one line in file*/);
+    }
+
+    initialize IBF with respective bin size
+
+    insert current_node_kmers into IBF
+
+    while (there is another child that needs to be initialized beforehand) // (can be more than one child)
+    {
+        std::unordered_set<size_t> kmers{};
+        initialize(kmers, child, tree); // also appends that childs counts to 'current_node_kmers'
+        insert kmers into bin in IBF
+        parent_kmers.merge(kmers);
+    }
+
+    hash and insert all remaining user bins of this IBF and into current_node_kmers;
+
+    parent_kmers.merge(current_node_kmers);
+}
+
+void start_build(const & tree, build_config const & config)
+{
+    current_node = root; // high level
+
+    std::unordered_set<size_t> current_node_kmers{};
+
+    if (there is a favourite child, I am not a leaf) // favourite child -> max bin is a merged bin
+    {
+        initialize_favourite_child();
+    }
+    else // there a max bin, that is ot a merged bin
+    {
+        compute_kmers(current_node_kmers, config, max_record/*one line in file*/);
+    }
+
+    initialize IBF with respective bin size
+
+    insert current_node_kmers into IBF
+
+    while (there is another child that needs to be initialized beforehand) // (can be more than one child)
+    {
+        std::unordered_set<size_t> kmers{};
+        initialize(kmers, child, tree); // also appends that childs counts to 'current_node_kmers'
+        insert kmers into bin in IBF
+    }
+
+    hash and insert all remaining user bins of this IBF;
 }
 
 auto create_ibfs_from_chopper_pack(build_config const & config)
