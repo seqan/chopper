@@ -4,8 +4,6 @@
 #include <seqan3/std/algorithm>
 #include <string>
 
-#include <lemon/list_graph.h>
-
 #include <chopper/build/build_data.hpp>
 #include <chopper/detail_bin_prefixes.hpp>
 
@@ -57,26 +55,6 @@ auto parse_bin_indices(std::string const & str)
     return result;
 }
 
-struct node_data
-{
-    size_t parent_bin_index{};
-    size_t max_bin_index{};
-    lemon::ListDigraph::Node favourite_child{lemon::INVALID};
-};
-
-std::ostream & operator<<(std::ostream & s, node_data const & nd)
-{
-    s << "{parent:"
-      << nd.parent_bin_index
-      << ", max:"
-      << nd.max_bin_index
-      << ", fav:"
-      << ((nd.favourite_child == lemon::INVALID) ? "NONE" : "some")
-      << "}";
-
-    return s;
-}
-
 void parse_chopper_pack_header(lemon::ListDigraph & ibf_graph,
                                lemon::ListDigraph::NodeMap<node_data> & node_map,
                                std::istream & chopper_pack_file)
@@ -91,7 +69,7 @@ void parse_chopper_pack_header(lemon::ListDigraph & ibf_graph,
     std::string hibf_max_bin_str(line.begin() + 27, line.end());
 
     auto high_level_node = ibf_graph.addNode(); // high-level node = root node
-    node_map.set(high_level_node, {0, parse_bin_indices(hibf_max_bin_str).front(), lemon::INVALID});
+    node_map.set(high_level_node, {0, parse_bin_indices(hibf_max_bin_str).front(), 0, lemon::INVALID, {}});
 
     std::vector<std::pair<std::vector<size_t>, size_t>> header_records{};
 
@@ -140,7 +118,7 @@ void parse_chopper_pack_header(lemon::ListDigraph & ibf_graph,
 
         auto new_node = ibf_graph.addNode();
         ibf_graph.addArc(current_node, new_node);
-        node_map.set(new_node, {bin_indices.back(), max_id, lemon::INVALID});
+        node_map.set(new_node, {bin_indices.back(), max_id, 0, lemon::INVALID, {}});
 
         if (node_map[current_node].max_bin_index == bin_indices.back())
             node_map[current_node].favourite_child = new_node;

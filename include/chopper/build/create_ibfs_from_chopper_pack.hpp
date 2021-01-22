@@ -45,12 +45,13 @@ void compute_kmers(std::unordered_set<size_t> & kmers,
                 kmers.insert(hash);
 }
 
+// automatically does naive splitting if number_of_bins > 1
 void insert_into_ibf(std::unordered_set<size_t> const & kmers,
                      size_t const number_of_bins,
                      size_t const bin_index,
                      seqan3::interleaved_bloom_filter<> & ibf)
 {
-    size_t const kmers_per_chunk = kmers.size() / number_of_bins + 1;
+    size_t const kmers_per_chunk = (kmers.size() / number_of_bins) + 1;
     auto it = kmers.begin();
     for (size_t chunk = 0; chunk < number_of_bins; ++chunk)
         for (size_t i = chunk * kmers_per_chunk; i < std::min((chunk + 1) * kmers_per_chunk, kmers.size()); ++i, ++it)
@@ -224,8 +225,8 @@ auto process_split_bin(build_config const & config,
 // - all the other user bins in this IBF
 
 void build(std::unordered_set<size_t> & parent_kmers,
-           const & current_node,
-           const & tree,
+           lemon::ListDigraph::Node const & current_node,
+           build_data const & data,
            build_config const & config)
 {
     std::unordered_set<size_t> current_node_kmers{};
@@ -256,33 +257,54 @@ void build(std::unordered_set<size_t> & parent_kmers,
     parent_kmers.merge(current_node_kmers);
 }
 
-void start_build(const & tree, build_config const & config)
+void start_build(build_data const & data, build_config const & config)
 {
-    current_node = root; // high level
+    lemon::ListDigraph::Node root = data.ibf_graph.nodeFromId(0); // root node = high level IBF node
+    auto & root_node_data = node_map[root];
 
-    std::unordered_set<size_t> current_node_kmers{};
+    std::unordered_set<size_t> max_bin_kmers{};
 
-    if (there is a favourite child, I am not a leaf) // favourite child -> max bin is a merged bin
+    size_t number_of_max_bin_technical_bins{};
+    if (root_node_data.favourite_child != lemon::INVALID) // max bin is a merged bin
     {
-        initialize_favourite_child();
+        build(max_bin_kmers, root_node_data.favourite_child, data, config); // recursively initialize favourite child first
+        number_of_max_bin_technical_bins = 1;
     }
     else // there a max bin, that is ot a merged bin
     {
-        compute_kmers(current_node_kmers, config, max_record/*one line in file*/);
+        // we assume that the max record is at the beginning of the list of remaining records.
+        auto const & record = root_node_data.remaining_records[0];
+        compute_kmers(max_bin_kmers, config, record);
+        assert(record.number_of_bins.size() == 1);
+        number_of_max_bin_technical_bins = record.number_of_bins.front();
     }
 
-    initialize IBF with respective bin size
+    // construct High Level IBF
+    seqan3::bin_size const bin_size{compute_bin_size(config, max_bin_kmers.size() / number_of_max_bin_technical_bins)};
+    seqan3::bin_count const bin_count{root_node_data.number_of_technical_bins};
+    seqan3::interleaved_bloom_filter high_level_ibf{bin_count, bin_size, seqan3::hash_function_count{config.hash_funs}};
 
-    insert current_node_kmers into IBF
+    if (config.verbose)
+        seqan3::debug_stream << "  > Initialised LIBF with bin size " << bin_size.get() << std::endl;
 
-    while (there is another child that needs to be initialized beforehand) // (can be more than one child)
+    insert_into_ibf(max_bin_kmers, number_of_max_bin_technical_bins, root_node_data.max_bin_id, high_level_ibf);
+
+    max_bin_kmers.clear(); // clear memory allocation
+
+    // parse all other children (merged bins) of the high level-ibf (will build the whole HIBF)
+    for (lemon::ListDigraph::OutArcIt arc_it(data.ibf_graph, root); arc_it != lemon::INVALID; ++arc_it)
     {
-        std::unordered_set<size_t> kmers{};
-        initialize(kmers, child, tree); // also appends that childs counts to 'current_node_kmers'
-        insert kmers into bin in IBF
+        auto child = ibf_graph.target(arc_it);
+        if (child != root_node_data.favourite_child)
+        {
+            std::unordered_set<size_t> kmers{};
+            build(kmers, child, data, config); // also appends that childs counts to 'kmers'
+            insert_into_ibf(kmers, 1, child.parent_bin_id, high_level_ibf);
+        }
     }
 
-    hash and insert all remaining user bins of this IBF;
+    for (auto const & record : root_node_data.remaining_records)
+        insert_into_ibf(config, record, high_level_ibf, root/*somehting not an ibf :D*/);
 }
 
 auto create_ibfs_from_chopper_pack(build_config const & config)

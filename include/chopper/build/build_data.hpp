@@ -1,7 +1,10 @@
 #pragma once
 
+#include <lemon/list_graph.h>
+
 #include <chopper/build/batch.hpp>
 #include <chopper/build/region.hpp>
+#include <chopper/detail_node_data.hpp>
 #include <chopper/detail_parse_chopper_pack_line.hpp>
 
 struct build_data
@@ -16,4 +19,8 @@ struct build_data
     std::unordered_map<size_t, size_t> merged_max_bin_map{};
     std::unordered_map<std::string, size_t> merged_bin_map{};
     std::unordered_map<std::string, std::vector<region>> region_map{};
+
+    // new stuff
+    lemon::ListDigraph ibf_graph{};
+    lemon::ListDigraph::NodeMap<node_data> node_map{ibf_graph};
 };

@@ -12,11 +12,9 @@
 #include <chopper/detail_parse_chopper_pack_header_line.hpp>
 #include <chopper/detail_parse_chopper_pack_line.hpp>
 
-auto read_chopper_pack_file(std::string const & chopper_pack_filename)
+// data needs to be passed from outside sind the graph in data cannot be moved
+void read_chopper_pack_file(build_data & data, std::string const & chopper_pack_filename)
 {
-    build_data data;
-    std::vector<std::vector<chopper_pack_record>> records_per_hibf_bin{};
-
     std::ifstream chopper_pack_file{chopper_pack_filename};
 
     if (!chopper_pack_file.good() || !chopper_pack_file.is_open())
@@ -24,27 +22,51 @@ auto read_chopper_pack_file(std::string const & chopper_pack_filename)
 
     // parse header
     // -------------------------------------------------------------------------
-    lemon::ListDigraph & ibf_initialiser_graph{};
-    parse_chopper_pack_header(ibf_initialiser_graph, chopper_pack_file);
+    parse_chopper_pack_header(data.ibf_graph, data.node_map, chopper_pack_file);
 
     // parse lines
     // -------------------------------------------------------------------------
-    do
+    std::string current_line;
+    while (std::getline(chopper_pack_file, current_line))
     {
         chopper_pack_record const && record = parse_chopper_pack_line(current_line);
-        data.num_libfs += (record.lidx != -1);
 
-        if (records_per_hibf_bin.size() <= record.hidx)
-            records_per_hibf_bin.resize(record.hidx + ((record.lidx == -1) ? record.bins : 1));
+        // go down the tree until you find the matching parent
+        lemon::ListDigraph::Node current_node = data.ibf_graph.nodeFromId(0); // start at root
 
-        records_per_hibf_bin[record.hidx].push_back(record);
+        for (size_t i = 0; i < record.bin_indices.size() - 1; ++i)
+        {
+            size_t const bin = record.bin_indices[i];
+            size_t const num_tbs = record.number_of_bins[i];
+            auto & current_data = data.node_map[current_node];
 
-    } while (std::getline(chopper_pack_file, current_line));
+            // update number of technical bins in current_node-IBF
+            current_data.number_of_technical_bins = std::max(current_data.number_of_technical_bins, bin + num_tbs);
 
-    for (auto & records : records_per_hibf_bin)
-        std::ranges::sort(records, [] (auto const & rec1, auto const & rec2) { return rec1.lidx < rec2.lidx; });
+            bool found_next_node{false}; // sanity check
+            for (lemon::ListDigraph::OutArcIt arc_it(data.ibf_graph, current_node); arc_it != lemon::INVALID; ++arc_it)
+            {
+                auto target = data.ibf_graph.target(arc_it);
+                if (data.node_map[target].parent_bin_index == bin)
+                {
+                    current_node = target;
+                    found_next_node = true;
+                    break;
+                }
+            }
+            assert(found_next_node);
+        }
 
-    data.hibf_num_technical_bins = records_per_hibf_bin.size();
+        size_t const bin = record.bin_indices.back();
+        size_t const num_tbs = record.number_of_bins.back();
+        auto & current_data = data.node_map[current_node];
 
-    return std::make_pair(std::move(data), std::move(records_per_hibf_bin));
+        // update number of technical bins in current_node-IBF
+        current_data.number_of_technical_bins = std::max(current_data.number_of_technical_bins, bin + num_tbs);
+
+        if (record.bin_indices.back() == current_data.max_bin_index)
+            current_data.remaining_records.insert(current_data.remaining_records.begin(), record);
+        else
+            current_data.remaining_records.push_back(record);
+    }
 };
