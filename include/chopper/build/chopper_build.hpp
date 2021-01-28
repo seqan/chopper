@@ -21,7 +21,7 @@ void initialize_argument_parser(seqan3::argument_parser & parser, build_config &
     parser.info.version = "1.0.0";
 
     parser.add_option(config.chopper_pack_filename, 'p', "pack-file", "Provide the file produced by chopper pack.");
-    parser.add_option(config.chopper_split_filename, 's', "split-file", "Provide the file produced by chopper split.");
+    // parser.add_option(config.chopper_split_filename, 's', "split-file", "Provide the file produced by chopper split.");
     parser.add_option(config.k, 'k', "kmer-size", "The kmer size to build kmers.");
     parser.add_option(config.overlap, 'l', "overlap", "The overlap between split regions of the same sequence.");
     parser.add_option(config.FPR, 'r', "false-positive-rate", "The minimum false positive rate of every IBF.");
@@ -29,13 +29,14 @@ void initialize_argument_parser(seqan3::argument_parser & parser, build_config &
     parser.add_flag(config.verbose, 'v', "verbose", "Output logging/progress information.");
 }
 
-auto create_ibfs(seqan3::argument_parser const & parser, build_config const & config)
+auto create_ibfs(seqan3::argument_parser const & parser, build_data const & data, build_config const & config)
 {
-    assert(parser.is_option_set('p') || parser.is_option_set('s'));
-    if (parser.is_option_set('p'))
-        return create_ibfs_from_chopper_pack(config);
-    else
-        return create_ibfs_from_chopper_split(config);
+    // assert(parser.is_option_set('p') || parser.is_option_set('s'));
+
+    // if (parser.is_option_set('p'))
+        create_ibfs_from_chopper_pack(data, config);
+    // else
+    //     create_ibfs_from_chopper_split(data, config);
 }
 
 int chopper_build(seqan3::argument_parser & parser)
@@ -66,7 +67,8 @@ int chopper_build(seqan3::argument_parser & parser)
         return -1;
     }
 
-    auto && [high_level_ibf, low_level_ibfs] = create_ibfs(parser, config);
+    build_data data{};
+    create_ibfs(parser, data, config);
 
     // Create output directory if it does not exist
     std::filesystem::path directory = std::filesystem::path{config.output_prefix}.parent_path();
@@ -74,30 +76,28 @@ int chopper_build(seqan3::argument_parser & parser)
         if (!std::filesystem::create_directories(directory)) // recursively creates every directory needed
             throw std::runtime_error{"Could not create directory " + directory.string()};
 
+    // write vector of ibfs to file
     {
-        std::string const out_filename{config.output_prefix + "high_level.ibf"};
+        std::string const out_filename{config.output_prefix + "hibf.out"}; // the complete hierarchical ibf
         std::ofstream fout(out_filename, std::ios::binary);
 
         if (!fout.good() || !fout.is_open())
             throw std::runtime_error{"Could not open " + out_filename + " for writing."};
 
         cereal::BinaryOutputArchive archive(fout);
-        archive(high_level_ibf);
+        archive(data.ibfs);
     }
 
-    for (size_t i = 0; i < low_level_ibfs.size(); ++i)
+    // write ibf mapping to file
     {
-        if (low_level_ibfs[i].bin_size() != 1) // no dummy
-        {
-            std::string const out_filename{config.output_prefix + "low_level_" + std::to_string(i) + ".ibf"};
-            std::ofstream fout(out_filename, std::ios::binary);
+        std::string const out_filename{config.output_prefix + "position_mapping.out"};
+        std::ofstream fout(out_filename, std::ios::binary);
 
-            if (!fout.good() || !fout.is_open())
-                throw std::runtime_error{"Could not open " + out_filename + " for writing."};
+        if (!fout.good() || !fout.is_open())
+            throw std::runtime_error{"Could not open " + out_filename + " for writing."};
 
-            cereal::BinaryOutputArchive archive(fout);
-            archive(low_level_ibfs[i]);
-        }
+        cereal::BinaryOutputArchive archive(fout);
+        archive(data.ibf_mapping);
     }
 
     return 0;

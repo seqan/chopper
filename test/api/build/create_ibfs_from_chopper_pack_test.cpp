@@ -38,7 +38,7 @@ struct create_ibfs_from_chopper_pack_test : public ::testing::Test
     }
 };
 
-TEST_F(create_ibfs_from_chopper_pack_test, small_example)
+TEST_F(create_ibfs_from_chopper_pack_test, small_example_2_levels)
 {
     std::string seq1_filename = DATADIR"seq1.fa";
     std::string seq2_filename = DATADIR"seq2.fa";
@@ -49,17 +49,17 @@ TEST_F(create_ibfs_from_chopper_pack_test, small_example)
     // generate data files
     {
         std::ofstream fout{chopper_pack_filename.get_path()};
-        fout << "#MERGED_BIN_6 max_bin_id:0\n"
-             << "#HIGH_LEVEL_IBF max_bin_id:MERGED_BIN_6\n"
-             << "#FILE_ID\tSEQ_ID\tBEGIN\tEND\tHIBF_BIN_IDX\tLIBF_BIN_IDX\n"
-             << "SPLIT_BIN_0\t" << seq1_filename << ";" << seq2_filename << "\t1\t500\n"
-             << "SPLIT_BIN_1\t" << seq3_filename << "\t1\t500\n"
-             << "SPLIT_BIN_2\t" << seq1_filename << ";" << seq2_filename << ";" << seq3_filename << "\t1\t500\n"
-             << "SPLIT_BIN_3\t" << seq1_filename << ";" << seq2_filename << ";" << seq3_filename << "\t3\t500\n"
-             << "MERGED_BIN_6_0\t" << seq1_filename << "\t1\t500\n"
-             << "MERGED_BIN_6_1\t" << seq2_filename << "\t1\t500\n"
-             << "MERGED_BIN_6_2\t" << seq1_filename << ";" << seq2_filename << ";" << seq3_filename << "\t3\t500\n"
-             << "MERGED_BIN_6_5\t" << seq3_filename << "\t1\t500\n";
+        fout << "#HIGH_LEVEL_IBF max_bin_id:6\n"
+             << "#MERGED_BIN_6 max_bin_id:0\n"
+             << "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\tEST_MAX_TB_SIZES\n"
+             << seq1_filename << ";" << seq2_filename << "\t0\t1\t500\n"
+             << seq3_filename << "\t1\t1\t500\n"
+             << seq1_filename << ";" << seq2_filename << ";" << seq3_filename << "\t2\t1\t500\n"
+             << seq1_filename << ";" << seq2_filename << ";" << seq3_filename << "\t3\t3\t500\n"
+             << seq1_filename << "\t6;0\t1;1\t500\n"
+             << seq2_filename << "\t6;1\t1;1\t500\n"
+             << seq1_filename << ";" << seq2_filename << ";" << seq3_filename << "\t6;2\t1;3\t500\n"
+             << seq3_filename << "\t6;5\t1;1\t500\n";
     }
 
     // HIGH LEVEL IBF
@@ -85,26 +85,27 @@ TEST_F(create_ibfs_from_chopper_pack_test, small_example)
     config.k = 15;
     config.chopper_pack_filename = chopper_pack_filename.get_path().string();
 
-    auto && [high_level_ibf, low_level_ibfs] = create_ibfs_from_chopper_pack(config);
+    build_data data{};
 
-    EXPECT_EQ(low_level_ibfs.size(), 7u);
+    create_ibfs_from_chopper_pack(data, config);
 
-    for (size_t i = 0; i < low_level_ibfs.size(); ++i)
-        if (i != 6)
-            EXPECT_EQ(low_level_ibfs[i].bin_size(), 1u); // dummy bin
+    EXPECT_EQ(data.ibfs.size(), 2);
+
+    auto & high_level_ibf = data.ibfs[0];
+    auto & low_level_ibf = data.ibfs[1];
 
     EXPECT_EQ(high_level_ibf.bin_size(), 114226);
-    EXPECT_EQ(low_level_ibfs[6].bin_size(), 76615);
+    EXPECT_EQ(low_level_ibf.bin_size(), 76615);
 
     EXPECT_EQ(high_level_ibf.bin_count(), 7u);
-    EXPECT_EQ(low_level_ibfs[6].bin_count(), 6u);
+    EXPECT_EQ(low_level_ibf.bin_count(), 6u);
 
     auto unspecific = "ACGATCGACTAGGAGCGATTACGACTGACTACATCTAGCTAGCTAGAGATTCTTCAGAGCTTAGCGATCTCGAGCTATCG"_dna4;
     auto seq2_specific = "ATATCGATCGAGCGAGGCAGGCAGCGATCGAGCGAGCGCATGCAGCGACTAGCTACGACAGCTACTATCAGCAGCGAGCG"_dna4;
     auto seq3_specific = "ATCGATCACGATCAGCGAGCGATATCTTATCGTAGGCATCGAGCATCGAGGAGCGATCTATCTATCTATCATCTATCTAT"_dna4;
 
     auto hibf_agent = high_level_ibf.membership_agent();
-    auto libf_agent = low_level_ibfs[6].membership_agent();
+    auto libf_agent = low_level_ibf.membership_agent();
 
     { // UNSPECIFIC - unspecific region should be found in all bins that include a whole sequence
         auto && [hibf_counts, libf_counts] = this->count_kmers(hibf_agent, libf_agent, unspecific, config);
@@ -158,7 +159,7 @@ TEST_F(create_ibfs_from_chopper_pack_test, small_example)
     }
 }
 
-TEST_F(create_ibfs_from_chopper_pack_test, same_example_but_split_bin_as_hibf_max_bin)
+TEST_F(create_ibfs_from_chopper_pack_test, same_example_two_levels_but_split_bin_as_hibf_max_bin)
 {
     std::string seq1_filename = DATADIR"seq1.fa";
     std::string seq2_filename = DATADIR"seq2.fa";
@@ -169,17 +170,17 @@ TEST_F(create_ibfs_from_chopper_pack_test, same_example_but_split_bin_as_hibf_ma
     // generate data files
     {
         std::ofstream fout{chopper_pack_filename.get_path()};
-        fout << "#MERGED_BIN_6 max_bin_id:0\n"
-             << "#HIGH_LEVEL_IBF max_bin_id:SPLIT_BIN_2\n"
-             << "#FILE_ID\tSEQ_ID\tBEGIN\tEND\tHIBF_BIN_IDX\tLIBF_BIN_IDX\n"
-             << "SPLIT_BIN_0\t" << seq1_filename << ";" << seq2_filename << "\t1\t500\n"
-             << "SPLIT_BIN_1\t" << seq3_filename << "\t1\t500\n"
-             << "SPLIT_BIN_2\t" << seq1_filename << ";" << seq2_filename << ";" << seq3_filename << "\t1\t500\n"
-             << "SPLIT_BIN_3\t" << seq1_filename << ";" << seq2_filename << ";" << seq3_filename << "\t3\t500\n"
-             << "MERGED_BIN_6_0\t" << seq1_filename << "\t1\t500\n"
-             << "MERGED_BIN_6_1\t" << seq2_filename << "\t1\t500\n"
-             << "MERGED_BIN_6_2\t" << seq1_filename << ";" << seq2_filename << ";" << seq3_filename << "\t3\t500\n"
-             << "MERGED_BIN_6_5\t" << seq3_filename << "\t1\t500\n";
+        fout << "#HIGH_LEVEL_IBF max_bin_id:2\n"
+             << "#MERGED_BIN_6 max_bin_id:0\n"
+             << "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\tEST_MAX_TB_SIZES\n"
+             << seq1_filename << ";" << seq2_filename << "\t0\t1\t500\n"
+             << seq3_filename << "\t1\t1\t500\n"
+             << seq1_filename << ";" << seq2_filename << ";" << seq3_filename << "\t2\t1\t500\n"
+             << seq1_filename << ";" << seq2_filename << ";" << seq3_filename << "\t3\t3\t500\n"
+             << seq1_filename << "\t6;0\t1;1\t500\n"
+             << seq2_filename << "\t6;1\t1;1\t500\n"
+             << seq1_filename << ";" << seq2_filename << ";" << seq3_filename << "\t6;2\t1;3\t500\n"
+             << seq3_filename << "\t6;5\t1;1\t500\n";
     }
 
     // HIGH LEVEL IBF
@@ -205,26 +206,27 @@ TEST_F(create_ibfs_from_chopper_pack_test, same_example_but_split_bin_as_hibf_ma
     config.k = 15;
     config.chopper_pack_filename = chopper_pack_filename.get_path().string();
 
-    auto && [high_level_ibf, low_level_ibfs] = create_ibfs_from_chopper_pack(config);
+    build_data data{};
 
-    EXPECT_EQ(low_level_ibfs.size(), 7u);
+    create_ibfs_from_chopper_pack(data, config);
 
-    for (size_t i = 0; i < low_level_ibfs.size(); ++i)
-        if (i != 6)
-            EXPECT_EQ(low_level_ibfs[i].bin_size(), 1u); // dummy bin
+    EXPECT_EQ(data.ibfs.size(), 2);
+
+    auto & high_level_ibf = data.ibfs[0];
+    auto & low_level_ibf = data.ibfs[1];
 
     EXPECT_EQ(high_level_ibf.bin_size(), 114226);
-    EXPECT_EQ(low_level_ibfs[6].bin_size(), 76615);
+    EXPECT_EQ(low_level_ibf.bin_size(), 76615);
 
     EXPECT_EQ(high_level_ibf.bin_count(), 7u);
-    EXPECT_EQ(low_level_ibfs[6].bin_count(), 6u);
+    EXPECT_EQ(low_level_ibf.bin_count(), 6u);
 
     auto unspecific = "ACGATCGACTAGGAGCGATTACGACTGACTACATCTAGCTAGCTAGAGATTCTTCAGAGCTTAGCGATCTCGAGCTATCG"_dna4;
     auto seq2_specific = "ATATCGATCGAGCGAGGCAGGCAGCGATCGAGCGAGCGCATGCAGCGACTAGCTACGACAGCTACTATCAGCAGCGAGCG"_dna4;
     auto seq3_specific = "ATCGATCACGATCAGCGAGCGATATCTTATCGTAGGCATCGAGCATCGAGGAGCGATCTATCTATCTATCATCTATCTAT"_dna4;
 
     auto hibf_agent = high_level_ibf.membership_agent();
-    auto libf_agent = low_level_ibfs[6].membership_agent();
+    auto libf_agent = low_level_ibf.membership_agent();
 
     { // UNSPECIFIC - unspecific region should be found in all bins that include a whole sequence
         auto && [hibf_counts, libf_counts] = this->count_kmers(hibf_agent, libf_agent, unspecific, config);

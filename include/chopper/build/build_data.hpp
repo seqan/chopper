@@ -23,4 +23,7 @@ struct build_data
     // new stuff
     lemon::ListDigraph ibf_graph{};
     lemon::ListDigraph::NodeMap<node_data> node_map{ibf_graph};
+
+    std::vector<seqan3::interleaved_bloom_filter<>> ibfs;
+    std::vector<std::vector<int64_t>> ibf_mapping;
 };

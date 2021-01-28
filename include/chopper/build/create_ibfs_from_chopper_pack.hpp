@@ -58,11 +58,9 @@ void insert_into_ibf(std::unordered_set<size_t> const & kmers,
             ibf.emplace(*it, seqan3::bin_index{bin_index + chunk});
 }
 
-template <typename low_level_ibf_type>
 void insert_into_ibf(build_config const & config,
                      chopper_pack_record const & record,
-                     seqan3::interleaved_bloom_filter<> & hibf,
-                     low_level_ibf_type & libf)
+                     seqan3::interleaved_bloom_filter<> & hibf)
 {
     for (auto const & filename : record.filenames)
     {
@@ -70,197 +68,92 @@ void insert_into_ibf(build_config const & config,
         {
             for (auto hash : seq | seqan3::views::kmer_hash(seqan3::ungapped{config.k}))
             {
-                assert(record.hidx >= 0);
-                hibf.emplace(hash, seqan3::bin_index{static_cast<size_t>(record.hidx)});
-
-                if constexpr (std::same_as<low_level_ibf_type, seqan3::interleaved_bloom_filter<>>)
-                {
-                    assert(record.lidx >= 0);
-                    libf.emplace(hash, seqan3::bin_index{static_cast<size_t>(record.lidx)});
-                }
+                assert(record.bin_indices.back() >= 0);
+                hibf.emplace(hash, seqan3::bin_index{static_cast<size_t>(record.bin_indices.back())});
             }
         }
     }
 }
-
-auto initialise_hibf(build_config const & config,
-                     build_data const & data,
-                     std::vector<std::vector<chopper_pack_record>> const & records_per_hibf_bin,
-                     std::vector<seqan3::interleaved_bloom_filter<>> & low_level_ibfs)
-{
-    assert(data.hibf_num_technical_bins != 0);
-    std::unordered_set<size_t> hibf_kmers{};
-    size_t hibf_highest_record_bins{1};
-
-    // since the packing is supposedly done with minimizers and we probably have a different setting now
-    // we need to calculate the maximum bin size. Since the relative number of minimizers should always correlate
-
-    // we can estimate it by calculating the kmer content of the "highest bin".
-    size_t const hidx = data.hibf_max_bin;
-    auto const & highest_records = records_per_hibf_bin[hidx];
-    assert(highest_records.size() > 0);
-
-    if (config.verbose)
-        seqan3::debug_stream << ">>> Initialising HIBF with bin " << hidx << std::endl;
-
-    if (highest_records.size() == 1) // split bin
-    {
-        hibf_kmers = compute_kmers(config, highest_records[0]);
-        hibf_highest_record_bins = highest_records[0].bins;
-    }
-    else // merged bin
-    {
-        // in this case we also initialize the respective low level IBF.
-        size_t const max_id = data.merged_max_bin_map.at(hidx);
-        auto max_it = std::ranges::find_if(highest_records, [max_id] (auto const & rec) {return rec.lidx == max_id;});
-
-        std::unordered_set<size_t> libf_kmers{compute_kmers(config, *max_it)};
-
-        // construct LIBF
-        seqan3::bin_size const l_bin_size{compute_bin_size(config, libf_kmers.size() / max_it->bins)};
-        seqan3::bin_count const l_bin_count{highest_records.back().lidx + highest_records.back().bins};
-        seqan3::interleaved_bloom_filter libf{l_bin_count, l_bin_size, seqan3::hash_function_count{config.hash_funs}};
-
-        if (config.verbose)
-            seqan3::debug_stream << "  > Initialised LIBF with bin size " << l_bin_size.get() << std::endl;
-
-        insert_into_ibf(libf_kmers, max_it->bins, max_it->lidx, libf);
-
-        hibf_kmers.merge(libf_kmers);
-
-        for (auto it = highest_records.begin(); it != highest_records.end(); ++it)
-        {
-            if (it != max_it) // already processed
-            {
-                libf_kmers = compute_kmers(config, *it);
-                insert_into_ibf(libf_kmers, it->bins, it->lidx, libf);
-                hibf_kmers.merge(libf_kmers);
-            }
-        }
-
-        low_level_ibfs[hidx] = std::move(libf);
-        hibf_highest_record_bins = 1;
-    }
-
-    seqan3::bin_size const hibf_bin_size{compute_bin_size(config, hibf_kmers.size() / hibf_highest_record_bins)};
-
-    // construct HIBF
-    seqan3::interleaved_bloom_filter high_level_ibf{seqan3::bin_count{data.hibf_num_technical_bins},
-                                                    hibf_bin_size,
-                                                    seqan3::hash_function_count{config.hash_funs}};
-
-    if (config.verbose)
-        seqan3::debug_stream << "  > Initialised HIBF with bin size " << hibf_bin_size.get() << std::endl;
-
-    insert_into_ibf(hibf_kmers, hibf_highest_record_bins, hidx, high_level_ibf);
-
-    return high_level_ibf;
-}
-
-auto process_merged_bin(build_config const & config,
-                        std::vector<chopper_pack_record> const & records,
-                        build_data const & data,
-                        seqan3::interleaved_bloom_filter<> & high_level_ibf,
-                        std::vector<seqan3::interleaved_bloom_filter<>> & low_level_ibfs)
-{
-    // we need to construct a low level ibf AND insert all kmers into the high level bin
-    assert(records.size() > 1);
-    size_t const max_id = data.merged_max_bin_map.at(records[0].hidx);
-    auto max_it = std::ranges::find_if(records, [max_id] (auto const & rec) {return rec.lidx == max_id;});
-
-    std::unordered_set<size_t> kmers{compute_kmers(config, *max_it)};
-
-    // construct LIBF
-    seqan3::bin_size const l_bin_size{compute_bin_size(config, kmers.size() / max_it->bins)};
-    seqan3::bin_count const l_bin_count{records.back().lidx + records.back().bins};
-    seqan3::interleaved_bloom_filter libf{l_bin_count, l_bin_size, seqan3::hash_function_count{config.hash_funs}};
-
-    if (config.verbose)
-        seqan3::debug_stream << "  > Initialised LIBF with bin size " << l_bin_size.get() << std::endl;
-
-    insert_into_ibf(kmers, max_it->bins, max_it->lidx, libf);
-    insert_into_ibf(kmers, 1, max_it->hidx, high_level_ibf);
-
-    for (auto it = records.begin(); it != records.end(); ++it)
-    {
-        if (it != max_it) // already processed
-        {
-            if (it->bins == 1) // no splitting
-            {
-                insert_into_ibf(config, *it, high_level_ibf, libf);
-            }
-            else
-            {
-                kmers = compute_kmers(config, *it);
-                insert_into_ibf(kmers, it->bins, it->lidx, libf);
-                insert_into_ibf(kmers, 1, it->hidx, high_level_ibf);
-            }
-        }
-    }
-
-    low_level_ibfs[records[0].hidx] = std::move(libf);
-}
-
-auto process_split_bin(build_config const & config,
-                       std::vector<chopper_pack_record> const & records,
-                       seqan3::interleaved_bloom_filter<> & high_level_ibf)
-{
-    assert(records.size() == 1);
-    auto const & record = records[0];
-    if (record.bins == 1) // no splitting
-    {
-        insert_into_ibf(config, record, high_level_ibf, /*something that is not an ibf:*/record);
-    }
-    else
-    {
-        std::unordered_set<size_t> kmers{compute_kmers(config, record)};
-        insert_into_ibf(kmers, record.bins, record.hidx, high_level_ibf);
-    }
-}
-
-// node muss speichern:
-// - IBF (referenz oder position)
-// - max bin id
-// - user bins
-// - all the other user bins in this IBF
 
 void build(std::unordered_set<size_t> & parent_kmers,
            lemon::ListDigraph::Node const & current_node,
-           build_data const & data,
+           build_data & data,
            build_config const & config)
 {
-    std::unordered_set<size_t> current_node_kmers{};
+    std::unordered_set<size_t> max_bin_kmers{};
 
-    if (there is a favourite child, I am not a leaf) // favourite child -> max bin is a merged bin
+    auto & current_node_data = data.node_map[current_node];
+
+    std::vector<int64_t> ibf_positions(current_node_data.number_of_technical_bins, -1);
+
+    size_t number_of_max_bin_technical_bins{};
+    if (current_node_data.favourite_child != lemon::INVALID) // max bin is a merged bin
     {
-        initialize_favourite_child();
+        build(max_bin_kmers, current_node_data.favourite_child, data, config); // recursively initialize favourite child first
+        ibf_positions[current_node_data.max_bin_index] = data.ibfs.size() - 1;
+        number_of_max_bin_technical_bins = 1;
     }
     else // there a max bin, that is ot a merged bin
     {
-        compute_kmers(current_node_kmers, config, max_record/*one line in file*/);
+        // we assume that the max record is at the beginning of the list of remaining records.
+        auto const & record = current_node_data.remaining_records[0];
+        compute_kmers(max_bin_kmers, config, record);
+        number_of_max_bin_technical_bins = record.number_of_bins.back();
     }
 
-    initialize IBF with respective bin size
+    // construct High Level IBF
+    seqan3::bin_size const bin_size{compute_bin_size(config, max_bin_kmers.size() / number_of_max_bin_technical_bins)};
+    seqan3::bin_count const bin_count{current_node_data.number_of_technical_bins};
+    seqan3::interleaved_bloom_filter ibf{bin_count, bin_size, seqan3::hash_function_count{config.hash_funs}};
 
-    insert current_node_kmers into IBF
+    if (config.verbose)
+        seqan3::debug_stream << "  > Initialised LIBF with bin size " << bin_size.get() << std::endl;
 
-    while (there is another child that needs to be initialized beforehand) // (can be more than one child)
+    insert_into_ibf(max_bin_kmers, number_of_max_bin_technical_bins, current_node_data.max_bin_index, ibf);
+
+    parent_kmers.merge(max_bin_kmers);
+    max_bin_kmers.clear(); // reduce memory peak
+
+    // parse all other children (merged bins) of the current ibf
+    for (lemon::ListDigraph::OutArcIt arc_it(data.ibf_graph, current_node); arc_it != lemon::INVALID; ++arc_it)
+    {
+        auto child = data.ibf_graph.target(arc_it);
+        auto & child_data = data.node_map[child];
+        if (child != current_node_data.favourite_child)
+        {
+            std::unordered_set<size_t> kmers{}; // todo: maybe it is more efficient if this is declared outside and cleared every iteration
+            build(kmers, child, data, config); // also appends that childs counts to 'kmers'
+            insert_into_ibf(kmers, 1, child_data.parent_bin_index, ibf);
+            parent_kmers.merge(kmers);
+            ibf_positions[child_data.parent_bin_index] = data.ibfs.size() - 1;
+        }
+    }
+
+    for (auto const & record : current_node_data.remaining_records)
     {
         std::unordered_set<size_t> kmers{};
-        initialize(kmers, child, tree); // also appends that childs counts to 'current_node_kmers'
-        insert kmers into bin in IBF
+        compute_kmers(kmers, config, record);
+        insert_into_ibf(kmers, record.number_of_bins.back(), record.bin_indices.back(), ibf);
         parent_kmers.merge(kmers);
     }
 
-    hash and insert all remaining user bins of this IBF and into current_node_kmers;
+    data.ibfs.push_back(std::move(ibf));
 
-    parent_kmers.merge(current_node_kmers);
+    for (auto & pos : ibf_positions)
+        if (pos == -1)
+            pos = data.ibfs.size() - 1;
+
+    data.ibf_mapping.push_back(std::move(ibf_positions));
 }
 
-void start_build(build_data const & data, build_config const & config)
+void create_ibfs_from_chopper_pack(build_data & data, build_config const & config)
 {
+    read_chopper_pack_file(data, config.chopper_pack_filename);
+
     lemon::ListDigraph::Node root = data.ibf_graph.nodeFromId(0); // root node = high level IBF node
-    auto & root_node_data = node_map[root];
+    auto & root_node_data = data.node_map[root];
+
+    std::vector<int64_t> ibf_positions(root_node_data.number_of_technical_bins, 0);
 
     std::unordered_set<size_t> max_bin_kmers{};
 
@@ -268,6 +161,7 @@ void start_build(build_data const & data, build_config const & config)
     if (root_node_data.favourite_child != lemon::INVALID) // max bin is a merged bin
     {
         build(max_bin_kmers, root_node_data.favourite_child, data, config); // recursively initialize favourite child first
+        ibf_positions[root_node_data.max_bin_index] = data.ibfs.size() - 1;
         number_of_max_bin_technical_bins = 1;
     }
     else // there a max bin, that is ot a merged bin
@@ -285,68 +179,29 @@ void start_build(build_data const & data, build_config const & config)
     seqan3::interleaved_bloom_filter high_level_ibf{bin_count, bin_size, seqan3::hash_function_count{config.hash_funs}};
 
     if (config.verbose)
-        seqan3::debug_stream << "  > Initialised LIBF with bin size " << bin_size.get() << std::endl;
+        seqan3::debug_stream << "  > Initialised High Level IBF with bin size " << bin_size.get() << std::endl;
 
-    insert_into_ibf(max_bin_kmers, number_of_max_bin_technical_bins, root_node_data.max_bin_id, high_level_ibf);
+    insert_into_ibf(max_bin_kmers, number_of_max_bin_technical_bins, root_node_data.max_bin_index, high_level_ibf);
 
     max_bin_kmers.clear(); // clear memory allocation
 
     // parse all other children (merged bins) of the high level-ibf (will build the whole HIBF)
     for (lemon::ListDigraph::OutArcIt arc_it(data.ibf_graph, root); arc_it != lemon::INVALID; ++arc_it)
     {
-        auto child = ibf_graph.target(arc_it);
+        auto child = data.ibf_graph.target(arc_it);
+        auto & child_data = data.node_map[child];
         if (child != root_node_data.favourite_child)
         {
             std::unordered_set<size_t> kmers{};
             build(kmers, child, data, config); // also appends that childs counts to 'kmers'
-            insert_into_ibf(kmers, 1, child.parent_bin_id, high_level_ibf);
+            insert_into_ibf(kmers, 1, child_data.parent_bin_index, high_level_ibf);
+            ibf_positions[child_data.parent_bin_index] = data.ibfs.size() - 1;
         }
     }
 
     for (auto const & record : root_node_data.remaining_records)
-        insert_into_ibf(config, record, high_level_ibf, root/*somehting not an ibf :D*/);
-}
+        insert_into_ibf(config, record, high_level_ibf);
 
-auto create_ibfs_from_chopper_pack(build_config const & config)
-{
-    auto const [data, records_per_hibf_bin] = read_chopper_pack_file(config.chopper_pack_filename);
-
-    // fill libfs with dummy ibfs to resize the vector already
-    seqan3::interleaved_bloom_filter dummy{seqan3::bin_count{1}, seqan3::bin_size{1}, seqan3::hash_function_count{1}};
-    std::vector<seqan3::interleaved_bloom_filter<>> low_level_ibfs(data.hibf_num_technical_bins, dummy);
-
-    auto high_level_ibf = initialise_hibf(config, data, records_per_hibf_bin, low_level_ibfs);
-
-    for (auto const & records : records_per_hibf_bin)
-    {
-        if (records.size() == 0 || records[0].hidx == data.hibf_max_bin) // do not process empty bins or the highest
-        {
-            continue;
-        }
-        else if (records.size() == 1) // split bin
-        {
-            if (config.verbose)
-            {
-                seqan3::debug_stream << ">>> Processing split bin(s) "
-                                     << records[0].hidx
-                                     << ((records[0].bins > 1) ? "-" : "")
-                                     << ((records[0].bins > 1) ? std::to_string(records[0].hidx + records[0].bins) : "")
-                                     << " (out of " << data.hibf_num_technical_bins << ")" << std::endl;
-            }
-
-            process_split_bin(config, records, high_level_ibf);
-        }
-        else
-        {
-            if (config.verbose)
-            {
-                seqan3::debug_stream << ">>> Processing merged bin " << records[0].hidx
-                                     << " (out of " << data.hibf_num_technical_bins << ")" << std::endl;
-            }
-
-            process_merged_bin(config, records, data, high_level_ibf, low_level_ibfs);
-        }
-    }
-
-    return std::make_tuple(std::move(high_level_ibf), std::move(low_level_ibfs));
+    data.ibfs.insert(data.ibfs.begin(), std::move(high_level_ibf)); // insert High level at the beginning
+    data.ibf_mapping.insert(data.ibf_mapping.begin(), std::move(ibf_positions));
 }
