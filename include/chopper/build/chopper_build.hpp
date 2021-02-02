@@ -12,7 +12,7 @@
 
 #include <chopper/build/build_config.hpp>
 #include <chopper/build/create_ibfs_from_chopper_pack.hpp>
-#include <chopper/build/create_ibfs_from_chopper_split.hpp>
+// #include <chopper/build/create_ibfs_from_chopper_split.hpp>
 
 void initialize_argument_parser(seqan3::argument_parser & parser, build_config & config)
 {
@@ -29,7 +29,7 @@ void initialize_argument_parser(seqan3::argument_parser & parser, build_config &
     parser.add_flag(config.verbose, 'v', "verbose", "Output logging/progress information.");
 }
 
-auto create_ibfs(seqan3::argument_parser const & parser, build_data const & data, build_config const & config)
+auto create_ibfs(seqan3::argument_parser const & parser, build_data & data, build_config const & config)
 {
     // assert(parser.is_option_set('p') || parser.is_option_set('s'));
 
@@ -48,18 +48,18 @@ int chopper_build(seqan3::argument_parser & parser)
     {
         parser.parse();
 
-        if (parser.is_option_set('p') && parser.is_option_set('s'))
-        {
-            seqan3::debug_stream << "[CHOPPER BIULD ERROR] Options -p/--pack-file and -s/--split_file "
-                                 << "are mututal exclusive.\n";
-            return -1;
-        }
-        else if (!parser.is_option_set('p') && !parser.is_option_set('s'))
-        {
-            seqan3::debug_stream << "[CHOPPER BIULD ERROR] Either option -p/--pack-file or -s/--split_file "
-                                 << "must be provided.\n";
-            return -1;
-        }
+        // if (parser.is_option_set('p') && parser.is_option_set('s'))
+        // {
+        //     seqan3::debug_stream << "[CHOPPER BIULD ERROR] Options -p/--pack-file and -s/--split_file "
+        //                          << "are mututal exclusive.\n";
+        //     return -1;
+        // }
+        // else if (!parser.is_option_set('p') && !parser.is_option_set('s'))
+        // {
+        //     seqan3::debug_stream << "[CHOPPER BIULD ERROR] Either option -p/--pack-file or -s/--split_file "
+        //                          << "must be provided.\n";
+        //     return -1;
+        // }
     }
     catch (seqan3::argument_parser_error const & ext)
     {
@@ -78,7 +78,7 @@ int chopper_build(seqan3::argument_parser & parser)
 
     // write vector of ibfs to file
     {
-        std::string const out_filename{config.output_prefix + "hibf.out"}; // the complete hierarchical ibf
+        std::string const out_filename{config.output_prefix + "HIBF.out"}; // the complete hierarchical ibf
         std::ofstream fout(out_filename, std::ios::binary);
 
         if (!fout.good() || !fout.is_open())
@@ -99,6 +99,8 @@ int chopper_build(seqan3::argument_parser & parser)
         cereal::BinaryOutputArchive archive(fout);
         archive(data.ibf_mapping);
     }
+
+    // TODO: write ibf tree to file
 
     return 0;
 }
