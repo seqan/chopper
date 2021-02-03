@@ -35,14 +35,9 @@ struct batch_config
     uint16_t window_size{100};
 
     // traverse config
-    std::string bin_name{};
     bool merged_bin{false};
-    int16_t bins{64};
+    int16_t bins{64}; // number of technical bins this user bin occupies in the lowest IBF
+    std::vector<size_t> bin_indices{}; // bin indices of all levels
     bool write_out_graph{false};
     bool write_out_weights{false};
-
-    // For a merged low level IBF several splittings will come into the same file.
-    // So the chopper_split output needs to be appended and the bin_index adjusted.
-    int64_t hibf_bin_idx_offset{0};
-    int64_t libf_bin_idx_offset{0};
 };

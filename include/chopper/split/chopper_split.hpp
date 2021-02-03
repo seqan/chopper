@@ -62,16 +62,14 @@ int chopper_split(seqan3::argument_parser & parser)
     {
         std::ifstream data_file{config.data_filename};
         std::string line;
-        while (std::getline(data_file, line) && line.substr(0, 7) != "#BIN_ID")
+        while (std::getline(data_file, line) && line.substr(0, 7) != "#FILES")
             fout << line << '\n';
     }
 
-    fout << "#FILE_ID\tSEQ_ID\tBEGIN\tEND\tHIBF_BIN_IDX\tLIBF_BIN_IDX\n";
+    fout << "#FILE_ID\tSEQ_ID\tBEGIN\tEND\tIBF_BIN_INDICES\n";
 
     for (auto const & current_batch_config : filename_batches_range{config})
     {
-        std::cout << "Processing file " << current_batch_config.bin_name << " with " << current_batch_config.bins << " number of bins." << std::endl;
-
         if (current_batch_config.bins == 1) // nothing to split here
         {
             for (auto const & filename : current_batch_config.seqfiles)
@@ -83,13 +81,10 @@ int chopper_split(seqan3::argument_parser & parser)
                     fout << filename << '\t'
                          << id << '\t'
                          << 0 << '\t'
-                         << seq.size() << '\t'
-                         << current_batch_config.hibf_bin_idx_offset << '\t';
-                    if (current_batch_config.merged_bin)
-                        fout << current_batch_config.libf_bin_idx_offset;
-                    else
-                        fout << '-';
-                    fout << '\n';
+                         << seq.size() << '\t';
+                    for (size_t i = 0; i < current_batch_config.bin_indices.size() - 1; ++i)
+                        fout << current_batch_config.bin_indices[i] << ';';
+                    fout << current_batch_config.bin_indices.back() << '\n';
                 }
             }
 

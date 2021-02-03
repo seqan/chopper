@@ -27,25 +27,25 @@ TEST(chopper_split_test, simple_example)
     // compare results
     std::string expected_file_str
     {
-        "#FILE_ID\tSEQ_ID\tBEGIN\tEND\tHIBF_BIN_IDX\tLIBF_BIN_IDX\n" +
-        input_filename1 + "\tseq1\t0\t163\t0\t-\n" +
-        input_filename1 + "\tseq2\t0\t186\t0\t-\n" +
-        input_filename1 + "\tseq3\t0\t163\t0\t-\n" +
-        input_filename2 + "\tseq10\t0\t163\t0\t-\n" +
-        input_filename2 + "\tseq20\t0\t186\t0\t-\n" +
-        input_filename2 + "\tseq30\t0\t163\t0\t-\n" +
-        input_filename1 + "\tseq1\t163\t247\t1\t-\n" +
-        input_filename1 + "\tseq2\t186\t327\t1\t-\n" +
-        input_filename1 + "\tseq3\t163\t284\t1\t-\n" +
-        input_filename2 + "\tseq10\t163\t247\t1\t-\n" +
-        input_filename2 + "\tseq20\t186\t327\t1\t-\n" +
-        input_filename2 + "\tseq30\t163\t284\t1\t-\n" +
-        input_filename1 + "\tseq1\t247\t400\t2\t-\n" +
-        input_filename1 + "\tseq2\t327\t480\t2\t-\n" +
-        input_filename1 + "\tseq3\t284\t481\t2\t-\n" +
-        input_filename2 + "\tseq10\t247\t400\t2\t-\n" +
-        input_filename2 + "\tseq20\t327\t480\t2\t-\n" +
-        input_filename2 + "\tseq30\t284\t481\t2\t-\n"
+        "#FILE_ID\tSEQ_ID\tBEGIN\tEND\tBIN_INDICES\n" +
+        input_filename1 + "\tseq1\t0\t163\t0\n" +
+        input_filename1 + "\tseq2\t0\t186\t0\n" +
+        input_filename1 + "\tseq3\t0\t163\t0\n" +
+        input_filename2 + "\tseq10\t0\t163\t0\n" +
+        input_filename2 + "\tseq20\t0\t186\t0\n" +
+        input_filename2 + "\tseq30\t0\t163\t0\n" +
+        input_filename1 + "\tseq1\t163\t247\t1\n" +
+        input_filename1 + "\tseq2\t186\t327\t1\n" +
+        input_filename1 + "\tseq3\t163\t284\t1\n" +
+        input_filename2 + "\tseq10\t163\t247\t1\n" +
+        input_filename2 + "\tseq20\t186\t327\t1\n" +
+        input_filename2 + "\tseq30\t163\t284\t1\n" +
+        input_filename1 + "\tseq1\t247\t400\t2\n" +
+        input_filename1 + "\tseq2\t327\t480\t2\n" +
+        input_filename1 + "\tseq3\t284\t481\t2\n" +
+        input_filename2 + "\tseq10\t247\t400\t2\n" +
+        input_filename2 + "\tseq20\t327\t480\t2\n" +
+        input_filename2 + "\tseq30\t284\t481\t2\n"
     };
 
     // compare results
@@ -72,13 +72,13 @@ TEST(chopper_split_test, data_file_as_input)
 
     {
         std::ofstream fout{data_filename.get_path()};
-        fout << "#BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n"
-             << "SPLIT_BIN_0\t" << input_filename1 + "\t2\t500\n"
-             << "SPLIT_BIN_2\t" << input_filename1 + "\t2\t500\n"
-             << "MERGED_BIN_4_0\t" << input_filename1 << "\t2\t2500\n"
-             << "MERGED_BIN_4_2\t" << input_filename1 << ";" << input_filename2 << "\t2\t2500\n"
-             << "MERGED_BIN_4_4\t" << input_filename1 << "\t1\t500\n"
-             << "SPLIT_BIN_5\t" << input_filename2 + "\t3\t1000\n";
+        fout << "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\tEST_MAX_TB_SIZES\n"
+             << input_filename1                           << "\t0\t2\t500\n"
+             << input_filename1                           << "\t2\t2\t500\n"
+             << input_filename1                           << "\t4;0\t1;2\t3000;2500\n"
+             << input_filename1 << ";" << input_filename2 << "\t4;2\t1;2\t3000;2500\n"
+             << input_filename1                           << "\t4;4\t1;1\t3000;500\n"
+             << input_filename2                           << "\t5\t3\t1000\n";
     }
 
     seqan3::test::tmp_filename output_filename{"small.split"};
@@ -93,55 +93,55 @@ TEST(chopper_split_test, data_file_as_input)
 
     std::string const expected_output_str
     {
-        "#FILE_ID\tSEQ_ID\tBEGIN\tEND\tHIBF_BIN_IDX\tLIBF_BIN_IDX\n" +
+        "#FILE_ID\tSEQ_ID\tBEGIN\tEND\tBIN_INDICES\n" +
         /*SPLIT_BIN_0*/
-        input_filename1 + "\tseq1\t0\t209\t0\t-\n" +
-        input_filename1 + "\tseq2\t0\t289\t0\t-\n" +
-        input_filename1 + "\tseq3\t0\t209\t0\t-\n" +
-        input_filename1 + "\tseq1\t209\t400\t1\t-\n" +
-        input_filename1 + "\tseq2\t289\t480\t1\t-\n" +
-        input_filename1 + "\tseq3\t209\t481\t1\t-\n" +
+        input_filename1 + "\tseq1\t0\t209\t0\n" +
+        input_filename1 + "\tseq2\t0\t289\t0\n" +
+        input_filename1 + "\tseq3\t0\t209\t0\n" +
+        input_filename1 + "\tseq1\t209\t400\t1\n" +
+        input_filename1 + "\tseq2\t289\t480\t1\n" +
+        input_filename1 + "\tseq3\t209\t481\t1\n" +
         /*SPLIT_BIN_2*/
-        input_filename1 + "\tseq1\t0\t209\t2\t-\n" +
-        input_filename1 + "\tseq2\t0\t289\t2\t-\n" +
-        input_filename1 + "\tseq3\t0\t209\t2\t-\n" +
-        input_filename1 + "\tseq1\t209\t400\t3\t-\n" +
-        input_filename1 + "\tseq2\t289\t480\t3\t-\n" +
-        input_filename1 + "\tseq3\t209\t481\t3\t-\n" +
+        input_filename1 + "\tseq1\t0\t209\t2\n" +
+        input_filename1 + "\tseq2\t0\t289\t2\n" +
+        input_filename1 + "\tseq3\t0\t209\t2\n" +
+        input_filename1 + "\tseq1\t209\t400\t3\n" +
+        input_filename1 + "\tseq2\t289\t480\t3\n" +
+        input_filename1 + "\tseq3\t209\t481\t3\n" +
         /*MERGED_BIN_4_0*/
-        input_filename1 + "\tseq1\t0\t209\t4\t0\n" +
-        input_filename1 + "\tseq2\t0\t289\t4\t0\n" +
-        input_filename1 + "\tseq3\t0\t209\t4\t0\n" +
-        input_filename1 + "\tseq1\t209\t400\t4\t1\n" +
-        input_filename1 + "\tseq2\t289\t480\t4\t1\n" +
-        input_filename1 + "\tseq3\t209\t481\t4\t1\n" +
+        input_filename1 + "\tseq1\t0\t209\t4;0\n" +
+        input_filename1 + "\tseq2\t0\t289\t4;0\n" +
+        input_filename1 + "\tseq3\t0\t209\t4;0\n" +
+        input_filename1 + "\tseq1\t209\t400\t4;1\n" +
+        input_filename1 + "\tseq2\t289\t480\t4;1\n" +
+        input_filename1 + "\tseq3\t209\t481\t4;1\n" +
         /*MERGED_BIN_4_1*/
-        input_filename1 + "\tseq1\t0\t209\t4\t2\n" +
-        input_filename1 + "\tseq2\t0\t289\t4\t2\n" +
-        input_filename1 + "\tseq3\t0\t209\t4\t2\n" +
-        input_filename2 + "\tseq10\t0\t209\t4\t2\n" +
-        input_filename2 + "\tseq20\t0\t289\t4\t2\n" +
-        input_filename2 + "\tseq30\t0\t209\t4\t2\n" +
-        input_filename1 + "\tseq1\t209\t400\t4\t3\n" +
-        input_filename1 + "\tseq2\t289\t480\t4\t3\n" +
-        input_filename1 + "\tseq3\t209\t481\t4\t3\n" +
-        input_filename2 + "\tseq10\t209\t400\t4\t3\n" +
-        input_filename2 + "\tseq20\t289\t480\t4\t3\n" +
-        input_filename2 + "\tseq30\t209\t481\t4\t3\n" +
+        input_filename1 + "\tseq1\t0\t209\t4;2\n" +
+        input_filename1 + "\tseq2\t0\t289\t4;2\n" +
+        input_filename1 + "\tseq3\t0\t209\t4;2\n" +
+        input_filename2 + "\tseq10\t0\t209\t4;2\n" +
+        input_filename2 + "\tseq20\t0\t289\t4;2\n" +
+        input_filename2 + "\tseq30\t0\t209\t4;2\n" +
+        input_filename1 + "\tseq1\t209\t400\t4;3\n" +
+        input_filename1 + "\tseq2\t289\t480\t4;3\n" +
+        input_filename1 + "\tseq3\t209\t481\t4;3\n" +
+        input_filename2 + "\tseq10\t209\t400\t4;3\n" +
+        input_filename2 + "\tseq20\t289\t480\t4;3\n" +
+        input_filename2 + "\tseq30\t209\t481\t4;3\n" +
         /*MERGED_BIN_4_2*/
-        input_filename1 + "\tseq1\t0\t400\t4\t4\n" +
-        input_filename1 + "\tseq2\t0\t480\t4\t4\n" +
-        input_filename1 + "\tseq3\t0\t481\t4\t4\n" +
+        input_filename1 + "\tseq1\t0\t400\t4;4\n" +
+        input_filename1 + "\tseq2\t0\t480\t4;4\n" +
+        input_filename1 + "\tseq3\t0\t481\t4;4\n" +
         /*SPLIT_BIN_5*/
-        input_filename2 + "\tseq10\t0\t163\t5\t-\n" +
-        input_filename2 + "\tseq20\t0\t186\t5\t-\n" +
-        input_filename2 + "\tseq30\t0\t163\t5\t-\n" +
-        input_filename2 + "\tseq10\t163\t247\t6\t-\n" +
-        input_filename2 + "\tseq20\t186\t327\t6\t-\n" +
-        input_filename2 + "\tseq30\t163\t284\t6\t-\n" +
-        input_filename2 + "\tseq10\t247\t400\t7\t-\n" +
-        input_filename2 + "\tseq20\t327\t480\t7\t-\n" +
-        input_filename2 + "\tseq30\t284\t481\t7\t-\n"
+        input_filename2 + "\tseq10\t0\t163\t5\n" +
+        input_filename2 + "\tseq20\t0\t186\t5\n" +
+        input_filename2 + "\tseq30\t0\t163\t5\n" +
+        input_filename2 + "\tseq10\t163\t247\t6\n" +
+        input_filename2 + "\tseq20\t186\t327\t6\n" +
+        input_filename2 + "\tseq30\t163\t284\t6\n" +
+        input_filename2 + "\tseq10\t247\t400\t7\n" +
+        input_filename2 + "\tseq20\t327\t480\t7\n" +
+        input_filename2 + "\tseq30\t284\t481\t7\n"
     };
 
     // compare results
@@ -176,12 +176,12 @@ TEST(chopper_split_test, big_fat_nodes)
     // compare results
     std::string expected_file_str
     {
-        "#FILE_ID\tSEQ_ID\tBEGIN\tEND\tHIBF_BIN_IDX\tLIBF_BIN_IDX\n" +
-        seq_file.get_path().string() + "\tseq1\t0\t17\t0\t-\n" +
-        seq_file.get_path().string() + "\tseq1\t17\t34\t1\t-\n" +
-        seq_file.get_path().string() + "\tseq1\t34\t51\t2\t-\n" +
-        seq_file.get_path().string() + "\tseq1\t51\t68\t3\t-\n" +
-        seq_file.get_path().string() + "\tseq1\t68\t80\t4\t-\n"
+        "#FILE_ID\tSEQ_ID\tBEGIN\tEND\tBIN_INDICES\n" +
+        seq_file.get_path().string() + "\tseq1\t0\t17\t0\n" +
+        seq_file.get_path().string() + "\tseq1\t17\t34\t1\n" +
+        seq_file.get_path().string() + "\tseq1\t34\t51\t2\n" +
+        seq_file.get_path().string() + "\tseq1\t51\t68\t3\n" +
+        seq_file.get_path().string() + "\tseq1\t68\t80\t4\n"
     };
 
     // compare results

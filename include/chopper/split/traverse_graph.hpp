@@ -339,10 +339,10 @@ void traverse_graph(lemon::ListDigraph & g,
                 *data.outstream << data.files_of_origin[i] << '\t'
                                 << data.ids[i] << '\t'
                                 << bin[i].first << '\t'
-                                << bin[i].second << '\t'
-                                << ((config.merged_bin) ? 0 : bin_index) + config.hibf_bin_idx_offset << '\t'
-                                << ((config.merged_bin) ? std::to_string(bin_index + config.libf_bin_idx_offset) : "-")
-                                << '\n';
+                                << bin[i].second << '\t';
+                for (size_t i = 0; i < config.bin_indices.size() - 1; ++i)
+                    *data.outstream << config.bin_indices[i] << ';';
+                *data.outstream << (bin_index + config.bin_indices.back()) << '\n';
             }
 
             if (bin[i].second == data.lengths[i])

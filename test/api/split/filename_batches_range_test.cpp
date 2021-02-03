@@ -19,15 +19,15 @@ TEST(filename_batches_range_test, high_level_data_file)
 
     {
         std::ofstream fout{binning_filename.get_path()};
-        fout << "#BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n"
-             << "SPLIT_BIN_0\tseq7\t2\t500\n"
-             << "SPLIT_BIN_2\tseq6\t1\t500\n"
-             << "MERGED_BIN_3_0\tseq0\t16\t32\n"
-             << "MERGED_BIN_3_16\tseq2\t12\t42\n"
-             << "MERGED_BIN_3_28\tseq3.1;seq3.2;seq3.3\t12\t42\n"
-             << "MERGED_BIN_4_0\tseq4\t12\t42\n"
-             << "MERGED_BIN_4_12\tseq5\t12\t42\n"
-             << "SPLIT_BIN_5\tseq1.1;seq1.2\t2\t1000\n";
+        fout << "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\tEST_MAX_TB_SIZES\n"
+             << "seq7\t0\t2\t500\n"
+             << "seq6\t2\t1\t500\n"
+             << "seq0\t3;0\t1;16\t100;32\n"
+             << "seq2\t3;16\t1;12\t100;42\n"
+             << "seq3.1;seq3.2;seq3.3\t3;28\t1;12\t100;42\n"
+             << "seq4\t4;0\t1;12\t100;42\n"
+             << "seq5\t4;12\t1;12\t100;42\n"
+             << "seq1.1;seq1.2\t5\t2\t1000\n";
     }
 
     filename_batches_range r{config};
@@ -42,9 +42,9 @@ TEST(filename_batches_range_test, high_level_data_file)
 
     std::vector<bool> expected_merged{false, false, true, true, true, true, true, false};
 
-    std::vector<std::pair<int64_t, int64_t>> expected_offsets
+    std::vector<std::vector<size_t>> expected_bin_indices
     {
-        {0, -1}, {2, -1}, {3, 0}, {3, 16}, {3, 28}, {4, 0}, {4, 12}, {5, -1}
+        {0}, {2}, {3, 0}, {3, 16}, {3, 28}, {4, 0}, {4, 12}, {5}
     };
 
     auto it = r.begin();
@@ -53,9 +53,7 @@ TEST(filename_batches_range_test, high_level_data_file)
         EXPECT_RANGE_EQ((*it).seqfiles, expected_seqfiles_range[i]);
         EXPECT_EQ((*it).bins, expected_bins_range[i]) << " failed at " << i << std::endl;
         EXPECT_EQ((*it).merged_bin, expected_merged[i]) << " failed at " << i << std::endl;
-        auto [ho, lo] = expected_offsets[i];
-        EXPECT_EQ((*it).hibf_bin_idx_offset, ho) << " failed at " << i << std::endl;
-        EXPECT_EQ((*it).libf_bin_idx_offset, lo) << " failed at " << i << std::endl;
+        EXPECT_RANGE_EQ((*it).bin_indices, expected_bin_indices[i]);
     }
     EXPECT_TRUE(it == r.end());
 }

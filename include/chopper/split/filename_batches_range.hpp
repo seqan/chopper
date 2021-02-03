@@ -135,7 +135,6 @@ private:
             {
                 current_config.seqfiles = host->config.seqfiles;
                 current_config.bins = host->config.bins;
-                current_config.bin_name = host->config.out_path.string();
                 return true; // end reached
             }
 
@@ -143,22 +142,15 @@ private:
             auto const pack_record = parse_chopper_pack_line(host->current_line);
 
             current_config.seqfiles = std::move(pack_record.filenames);
-            current_config.bins = pack_record.bins;
+            current_config.bin_indices = pack_record.bin_indices;
+            current_config.bins = pack_record.number_of_bins.back();
 
-            current_config.hibf_bin_idx_offset = pack_record.hidx;
-            current_config.libf_bin_idx_offset = pack_record.lidx;
-
-            std::string out_filename;
-
-            if (starts_with(pack_record.bin_name, merged_bin_prefix))
+            if (current_config.bin_indices.size() > 1)
             {
-                current_config.bin_name = host->config.out_path.string() + "LOW_LEVEL_IBF_" +
-                                          std::to_string(current_config.hibf_bin_idx_offset) + ".out";
                 current_config.merged_bin = true;
             }
             else
             {
-                current_config.bin_name =  host->config.out_path.string() + pack_record.bin_name + ".out";
                 current_config.merged_bin = false;
             }
 
