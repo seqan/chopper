@@ -1,0 +1,78 @@
+#pragma once
+
+#include <seqan3/std/ranges>
+#include <string>
+#include <vector>
+
+#include <cereal/archives/binary.hpp>
+#include <cereal/types/string.hpp>
+#include <cereal/types/vector.hpp>
+
+#include <seqan3/core/concept/cereal.hpp>
+#include <seqan3/range/views/join.hpp>
+#include <seqan3/range/views/to.hpp>
+
+struct hibf_user_bins
+{
+private:
+    std::vector<std::string> filenames;
+
+    std::vector<std::vector<int64_t>> bin_to_filename_position{};
+
+public:
+
+    size_t add_user_bin(std::string const & name)
+    {
+        filenames.push_back(name);
+        return filenames.size() - 1;
+    }
+
+    size_t add_user_bin(std::vector<std::string> const & names)
+    {
+        // concat
+        filenames.push_back((names | seqan3::views::join(std::string{";"}) | seqan3::views::to<std::string>));
+        return filenames.size() - 1;
+    }
+
+    void add_user_bin_positions(std::vector<int64_t> const & bin_indices)
+    {
+        bin_to_filename_position.push_back(bin_indices);
+    }
+
+    void prepend_user_bin_positions(std::vector<int64_t> const & bin_indices)
+    {
+        bin_to_filename_position.insert(bin_to_filename_position.begin(), bin_indices);
+    }
+
+    std::string const & operator[](std::pair<size_t, size_t> const & index_pair) const
+    {
+        return filenames[bin_to_filename_position[index_pair.first][index_pair.second]];
+    }
+
+    auto operator[](size_t ibf_idx) const
+    {
+        return bin_to_filename_position[ibf_idx]
+               | std::views::transform([this] (int64_t i)
+                 {
+                    if (i == -1)
+                        return std::string{};
+                    else
+                        return filenames[i];
+                 });
+    }
+
+    /*!\brief Serialisation support function.
+     * \tparam archive_t Type of `archive`; must satisfy seqan3::cereal_archive.
+     * \param[in] archive The archive being serialised from/to.
+     *
+     * \attention These functions are never called directly, see \ref serialisation for more details.
+     */
+    template <typename archive_t>
+    void serialize(archive_t & archive)
+    {
+        archive(filenames);
+        archive(bin_to_filename_position);
+    }
+};
+
+// CEREAL_CLASS_VERSION(hibf_user_bins, 1);

@@ -6,6 +6,7 @@
 #include <chopper/build/region.hpp>
 #include <chopper/detail_node_data.hpp>
 #include <chopper/detail_parse_chopper_pack_line.hpp>
+#include <chopper/detail_hibf_user_bins.hpp>
 
 struct build_data
 {
@@ -24,6 +25,12 @@ struct build_data
     lemon::ListDigraph ibf_graph{};
     lemon::ListDigraph::NodeMap<node_data> node_map{ibf_graph};
 
-    std::vector<seqan3::interleaved_bloom_filter<>> ibfs;
-    std::vector<std::vector<int64_t>> ibf_mapping;
+    std::vector<seqan3::interleaved_bloom_filter<>> hibf;
+
+    // maps for each ibf in hibf, each bin to the next ibf postition in hibf (if it is a merged bin)
+    // or to the same ibf (if it is not a merged bin). You can thereby check if you need to query another
+    // lower level IBF.
+    std::vector<std::vector<int64_t>> hibf_bin_levels;
+
+    hibf_user_bins user_bins;
 };

@@ -85,22 +85,10 @@ int chopper_build(seqan3::argument_parser & parser)
             throw std::runtime_error{"Could not open " + out_filename + " for writing."};
 
         cereal::BinaryOutputArchive archive(fout);
-        archive(data.ibfs);
+        archive(data.hibf);
+        archive(data.hibf_bin_levels);
+        archive(data.user_bins);
     }
-
-    // write ibf mapping to file
-    {
-        std::string const out_filename{config.output_prefix + "position_mapping.out"};
-        std::ofstream fout(out_filename, std::ios::binary);
-
-        if (!fout.good() || !fout.is_open())
-            throw std::runtime_error{"Could not open " + out_filename + " for writing."};
-
-        cereal::BinaryOutputArchive archive(fout);
-        archive(data.ibf_mapping);
-    }
-
-    // TODO: write ibf tree to file
 
     return 0;
 }

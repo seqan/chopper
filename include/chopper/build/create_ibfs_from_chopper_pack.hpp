@@ -85,12 +85,13 @@ void build(std::unordered_set<size_t> & parent_kmers,
     auto & current_node_data = data.node_map[current_node];
 
     std::vector<int64_t> ibf_positions(current_node_data.number_of_technical_bins, -1);
+    std::vector<int64_t> ibf_filenames(current_node_data.number_of_technical_bins, -1);
 
     size_t number_of_max_bin_technical_bins{};
     if (current_node_data.favourite_child != lemon::INVALID) // max bin is a merged bin
     {
         build(max_bin_kmers, current_node_data.favourite_child, data, config); // recursively initialize favourite child first
-        ibf_positions[current_node_data.max_bin_index] = data.ibfs.size() - 1;
+        ibf_positions[current_node_data.max_bin_index] = data.hibf.size();
         number_of_max_bin_technical_bins = 1;
     }
     else // there a max bin, that is ot a merged bin
@@ -99,6 +100,10 @@ void build(std::unordered_set<size_t> & parent_kmers,
         auto const & record = current_node_data.remaining_records[0];
         compute_kmers(max_bin_kmers, config, record);
         number_of_max_bin_technical_bins = record.number_of_bins.back();
+
+        auto const user_bin_pos = data.user_bins.add_user_bin(record.filenames);
+        for (size_t i = 0; i < record.number_of_bins.back(); ++i)
+            ibf_filenames[record.bin_indices.back() + i] = user_bin_pos;
     }
 
     // construct High Level IBF
@@ -125,7 +130,7 @@ void build(std::unordered_set<size_t> & parent_kmers,
             build(kmers, child, data, config); // also appends that childs counts to 'kmers'
             insert_into_ibf(kmers, 1, child_data.parent_bin_index, ibf);
             parent_kmers.merge(kmers);
-            ibf_positions[child_data.parent_bin_index] = data.ibfs.size() - 1;
+            ibf_positions[child_data.parent_bin_index] = data.hibf.size();
         }
     }
 
@@ -135,15 +140,20 @@ void build(std::unordered_set<size_t> & parent_kmers,
         compute_kmers(kmers, config, record);
         insert_into_ibf(kmers, record.number_of_bins.back(), record.bin_indices.back(), ibf);
         parent_kmers.merge(kmers);
+
+        auto const user_bin_pos = data.user_bins.add_user_bin(record.filenames);
+        for (size_t i = 0; i < record.number_of_bins.back(); ++i)
+            ibf_filenames[record.bin_indices.back() + i] = user_bin_pos;
     }
 
-    data.ibfs.push_back(std::move(ibf));
+    data.hibf.push_back(std::move(ibf));
 
     for (auto & pos : ibf_positions)
         if (pos == -1)
-            pos = data.ibfs.size() - 1;
+            pos = data.hibf.size();
 
-    data.ibf_mapping.push_back(std::move(ibf_positions));
+    data.hibf_bin_levels.push_back(std::move(ibf_positions));
+    data.user_bins.add_user_bin_positions(std::move(ibf_filenames));
 }
 
 void create_ibfs_from_chopper_pack(build_data & data, build_config const & config)
@@ -154,6 +164,7 @@ void create_ibfs_from_chopper_pack(build_data & data, build_config const & confi
     auto & root_node_data = data.node_map[root];
 
     std::vector<int64_t> ibf_positions(root_node_data.number_of_technical_bins, 0);
+    std::vector<int64_t> ibf_filenames(root_node_data.number_of_technical_bins, -1);
 
     std::unordered_set<size_t> max_bin_kmers{};
 
@@ -161,7 +172,7 @@ void create_ibfs_from_chopper_pack(build_data & data, build_config const & confi
     if (root_node_data.favourite_child != lemon::INVALID) // max bin is a merged bin
     {
         build(max_bin_kmers, root_node_data.favourite_child, data, config); // recursively initialize favourite child first
-        ibf_positions[root_node_data.max_bin_index] = data.ibfs.size() - 1;
+        ibf_positions[root_node_data.max_bin_index] = data.hibf.size();
         number_of_max_bin_technical_bins = 1;
     }
     else // there a max bin, that is ot a merged bin
@@ -171,6 +182,10 @@ void create_ibfs_from_chopper_pack(build_data & data, build_config const & confi
         compute_kmers(max_bin_kmers, config, record);
         assert(record.number_of_bins.size() == 1);
         number_of_max_bin_technical_bins = record.number_of_bins.front();
+
+        auto const user_bin_pos = data.user_bins.add_user_bin(record.filenames);
+        for (size_t i = 0; i < record.number_of_bins.back(); ++i)
+            ibf_filenames[record.bin_indices.back() + i] = user_bin_pos;
     }
 
     // construct High Level IBF
@@ -195,13 +210,20 @@ void create_ibfs_from_chopper_pack(build_data & data, build_config const & confi
             std::unordered_set<size_t> kmers{};
             build(kmers, child, data, config); // also appends that childs counts to 'kmers'
             insert_into_ibf(kmers, 1, child_data.parent_bin_index, high_level_ibf);
-            ibf_positions[child_data.parent_bin_index] = data.ibfs.size() - 1;
+            ibf_positions[child_data.parent_bin_index] = data.hibf.size();
         }
     }
 
     for (auto const & record : root_node_data.remaining_records)
+    {
         insert_into_ibf(config, record, high_level_ibf);
 
-    data.ibfs.insert(data.ibfs.begin(), std::move(high_level_ibf)); // insert High level at the beginning
-    data.ibf_mapping.insert(data.ibf_mapping.begin(), std::move(ibf_positions));
+        auto const user_bin_pos = data.user_bins.add_user_bin(record.filenames);
+        for (size_t i = 0; i < record.number_of_bins.back(); ++i)
+            ibf_filenames[record.bin_indices.back() + i] = user_bin_pos;
+    }
+
+    data.hibf.insert(data.hibf.begin(), std::move(high_level_ibf)); // insert High level at the beginning
+    data.hibf_bin_levels.insert(data.hibf_bin_levels.begin(), std::move(ibf_positions));
+    data.user_bins.prepend_user_bin_positions(std::move(ibf_filenames));
 }
