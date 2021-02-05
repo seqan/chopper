@@ -54,7 +54,7 @@ void search(std::unordered_set<std::pair<size_t, size_t>> & membership_result,
     {
         if (result[bin] > kmer_lemma)
         {
-            size_t next_ibf_idx = data.ibf_mapping[ibf_idx];
+            size_t next_ibf_idx = data.hibf_bin_levels[ibf_idx];
             if (next_ibf != ibf_idx)
             {
                 search(kmers, data, next_ibf_idx);
@@ -83,7 +83,7 @@ void write_result(std::unordered_set<std::pair<size_t, size_t>> const & membersh
 {
     std::cout << id << '\t';
     for (auto && [ibf_idx, bin_idx] : membership_result)
-        std::cout << /*returns a number*/ data.user_bins[ibf_idx][bin_idx] << ','; // todo remove last comma
+        std::cout << data.user_bins[ibf_idx][bin_idx] << ',';
     std::cout << std::endl;
 }
 
@@ -108,15 +108,11 @@ int chopper_search(seqan3::argument_parser & parser)
         std::ifstream is{config.chopper_index_filename, std::ios::binary};
         cereal::BinaryInputArchive iarchive{is};
         iarchive(data.hibf);
+        iarchive(data.hibf_bin_levels);
+        iarchive(data.user_bins);
     }
 
-    { // read ibf mapping
-        std::ifstream is{config.chopper_index_map_filename, std::ios::binary};
-        cereal::BinaryInputArchive iarchive{is};
-        iarchive(data.hibf_mapping);
-    }
-
-    write_header();
+    // write_header();
 
     std::vector<size_t> read_kmers; // allocate space once
 
