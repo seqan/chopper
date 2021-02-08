@@ -106,13 +106,14 @@ public:
     //!\brief The type of the hash adaptor.
     using hash_adaptor_t = hash_adaptor_t_;
 
-    technical_binning_directory() = default; //!< Defaulted.
     technical_binning_directory(technical_binning_directory const &) = default; //!< Defaulted.
     technical_binning_directory & operator=(technical_binning_directory const &) = default; //!< Defaulted.
     technical_binning_directory(technical_binning_directory &&) = default; //!< Defaulted.
     technical_binning_directory & operator=(technical_binning_directory &&) = default; //!< Defaulted.
     ~technical_binning_directory() = default; //!< Defaulted.
 
+    // default constructor
+    technical_binning_directory(): hash_adaptor(seqan3::views::kmer_hash(seqan3::ungapped{5u})) {};
 
     /*!\brief Construct an uncompressed Technical Binning Directory.
      * \tparam rng_t The type of the technical bins.
@@ -269,6 +270,27 @@ public:
         return counting_agent_type<value_t>{*this};
     }
     //!\}
+
+    /*!\cond DEV
+     * \brief Serialisation support function.
+     * \tparam archive_t Type of `archive`; must satisfy seqan3::cereal_archive.
+     * \param[in] archive The archive being serialised from/to.
+     *
+     * \attention These functions are never called directly, see \ref serialisation for more details.
+     */
+    template <cereal_archive archive_t>
+    void CEREAL_SERIALIZE_FUNCTION_NAME(archive_t & archive)
+    {
+        // archive(static_cast<interleaved_bloom_filter>(*this));
+        archive(this->bins);
+        archive(this->technical_bins);
+        archive(this->bin_size_);
+        archive(this->hash_shift);
+        archive(this->bin_words);
+        archive(this->hash_funs);
+        archive(this->data);
+    }
+    //!\endcond
 };
 
 /*!\name Type deduction guides
@@ -436,7 +458,6 @@ public:
     // is immediately destroyed.
     counting_vector<value_t> const & count_query(size_t const value) && noexcept = delete;
     //!\}
-
 };
 
 //!\}

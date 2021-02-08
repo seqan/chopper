@@ -8,7 +8,9 @@
 #include <cereal/archives/binary.hpp>
 
 #include <seqan3/argument_parser/all.hpp>
+#include <seqan3/io/sequence_file/input.hpp>
 #include <seqan3/core/debug_stream.hpp>
+#include <seqan3/range/views/kmer_hash.hpp>
 
 #include <chopper/search/search_config.hpp>
 #include <chopper/search/search_data.hpp>
@@ -28,19 +30,28 @@ void initialize_argument_parser(seqan3::argument_parser & parser, search_config 
     parser.add_flag(config.verbose, 'v', "verbose", "Output logging/progress information.");
 }
 
-struct file_traits : public seqan3::sequence_file_input_default_traits_dna
+struct pair_hash
+{
+    std::size_t operator () (std::pair<int32_t, uint32_t> const & pair) const
+    {
+        return (static_cast<size_t>(pair.first) << 32) | static_cast<size_t>(pair.second);
+    }
+};
+
+struct search_file_traits : public seqan3::sequence_file_input_default_traits_dna
 {
     using sequence_alphabet = seqan3::dna4;
 };
 
-using sequence_file_t = seqan3::sequence_file_input<file_traits,
+using search_sequence_file_t = seqan3::sequence_file_input<search_file_traits,
                                                     seqan3::fields<seqan3::field::id, seqan3::field::seq>,
                                                     seqan3::type_list<seqan3::format_fasta, seqan3::format_fastq>>;
 
-void search(std::unordered_set<std::pair<size_t, size_t>> & membership_result,
+void search(std::unordered_set<std::pair<int32_t, uint32_t>, pair_hash> & membership_result,
             std::vector<size_t> const & kmers,
             search_data const & data,
-            size_t const ibf_idx)
+            search_config const & config,
+            int64_t const ibf_idx)
 {
     size_t const kmer_lemma = (kmers.size() > config.errors * config.k)
                               ? kmers.size() - config.errors * config.k
@@ -48,16 +59,16 @@ void search(std::unordered_set<std::pair<size_t, size_t>> & membership_result,
 
     auto counting_agent = data.hibf[ibf_idx].template counting_agent<uint16_t>();
 
-    auto && result = counter.count_hashes(kmers);
+    auto && result = counting_agent.count_hashes(kmers);
 
     for (size_t bin = 0; bin < result.size(); ++bin)
     {
-        if (result[bin] > kmer_lemma)
+        if (result[bin] >= kmer_lemma)
         {
-            size_t next_ibf_idx = data.hibf_bin_levels[ibf_idx];
-            if (next_ibf != ibf_idx)
+            int64_t const next_ibf_idx = data.hibf_bin_levels[ibf_idx][bin];
+            if (next_ibf_idx != ibf_idx)
             {
-                search(kmers, data, next_ibf_idx);
+                search(membership_result, kmers, data, config, next_ibf_idx);
             }
             else
             {
@@ -67,17 +78,17 @@ void search(std::unordered_set<std::pair<size_t, size_t>> & membership_result,
     }
 }
 
-std::vector<size_t> compute_kmers(dna4_vector const & query, search_config const & config)
+std::vector<size_t> compute_kmers(seqan3::dna4_vector const & query, search_config const & config)
 {
     std::vector<size_t> kmers{};
 
-    for (auto hash : seq | seqan3::views::kmer_hash(seqan3::ungapped{config.k}))
-        kmers.insert(hash);
+    for (auto hash : query | seqan3::views::kmer_hash(seqan3::ungapped{config.k}))
+        kmers.push_back(hash);
 
     return kmers;
 }
 
-void write_result(std::unordered_set<std::pair<size_t, size_t>> const & membership_result,
+void write_result(std::unordered_set<std::pair<int32_t, uint32_t>, pair_hash> const & membership_result,
                   std::string const & id,
                   search_data const & data)
 {
@@ -115,14 +126,16 @@ int chopper_search(seqan3::argument_parser & parser)
     // write_header();
 
     std::vector<size_t> read_kmers; // allocate space once
+    std::unordered_set<std::pair<int32_t, uint32_t>, pair_hash> result{};
 
-    for (auto && [id, seq] : sequence_file_t{config.query_filename})
+    for (auto && [id, seq] : search_sequence_file_t{config.query_filename})
     {
         read_kmers = compute_kmers(seq, config);
+        result.clear();
 
-        search(read_kmers, data, 0); // start at top level ibf
+        search(result, read_kmers, data, config, 0); // start at top level ibf
 
-        write_result(membership_result, id, data);
+        write_result(result, id, data);
     }
 
     return 0;
