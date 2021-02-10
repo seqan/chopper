@@ -52,7 +52,7 @@ struct create_ibfs_from_chopper_pack_test : public ::testing::Test
                 without_expected_counts[bin] = false;
                 sum += counts[bin];
             }
-            EXPECT_EQ(sum, expected);
+            EXPECT_EQ(sum, expected) << "failed for bin: " << bins[0] << std::endl;
         }
 
         for (size_t i = 0; i < counts.size(); ++i)
