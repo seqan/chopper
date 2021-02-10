@@ -49,7 +49,7 @@ public:
         return filenames[bin_to_filename_position[index_pair.first][index_pair.second]];
     }
 
-    auto operator[](size_t ibf_idx) const
+    auto operator[](size_t const ibf_idx) const
     {
         return bin_to_filename_position[ibf_idx]
                | std::views::transform([this] (int64_t i)
@@ -59,6 +59,11 @@ public:
                     else
                         return filenames[i];
                  });
+    }
+
+    int64_t get_position(size_t const ibf_idx, size_t const bin_idx) const
+    {
+        return bin_to_filename_position[ibf_idx][bin_idx];
     }
 
     /*!\brief Serialisation support function.

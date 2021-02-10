@@ -61,20 +61,47 @@ void search(std::unordered_set<std::pair<int32_t, uint32_t>, pair_hash> & member
 
     auto && result = counting_agent.count_hashes(kmers);
 
-    for (size_t bin = 0; bin < result.size(); ++bin)
+    size_t bin = 0;
+    size_t sum = 0;
+
+    while (bin < result.size() - 1)
     {
-        if (result[bin] >= kmer_lemma)
+        sum += result[bin];
+
+        if (data.user_bins.get_position(ibf_idx, bin) < 0 /*merged bin*/ ||
+            data.user_bins.get_position(ibf_idx, bin) != data.user_bins.get_position(ibf_idx, bin + 1))
         {
-            int64_t const next_ibf_idx = data.hibf_bin_levels[ibf_idx][bin];
-            if (next_ibf_idx != ibf_idx)
+            if (sum >= kmer_lemma)
             {
-                search(membership_result, kmers, data, config, next_ibf_idx);
+                int64_t const next_ibf_idx = data.hibf_bin_levels[ibf_idx][bin];
+                if (next_ibf_idx != ibf_idx)
+                {
+                    search(membership_result, kmers, data, config, next_ibf_idx);
+                }
+                else
+                {
+                    membership_result.emplace(ibf_idx, bin);
+                }
+
             }
-            else
-            {
-                membership_result.emplace(ibf_idx, bin);
-            }
+            sum = 0;
         }
+        ++bin;
+    }
+
+    sum += result[bin];
+    if (sum >= kmer_lemma)
+    {
+        int64_t const next_ibf_idx = data.hibf_bin_levels[ibf_idx][bin];
+        if (next_ibf_idx != ibf_idx)
+        {
+            search(membership_result, kmers, data, config, next_ibf_idx);
+        }
+        else
+        {
+            membership_result.emplace(ibf_idx, bin);
+        }
+
     }
 }
 
