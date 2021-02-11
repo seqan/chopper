@@ -66,6 +66,16 @@ public:
         return bin_to_filename_position[ibf_idx][bin_idx];
     }
 
+    void write_filenames(std::ostream & out_stream) const
+    {
+        size_t position{};
+        for (auto const & filename : filenames)
+        {
+            out_stream << '#' << position << '\t' << filename << '\n';
+            ++position;
+        }
+    }
+
     /*!\brief Serialisation support function.
      * \tparam archive_t Type of `archive`; must satisfy seqan3::cereal_archive.
      * \param[in] archive The archive being serialised from/to.

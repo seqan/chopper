@@ -4,12 +4,14 @@
 #define SEQAN3_HAS_ZLIB 1
 
 #include <fstream>
+#include <seqan3/std/ranges>
 
 #include <cereal/archives/binary.hpp>
 
 #include <seqan3/argument_parser/all.hpp>
 #include <seqan3/io/sequence_file/input.hpp>
 #include <seqan3/core/debug_stream.hpp>
+#include <seqan3/range/views/interleave.hpp>
 #include <seqan3/range/views/kmer_hash.hpp>
 
 #include <chopper/search/search.hpp>
@@ -24,7 +26,6 @@ void initialize_argument_parser(seqan3::argument_parser & parser, search_config 
 
     // todo: k-mer size should be serialized with building the index to avoid inconsistencies
     parser.add_option(config.chopper_index_filename, 'i', "index", "Provide the HIBF index file produced by chopper build.");
-    parser.add_option(config.chopper_index_map_filename, 'm', "index-map", "Provide the HIBF index mapping file produced by chopper build.");
     parser.add_option(config.k, 'k', "kmer-size", "The kmer size to build kmers.");
     parser.add_option(config.errors, 'e', "errors", "The errors to allow in the search.");
     parser.add_option(config.query_filename, 'q', "queries", "The query sequences to seach for in the index.");
@@ -50,14 +51,37 @@ std::vector<size_t> compute_kmers(seqan3::dna4_vector const & query, search_conf
     return kmers;
 }
 
+void write_header(search_data const & data, std::ostream & out_stream)
+{
+    data.user_bins.write_filenames(out_stream);
+    out_stream << "#QUERY_NAME\tUSER_BINS\n";
+}
+
 void write_result(std::unordered_set<std::pair<int32_t, uint32_t>, pair_hash> const & membership_result,
                   std::string const & id,
-                  search_data const & data)
+                  search_data const & data,
+                  std::ostream & out_stream)
 {
-    std::cout << id << '\t';
-    for (auto && [ibf_idx, bin_idx] : membership_result)
-        std::cout << data.user_bins[ibf_idx][bin_idx] << ',';
-    std::cout << std::endl;
+    if (membership_result.empty())
+    {
+        out_stream << id << '\t' << std::endl;
+        return;
+    }
+
+    // storing and sorting this is only done for testing purposes.
+    // If this turns out to have a significant runtime penalty, it should be removed.
+    std::vector<int64_t> result_positions; // TODO allocate this outside of this function
+    for (auto const & [ibf_idx, bin_idx] : membership_result)
+    {
+        assert(data.user_bins.get_position(ibf_idx, bin_idx) > -1);
+        result_positions.push_back(data.user_bins.get_position(ibf_idx, bin_idx));
+    }
+    std::sort(result_positions.begin(), result_positions.end()); // otherwise the result output is not testable
+
+    out_stream << id << '\t';
+    for (size_t i = 0; i < result_positions.size() - 1; ++i)
+        out_stream << result_positions[i] << ',';
+    out_stream << result_positions.back() << std::endl;
 }
 
 int chopper_search(seqan3::argument_parser & parser)
@@ -79,13 +103,17 @@ int chopper_search(seqan3::argument_parser & parser)
 
     { // read ibf vector
         std::ifstream is{config.chopper_index_filename, std::ios::binary};
+
+        if (!is.good() && !is.is_open())
+            throw std::runtime_error{"File " + config.chopper_index_filename + " could not be opened"};
+
         cereal::BinaryInputArchive iarchive{is};
         iarchive(data.hibf);
         iarchive(data.hibf_bin_levels);
         iarchive(data.user_bins);
     }
 
-    // write_header();
+    write_header(data, std::cout);
 
     std::vector<size_t> read_kmers; // allocate space once
     std::unordered_set<std::pair<int32_t, uint32_t>, pair_hash> result{};
@@ -97,7 +125,7 @@ int chopper_search(seqan3::argument_parser & parser)
 
         search(result, read_kmers, data, config, 0); // start at top level ibf
 
-        write_result(result, id, data);
+        write_result(result, id, data, std::cout);
     }
 
     return 0;
