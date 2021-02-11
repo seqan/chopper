@@ -123,7 +123,7 @@ auto construct_ibf(std::unordered_set<size_t> & kmers,
     seqan3::interleaved_bloom_filter ibf{bin_count, bin_size, seqan3::hash_function_count{config.hash_funs}};
 
     if (config.verbose)
-        seqan3::debug_stream << "  > Initialised IBF with bin size " << bin_size.get() << std::endl;
+        std::cout << "  > Initialised IBF with bin size " << bin_size.get() << std::endl;
 
     insert_into_ibf(kmers, number_of_bins, node_data.max_bin_index, ibf);
 
@@ -164,8 +164,11 @@ void build(std::unordered_set<size_t> & parent_kmers,
         }
     }
 
-    for (auto const & record : current_node_data.remaining_records)
+    // If max bin was a merged bin, process all remaining records, otherwise the first one has already been processed
+    size_t const start{(current_node_data.favourite_child != lemon::INVALID) ? 0u : 1u};
+    for (size_t i = start; i < current_node_data.remaining_records.size(); ++i)
     {
+        auto const & record = current_node_data.remaining_records[i];
         std::unordered_set<size_t> kmers{};
         compute_kmers(kmers, config, record);
         insert_into_ibf(kmers, record.number_of_bins.back(), record.bin_indices.back(), ibf);
@@ -218,10 +221,12 @@ void create_ibfs_from_chopper_pack(build_data & data, build_config const & confi
         }
     }
 
-    for (auto const & record : root_node_data.remaining_records)
+    size_t const start{(root_node_data.favourite_child != lemon::INVALID) ? 0u : 1u};
+    for (size_t i = start; i < root_node_data.remaining_records.size(); ++i)
     {
         // bug: if number of TBs > 1 use insert_into_ibf with splitting
 
+        auto const & record = root_node_data.remaining_records[i];
         insert_into_ibf(config, record, high_level_ibf);
 
         auto const user_bin_pos = data.user_bins.add_user_bin(record.filenames);

@@ -63,7 +63,7 @@ int chopper_build(seqan3::argument_parser & parser)
     }
     catch (seqan3::argument_parser_error const & ext)
     {
-        seqan3::debug_stream << "[CHOPPER BIULD ERROR] " << ext.what() << "\n";
+        seqan3::debug_stream << "[CHOPPER BUILD ERROR] " << ext.what() << "\n";
         return -1;
     }
 
