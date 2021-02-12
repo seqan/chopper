@@ -214,9 +214,9 @@ void create_ibfs_from_chopper_pack(build_data & data, build_config const & confi
         auto & child_data = data.node_map[child];
         if (child != root_node_data.favourite_child)
         {
-            std::unordered_set<size_t> kmers{};
-            build(kmers, child, data, config); // also appends that childs counts to 'kmers'
-            insert_into_ibf(kmers, 1, child_data.parent_bin_index, high_level_ibf);
+            max_bin_kmers.clear(); // reuse allocated space
+            build(max_bin_kmers, child, data, config); // also appends that childs counts to 'max_bin_kmers'
+            insert_into_ibf(max_bin_kmers, 1, child_data.parent_bin_index, high_level_ibf);
             ibf_positions[child_data.parent_bin_index] = data.hibf.size();
         }
     }
@@ -224,10 +224,18 @@ void create_ibfs_from_chopper_pack(build_data & data, build_config const & confi
     size_t const start{(root_node_data.favourite_child != lemon::INVALID) ? 0u : 1u};
     for (size_t i = start; i < root_node_data.remaining_records.size(); ++i)
     {
-        // bug: if number of TBs > 1 use insert_into_ibf with splitting
-
         auto const & record = root_node_data.remaining_records[i];
-        insert_into_ibf(config, record, high_level_ibf);
+
+        if (record.number_of_bins.back() == 1) // no splitting needed
+        {
+            insert_into_ibf(config, record, high_level_ibf);
+        }
+        else
+        {
+            max_bin_kmers.clear(); // reuse allocated space
+            compute_kmers(max_bin_kmers, config, record);
+            insert_into_ibf(max_bin_kmers, record.number_of_bins.back(), record.bin_indices.back(), high_level_ibf);
+        }
 
         auto const user_bin_pos = data.user_bins.add_user_bin(record.filenames);
         for (size_t i = 0; i < record.number_of_bins.back(); ++i)

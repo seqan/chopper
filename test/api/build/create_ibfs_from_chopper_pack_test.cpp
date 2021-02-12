@@ -167,6 +167,102 @@ TEST_F(create_ibfs_from_chopper_pack_test, small_example_2_levels)
     compare_counts(low_level_ibf, seq3_specific, {{2, 3, 4}, {5}},config);
 }
 
+TEST_F(create_ibfs_from_chopper_pack_test, uniform_splitting)
+{
+    std::string seq1_filename = DATADIR"seq1.fa";
+    std::string seq2_filename = DATADIR"seq2.fa";
+    std::string seq3_filename = DATADIR"seq3.fa";
+    std::string all_seq_filename = DATADIR"small.fa";
+
+    seqan3::test::tmp_filename chopper_pack_filename{"small.pack"};
+
+    // generate data files
+    {
+        std::ofstream fout{chopper_pack_filename.get_path()};
+        fout << "#HIGH_LEVEL_IBF max_bin_id:6\n"
+             << "#MERGED_BIN_6 max_bin_id:0\n"
+             << "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\tEST_MAX_TB_SIZES\n"
+             << seq1_filename << ";" << seq2_filename << "\t0\t1\t500\n"
+             << seq3_filename << "\t1\t1\t500\n"
+             << seq1_filename << ";" << seq2_filename << ";" << seq3_filename << "\t2\t1\t500\n"
+             << seq1_filename << ";" << seq2_filename << ";" << seq3_filename << "\t3\t3\t500\n"
+             << seq1_filename << "\t6;0\t1;1\t500\n"
+             << seq2_filename << "\t6;1\t1;1\t500\n"
+             << seq1_filename << ";" << seq2_filename << ";" << seq3_filename << "\t6;2\t1;3\t500\n"
+             << seq3_filename << "\t6;5\t1;1\t500\n";
+    }
+
+    // HIGH LEVEL IBF
+    // --------------
+    // Bin 0: seq1, seq2
+    // Bin 1: seq3
+    // Bin 2: seq1, seq2, seq3
+    // Bin 3: split into 3 tb's containing seq1, seq2, seq3
+    // Bin 4:  -> belongs to bin 3
+    // Bin 5:  -> belongs to bin 3
+    // Bin 6: seq1, seq2, seq3
+
+    // LOW LEVEL IBF (only one)
+    // --------------
+    // Bin 0: seq1
+    // Bin 1: seq2
+    // Bin 2: split into 3 tb's containing seq1, seq2, seq3
+    // Bin 3:  -> belongs to bin 2
+    // Bin 4:  -> belongs to bin 2
+    // Bin 5: seq3
+
+    build_config config{};
+    config.k = 15;
+    config.chopper_pack_filename = chopper_pack_filename.get_path().string();
+
+    build_data data{};
+
+    create_ibfs_from_chopper_pack(data, config);
+
+    ASSERT_EQ(data.hibf.size(), 2);
+
+    auto & high_level_ibf = data.hibf[0];
+    auto & low_level_ibf = data.hibf[1];
+
+    size_t const kmers_per_split_bin = (unique_kmers.size() / 3) + 1;
+
+    {
+        auto agent = high_level_ibf.membership_agent();
+
+        seqan3::counting_vector<size_t> all_counts(agent.result_buffer.size());
+        std::unordered_set<size_t> unique_kmers{};
+
+        for (auto & [seq] : sequence_file_t{all_seq_filename})
+            for (auto && hash : seq | seqan3::views::kmer_hash(seqan3::ungapped{config.k}))
+                unique_kmers.insert(hash);
+
+        for (auto hash : unique_kmers)
+            all_counts += agent.bulk_contains(hash);
+
+        EXPECT_EQ(all_counts[3], kmers_per_split_bin);
+        EXPECT_EQ(all_counts[4], kmers_per_split_bin);
+        EXPECT_EQ(all_counts[5], kmers_per_split_bin - 2);
+    }
+
+    {
+        auto agent = low_level_ibf.membership_agent();
+
+        seqan3::counting_vector<size_t> all_counts(agent.result_buffer.size());
+        std::unordered_set<size_t> unique_kmers{};
+
+        for (auto & [seq] : sequence_file_t{all_seq_filename})
+            for (auto && hash : seq | seqan3::views::kmer_hash(seqan3::ungapped{config.k}))
+                unique_kmers.insert(hash);
+
+        for (auto hash : unique_kmers)
+            all_counts += agent.bulk_contains(hash);
+
+        EXPECT_EQ(all_counts[2], kmers_per_split_bin);
+        EXPECT_EQ(all_counts[3], kmers_per_split_bin);
+        EXPECT_EQ(all_counts[4], kmers_per_split_bin - 2);
+    }
+}
+
 TEST_F(create_ibfs_from_chopper_pack_test, same_example_two_levels_but_split_bin_as_hibf_max_bin)
 {
     std::string seq1_filename = DATADIR"seq1.fa";
