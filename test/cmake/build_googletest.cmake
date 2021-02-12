@@ -1,5 +1,11 @@
 cmake_minimum_required (VERSION 3.8)
 
+set (CHOPPER_EXTERNAL_PROJECT_CMAKE_ARGS "")
+list (APPEND CHOPPER_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}")
+list (APPEND CHOPPER_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
+list (APPEND CHOPPER_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}")
+list (APPEND CHOPPER_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_VERBOSE_MAKEFILE=${CMAKE_VERBOSE_MAKEFILE}")
+
 # Register how to download Googletest.
 include (ExternalProject)
 ExternalProject_Add (googletest
@@ -7,6 +13,7 @@ ExternalProject_Add (googletest
                      GIT_TAG           "master"
                      GIT_SHALLOW
                      PREFIX            "${CMAKE_CURRENT_BINARY_DIR}/googletest"
+                     CMAKE_ARGS        "${CHOPPER_EXTERNAL_PROJECT_CMAKE_ARGS}"
                      UPDATE_COMMAND    ""   # omit update step
                      INSTALL_COMMAND   "")  # do not install
 
