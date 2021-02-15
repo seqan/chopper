@@ -1,6 +1,6 @@
 # Chopper - partition your sequences
 
-[![Build Status](https://travis-ci.com/seqan/app-template.svg?branch=master)](https://travis-ci.com/seqan/app-template)
+[![Build Status](https://github.com/smehringer/Chopper/workflows/Chopper%20CI/badge.svg)](https://github.com/smehringer/Chopper/actions?query=branch%3Amaster+workflow%3A%22Chopper+CI%22)
 
 ## System requirements
 
