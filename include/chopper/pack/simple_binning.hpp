@@ -25,8 +25,8 @@
  *  |---------|---------------------------------------------------------------------------- |
  *  | **x**   | Number of Technical Bins (TB)                                               |
  *  | **y**   | Number of User Bins (UB)                                                    |
- *  | **b_i** | The bin size (kmer content) of Technical Bin $i$                            |
- *  | **c_j** | The kmer content of User Bin $j$                                            |
+ *  | **b_i** | The bin size (kmer content) of Technical Bin \f$i\f$                            |
+ *  | **c_j** | The kmer content of User Bin \f$j\f$                                            |
  *  | **M**   | A DP matrix that tracks the maximum technical bin size \f$\max_{i} (b_i)\f$.|
  *
  *  \attention The number of technical bins **x** must be greater that the number of user bins **y** for this algorithm.
@@ -112,7 +112,7 @@ public:
      * \param[in] num_bins (optional) The number of technical bins.
      *
      * If the `num_bins` parameter is omitted or set to 0, then number of technical bins used in this algorithm
-     * is automatically set to the next multiple of 64 given the number of user bins (e.g. #UB = 88 -> #TB = 124).
+     * is automatically set to the next multiple of 64 given the number of user bins (e.g. \#UB = 88 -> \#TB = 124).
      *
      * \attention The number of technical bins must be greater or equal to the number of user bins!
      *            If you want to use less technical bins than user bins, see the hierarchical_binning algorithm.
