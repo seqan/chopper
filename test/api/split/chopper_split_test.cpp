@@ -27,7 +27,7 @@ TEST(chopper_split_test, simple_example)
     // compare results
     std::string expected_file_str
     {
-        "#FILE_ID\tSEQ_ID\tBEGIN\tEND\tBIN_INDICES\n" +
+        "#FILE_ID\tSEQ_ID\tBEGIN\tEND\tIBF_BIN_INDICES\n" +
         input_filename1 + "\tseq1\t0\t163\t0\n" +
         input_filename1 + "\tseq2\t0\t186\t0\n" +
         input_filename1 + "\tseq3\t0\t163\t0\n" +
@@ -68,10 +68,10 @@ TEST(chopper_split_test, data_file_as_input)
 {
     std::string input_filename1 = DATADIR"small.fa";
     std::string input_filename2 = DATADIR"small2.fa";
-    seqan3::test::tmp_filename data_filename{"data.tsv"};
+    seqan3::test::tmp_filename chopper_pack_filename{"small.pack"};
 
     {
-        std::ofstream fout{data_filename.get_path()};
+        std::ofstream fout{chopper_pack_filename.get_path()};
         fout << "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\tEST_MAX_TB_SIZES\n"
              << input_filename1                           << "\t0\t2\t500\n"
              << input_filename1                           << "\t2\t2\t500\n"
@@ -84,7 +84,7 @@ TEST(chopper_split_test, data_file_as_input)
     seqan3::test::tmp_filename output_filename{"small.split"};
 
     const char * argv[] = {"./chopper-split", "-k", "15", "-w", "25",
-                           "-f", data_filename.get_path().c_str(),
+                           "-f", chopper_pack_filename.get_path().c_str(),
                            "-o", output_filename.get_path().c_str()};
     int argc = 9;
     seqan3::argument_parser split_parser{"chopper-split", argc, argv, seqan3::update_notifications::off};
@@ -93,7 +93,7 @@ TEST(chopper_split_test, data_file_as_input)
 
     std::string const expected_output_str
     {
-        "#FILE_ID\tSEQ_ID\tBEGIN\tEND\tBIN_INDICES\n" +
+        "#FILE_ID\tSEQ_ID\tBEGIN\tEND\tIBF_BIN_INDICES\n" +
         /*SPLIT_BIN_0*/
         input_filename1 + "\tseq1\t0\t209\t0\n" +
         input_filename1 + "\tseq2\t0\t289\t0\n" +
@@ -176,7 +176,7 @@ TEST(chopper_split_test, big_fat_nodes)
     // compare results
     std::string expected_file_str
     {
-        "#FILE_ID\tSEQ_ID\tBEGIN\tEND\tBIN_INDICES\n" +
+        "#FILE_ID\tSEQ_ID\tBEGIN\tEND\tIBF_BIN_INDICES\n" +
         seq_file.get_path().string() + "\tseq1\t0\t17\t0\n" +
         seq_file.get_path().string() + "\tseq1\t17\t34\t1\n" +
         seq_file.get_path().string() + "\tseq1\t34\t51\t2\n" +

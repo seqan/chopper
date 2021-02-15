@@ -134,6 +134,7 @@ private:
             if (host->current_file_type == file_type::seqfiles_given)
             {
                 current_config.seqfiles = host->config.seqfiles;
+                current_config.bin_indices.push_back(0);
                 current_config.bins = host->config.bins;
                 return true; // end reached
             }

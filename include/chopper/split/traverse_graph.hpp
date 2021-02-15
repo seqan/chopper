@@ -340,6 +340,7 @@ void traverse_graph(lemon::ListDigraph & g,
                                 << data.ids[i] << '\t'
                                 << bin[i].first << '\t'
                                 << bin[i].second << '\t';
+                assert(!config.bin_indices.empty());
                 for (size_t i = 0; i < config.bin_indices.size() - 1; ++i)
                     *data.outstream << config.bin_indices[i] << ';';
                 *data.outstream << (bin_index + config.bin_indices.back()) << '\n';

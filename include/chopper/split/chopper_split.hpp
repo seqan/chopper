@@ -62,7 +62,7 @@ int chopper_split(seqan3::argument_parser & parser)
     {
         std::ifstream data_file{config.data_filename};
         std::string line;
-        while (std::getline(data_file, line) && line.substr(0, 7) != "#FILES")
+        while (std::getline(data_file, line) && line.substr(0, 6) != "#FILES")
             fout << line << '\n';
     }
 
