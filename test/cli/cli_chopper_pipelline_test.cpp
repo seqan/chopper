@@ -8,6 +8,8 @@
 
 #include <seqan3/test/tmp_filename.hpp>
 #include <seqan3/search/dream_index/interleaved_bloom_filter.hpp>
+#include <seqan3/range/views/join.hpp>
+#include <seqan3/range/views/to.hpp>
 
 #include <chopper/detail_bin_prefixes.hpp>
 
@@ -37,22 +39,28 @@ TEST_F(cli_test, chopper_pipeline)
                                                "-c", "2",
                                                "-f", taxa_filename.get_path().c_str());
 
-    std::string expected
+    std::vector<std::string> expected_components
     {
-        seq_filename + "\t95\tTAX3\n" +
-        seq_filename + ";" + seq_filename + "\t95\tTAX2\n" +
-        seq_filename + "\t95\tTAX1\n"
+        seq_filename + "\t95\tTAX3",
+        seq_filename + ";" + seq_filename + "\t95\tTAX2",
+        seq_filename + "\t95\tTAX1"
     };
 
-    // compare intermediate results
-    EXPECT_EQ(expected, count_result.out);
+    size_t line_count{};
+    for (auto && line : count_result.out | std::views::split('\n') | seqan3::views::to<std::vector<std::string>>)
+    {
+        EXPECT_TRUE(std::ranges::find(expected_components, line) != expected_components.end());
+        ++line_count;
+    }
+
+    EXPECT_EQ(expected_components.size(), line_count);
 
     // Write count_result to output file (user would pipe the output)
     seqan3::test::tmp_filename const count_filename{"data.tsv"};
 
     {
         std::ofstream fout{count_filename.get_path()};
-        fout << count_result.out;
+        fout << (expected_components | seqan3::views::join(std::string{'\n'}) | seqan3::views::to<std::string>);
     }
 
     // CHOPPER PACK
