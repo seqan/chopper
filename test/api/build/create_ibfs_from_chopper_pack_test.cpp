@@ -224,7 +224,6 @@ TEST_F(create_ibfs_from_chopper_pack_test, uniform_splitting)
     auto & high_level_ibf = data.hibf[0];
     auto & low_level_ibf = data.hibf[1];
 
-    size_t const kmers_per_split_bin = (unique_kmers.size() / 3) + 1;
 
     {
         auto agent = high_level_ibf.membership_agent();
@@ -239,6 +238,7 @@ TEST_F(create_ibfs_from_chopper_pack_test, uniform_splitting)
         for (auto hash : unique_kmers)
             all_counts += agent.bulk_contains(hash);
 
+        size_t const kmers_per_split_bin = (unique_kmers.size() / 3) + 1;
         EXPECT_EQ(all_counts[3], kmers_per_split_bin);
         EXPECT_EQ(all_counts[4], kmers_per_split_bin);
         EXPECT_EQ(all_counts[5], kmers_per_split_bin - 2);
@@ -257,6 +257,7 @@ TEST_F(create_ibfs_from_chopper_pack_test, uniform_splitting)
         for (auto hash : unique_kmers)
             all_counts += agent.bulk_contains(hash);
 
+        size_t const kmers_per_split_bin = (unique_kmers.size() / 3) + 1;
         EXPECT_EQ(all_counts[2], kmers_per_split_bin);
         EXPECT_EQ(all_counts[3], kmers_per_split_bin);
         EXPECT_EQ(all_counts[4], kmers_per_split_bin - 2);
