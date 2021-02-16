@@ -108,7 +108,7 @@ TEST_F(create_ibfs_from_chopper_pack_test, small_example_2_levels)
     config.k = 15;
     config.chopper_pack_filename = chopper_pack_filename.get_path().string();
 
-    build_data data{};
+    build_data<chopper_pack_record> data{};
 
     create_ibfs_from_chopper_pack(data, config);
 
@@ -215,7 +215,7 @@ TEST_F(create_ibfs_from_chopper_pack_test, uniform_splitting)
     config.k = 15;
     config.chopper_pack_filename = chopper_pack_filename.get_path().string();
 
-    build_data data{};
+    build_data<chopper_pack_record> data{};
 
     create_ibfs_from_chopper_pack(data, config);
 
@@ -311,7 +311,7 @@ TEST_F(create_ibfs_from_chopper_pack_test, same_example_two_levels_but_split_bin
     config.k = 15;
     config.chopper_pack_filename = chopper_pack_filename.get_path().string();
 
-    build_data data{};
+    build_data<chopper_pack_record> data{};
 
     create_ibfs_from_chopper_pack(data, config);
 
@@ -418,7 +418,7 @@ TEST_F(create_ibfs_from_chopper_pack_test, multi_level_ibf)
     config.k = 15;
     config.chopper_pack_filename = chopper_pack_filename.get_path().string();
 
-    build_data data{};
+    build_data<chopper_pack_record> data{};
 
     create_ibfs_from_chopper_pack(data, config);
 

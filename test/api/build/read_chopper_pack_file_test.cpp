@@ -7,7 +7,7 @@
 #include <chopper/build/read_chopper_pack_file.hpp>
 
 void write_graph(lemon::ListDigraph const & g,
-                 lemon::ListDigraph::NodeMap<node_data> const & node_map,
+                 lemon::ListDigraph::NodeMap<node_data<chopper_pack_record>> const & node_map,
                  std::filesystem::path const & graph_file_name)
 {
     std::ofstream sout{graph_file_name};
@@ -75,7 +75,7 @@ TEST(read_chopper_pack_file_test, small_example)
              << "user_bin_4\t1;45\t1;19\t2000;32\n";
     }
 
-    build_data data{};
+    build_data<chopper_pack_record> data{};
     read_chopper_pack_file(data, chopper_split_filename.get_path().string());
 
     write_graph(data.ibf_graph, data.node_map, "/tmp/ibf_graph.dot");

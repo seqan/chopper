@@ -7,7 +7,8 @@
 #include <chopper/build/build_data.hpp>
 #include <chopper/detail_bin_prefixes.hpp>
 
-void parse_chopper_pack_header_line(std::string const & line, build_data & data)
+template <typename record_type>
+void parse_chopper_pack_header_line(std::string const & line, build_data<record_type> & data)
 {
     if (line.substr(1, hibf_prefix.size()) == hibf_prefix)
     {
@@ -55,8 +56,9 @@ auto parse_bin_indices(std::string const & str)
     return result;
 }
 
+template <typename record_type>
 void parse_chopper_pack_header(lemon::ListDigraph & ibf_graph,
-                               lemon::ListDigraph::NodeMap<node_data> & node_map,
+                               lemon::ListDigraph::NodeMap<node_data<record_type>> & node_map,
                                std::istream & chopper_pack_file)
 {
     std::string line;

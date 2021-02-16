@@ -78,10 +78,10 @@ void insert_into_ibf(build_config const & config,
 // forward declaration
 void build(std::unordered_set<size_t> & parent_kmers,
            lemon::ListDigraph::Node const & current_node,
-           build_data & data,
+           build_data<chopper_pack_record> & data,
            build_config const & config);
 
-void update_user_bins(build_data & data, std::vector<int64_t> & ibf_filenames, chopper_pack_record const & record)
+void update_user_bins(build_data<chopper_pack_record> & data, std::vector<int64_t> & ibf_filenames, chopper_pack_record const & record)
 {
     auto const user_bin_pos = data.user_bins.add_user_bin(record.filenames);
     for (size_t i = 0; i < record.number_of_bins.back(); ++i)
@@ -92,7 +92,7 @@ size_t initialise_max_bin_kmers(std::unordered_set<size_t> & kmers,
                                 std::vector<int64_t> & ibf_positions,
                                 std::vector<int64_t> & ibf_filenames,
                                 lemon::ListDigraph::Node const & node,
-                                build_data & data,
+                                build_data<chopper_pack_record> & data,
                                 build_config const & config)
 {
     auto & node_data = data.node_map[node];
@@ -117,7 +117,7 @@ size_t initialise_max_bin_kmers(std::unordered_set<size_t> & kmers,
 auto construct_ibf(std::unordered_set<size_t> & kmers,
                    size_t const number_of_bins,
                    lemon::ListDigraph::Node const & node,
-                   build_data & data,
+                   build_data<chopper_pack_record> & data,
                    build_config const & config)
 {
     auto & node_data = data.node_map[node];
@@ -139,7 +139,7 @@ void loop_over_children(parent_kmers_type & parent_kmers,
                         seqan3::interleaved_bloom_filter<> & ibf,
                         std::vector<int64_t> & ibf_positions,
                         lemon::ListDigraph::Node const & current_node,
-                        build_data & data,
+                        build_data<chopper_pack_record> & data,
                         build_config const & config)
 {
     auto & current_node_data = data.node_map[current_node];
@@ -163,7 +163,7 @@ void loop_over_children(parent_kmers_type & parent_kmers,
 
 void build(std::unordered_set<size_t> & parent_kmers,
            lemon::ListDigraph::Node const & current_node,
-           build_data & data,
+           build_data<chopper_pack_record> & data,
            build_config const & config)
 {
     auto & current_node_data = data.node_map[current_node];
@@ -203,7 +203,7 @@ void build(std::unordered_set<size_t> & parent_kmers,
     data.user_bins.add_user_bin_positions(std::move(ibf_filenames));
 }
 
-void create_ibfs_from_chopper_pack(build_data & data, build_config const & config)
+void create_ibfs_from_chopper_pack(build_data<chopper_pack_record> & data, build_config const & config)
 {
     read_chopper_pack_file(data, config.chopper_pack_filename);
 

@@ -8,6 +8,7 @@
 #include <chopper/detail_parse_chopper_pack_line.hpp>
 #include <chopper/detail_hibf_user_bins.hpp>
 
+template <typename record_type>
 struct build_data
 {
     size_t hibf_num_technical_bins{};
@@ -23,7 +24,7 @@ struct build_data
 
     // new stuff
     lemon::ListDigraph ibf_graph{};
-    lemon::ListDigraph::NodeMap<node_data> node_map{ibf_graph};
+    lemon::ListDigraph::NodeMap<node_data<record_type>> node_map{ibf_graph};
 
     std::vector<seqan3::interleaved_bloom_filter<>> hibf;
 

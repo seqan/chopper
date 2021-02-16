@@ -29,7 +29,7 @@ void initialize_argument_parser(seqan3::argument_parser & parser, build_config &
     parser.add_flag(config.verbose, 'v', "verbose", "Output logging/progress information.");
 }
 
-auto create_ibfs(seqan3::argument_parser const & parser, build_data & data, build_config const & config)
+auto create_ibfs(seqan3::argument_parser const & parser, build_data<chopper_pack_record> & data, build_config const & config)
 {
     // assert(parser.is_option_set('p') || parser.is_option_set('s'));
 
@@ -67,7 +67,7 @@ int chopper_build(seqan3::argument_parser & parser)
         return -1;
     }
 
-    build_data data{};
+    build_data<chopper_pack_record> data{};
     create_ibfs(parser, data, config);
 
     // Create output directory if it does not exist
