@@ -2,25 +2,24 @@
 
 struct region
 {
-    size_t hidx{};
-    int64_t lidx{};
+    size_t bin_index{};
     size_t begin{};
     size_t end{};
 
     bool operator==(region const & r) const
     {
-        return std::tie(hidx, lidx, begin, end) == std::tie(r.hidx, r.lidx, r.begin, r.end);
+        return std::tie(bin_index, begin, end) == std::tie(r.bin_index, r.begin, r.end);
     }
 
     bool operator!=(region const & r) const
     {
-        return std::tie(hidx, lidx, begin, end) != std::tie(r.hidx, r.lidx, r.begin, r.end);
+        return std::tie(bin_index, begin, end) != std::tie(r.bin_index, r.begin, r.end);
     }
 };
 
 std::ostream & operator<<(std::ostream & s, region const & r)
 {
-    s << "<" << r.hidx << "," << r.lidx << "," << r.begin << "," << r.end << ">";
+    s << "<" << r.bin_index << "," << r.begin << "," << r.end << ">";
 
     return s;
 }
