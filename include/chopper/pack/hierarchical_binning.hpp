@@ -173,9 +173,9 @@ private:
      * 1. ... (\f$v_ij\f$) firstly check if we should split the bin. <br>
      * Therefore we compute for every possible \f$ i' \f$ above \f$ i \f$, the technical bin size if we split
      * \f$ c_j \f$ into \f$ i - i' \f$ bins (\f$ \frac{c_j}{i - i'} \f$). We only take the maximum of the current
-     * maximum where I come from (\$f M_{i',j-1} \$f) and the new technical bin size computed just now.
+     * maximum where I come from (\f$ M_{i',j-1} \f$) and the new technical bin size computed just now.
      * This maximum is the new current *maximum technical bin size* that needs to be multiplied by the current number
-     * technical bins \$f (i + 1) \$f in order to estimate the memory footprint of the HIBF.
+     * technical bins \f$ (i + 1) \f$ in order to estimate the memory footprint of the HIBF.
      * Now that we have the memory footprint of the HIBF we also consider the LIBFs memory footprint but nothing
      * changed here, since we split not merge, so we just take \f$ L_{i',j-1} \f$ scaled by alpha.
      *
@@ -186,7 +186,7 @@ private:
      * \f$ j' \f$ we start the trace at \f$ M_{i-1,j'-1} \f$. Therefore we need to compute the new maximal technical
      * bin size of the HIBF, which is the maximum of the merged bin weight and where we would come from
      * (\f$ \max(M_{i-1,j'-1}, \sum_{g = j'}^{j} c_g) \f$) and multiple it by the number of technical bins so far
-     * \$f (i + 1) \$f to get the HIBF memory footprint. The LIBFs memory footprint also changes since we introduce a
+     * \f$ (i + 1) \f$ to get the HIBF memory footprint. The LIBFs memory footprint also changes since we introduce a
      * new merged bin. Namely, we add the weight of the new merged bin (\f$ \sum_{g = j'}^{j} c_g \f$) again to the
      * LIBFs memory footprint from where we would come from \f$ L_{i-1,j'-1} \f$ and scale this by alpha. Just adding
      * the combined merged bin weight neglects the fact, that the merged bin weight has to be distributed within the
