@@ -2,6 +2,8 @@
 
 #include <lemon/list_graph.h>
 
+#include <seqan3/search/dream_index/interleaved_bloom_filter.hpp>
+
 #include <chopper/build/batch.hpp>
 #include <chopper/build/region.hpp>
 #include <chopper/detail_node_data.hpp>
