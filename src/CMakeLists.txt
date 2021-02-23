@@ -30,9 +30,9 @@ target_link_libraries (chopper_lib INTERFACE "chopper_interface" "chopper_build_
 add_executable (chopper chopper.cpp)
 target_link_libraries (chopper "chopper_lib")
 
-add_executable (count_kmers_per_bin count_kmers_per_bin.cpp)
-target_link_libraries (count_kmers_per_bin "chopper_interface")
+# add_executable (count_kmers_per_bin count_kmers_per_bin.cpp)
+# target_link_libraries (count_kmers_per_bin "chopper_interface")
 
-add_executable (count_HIBF_kmers_based_on_binning count_HIBF_kmers_based_on_binning.cpp)
-target_link_libraries (count_HIBF_kmers_based_on_binning "chopper_interface")
+# add_executable (count_HIBF_kmers_based_on_binning count_HIBF_kmers_based_on_binning.cpp)
+# target_link_libraries (count_HIBF_kmers_based_on_binning "chopper_interface")
 
