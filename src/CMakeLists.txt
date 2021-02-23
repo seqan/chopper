@@ -1,23 +1,35 @@
 cmake_minimum_required (VERSION 3.8)
 
-add_executable ("${PROJECT_NAME}" chopper.cpp)
-target_link_libraries ("${PROJECT_NAME}" PUBLIC seqan3::seqan3)
-target_include_directories ("${PROJECT_NAME}" PUBLIC ../include)
-target_include_directories ("${PROJECT_NAME}" PUBLIC ../lib/lemon/include)
-target_compile_definitions ("${PROJECT_NAME}" PUBLIC ${SEQAN_DEFINITIONS})
-target_compile_options ("${PROJECT_NAME}" PUBLIC ${SEQAN_CXX_FLAGS_LIST})
-target_link_libraries ("${PROJECT_NAME}" PUBLIC "${SEQAN_LIBRARIES}")
-target_include_directories ("${PROJECT_NAME}" PUBLIC "${SEQAN_INCLUDE_DIRS}")
+add_library (chopper_interface INTERFACE)
+target_link_libraries (chopper_interface INTERFACE seqan3::seqan3)
+target_include_directories (chopper_interface INTERFACE ../include)
+target_include_directories (chopper_interface INTERFACE ../lib/lemon/include)
+target_compile_definitions (chopper_interface INTERFACE ${SEQAN_DEFINITIONS})
+target_compile_options (chopper_interface INTERFACE ${SEQAN_CXX_FLAGS_LIST})
+target_link_libraries (chopper_interface INTERFACE "${SEQAN_LIBRARIES}")
+target_include_directories (chopper_interface INTERFACE "${SEQAN_INCLUDE_DIRS}")
+
+add_library (chopper_build_lib STATIC chopper_build.cpp)
+target_link_libraries (chopper_build_lib "chopper_interface")
+
+add_library (chopper_count_lib STATIC chopper_count.cpp)
+target_link_libraries (chopper_count_lib "chopper_interface")
+
+add_library (chopper_pack_lib STATIC chopper_pack.cpp)
+target_link_libraries (chopper_pack_lib "chopper_interface")
+
+add_library (chopper_search_lib STATIC chopper_search.cpp)
+target_link_libraries (chopper_search_lib "chopper_interface")
+
+add_library (chopper_split_lib STATIC chopper_split.cpp)
+target_link_libraries (chopper_split_lib "chopper_interface")
+
+add_executable (chopper chopper.cpp)
+target_link_libraries (chopper "chopper_interface" "chopper_build_lib" "chopper_count_lib" "chopper_pack_lib" "chopper_search_lib" "chopper_split_lib")
 
 add_executable (count_kmers_per_bin count_kmers_per_bin.cpp)
-target_link_libraries (count_kmers_per_bin PUBLIC seqan3::seqan3)
-target_include_directories (count_kmers_per_bin PUBLIC ../include)
-target_include_directories (count_kmers_per_bin PUBLIC ../lib/lemon/include)
-target_compile_definitions (count_kmers_per_bin PUBLIC ${SEQAN_DEFINITIONS})
-target_compile_options (count_kmers_per_bin PUBLIC ${SEQAN_CXX_FLAGS_LIST})
-target_link_libraries (count_kmers_per_bin PUBLIC "${SEQAN_LIBRARIES}")
-target_include_directories (count_kmers_per_bin PUBLIC "${SEQAN_INCLUDE_DIRS}")
+target_link_libraries (count_kmers_per_bin "chopper_interface")
 
 add_executable (count_HIBF_kmers_based_on_binning count_HIBF_kmers_based_on_binning.cpp)
-target_link_libraries (count_HIBF_kmers_based_on_binning PUBLIC seqan3::seqan3)
-target_include_directories (count_HIBF_kmers_based_on_binning PUBLIC ../include)
+target_link_libraries (count_HIBF_kmers_based_on_binning "chopper_interface")
+

@@ -5,7 +5,7 @@ struct build_config
     std::string chopper_split_filename{};
     std::string chopper_pack_filename{};
     std::string binning_filename{};
-    std::string output_prefix{"./"};
+    std::string output_filename{"out.chopper"};
     bool verbose{false};
 
     size_t hash_funs{2};

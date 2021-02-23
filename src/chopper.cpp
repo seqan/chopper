@@ -5,11 +5,12 @@
 #include <chopper/count/chopper_count.hpp>
 #include <chopper/pack/chopper_pack.hpp>
 #include <chopper/split/chopper_split.hpp>
+#include <chopper/search/chopper_search.hpp>
 
 int main(int argc, const char *argv [])
 {
     seqan3::argument_parser top_level_parser{"chopper", argc, argv, seqan3::update_notifications::off,
-                                             {"count", "pack", "split", "build"}};
+                                             {"count", "pack", "split", "build", "search"}};
     top_level_parser.info.version = "1.0.0";
 
     try
@@ -32,6 +33,8 @@ int main(int argc, const char *argv [])
         return chopper_count(sub_parser);
     else if (sub_parser.info.app_name == std::string_view{"chopper-build"})
         return chopper_build(sub_parser);
+    else if (sub_parser.info.app_name == std::string_view{"chopper-search"})
+        return chopper_search(sub_parser);
 
     return 0;
 }

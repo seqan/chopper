@@ -30,7 +30,7 @@ struct chopper_pack_record
     }
 };
 
-std::ostream & operator<<(std::ostream & s, chopper_pack_record const & r)
+inline std::ostream & operator<<(std::ostream & s, chopper_pack_record const & r)
 {
     s << "PACK RECORD:"
       << "\n  -> filenames: ";
@@ -50,7 +50,7 @@ std::ostream & operator<<(std::ostream & s, chopper_pack_record const & r)
       return s;
 }
 
-auto parse_chopper_pack_line(std::string const & current_line)
+inline auto parse_chopper_pack_line(std::string const & current_line)
 {
     chopper_pack_record result{};
 
