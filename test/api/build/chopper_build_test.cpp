@@ -87,11 +87,11 @@ TEST(chopper_build_test, chopper_pack_file)
              << input_filename1 << "\t6;5\t1;1\t500\n";
     }
 
-    seqan3::test::tmp_filename output_prefix{"TEST_"};
+    seqan3::test::tmp_filename output_path{"chopper.test.index"};
     const char * argv[] = {"./chopper-build",
                            "-k", "15",
                            "-p", chopper_pack_filename.get_path().c_str(),
-                           "-o", output_prefix.get_path().c_str()};
+                           "-o", output_path.get_path().c_str()};
     int argc = 7;
     seqan3::argument_parser build_parser{"chopper-build", argc, argv, seqan3::update_notifications::off};
 
@@ -100,8 +100,7 @@ TEST(chopper_build_test, chopper_pack_file)
     std::string std_cerr = testing::internal::GetCapturedStderr();
     ASSERT_EQ(parse_res, 0) << std_cerr;
 
-    EXPECT_TRUE(std::filesystem::exists(output_prefix.get_path().string() + "HIBF.out"));
-    EXPECT_TRUE(std::filesystem::exists(output_prefix.get_path().string() + "position_mapping.out"));
+    EXPECT_TRUE(std::filesystem::exists(output_path.get_path()));
 }
 
 // TEST(chopper_build_test, pack_and_split_file_given)
