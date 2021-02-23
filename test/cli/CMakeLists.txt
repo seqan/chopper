@@ -15,7 +15,7 @@ target_use_datasources (cli_count_HIBF_kmers_based_on_binning_test FILES small2.
 add_dependencies (cli_count_HIBF_kmers_based_on_binning_test count_HIBF_kmers_based_on_binning)
 
 
-add_cli_test (cli_chopper_pipelline_test.cpp)
-target_use_datasources (cli_chopper_pipelline_test FILES small.fa)
-target_use_datasources (cli_chopper_pipelline_test FILES small2.fa)
-target_use_datasources (cli_chopper_pipelline_test FILES small.split)
+add_cli_test (cli_chopper_pipeline_test.cpp)
+target_use_datasources (cli_chopper_pipeline_test FILES small.fa)
+target_use_datasources (cli_chopper_pipeline_test FILES small2.fa)
+target_use_datasources (cli_chopper_pipeline_test FILES small.split)

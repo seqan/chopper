@@ -74,12 +74,12 @@ TEST_F(cli_test, chopper_pipeline)
 
     std::string expected_file
     {
+        "#HIGH_LEVEL_IBF max_bin_id:1\n"
         "#MERGED_BIN_1 max_bin_id:0\n"
-        "#HIGH_LEVEL_IBF max_bin_id:MERGED_BIN_1\n"
-        "#BIN_ID\tSEQ_IDS\tNUM_TECHNICAL_BINS\tESTIMATED_MAX_TB_SIZE\n" +
-        std::string{split_bin_prefix} + "_0\t" + seq_filename + "\t1\t95\n" +
-        std::string{merged_bin_prefix} + "_1_0\t" + seq_filename + "\t32\t3\n" +
-        std::string{merged_bin_prefix} + "_1_32\t" + seq_filename + ";" + seq_filename + "\t32\t3\n"
+        "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\tEST_MAX_TB_SIZES\n" +
+        seq_filename + "\t0\t1\t95\n" +
+        seq_filename + "\t1;0\t1;32\t190;3\n" +
+        seq_filename + ";" + seq_filename + "\t1;32\t1;32\t190;3\n"
     };
 
     ASSERT_TRUE(std::filesystem::exists(binning_filename.get_path()));
@@ -87,7 +87,7 @@ TEST_F(cli_test, chopper_pipeline)
     {
         std::ifstream output_file{binning_filename.get_path()};
         std::string const output_file_str((std::istreambuf_iterator<char>(output_file)), std::istreambuf_iterator<char>());
-        EXPECT_EQ(output_file_str, expected_file);
+        ASSERT_EQ(output_file_str, expected_file);
     }
 
     // CHOPPER SPLIT
@@ -116,77 +116,59 @@ TEST_F(cli_test, chopper_pipeline)
     while (std::getline(output_file, output_line) && std::getline(expected_chopper_split_file, expected_line))
     {
         std::string full_expected_line{(expected_line[0] == '#') ? expected_line : directory + expected_line};
-        EXPECT_EQ(output_line, full_expected_line);
+        ASSERT_EQ(output_line, full_expected_line);
     }
 
     // CHOPPER BUILD from split
     // =========================================================================
-    {
-        seqan3::test::tmp_filename const chopper_build_dir{"build/"};
+    // {
+    //     seqan3::test::tmp_filename output_path{"chopper.test.index"};
 
-        cli_test_result build_result = execute_app("chopper", "build",
-                                                   "--kmer-size", "15",
-                                                   "--false-positive-rate", "0.01",
-                                                   "--overlap", "20",
-                                                   "-s", chopper_split_filename.get_path().c_str(),
-                                                   "-o", chopper_build_dir.get_path().c_str());
+    //     cli_test_result build_result = execute_app("chopper", "build",
+    //                                                "--kmer-size", "15",
+    //                                                "--false-positive-rate", "0.01",
+    //                                                "--overlap", "20",
+    //                                                "-s", chopper_split_filename.get_path().c_str(),
+    //                                                "-o", output_path.get_path().c_str());
 
-        auto high_level_ibf_path = chopper_build_dir.get_path()/"high_level.ibf";
-        auto low_level_ibf_path = chopper_build_dir.get_path()/"low_level_1.ibf";
+    //     ASSERT_TRUE(std::filesystem::exists(output_path.get_path()));
 
-        ASSERT_TRUE(std::filesystem::exists(high_level_ibf_path));
-        ASSERT_TRUE(std::filesystem::exists(low_level_ibf_path));
+    //     std::vector<seqan3::interleaved_bloom_filter<>> hibf;
 
-        seqan3::interleaved_bloom_filter<> high_level_ibf;
-        seqan3::interleaved_bloom_filter<> low_level_ibf;
+    //     {
+    //         std::ifstream is(output_path.get_path(), std::ios::binary);
+    //         cereal::BinaryInputArchive archive(is);
+    //         archive(hibf);
+    //     }
 
-        {   // Load High Level IBF
-            std::ifstream is(high_level_ibf_path, std::ios::binary);
-            cereal::BinaryInputArchive archive(is);
-            archive(high_level_ibf);
-        }
-        {   // Load Low Level IBF
-            std::ifstream is(low_level_ibf_path, std::ios::binary);
-            cereal::BinaryInputArchive archive(is);
-            archive(low_level_ibf);
-        }
-
-        EXPECT_EQ(high_level_ibf.bin_count(), 2);
-        EXPECT_EQ(low_level_ibf.bin_count(), 64);
-    }
+    //     ASSERT_EQ(hibf.size(), 2);
+    //     EXPECT_EQ(hibf[0].bin_count(), 2);
+    //     EXPECT_EQ(hibf[1].bin_count(), 64);
+    // }
 
     // CHOPPER BUILD from pack
     // =========================================================================
     {
-        seqan3::test::tmp_filename const chopper_build_dir{"build/"};
+        seqan3::test::tmp_filename output_path{"chopper.test.index"};
 
         cli_test_result build_result = execute_app("chopper", "build",
                                                    "--kmer-size", "15",
                                                    "--false-positive-rate", "0.01",
                                                    "-p", binning_filename.get_path().c_str(),
-                                                   "-o", chopper_build_dir.get_path().c_str());
+                                                   "-o", output_path.get_path().c_str());
 
-        auto high_level_ibf_path = chopper_build_dir.get_path()/"high_level.ibf";
-        auto low_level_ibf_path = chopper_build_dir.get_path()/"low_level_1.ibf";
+        ASSERT_TRUE(std::filesystem::exists(output_path.get_path()));
 
-        ASSERT_TRUE(std::filesystem::exists(high_level_ibf_path));
-        ASSERT_TRUE(std::filesystem::exists(low_level_ibf_path));
+        std::vector<seqan3::interleaved_bloom_filter<>> hibf;
 
-        seqan3::interleaved_bloom_filter<> high_level_ibf;
-        seqan3::interleaved_bloom_filter<> low_level_ibf;
-
-        {   // Load High Level IBF
-            std::ifstream is(high_level_ibf_path, std::ios::binary);
+        {
+            std::ifstream is(output_path.get_path(), std::ios::binary);
             cereal::BinaryInputArchive archive(is);
-            archive(high_level_ibf);
-        }
-        {   // Load Low Level IBF
-            std::ifstream is(low_level_ibf_path, std::ios::binary);
-            cereal::BinaryInputArchive archive(is);
-            archive(low_level_ibf);
+            archive(hibf);
         }
 
-        EXPECT_EQ(high_level_ibf.bin_count(), 2);
-        EXPECT_EQ(low_level_ibf.bin_count(), 64);
+        ASSERT_EQ(hibf.size(), 2);
+        EXPECT_EQ(hibf[0].bin_count(), 2);
+        EXPECT_EQ(hibf[1].bin_count(), 64);
     }
 }

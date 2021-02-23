@@ -44,4 +44,4 @@ declare_datasource (FILE seqinfo.tsv
 
 declare_datasource (FILE small.split
                     URL ${CMAKE_SOURCE_DIR}/test/data/small.split
-                    URL_HASH SHA256=fc3530f517a354f940c4eb4ac1575354bbcde52a4257061ee2370b5a2c3b5c8b)
+                    URL_HASH SHA256=995ed2a9ff71dbf7b04a443b643d9268e370aa346cc5a5afa0b7176fbec7d9d0)
