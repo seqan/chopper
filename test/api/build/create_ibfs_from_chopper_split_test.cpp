@@ -25,7 +25,7 @@ TEST(create_ibfs_from_chopper_split_test, small_example)
         std::ofstream fout{chopper_split_filename.get_path()};
         fout << "#HIGH_LEVEL_IBF max_bin_id:6\n"
              << "#MERGED_BIN_6 max_bin_id:0\n"
-             << "#FILES\tSEQ_ID\tBEGIN\tEND\tHIBF_BIN_IDX\tLIBF_BIN_IDX\n"
+             << "#FILES\tSEQ_ID\tBEGIN\tEND\tIBF_BIN_INDICES\n"
 
              << input_filename1 << "\tseq1\t0\t400\t0\n"
              << input_filename1 << "\tseq2\t0\t480\t0\n"

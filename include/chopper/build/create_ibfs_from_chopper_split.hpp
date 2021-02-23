@@ -112,10 +112,9 @@ inline void update_user_bins(build_data<chopper_split_record> & data,
                              std::vector<int64_t> & ibf_filenames,
                              chopper_split_record const & record)
 {
-    // TODO not correct yet
     auto const user_bin_pos = data.user_bins.add_user_bin(record.filenames);
-    for (size_t i = 0; i < record.bin_indices.size(); ++i)
-        ibf_filenames[record.bin_indices.back() + i] = user_bin_pos;
+    for (size_t i = 0; i < record.number_of_bins.back(); ++i)
+        ibf_filenames.at(record.bin_indices.back() + i) = user_bin_pos;
 }
 
 inline void build(std::unordered_set<size_t> & parent_kmers,
