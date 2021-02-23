@@ -28,6 +28,8 @@ void search(std::unordered_set<std::pair<int32_t, uint32_t>, pair_hash> & member
     size_t bin = 0;
     size_t sum = 0;
 
+    assert(result.size() > 0);
+
     while (bin < result.size() - 1)
     {
         sum += result[bin];
