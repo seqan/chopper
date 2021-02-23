@@ -10,14 +10,16 @@
 #include <chopper/detail_parse_chopper_pack_header_line.hpp>
 
 #include <seqan3/test/expect_range_eq.hpp>
+#include <seqan3/test/tmp_filename.hpp>
 
+template <typename record_type>
 void write_graph(lemon::ListDigraph const & g,
-                 lemon::ListDigraph::NodeMap<node_data> const & node_map,
+                 lemon::ListDigraph::NodeMap<node_data<record_type>> const & node_map,
                  std::filesystem::path const & graph_file_name)
 {
     std::ofstream sout{graph_file_name};
     seqan3::debug_stream_type fout{sout};
-    std::cerr << "[LOG] Writing graph to " << graph_file_name << std::endl;
+    // std::cerr << "[LOG] Writing graph to " << graph_file_name << std::endl;
 
     std::string header = R"(graph G {
 /* Graph Attributes */
@@ -50,7 +52,7 @@ TEST(parse_chopper_pack_header_line_test, max_hibf_bin_line)
 {
     std::string const line{"#HIGH_LEVEL_IBF max_bin_id:MERGED_BIN_2"};
 
-    build_data data;
+    build_data<chopper_pack_record> data;
     parse_chopper_pack_header_line(line, data);
 
     EXPECT_EQ(data.hibf_max_bin, 2);
@@ -61,7 +63,7 @@ TEST(parse_chopper_pack_header_line_test, max_libf_bin_line)
     std::string const line1{"#MERGED_BIN_2 max_bin_id:16"};
     std::string const line2{"#MERGED_BIN_24 max_bin_id:160"};
 
-    build_data data;
+    build_data<chopper_pack_record> data;
     parse_chopper_pack_header_line(line1, data);
     parse_chopper_pack_header_line(line2, data);
 
@@ -102,9 +104,10 @@ TEST(parse_chopper_pack_header_test, foo)
     std::stringstream header_stream{header};
 
     lemon::ListDigraph g;
-    lemon::ListDigraph::NodeMap<node_data> node_map{g};
+    lemon::ListDigraph::NodeMap<node_data<chopper_pack_record>> node_map{g};
 
     parse_chopper_pack_header(g, node_map, header_stream);
 
-    write_graph(g, node_map, "/tmp/header_graph.dot");
+    seqan3::test::tmp_filename dot_file{"header_graph.dot"};
+    write_graph(g, node_map, dot_file.get_path().c_str());
 }
