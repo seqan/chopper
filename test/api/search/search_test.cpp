@@ -7,6 +7,10 @@
 
 #include <chopper/build/create_ibfs_from_chopper_pack.hpp>
 #include <chopper/search/chopper_search.hpp>
+#include <chopper/search/pair_hash.hpp>
+#include <chopper/search/search.hpp>
+#include <chopper/search/search_config.hpp>
+#include <chopper/search/search_data.hpp>
 
 using seqan3::operator""_dna4;
 
@@ -78,14 +82,14 @@ TEST_F(chopper_search_test, first_example)
     bconfig.k = 15;
     bconfig.chopper_pack_filename = chopper_pack_filename.get_path().string();
 
-    build_data bdata{};
+    build_data<chopper_pack_record> bdata{};
 
     create_ibfs_from_chopper_pack(bdata, bconfig);
 
     // move build data to search data
     search_data data{};
 
-    data.hibs = std::move(bdata.hibf);
+    data.hibf = std::move(bdata.hibf);
     data.hibf_bin_levels = std::move(bdata.hibf_bin_levels);
     data.user_bins = std::move(bdata.user_bins);
 
@@ -172,14 +176,14 @@ TEST_F(chopper_search_test, multi_level_example)
     bconfig.k = 15;
     bconfig.chopper_pack_filename = chopper_pack_filename.get_path().string();
 
-    build_data bdata{};
+    build_data<chopper_pack_record> bdata{};
 
     create_ibfs_from_chopper_pack(bdata, bconfig);
 
     // move build data to search data
     search_data data{};
 
-    data.hibs = std::move(bdata.hibf);
+    data.hibf = std::move(bdata.hibf);
     data.hibf_bin_levels = std::move(bdata.hibf_bin_levels);
     data.user_bins = std::move(bdata.user_bins);
 

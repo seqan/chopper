@@ -36,16 +36,6 @@ using search_sequence_file_t = seqan3::sequence_file_input<search_file_traits,
                                                     seqan3::fields<seqan3::field::id, seqan3::field::seq>,
                                                     seqan3::type_list<seqan3::format_fasta, seqan3::format_fastq>>;
 
-std::vector<size_t> compute_kmers(seqan3::dna4_vector const & query, search_config const & config)
-{
-    std::vector<size_t> kmers{};
-
-    for (auto hash : query | seqan3::views::kmer_hash(seqan3::ungapped{config.k}))
-        kmers.push_back(hash);
-
-    return kmers;
-}
-
 int chopper_search(seqan3::argument_parser & parser)
 {
     search_config config{};
