@@ -114,6 +114,13 @@ size_t initialise_max_bin_kmers(std::unordered_set<size_t> & kmers,
     }
 }
 
+class MyNumPunct : public std::numpunct<char>
+{
+protected:
+    virtual char do_thousands_sep() const { return ','; }
+    virtual std::string do_grouping() const { return "\03"; }
+};
+
 auto construct_ibf(std::unordered_set<size_t> & kmers,
                    size_t const number_of_bins,
                    lemon::ListDigraph::Node const & node,
@@ -127,7 +134,10 @@ auto construct_ibf(std::unordered_set<size_t> & kmers,
     seqan3::interleaved_bloom_filter ibf{bin_count, bin_size, seqan3::hash_function_count{config.hash_funs}};
 
     if (config.verbose)
+    {
+        std::cout.imbue( std::locale( std::locale::classic(), new MyNumPunct ) );
         std::cout << "  > Initialised IBF with bin size " << bin_size.get() << std::endl;
+    }
 
     insert_into_ibf(kmers, number_of_bins, node_data.max_bin_index, ibf);
 
