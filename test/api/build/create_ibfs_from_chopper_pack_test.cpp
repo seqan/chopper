@@ -15,21 +15,11 @@ using seqan3::operator""_dna4;
 
 struct create_ibfs_from_chopper_pack_test : public ::testing::Test
 {
-    auto count_kmers(typename seqan3::interleaved_bloom_filter<>::membership_agent & ibf_agent,
-                     seqan3::dna4_vector const & query,
-                     build_config const & config)
+    auto & count_kmers(typename seqan3::interleaved_bloom_filter<>::counting_agent_type<size_t> & ibf_agent,
+                       seqan3::dna4_vector const & query,
+                       build_config const & config)
     {
-        std::vector<size_t> ibf_counts(ibf_agent.result_buffer.size());
-
-        for (auto hash : query | seqan3::views::kmer_hash(seqan3::ungapped{config.k}))
-        {
-            auto const & result = ibf_agent.bulk_contains(hash);
-
-            for (size_t i = 0; i < result.size(); ++i)
-                ibf_counts[i] += result[i];
-        }
-
-        return ibf_counts;
+        return ibf_agent.bulk_count(query | seqan3::views::kmer_hash(seqan3::ungapped{config.k}));
     }
 
     auto compare_counts(typename seqan3::interleaved_bloom_filter<> & ibf,
@@ -37,8 +27,8 @@ struct create_ibfs_from_chopper_pack_test : public ::testing::Test
                         std::vector<std::vector<size_t>> const & bins_with_expected_counts,
                         build_config const & config)
     {
-        auto agent = ibf.membership_agent();
-        auto && counts = this->count_kmers(agent, query, config);
+        auto agent = ibf.counting_agent<size_t>();
+        auto const & counts = this->count_kmers(agent, query, config);
 
         size_t expected = std::ranges::distance(query | seqan3::views::kmer_hash(seqan3::ungapped{config.k}));
 
@@ -226,17 +216,14 @@ TEST_F(create_ibfs_from_chopper_pack_test, uniform_splitting)
 
 
     {
-        auto agent = high_level_ibf.membership_agent();
-
-        seqan3::counting_vector<size_t> all_counts(agent.result_buffer.size());
         std::unordered_set<size_t> unique_kmers{};
 
         for (auto & [seq] : sequence_file_t{all_seq_filename})
             for (auto && hash : seq | seqan3::views::kmer_hash(seqan3::ungapped{config.k}))
                 unique_kmers.insert(hash);
 
-        for (auto hash : unique_kmers)
-            all_counts += agent.bulk_contains(hash);
+        auto agent = high_level_ibf.counting_agent<size_t>();
+        auto const & all_counts = agent.bulk_count(unique_kmers);
 
         size_t const kmers_per_split_bin = (unique_kmers.size() / 3) + 1;
         EXPECT_EQ(all_counts[3], kmers_per_split_bin);
@@ -245,17 +232,14 @@ TEST_F(create_ibfs_from_chopper_pack_test, uniform_splitting)
     }
 
     {
-        auto agent = low_level_ibf.membership_agent();
-
-        seqan3::counting_vector<size_t> all_counts(agent.result_buffer.size());
         std::unordered_set<size_t> unique_kmers{};
 
         for (auto & [seq] : sequence_file_t{all_seq_filename})
             for (auto && hash : seq | seqan3::views::kmer_hash(seqan3::ungapped{config.k}))
                 unique_kmers.insert(hash);
 
-        for (auto hash : unique_kmers)
-            all_counts += agent.bulk_contains(hash);
+        auto agent = low_level_ibf.counting_agent<size_t>();
+        auto const & all_counts = agent.bulk_count(unique_kmers);
 
         size_t const kmers_per_split_bin = (unique_kmers.size() / 3) + 1;
         EXPECT_EQ(all_counts[2], kmers_per_split_bin);

@@ -21,9 +21,9 @@ void search(std::unordered_set<std::pair<int32_t, uint32_t>, pair_hash> & member
                               ? kmers.size() - config.errors * config.k
                               : 0;
 
-    auto counting_agent = data.hibf[ibf_idx].template counting_agent<uint16_t>();
+    auto counting_agent = data.hibf[ibf_idx].counting_agent<uint16_t>();
 
-    auto && result = counting_agent.count_hashes(kmers);
+    auto const & result = counting_agent.bulk_count(kmers);
 
     size_t bin = 0;
     size_t sum = 0;

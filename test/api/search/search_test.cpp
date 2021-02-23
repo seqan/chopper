@@ -84,9 +84,8 @@ TEST_F(chopper_search_test, first_example)
 
     // move build data to search data
     search_data data{};
-    for (auto & ibf : bdata.hibf)
-        data.hibf.push_back(static_cast<seqan3::technical_binning_directory<> &&>(ibf));
 
+    data.hibs = std::move(bdata.hibf);
     data.hibf_bin_levels = std::move(bdata.hibf_bin_levels);
     data.user_bins = std::move(bdata.user_bins);
 
@@ -179,9 +178,8 @@ TEST_F(chopper_search_test, multi_level_example)
 
     // move build data to search data
     search_data data{};
-    for (auto & ibf : bdata.hibf)
-        data.hibf.push_back(static_cast<seqan3::technical_binning_directory<> &&>(ibf));
 
+    data.hibs = std::move(bdata.hibf);
     data.hibf_bin_levels = std::move(bdata.hibf_bin_levels);
     data.user_bins = std::move(bdata.user_bins);
 
