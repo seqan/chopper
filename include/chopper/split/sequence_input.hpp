@@ -6,9 +6,9 @@
 #include <chopper/split/split_data.hpp>
 #include <chopper/split/minimizer.hpp>
 
-bool load_minimizer_sequences(split_data & data,
-                              batch_config const & config,
-                              const char *fileName)
+inline bool load_minimizer_sequences(split_data & data,
+                                     batch_config const & config,
+                                     const char *fileName)
 {
     seqan::SeqFileIn inFile;
     if (!open(inFile, fileName))

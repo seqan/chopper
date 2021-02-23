@@ -36,7 +36,7 @@ struct node_data // rename:ibf_data? or ibf_node_data
     }
 };
 
-std::ostream & operator<<(std::ostream & s, node_data<chopper_pack_record> const & nd)
+inline std::ostream & operator<<(std::ostream & s, node_data<chopper_pack_record> const & nd)
 {
     s << "{parent:"
       << nd.parent_bin_index
@@ -63,7 +63,7 @@ std::ostream & operator<<(std::ostream & s, node_data<chopper_pack_record> const
     return s;
 }
 
-std::ostream & operator<<(std::ostream & s, node_data<chopper_split_record> const & nd)
+inline std::ostream & operator<<(std::ostream & s, node_data<chopper_split_record> const & nd)
 {
     s << "{parent:"
       << nd.parent_bin_index

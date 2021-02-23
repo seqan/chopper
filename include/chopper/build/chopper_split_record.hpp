@@ -86,7 +86,7 @@ struct chopper_split_record
     }
 };
 
-std::ostream & operator<<(std::ostream & s, chopper_split_record const & r)
+inline std::ostream & operator<<(std::ostream & s, chopper_split_record const & r)
 {
     s << "SPLIT RECORD:"
       << "\n  -> filenames: ";

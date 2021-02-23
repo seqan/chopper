@@ -5,7 +5,7 @@
 
 #include <chopper/count/count_config.hpp>
 
-auto read_data_file(count_config const & config)
+inline auto read_data_file(count_config const & config)
 {
     std::unordered_map<std::string, std::vector<std::string>> filename_clusters; // result
 

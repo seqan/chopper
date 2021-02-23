@@ -42,13 +42,7 @@ macro (add_app_test test_filename test_alternative)
 
     # Create the test target.
     add_executable (${target} ${test_filename})
-    target_link_libraries (${target} "${SEQAN_LIBRARIES}" seqan3::seqan3 gtest_all pthread)
-    target_include_directories ("${target}" PUBLIC ${CMAKE_SOURCE_DIR}/include)
-    target_include_directories ("${target}" PUBLIC ${CMAKE_SOURCE_DIR}/lib/lemon/include)
-    target_include_directories ("${target}" PUBLIC ${CMAKE_SOURCE_DIR}/lib/seqan3/test/include)
-    target_compile_definitions ("${target}" PUBLIC ${SEQAN_DEFINITIONS})
-    target_compile_options ("${target}" PUBLIC ${SEQAN_CXX_FLAGS_LIST})
-    target_include_directories ("${target}" PUBLIC "${SEQAN_INCLUDE_DIRS}")
+    target_link_libraries (${target} gtest_all pthread "chopper_lib")
 
     # Make seqan3::test available for both cli and api tests.
     target_include_directories(${target} PUBLIC "${SEQAN3_CLONE_DIR}/test/include")

@@ -23,7 +23,7 @@ using sequence_file_t = seqan3::sequence_file_input<file_traits,
                                                     seqan3::fields<seqan3::field::seq>,
                                                     seqan3::type_list<seqan3::format_fasta, seqan3::format_fastq>>;
 
-std::unordered_set<size_t> compute_kmers(build_config const & config, chopper_pack_record const & record)
+inline std::unordered_set<size_t> compute_kmers(build_config const & config, chopper_pack_record const & record)
 {
     std::unordered_set<size_t> kmers{};
 
@@ -35,9 +35,9 @@ std::unordered_set<size_t> compute_kmers(build_config const & config, chopper_pa
     return kmers;
 }
 
-void compute_kmers(std::unordered_set<size_t> & kmers,
-                   build_config const & config,
-                   chopper_pack_record const & record)
+inline void compute_kmers(std::unordered_set<size_t> & kmers,
+                          build_config const & config,
+                          chopper_pack_record const & record)
 {
     for (auto const & filename : record.filenames)
         for (auto && [seq] : sequence_file_t{filename})
@@ -46,10 +46,10 @@ void compute_kmers(std::unordered_set<size_t> & kmers,
 }
 
 // automatically does naive splitting if number_of_bins > 1
-void insert_into_ibf(std::unordered_set<size_t> const & kmers,
-                     size_t const number_of_bins,
-                     size_t const bin_index,
-                     seqan3::interleaved_bloom_filter<> & ibf)
+inline void insert_into_ibf(std::unordered_set<size_t> const & kmers,
+                            size_t const number_of_bins,
+                            size_t const bin_index,
+                            seqan3::interleaved_bloom_filter<> & ibf)
 {
     size_t const kmers_per_chunk = (kmers.size() / number_of_bins) + 1;
     auto it = kmers.begin();
@@ -58,9 +58,9 @@ void insert_into_ibf(std::unordered_set<size_t> const & kmers,
             ibf.emplace(*it, seqan3::bin_index{bin_index + chunk});
 }
 
-void insert_into_ibf(build_config const & config,
-                     chopper_pack_record const & record,
-                     seqan3::interleaved_bloom_filter<> & hibf)
+inline void insert_into_ibf(build_config const & config,
+                            chopper_pack_record const & record,
+                            seqan3::interleaved_bloom_filter<> & hibf)
 {
     for (auto const & filename : record.filenames)
     {
@@ -76,24 +76,24 @@ void insert_into_ibf(build_config const & config,
 }
 
 // forward declaration
-void build(std::unordered_set<size_t> & parent_kmers,
-           lemon::ListDigraph::Node const & current_node,
-           build_data<chopper_pack_record> & data,
-           build_config const & config);
+inline void build(std::unordered_set<size_t> & parent_kmers,
+                  lemon::ListDigraph::Node const & current_node,
+                  build_data<chopper_pack_record> & data,
+                  build_config const & config);
 
-void update_user_bins(build_data<chopper_pack_record> & data, std::vector<int64_t> & ibf_filenames, chopper_pack_record const & record)
+inline void update_user_bins(build_data<chopper_pack_record> & data, std::vector<int64_t> & ibf_filenames, chopper_pack_record const & record)
 {
     auto const user_bin_pos = data.user_bins.add_user_bin(record.filenames);
     for (size_t i = 0; i < record.number_of_bins.back(); ++i)
         ibf_filenames[record.bin_indices.back() + i] = user_bin_pos;
 }
 
-size_t initialise_max_bin_kmers(std::unordered_set<size_t> & kmers,
-                                std::vector<int64_t> & ibf_positions,
-                                std::vector<int64_t> & ibf_filenames,
-                                lemon::ListDigraph::Node const & node,
-                                build_data<chopper_pack_record> & data,
-                                build_config const & config)
+inline size_t initialise_max_bin_kmers(std::unordered_set<size_t> & kmers,
+                                       std::vector<int64_t> & ibf_positions,
+                                       std::vector<int64_t> & ibf_filenames,
+                                       lemon::ListDigraph::Node const & node,
+                                       build_data<chopper_pack_record> & data,
+                                       build_config const & config)
 {
     auto & node_data = data.node_map[node];
 
@@ -121,11 +121,11 @@ protected:
     virtual std::string do_grouping() const { return "\03"; }
 };
 
-auto construct_ibf(std::unordered_set<size_t> & kmers,
-                   size_t const number_of_bins,
-                   lemon::ListDigraph::Node const & node,
-                   build_data<chopper_pack_record> & data,
-                   build_config const & config)
+inline auto construct_ibf(std::unordered_set<size_t> & kmers,
+                          size_t const number_of_bins,
+                          lemon::ListDigraph::Node const & node,
+                          build_data<chopper_pack_record> & data,
+                          build_config const & config)
 {
     auto & node_data = data.node_map[node];
 
@@ -171,10 +171,10 @@ void loop_over_children(parent_kmers_type & parent_kmers,
     }
 }
 
-void build(std::unordered_set<size_t> & parent_kmers,
-           lemon::ListDigraph::Node const & current_node,
-           build_data<chopper_pack_record> & data,
-           build_config const & config)
+inline void build(std::unordered_set<size_t> & parent_kmers,
+                  lemon::ListDigraph::Node const & current_node,
+                  build_data<chopper_pack_record> & data,
+                  build_config const & config)
 {
     auto & current_node_data = data.node_map[current_node];
 
@@ -213,7 +213,7 @@ void build(std::unordered_set<size_t> & parent_kmers,
     data.user_bins.add_user_bin_positions(std::move(ibf_filenames));
 }
 
-void create_ibfs_from_chopper_pack(build_data<chopper_pack_record> & data, build_config const & config)
+inline void create_ibfs_from_chopper_pack(build_data<chopper_pack_record> & data, build_config const & config)
 {
     read_chopper_pack_file(data, config.chopper_pack_filename);
 

@@ -13,7 +13,7 @@
 #include <chopper/detail_parse_chopper_pack_line.hpp>
 
 // data needs to be passed from outside sind the graph in data cannot be moved
-void read_chopper_pack_file(build_data<chopper_pack_record> & data, std::string const & chopper_pack_filename)
+inline void read_chopper_pack_file(build_data<chopper_pack_record> & data, std::string const & chopper_pack_filename)
 {
     std::ifstream chopper_pack_file{chopper_pack_filename};
 

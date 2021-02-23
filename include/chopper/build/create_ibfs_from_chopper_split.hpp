@@ -25,16 +25,16 @@ struct file_type_traits : public seqan3::sequence_file_input_default_traits_dna
     using sequence_alphabet = seqan3::dna4;
 };
 
-auto hash_infix(build_config const & config, auto const & seq, auto const begin, auto const end)
+inline auto hash_infix(build_config const & config, auto const & seq, auto const begin, auto const end)
 {
     return seq | seqan3::views::drop(begin)
                | seqan3::views::take(end + config.overlap - begin) // views::take never goes over the end
                | seqan3::views::kmer_hash(seqan3::ungapped{config.k});
 };
 
-void compute_kmers(std::unordered_set<size_t> & kmers,
-                   build_config const & config,
-                   chopper_split_record const & record)
+inline void compute_kmers(std::unordered_set<size_t> & kmers,
+                          build_config const & config,
+                          chopper_split_record const & record)
 {
     for (auto const & [combined_id, seq] : record.info)
         for (auto const & reg : record.region_map.at(combined_id))
@@ -43,10 +43,10 @@ void compute_kmers(std::unordered_set<size_t> & kmers,
                     kmers.insert(hash);
 }
 
-void insert_into_ibf_and_set(build_config const & config,
-                             chopper_split_record const & record,
-                             std::unordered_set<size_t> & kmers,
-                             seqan3::interleaved_bloom_filter<> & ibf)
+inline void insert_into_ibf_and_set(build_config const & config,
+                                    chopper_split_record const & record,
+                                    std::unordered_set<size_t> & kmers,
+                                    seqan3::interleaved_bloom_filter<> & ibf)
 {
     for (auto const & [combined_id, seq] : record.info)
     {
@@ -62,17 +62,17 @@ void insert_into_ibf_and_set(build_config const & config,
     }
 }
 
-void insert_into_ibf_from_set(std::unordered_set<size_t> const & kmers,
-                              size_t const bin_index,
-                              seqan3::interleaved_bloom_filter<> & ibf)
+inline void insert_into_ibf_from_set(std::unordered_set<size_t> const & kmers,
+                                     size_t const bin_index,
+                                     seqan3::interleaved_bloom_filter<> & ibf)
 {
     for (auto const kmer : kmers)
         ibf.emplace(kmer, seqan3::bin_index{bin_index});
 }
 
-void insert_into_ibf(build_config const & config,
-                     chopper_split_record const & record,
-                     seqan3::interleaved_bloom_filter<> & ibf)
+inline void insert_into_ibf(build_config const & config,
+                            chopper_split_record const & record,
+                            seqan3::interleaved_bloom_filter<> & ibf)
 {
     using sequence_file_t = seqan3::sequence_file_input<file_type_traits,
                                                         seqan3::fields<seqan3::field::seq>,
@@ -91,9 +91,9 @@ void insert_into_ibf(build_config const & config,
     }
 }
 
-void insert_regions_into_ibf(build_config const & config,
-                             chopper_split_record const & record,
-                             seqan3::interleaved_bloom_filter<> & ibf)
+inline void insert_regions_into_ibf(build_config const & config,
+                                    chopper_split_record const & record,
+                                    seqan3::interleaved_bloom_filter<> & ibf)
 {
     for (auto const & [combined_id, seq] : record.info)
     {
@@ -108,9 +108,9 @@ void insert_regions_into_ibf(build_config const & config,
     }
 }
 
-void update_user_bins(build_data<chopper_split_record> & data,
-                      std::vector<int64_t> & ibf_filenames,
-                      chopper_split_record const & record)
+inline void update_user_bins(build_data<chopper_split_record> & data,
+                             std::vector<int64_t> & ibf_filenames,
+                             chopper_split_record const & record)
 {
     // TODO not correct yet
     auto const user_bin_pos = data.user_bins.add_user_bin(record.filenames);
@@ -118,17 +118,17 @@ void update_user_bins(build_data<chopper_split_record> & data,
         ibf_filenames[record.bin_indices.back() + i] = user_bin_pos;
 }
 
-void build(std::unordered_set<size_t> & parent_kmers,
-           lemon::ListDigraph::Node const & current_node,
-           build_data<chopper_split_record> & data,
-           build_config const & config);
+inline void build(std::unordered_set<size_t> & parent_kmers,
+                  lemon::ListDigraph::Node const & current_node,
+                  build_data<chopper_split_record> & data,
+                  build_config const & config);
 
-size_t initialise_max_bin_kmers(std::unordered_set<size_t> & kmers,
-                                std::vector<int64_t> & ibf_positions,
-                                std::vector<int64_t> & ibf_filenames,
-                                lemon::ListDigraph::Node const & node,
-                                build_data<chopper_split_record> & data,
-                                build_config const & config)
+inline size_t initialise_max_bin_kmers(std::unordered_set<size_t> & kmers,
+                                       std::vector<int64_t> & ibf_positions,
+                                       std::vector<int64_t> & ibf_filenames,
+                                       lemon::ListDigraph::Node const & node,
+                                       build_data<chopper_split_record> & data,
+                                       build_config const & config)
 {
     auto & node_data = data.node_map[node];
 
@@ -151,11 +151,11 @@ size_t initialise_max_bin_kmers(std::unordered_set<size_t> & kmers,
     }
 }
 
-auto construct_ibf(std::unordered_set<size_t> & kmers,
-                   size_t const number_of_bins,
-                   lemon::ListDigraph::Node const & node,
-                   build_data<chopper_split_record> & data,
-                   build_config const & config)
+inline auto construct_ibf(std::unordered_set<size_t> & kmers,
+                          size_t const number_of_bins,
+                          lemon::ListDigraph::Node const & node,
+                          build_data<chopper_split_record> & data,
+                          build_config const & config)
 {
     auto & node_data = data.node_map[node];
 
@@ -198,10 +198,10 @@ void loop_over_children(parent_kmers_type & parent_kmers,
     }
 }
 
-void build(std::unordered_set<size_t> & parent_kmers,
-           lemon::ListDigraph::Node const & current_node,
-           build_data<chopper_split_record> & data,
-           build_config const & config)
+inline void build(std::unordered_set<size_t> & parent_kmers,
+                  lemon::ListDigraph::Node const & current_node,
+                  build_data<chopper_split_record> & data,
+                  build_config const & config)
 {
     auto & current_node_data = data.node_map[current_node];
 
@@ -239,7 +239,7 @@ void build(std::unordered_set<size_t> & parent_kmers,
     data.user_bins.add_user_bin_positions(std::move(ibf_filenames));
 }
 
-void create_ibfs_from_chopper_split(build_data<chopper_split_record> & data, build_config const & config)
+inline void create_ibfs_from_chopper_split(build_data<chopper_split_record> & data, build_config const & config)
 {
     read_chopper_split_file(data, config.chopper_split_filename);
 

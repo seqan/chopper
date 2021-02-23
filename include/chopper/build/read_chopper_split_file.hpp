@@ -17,7 +17,7 @@
 #include <chopper/detail_parse_chopper_pack_header_line.hpp>
 #include <chopper/detail_starts_with.hpp>
 
-auto parse_chopper_split_line(std::string const & line)
+inline auto parse_chopper_split_line(std::string const & line)
 {
     char const * buffer = line.c_str();
     auto field_start = &buffer[0];
@@ -65,7 +65,7 @@ auto parse_chopper_split_line(std::string const & line)
 }
 
 // data needs to be passed from outside since the graph in data cannot be moved
-void read_chopper_split_file(build_data<chopper_split_record> & data, std::string const & chopper_split_filename)
+inline void read_chopper_split_file(build_data<chopper_split_record> & data, std::string const & chopper_split_filename)
 {
     std::ifstream chopper_pack_file{chopper_split_filename};
 

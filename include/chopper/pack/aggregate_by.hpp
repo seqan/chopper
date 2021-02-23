@@ -7,7 +7,7 @@
 
 #include <chopper/pack/pack_data.hpp>
 
-void sort_by(pack_data & data, size_t column_to_sort_by)
+inline void sort_by(pack_data & data, size_t column_to_sort_by)
 {
     // Note: We may only sort by extra information
 
@@ -37,7 +37,7 @@ void sort_by(pack_data & data, size_t column_to_sort_by)
     }
 }
 
-void aggregate_by(pack_data & data, size_t column_to_aggregate_by)
+inline void aggregate_by(pack_data & data, size_t column_to_aggregate_by)
 {
     // Note: We may only aggregate by extra information
     assert(data.filenames.size() == data.kmer_counts.size());

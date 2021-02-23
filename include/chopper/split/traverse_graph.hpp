@@ -45,9 +45,9 @@ const Color DARK_CYAN(0,.5,.5);
 
 } //namespace lemon
 
-void write_graph(lemon::ListDigraph const & g,
-                 lemon::ListDigraph::NodeMap<std::vector<std::pair<uint32_t, uint32_t>>> const & node_map,
-                 std::filesystem::path const & graph_file_name)
+inline void write_graph(lemon::ListDigraph const & g,
+                        lemon::ListDigraph::NodeMap<std::vector<std::pair<uint32_t, uint32_t>>> const & node_map,
+                        std::filesystem::path const & graph_file_name)
 {
     std::ofstream sout{graph_file_name};
     seqan3::debug_stream_type fout{sout};
@@ -79,11 +79,11 @@ edge [fontname = "Times-Italic", arrowsize = 0.75, fontsize = 16];
     fout << std::endl << "}" << std::endl;
 }
 
-void traverse_graph(lemon::ListDigraph & g,
-                    std::vector<lemon::ListDigraph::Node> const & nodes,
-                    lemon::ListDigraph::NodeMap<std::vector<std::pair<uint32_t, uint32_t>>> & node_map,
-                    split_data const & data,
-                    batch_config const & config)
+inline void traverse_graph(lemon::ListDigraph & g,
+                           std::vector<lemon::ListDigraph::Node> const & nodes,
+                           lemon::ListDigraph::NodeMap<std::vector<std::pair<uint32_t, uint32_t>>> & node_map,
+                           split_data const & data,
+                           batch_config const & config)
 {
     if (config.verbose)
     {

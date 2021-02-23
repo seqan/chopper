@@ -14,8 +14,8 @@
 
 std::mutex mu;
 
-void print_safely(std::pair<std::string, std::vector<std::string>> const & cluster,
-                  std::set<uint64_t> const & result)
+inline void print_safely(std::pair<std::string, std::vector<std::string>> const & cluster,
+                         std::set<uint64_t> const & result)
 {
     std::lock_guard<std::mutex> lock(mu);  // Acquire the mutex
     assert(cluster.second.size() >= 1);
@@ -48,8 +48,8 @@ void compute_hashes(cluster_view_type && cluster_view, compute_view_type && comp
     }
 }
 
-void count_kmers(std::unordered_map<std::string, std::vector<std::string>> const & filename_clusters,
-                 count_config const & config)
+inline void count_kmers(std::unordered_map<std::string, std::vector<std::string>> const & filename_clusters,
+                        count_config const & config)
 {
     size_t const counting_threads = (config.num_threads <= 1) ? 1 : config.num_threads - 1;
 

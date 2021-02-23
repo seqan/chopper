@@ -46,39 +46,6 @@ std::vector<size_t> compute_kmers(seqan3::dna4_vector const & query, search_conf
     return kmers;
 }
 
-void write_header(search_data const & data, std::ostream & out_stream)
-{
-    data.user_bins.write_filenames(out_stream);
-    out_stream << "#QUERY_NAME\tUSER_BINS\n";
-}
-
-void write_result(std::unordered_set<std::pair<int32_t, uint32_t>, pair_hash> const & membership_result,
-                  std::string const & id,
-                  search_data const & data,
-                  std::ostream & out_stream)
-{
-    if (membership_result.empty())
-    {
-        out_stream << id << '\t' << std::endl;
-        return;
-    }
-
-    // storing and sorting this is only done for testing purposes.
-    // If this turns out to have a significant runtime penalty, it should be removed.
-    std::vector<int64_t> result_positions; // TODO allocate this outside of this function
-    for (auto const & [ibf_idx, bin_idx] : membership_result)
-    {
-        assert(data.user_bins.get_position(ibf_idx, bin_idx) > -1);
-        result_positions.push_back(data.user_bins.get_position(ibf_idx, bin_idx));
-    }
-    std::sort(result_positions.begin(), result_positions.end()); // otherwise the result output is not testable
-
-    out_stream << id << '\t';
-    for (size_t i = 0; i < result_positions.size() - 1; ++i)
-        out_stream << result_positions[i] << ',';
-    out_stream << result_positions.back() << std::endl;
-}
-
 int chopper_search(seqan3::argument_parser & parser)
 {
     search_config config{};

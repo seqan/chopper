@@ -157,7 +157,7 @@ struct map_distance_matrix : std::unordered_map<size_t, double>
     }
 };
 
-auto length(map_distance_matrix const & m)
+inline auto length(map_distance_matrix const & m)
 {
     return m.nseq * m.nseq;
 }

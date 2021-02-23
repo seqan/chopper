@@ -17,7 +17,7 @@ struct region
     }
 };
 
-std::ostream & operator<<(std::ostream & s, region const & r)
+inline std::ostream & operator<<(std::ostream & s, region const & r)
 {
     s << "<" << r.bin_index << "," << r.begin << "," << r.end << ">";
 

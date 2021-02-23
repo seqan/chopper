@@ -13,7 +13,7 @@
 #include <chopper/detail_parse_chopper_pack_line.hpp>
 #include <chopper/detail_starts_with.hpp>
 
-auto read_data_file_and_set_high_level_bins(build_config const & config)
+inline auto read_data_file_and_set_high_level_bins(build_config const & config)
 {
     build_data header;
     std::vector<chopper_pack_record> records{};

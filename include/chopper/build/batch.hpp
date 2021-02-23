@@ -20,7 +20,7 @@ struct batch
     }
 };
 
-std::ostream & operator<<(std::ostream & s, batch const & b)
+inline std::ostream & operator<<(std::ostream & s, batch const & b)
 {
     s << "BATCH: \n"
       << "  -> filenames: ";

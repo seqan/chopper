@@ -9,7 +9,7 @@
 #include <chopper/pack/pack_data.hpp>
 #include <chopper/pack/pack_config.hpp>
 
-auto read_filename_data_file(pack_data & data, pack_config const & config)
+inline auto read_filename_data_file(pack_data & data, pack_config const & config)
 {
     std::ifstream file_in{config.data_file};
 

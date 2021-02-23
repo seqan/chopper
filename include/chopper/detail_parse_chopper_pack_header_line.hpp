@@ -36,7 +36,7 @@ void parse_chopper_pack_header_line(std::string const & line, build_data<record_
 
 // [root node, high-level node, ]
 
-auto parse_bin_indices(std::string const & str)
+inline auto parse_bin_indices(std::string const & str)
 {
     std::vector<size_t> result;
 

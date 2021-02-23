@@ -1,21 +1,47 @@
 #pragma once
 
+#include <chopper/search/pair_hash.hpp>
 #include <chopper/search/search_config.hpp>
 #include <chopper/search/search_data.hpp>
 
-struct pair_hash
+inline void write_header(search_data const & data, std::ostream & out_stream)
 {
-    std::size_t operator () (std::pair<int32_t, uint32_t> const & pair) const
-    {
-        return (static_cast<size_t>(pair.first) << 32) | static_cast<size_t>(pair.second);
-    }
-};
+    data.user_bins.write_filenames(out_stream);
+    out_stream << "#QUERY_NAME\tUSER_BINS\n";
+}
 
-void search(std::unordered_set<std::pair<int32_t, uint32_t>, pair_hash> & membership_result,
-            std::vector<size_t> const & kmers,
-            search_data const & data,
-            search_config const & config,
-            int64_t const ibf_idx)
+inline void write_result(std::unordered_set<std::pair<int32_t, uint32_t>, pair_hash> const & membership_result,
+                         std::string const & id,
+                         search_data const & data,
+                         std::ostream & out_stream)
+{
+    if (membership_result.empty())
+    {
+        out_stream << id << '\t' << std::endl;
+        return;
+    }
+
+    // storing and sorting this is only done for testing purposes.
+    // If this turns out to have a significant runtime penalty, it should be removed.
+    std::vector<int64_t> result_positions; // TODO allocate this outside of this function
+    for (auto const & [ibf_idx, bin_idx] : membership_result)
+    {
+        assert(data.user_bins.get_position(ibf_idx, bin_idx) > -1);
+        result_positions.push_back(data.user_bins.get_position(ibf_idx, bin_idx));
+    }
+    std::sort(result_positions.begin(), result_positions.end()); // otherwise the result output is not testable
+
+    out_stream << id << '\t';
+    for (size_t i = 0; i < result_positions.size() - 1; ++i)
+        out_stream << result_positions[i] << ',';
+    out_stream << result_positions.back() << std::endl;
+}
+
+inline void search(std::unordered_set<std::pair<int32_t, uint32_t>, pair_hash> & membership_result,
+                   std::vector<size_t> const & kmers,
+                   search_data const & data,
+                   search_config const & config,
+                   int64_t const ibf_idx)
 {
     size_t const kmer_lemma = (kmers.size() > config.errors * config.k)
                               ? kmers.size() - config.errors * config.k
