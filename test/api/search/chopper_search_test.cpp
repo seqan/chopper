@@ -109,14 +109,14 @@ TEST_F(chopper_search_test, first_example)
              << seq3_filename                                                 << "\t6;5\t1;1\t500\n";
     }
 
-    seqan3::test::tmp_filename build_prefix{"TEST_"};
+    seqan3::test::tmp_filename output_path{"chopper.test.index"};
 
     // first execute building to generate the needed input data
     {
         const char * argv[] = {"./chopper-build",
                                "-k", "15",
                                "-p", chopper_pack_filename.get_path().c_str(),
-                               "-o", build_prefix.get_path().c_str()};
+                               "-o", output_path.get_path().c_str()};
         int argc = 7;
         seqan3::argument_parser build_parser{"chopper-build", argc, argv, seqan3::update_notifications::off};
 
@@ -125,7 +125,7 @@ TEST_F(chopper_search_test, first_example)
         std::string std_cerr = testing::internal::GetCapturedStderr();
         ASSERT_EQ(parse_res, 0) << std_cerr;
 
-        ASSERT_TRUE(std::filesystem::exists(build_prefix.get_path().string() + "HIBF.out"));
+        ASSERT_TRUE(std::filesystem::exists(output_path.get_path()));
     }
 
     // HIGH LEVEL IBF
@@ -159,11 +159,9 @@ TEST_F(chopper_search_test, first_example)
              << "ATCGATCACGATCAGCGAGCGATATCTTATCGTAGGCATCGAGCATCGAGGAGCGATCTATCTATCTATCATCTATCTAT\n";
     }
 
-    std::string const index_filename{build_prefix.get_path().string() + "HIBF.out"};
-    ASSERT_TRUE(std::filesystem::exists(index_filename));
     const char * argv[] = {"./chopper-search",
                            "-k", "15",
-                           "-i", index_filename.c_str(),
+                           "-i", output_path.get_path().c_str(),
                            "-q", query_filename.get_path().c_str()};
     int argc = 7;
     seqan3::argument_parser search_parser{"chopper-search", argc, argv, seqan3::update_notifications::off};
@@ -238,13 +236,13 @@ TEST_F(chopper_search_test, multi_level_example)
              << seq123_filename << "\t3\t2\t1500\n";
     }
 
-    seqan3::test::tmp_filename build_prefix{"TEST_"};
+    seqan3::test::tmp_filename output_path{"chopper.test.index"};
     // first execute building to generate the needed input data
     {
         const char * argv[] = {"./chopper-build",
                                "-k", "15",
                                "-p", chopper_pack_filename.get_path().c_str(),
-                               "-o", build_prefix.get_path().c_str()};
+                               "-o", output_path.get_path().c_str()};
         int argc = 7;
         seqan3::argument_parser build_parser{"chopper-build", argc, argv, seqan3::update_notifications::off};
 
@@ -253,7 +251,7 @@ TEST_F(chopper_search_test, multi_level_example)
         std::string std_cerr = testing::internal::GetCapturedStderr();
         ASSERT_EQ(parse_res, 0) << std_cerr;
 
-        ASSERT_TRUE(std::filesystem::exists(build_prefix.get_path().string() + "HIBF.out"));
+        ASSERT_TRUE(std::filesystem::exists(output_path.get_path()));
     }
 
     /* HIGH LEVEL IBF
@@ -327,11 +325,9 @@ TEST_F(chopper_search_test, multi_level_example)
              << "ATCGATCACGATCAGCGAGCGATATCTTATCGTAGGCATCGAGCATCGAGGAGCGATCTATCTATCTATCATCTATCTAT\n";
     }
 
-    std::string const index_filename{build_prefix.get_path().string() + "HIBF.out"};
-    ASSERT_TRUE(std::filesystem::exists(index_filename));
     const char * argv[] = {"./chopper-search",
                            "-k", "15",
-                           "-i", index_filename.c_str(),
+                           "-i", output_path.get_path().c_str(),
                            "-q", query_filename.get_path().c_str()};
     int argc = 7;
     seqan3::argument_parser search_parser{"chopper-search", argc, argv, seqan3::update_notifications::off};
