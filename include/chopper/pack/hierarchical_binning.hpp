@@ -8,8 +8,8 @@
 #include <numeric>
 #include <vector>
 
-#include <seqan3/range/views/to.hpp>
 #include <seqan3/core/debug_stream.hpp>
+#include <seqan3/utility/views/to.hpp>
 
 #include <chopper/detail_bin_prefixes.hpp>
 #include <chopper/pack/pack_config.hpp>

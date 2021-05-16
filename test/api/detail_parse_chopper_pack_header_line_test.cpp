@@ -1,5 +1,4 @@
 #include <gtest/gtest.h>
-#include <gmock/gmock.h>
 
 #include <seqan3/std/filesystem>
 #include <sstream>

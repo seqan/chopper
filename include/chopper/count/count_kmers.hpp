@@ -3,14 +3,11 @@
 #include <thread>
 #include <unordered_map>
 
-#define SEQAN_HAS_ZLIB 1
-#define SEQAN3_HAS_ZLIB 1
-
 #include <seqan3/io/sequence_file/all.hpp>
-#include <seqan3/range/views/async_input_buffer.hpp>
-#include <seqan3/range/views/kmer_hash.hpp>
-#include <seqan3/range/views/minimiser_hash.hpp>
-#include <seqan3/range/views/to.hpp>
+#include <seqan3/io/views/async_input_buffer.hpp>
+#include <seqan3/search/views/kmer_hash.hpp>
+#include <seqan3/search/views/minimiser_hash.hpp>
+#include <seqan3/utility/views/to.hpp>
 
 std::mutex mu;
 

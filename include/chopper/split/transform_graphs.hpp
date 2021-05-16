@@ -1,7 +1,5 @@
 #pragma once
 
-#include <seqan3/std/charconv>
-
 #include <lemon/color.h>
 #include <lemon/concepts/digraph.h>
 #include <lemon/core.h>
@@ -9,10 +7,7 @@
 #include <lemon/list_graph.h>
 #include <lemon/static_graph.h>
 
-#include <seqan3/utility/char_operations/predicate.hpp>
-#include <seqan3/range/detail/misc.hpp>
-#include <seqan3/range/views/take_until.hpp>
-#include <seqan3/range/views/take_line.hpp>
+#include <seqan3/core/debug_stream.hpp>
 
 /* [source] --> [target]            [target]
  *  (2,10)       (10,15)     =>      (2,15)

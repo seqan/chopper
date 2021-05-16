@@ -1,18 +1,16 @@
 #pragma once
 
-#include <unordered_map>
 #include <fstream>
-
 #include <seqan3/std/ranges>
+#include <unordered_map>
 
 #include <seqan3/alphabet/nucleotide/dna4.hpp>
 #include <seqan3/core/debug_stream.hpp>
 #include <seqan3/io/sequence_file/all.hpp>
 #include <seqan3/range/views/drop.hpp>
-#include <seqan3/range/views/kmer_hash.hpp>
-#include <seqan3/range/views/take.hpp>
-#include <seqan3/range/views/zip.hpp>
 #include <seqan3/search/dream_index/interleaved_bloom_filter.hpp>
+#include <seqan3/search/views/kmer_hash.hpp>
+#include <seqan3/utility/views/zip.hpp>
 
 #include <chopper/build/batch.hpp>
 #include <chopper/build/build_config.hpp>
@@ -28,7 +26,7 @@ struct file_type_traits : public seqan3::sequence_file_input_default_traits_dna
 inline auto hash_infix(build_config const & config, auto const & seq, auto const begin, auto const end)
 {
     return seq | seqan3::views::drop(begin)
-               | seqan3::views::take(end + config.overlap - begin) // views::take never goes over the end
+               | std::views::take(end + config.overlap - begin) // views::take never goes over the end
                | seqan3::views::kmer_hash(seqan3::ungapped{config.k});
 };
 

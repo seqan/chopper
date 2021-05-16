@@ -1,11 +1,11 @@
 #pragma once
 
+#include <seqan3/std/ranges>
 #include <map>
 
 #include <seqan/graph_msa.h>
 
-#include <seqan3/range/views/to.hpp>
-#include <seqan3/std/ranges>
+#include <seqan3/utility/views/to.hpp>
 
 namespace seqan
 {

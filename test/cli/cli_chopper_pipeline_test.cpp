@@ -1,15 +1,14 @@
+#include <fstream>
 #include <seqan3/std/ranges>     // range comparisons
 #include <string>                // strings
 #include <vector>                // vectors
 
-#include <fstream>
-
 #include <cereal/archives/binary.hpp>
 
-#include <seqan3/test/tmp_filename.hpp>
 #include <seqan3/search/dream_index/interleaved_bloom_filter.hpp>
-#include <seqan3/range/views/join.hpp>
-#include <seqan3/range/views/to.hpp>
+#include <seqan3/test/tmp_filename.hpp>
+#include <seqan3/utility/views/join_with.hpp>
+#include <seqan3/utility/views/to.hpp>
 
 #include <chopper/detail_bin_prefixes.hpp>
 
@@ -60,7 +59,7 @@ TEST_F(cli_test, chopper_pipeline)
 
     {
         std::ofstream fout{count_filename.get_path()};
-        fout << (expected_components | seqan3::views::join(std::string{'\n'}) | seqan3::views::to<std::string>);
+        fout << (expected_components | seqan3::views::join_with(std::string{'\n'}) | seqan3::views::to<std::string>);
     }
 
     // CHOPPER PACK

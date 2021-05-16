@@ -9,8 +9,8 @@
 #include <cereal/types/vector.hpp>
 
 #include <seqan3/core/concept/cereal.hpp>
-#include <seqan3/range/views/join.hpp>
-#include <seqan3/range/views/to.hpp>
+#include <seqan3/utility/views/join_with.hpp>
+#include <seqan3/utility/views/to.hpp>
 
 struct hibf_user_bins
 {
@@ -30,7 +30,7 @@ public:
     size_t add_user_bin(std::vector<std::string> const & names)
     {
         // concat
-        filenames.push_back((names | seqan3::views::join(std::string{";"}) | seqan3::views::to<std::string>));
+        filenames.push_back((names | seqan3::views::join_with(std::string{";"}) | seqan3::views::to<std::string>));
         return filenames.size() - 1;
     }
 

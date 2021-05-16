@@ -1,7 +1,9 @@
 #include <iostream>
+#include <seqan3/std/filesystem>
 #include <fstream>
-#include <set>
 #include <queue>
+#include <seqan3/std/ranges>
+#include <set>
 
 #include <lemon/color.h>
 #include <lemon/concepts/digraph.h>
@@ -10,15 +12,10 @@
 #include <lemon/list_graph.h>
 #include <lemon/static_graph.h>
 
-#define SEQAN3_HAS_ZLIB 1
-
 #include <seqan3/argument_parser/all.hpp>
 #include <seqan3/core/debug_stream.hpp>
-#include <seqan3/range/views/persist.hpp>
-#include <seqan3/range/views/to.hpp>
-#include <seqan3/range/views/zip.hpp>
-#include <seqan3/std/filesystem>
-#include <seqan3/std/ranges>
+#include <seqan3/utility/views/to.hpp>
+#include <seqan3/utility/views/zip.hpp>
 
 #include <chopper/split/split_config.hpp>
 #include <chopper/split/split_data.hpp>

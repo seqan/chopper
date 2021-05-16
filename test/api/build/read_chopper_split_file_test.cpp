@@ -1,5 +1,4 @@
 #include <gtest/gtest.h>
-#include <gmock/gmock.h>
 
 #include <seqan3/test/expect_range_eq.hpp>
 #include <seqan3/test/tmp_filename.hpp>

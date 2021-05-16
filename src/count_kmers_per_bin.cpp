@@ -1,14 +1,14 @@
-#include <iostream>
-#include <fstream>
-#include <chrono>
-#include <numeric>
 #include <algorithm>
+#include <chrono>
+#include <fstream>
+#include <iostream>
+#include <numeric>
 #include <unordered_map>
 #include <unordered_set>
 
 #include <seqan3/argument_parser/all.hpp>
 #include <seqan3/io/sequence_file/input.hpp>
-#include <seqan3/range/views/kmer_hash.hpp>
+#include <seqan3/search/views/kmer_hash.hpp>
 
 #include <chopper/build/read_chopper_split_file.hpp>
 

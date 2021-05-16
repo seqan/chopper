@@ -1,5 +1,4 @@
 #include <gtest/gtest.h>
-#include <gmock/gmock.h>
 
 #include <seqan/graph_types.h>
 #include <seqan/graph_algorithms.h>

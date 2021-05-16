@@ -10,7 +10,7 @@ project (chopper VERSION 1.0.0)
 # Make Release default build type
 if (NOT CMAKE_BUILD_TYPE)
     set (CMAKE_BUILD_TYPE Release CACHE STRING
-         "Choose the type of build, options are: Debug Release RelWithDebInfo"
+         "Choose the type of build, options are: Debug Release Coverage RelWithDebInfo MinSizeRel."
          FORCE)
 endif ()
 
@@ -35,6 +35,11 @@ set(CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/lib/seqan/util/cmake")
 set(CMAKE_INCLUDE_PATH "${CMAKE_SOURCE_DIR}/lib/seqan/include/")
 include (${CMAKE_SOURCE_DIR}/lib/seqan/util/cmake/seqan-config.cmake)
 
+# Use ccache.
+include ("${SEQAN3_CLONE_DIR}/test/cmake/seqan3_require_ccache.cmake")
+seqan3_require_ccache ()
+
+# Add the application.
 add_subdirectory (src)
 message (STATUS "${FontBold}You can run `make` to build the application.${FontReset}")
 
