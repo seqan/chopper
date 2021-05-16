@@ -62,17 +62,15 @@ inline void insert_into_ibf(build_config const & config,
                             chopper_pack_record const & record,
                             seqan3::interleaved_bloom_filter<> & hibf)
 {
+    assert(record.bin_indices.back() >= 0);
+    auto const bin_index = seqan3::bin_index{static_cast<size_t>(record.bin_indices.back())};
+    auto hash_view = seqan3::views::kmer_hash(seqan3::ungapped{config.k});
+
     for (auto const & filename : record.filenames)
-    {
         for (auto && [seq] : sequence_file_t{filename})
-        {
-            for (auto hash : seq | seqan3::views::kmer_hash(seqan3::ungapped{config.k}))
-            {
-                assert(record.bin_indices.back() >= 0);
-                hibf.emplace(hash, seqan3::bin_index{static_cast<size_t>(record.bin_indices.back())});
-            }
-        }
-    }
+            for (auto hash : seq | hash_view)
+                hibf.emplace(hash, bin_index);
+
 }
 
 // forward declaration
