@@ -1,7 +1,9 @@
 #include <future>
 #include <iostream>
+#include <utility>
 #include <thread>
-#include <unordered_map>
+
+#include <robin_hood.h>
 
 #include <seqan3/io/sequence_file/all.hpp>
 #include <seqan3/io/views/async_input_buffer.hpp>
@@ -45,7 +47,7 @@ void compute_hashes(cluster_view_type && cluster_view, compute_view_type && comp
     }
 }
 
-inline void count_kmers(std::unordered_map<std::string, std::vector<std::string>> const & filename_clusters,
+inline void count_kmers(robin_hood::unordered_map<std::string, std::vector<std::string>> const & filename_clusters,
                         count_config const & config)
 {
     size_t const counting_threads = (config.num_threads <= 1) ? 1 : config.num_threads - 1;
@@ -56,7 +58,8 @@ inline void count_kmers(std::unordered_map<std::string, std::vector<std::string>
     auto read_files = std::views::transform([] (auto const & cluster)
     {
         using result_t = std::vector<std::vector<seqan3::dna4>>;
-        using pair_t = std::pair<std::pair<std::string, std::vector<std::string>>, result_t>;
+        using inner_pair_t = std::pair<std::string, std::vector<std::string>>;
+        using pair_t = std::pair<inner_pair_t, result_t>;
 
         result_t result;
         for (auto const & filename : cluster.second)
@@ -66,7 +69,7 @@ inline void count_kmers(std::unordered_map<std::string, std::vector<std::string>
                 result.push_back(seq);
         }
 
-        return pair_t{cluster, result};
+        return pair_t{inner_pair_t{cluster.first, cluster.second}, result};
     });
 
     auto cluster_view = filename_clusters

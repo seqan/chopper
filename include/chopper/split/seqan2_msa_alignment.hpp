@@ -16,7 +16,7 @@ inline void append_all_to_all_matches(seqan::StringSet<TString, seqan::Dependent
     typedef typename seqan::Size<TStringSet>::Type TSize;
 
     // create hash_map with positions where minimizers can be found
-    std::unordered_map<uint64_t, std::vector<std::pair<size_t, size_t>>> hash_map{};
+    robin_hood::unordered_map<uint64_t, std::vector<std::pair<size_t, size_t>>> hash_map{};
     for (size_t i = 0; i < seqan::length(sequenceSet); ++i)
         for (size_t p1 = 0; p1 < seqan::length(sequenceSet[i]); ++p1)
             hash_map[sequenceSet[i][p1].value].emplace_back(i, p1);

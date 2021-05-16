@@ -3,8 +3,9 @@
 #include <fstream>
 #include <iostream>
 #include <numeric>
-#include <unordered_map>
 #include <unordered_set>
+
+#include <robin_hood.h>
 
 #include <seqan3/argument_parser/all.hpp>
 #include <seqan3/io/sequence_file/input.hpp>
@@ -44,7 +45,7 @@ using seq_file_type = seqan3::sequence_file_input<file_type_traits,
 
 auto read_sequences(std::vector<std::string> const & filenames)
 {
-    std::unordered_map<std::string, seqan3::dna4_vector> info;
+    robin_hood::unordered_map<std::string, seqan3::dna4_vector> info;
 
     for (auto const & filename : filenames)
         for (auto && [seq, id] : seq_file_type{filename})

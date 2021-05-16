@@ -1,6 +1,6 @@
 #pragma once
 
-#include <unordered_map>
+#include <robin_hood.h>
 
 struct similarity_score
 {
@@ -28,9 +28,9 @@ struct upper_distance_threshold
     double t;
 };
 
-struct map_distance_matrix : std::unordered_map<size_t, double>
+struct map_distance_matrix : robin_hood::unordered_map<size_t, double>
 {
-    using base_t = std::unordered_map<size_t, double>;
+    using base_t = robin_hood::unordered_map<size_t, double>;
     using value_type = double;
     using size_type = size_t;
 

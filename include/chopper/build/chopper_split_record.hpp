@@ -1,8 +1,9 @@
 #pragma once
 
 #include <string>
-#include <unordered_map>
 #include <vector>
+
+#include <robin_hood.h>
 
 #include <seqan3/io/sequence_file/all.hpp>
 
@@ -13,7 +14,7 @@ struct chopper_split_record
     std::vector<std::string> filenames{};
     std::vector<size_t> bin_indices{};
     std::vector<size_t> number_of_bins{};
-    std::unordered_map<std::string, std::vector<region>> region_map{};
+    robin_hood::unordered_map<std::string, std::vector<region>> region_map{};
 
     struct file_type_traits : public seqan3::sequence_file_input_default_traits_dna
     {
@@ -24,7 +25,7 @@ struct chopper_split_record
                                                       seqan3::fields<seqan3::field::seq, seqan3::field::id>,
                                                       seqan3::type_list<seqan3::format_fasta, seqan3::format_fastq>>;
 
-    std::unordered_map<std::string, seqan3::dna4_vector> info;
+    robin_hood::unordered_map<std::string, seqan3::dna4_vector> info;
 
     void initialise_info() // only initialize info on demand
     {

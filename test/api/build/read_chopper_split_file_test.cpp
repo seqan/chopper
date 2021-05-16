@@ -108,7 +108,7 @@ TEST(read_chopper_split_file_test, small_example)
      * std::vector<std::string> filenames{};
      * std::vector<size_t> bin_indices{};
      * std::vector<size_t> number_of_bins{};
-     * std::unordered_map<std::string, std::vector<region>> region_map{};
+     * robin_hood::unordered_map<std::string, std::vector<region>> region_map{};
      */
 
     std::vector<node_data<chopper_split_record>> expected_node_data

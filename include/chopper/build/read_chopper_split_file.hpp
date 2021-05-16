@@ -79,7 +79,7 @@ inline void read_chopper_split_file(build_data<chopper_split_record> & data, std
 
     // assign to ibf tree structure
     // -------------------------------------------------------------------------
-    std::unordered_map<std::string, chopper_split_record> record_map;
+    robin_hood::unordered_map<std::string, chopper_split_record> record_map;
     std::string current_line;
     while (std::getline(chopper_pack_file, current_line))
     {

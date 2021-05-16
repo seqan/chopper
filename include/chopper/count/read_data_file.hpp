@@ -1,13 +1,14 @@
 #pragma once
 
-#include <unordered_map>
 #include <fstream>
+
+#include <robin_hood.h>
 
 #include <chopper/count/count_config.hpp>
 
 inline auto read_data_file(count_config const & config)
 {
-    std::unordered_map<std::string, std::vector<std::string>> filename_clusters; // result
+    robin_hood::unordered_map<std::string, std::vector<std::string>> filename_clusters; // result
 
     std::ifstream fin{config.data_file};
 

@@ -1,7 +1,8 @@
 #include <gtest/gtest.h>
 
 #include <vector>
-#include <unordered_map>
+
+#include <robin_hood.h>
 
 #include <seqan3/test/expect_range_eq.hpp>
 
@@ -17,7 +18,7 @@ TEST(count_kmers_test, small_example_serial)
 
     std::string input_file = DATADIR"small.fa";
 
-    std::unordered_map<std::string, std::vector<std::string>> filename_clusters
+    robin_hood::unordered_map<std::string, std::vector<std::string>> filename_clusters
     {
         {"TAX1", {input_file}},
         {"TAX2", {input_file, input_file}}
@@ -44,7 +45,7 @@ TEST(count_kmers_test, small_example_parallel_2_threads)
 
     std::string input_file = DATADIR"small.fa";
 
-    std::unordered_map<std::string, std::vector<std::string>> filename_clusters
+    robin_hood::unordered_map<std::string, std::vector<std::string>> filename_clusters
     {
         {"TAX1", {input_file}},
         {"TAX2", {input_file, input_file}}

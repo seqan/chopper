@@ -20,9 +20,9 @@ struct build_data
     chopper_pack_record * hibf_max_record{nullptr};
     batch * hibf_max_batch_record{nullptr};
 
-    std::unordered_map<size_t, size_t> merged_max_bin_map{};
-    std::unordered_map<std::string, size_t> merged_bin_map{};
-    std::unordered_map<std::string, std::vector<region>> region_map{};
+    robin_hood::unordered_map<size_t, size_t> merged_max_bin_map{};
+    robin_hood::unordered_map<std::string, size_t> merged_bin_map{};
+    robin_hood::unordered_map<std::string, std::vector<region>> region_map{};
 
     // new stuff
     lemon::ListDigraph ibf_graph{};
