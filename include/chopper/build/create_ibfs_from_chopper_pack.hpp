@@ -151,14 +151,15 @@ void loop_over_children(parent_kmers_type & parent_kmers,
                         build_config const & config)
 {
     auto & current_node_data = data.node_map[current_node];
+    std::unordered_set<size_t> kmers{};
 
     for (lemon::ListDigraph::OutArcIt arc_it(data.ibf_graph, current_node); arc_it != lemon::INVALID; ++arc_it)
     {
+        kmers.clear();
         auto child = data.ibf_graph.target(arc_it);
         auto & child_data = data.node_map[child];
         if (child != current_node_data.favourite_child)
         {
-            std::unordered_set<size_t> kmers{}; // todo: maybe it is more efficient if this is declared outside and cleared every iteration
             build(kmers, child, data, config); // also appends that childs counts to 'kmers'
             insert_into_ibf(kmers, 1, child_data.parent_bin_index, ibf);
             ibf_positions[child_data.parent_bin_index] = data.hibf.size();
@@ -190,15 +191,16 @@ inline void build(std::unordered_set<size_t> & parent_kmers,
     loop_over_children(parent_kmers, ibf, ibf_positions, current_node, data, config);
 
     // If max bin was a merged bin, process all remaining records, otherwise the first one has already been processed
+    std::unordered_set<size_t> kmers{};
     size_t const start{(current_node_data.favourite_child != lemon::INVALID) ? 0u : 1u};
     for (size_t i = start; i < current_node_data.remaining_records.size(); ++i)
     {
         auto const & record = current_node_data.remaining_records[i];
-        std::unordered_set<size_t> kmers{};
         compute_kmers(kmers, config, record);
         insert_into_ibf(kmers, record.number_of_bins.back(), record.bin_indices.back(), ibf);
         parent_kmers.merge(kmers);
         update_user_bins(data, ibf_filenames, record);
+        kmers.clear();
     }
 
     data.hibf.push_back(std::move(ibf));
