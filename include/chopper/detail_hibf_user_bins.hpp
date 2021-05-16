@@ -76,12 +76,6 @@ public:
         }
     }
 
-    /*!\brief Serialisation support function.
-     * \tparam archive_t Type of `archive`; must satisfy seqan3::cereal_archive.
-     * \param[in] archive The archive being serialised from/to.
-     *
-     * \attention These functions are never called directly, see \ref serialisation for more details.
-     */
     template <typename archive_t>
     void serialize(archive_t & archive)
     {
