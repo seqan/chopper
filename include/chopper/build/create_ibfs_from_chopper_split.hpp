@@ -10,6 +10,7 @@
 #include <seqan3/range/views/drop.hpp>
 #include <seqan3/search/dream_index/interleaved_bloom_filter.hpp>
 #include <seqan3/search/views/kmer_hash.hpp>
+#include <seqan3/utility/views/slice.hpp>
 #include <seqan3/utility/views/zip.hpp>
 
 #include <chopper/build/batch.hpp>
@@ -25,8 +26,7 @@ struct file_type_traits : public seqan3::sequence_file_input_default_traits_dna
 
 inline auto hash_infix(build_config const & config, auto const & seq, auto const begin, auto const end)
 {
-    return seq | seqan3::views::drop(begin)
-               | std::views::take(end + config.overlap - begin) // views::take never goes over the end
+    return seq | seqan3::views::slice(begin, end + config.overlap) 
                | seqan3::views::kmer_hash(seqan3::ungapped{config.k});
 };
 

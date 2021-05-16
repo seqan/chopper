@@ -10,6 +10,7 @@
 #include <seqan3/argument_parser/all.hpp>
 #include <seqan3/io/sequence_file/input.hpp>
 #include <seqan3/search/views/kmer_hash.hpp>
+#include <seqan3/utility/views/slice.hpp>
 
 #include <chopper/build/read_chopper_split_file.hpp>
 
@@ -56,8 +57,7 @@ auto read_sequences(std::vector<std::string> const & filenames)
 
 auto hash_infix(cmd_arguments const & args, auto const & seq, auto const begin, auto const end)
 {
-    return seq | seqan3::views::drop(begin)
-               | seqan3::views::take(end + args.overlap - begin) // views::take never goes over the end
+    return seq | seqan3::views::slice(begin, end + args.overlap)
                | seqan3::views::kmer_hash(seqan3::ungapped{args.k});
 };
 
