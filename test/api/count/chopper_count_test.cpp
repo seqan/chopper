@@ -29,8 +29,8 @@ TEST(chopper_count_test, small_example_parallel_2_threads)
 
     std::string expected
     {
-        input_filename + ";" + input_filename + "\t95\tTAX2\n" +
-        input_filename + "\t95\tTAX1\n"
+        input_filename + "\t95\tTAX1\n" +
+        input_filename + ";" + input_filename + "\t95\tTAX2\n"
     };
 
     testing::internal::CaptureStdout();
@@ -64,8 +64,8 @@ TEST(chopper_count_test, disable_minimizers)
 
     std::string expected
     {
-        input_filename + ";" + input_filename + "\t585\tTAX2\n" +
-        input_filename + "\t585\tTAX1\n"
+        input_filename + "\t585\tTAX1\n" +
+        input_filename + ";" + input_filename + "\t585\tTAX2\n"
     };
 
     testing::internal::CaptureStdout();

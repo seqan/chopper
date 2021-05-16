@@ -26,8 +26,8 @@ TEST(count_kmers_test, small_example_serial)
 
     std::string expected
     {
-        input_file + ";" + input_file + "\t95\tTAX2\n" +
-        input_file + "\t95\tTAX1\n"
+        input_file + "\t95\tTAX1\n" +
+        input_file + ";" + input_file + "\t95\tTAX2\n"
     };
 
     testing::internal::CaptureStdout();
@@ -53,8 +53,8 @@ TEST(count_kmers_test, small_example_parallel_2_threads)
 
     std::string expected
     {
-        input_file + ";" + input_file + "\t95\tTAX2\n" +
-        input_file + "\t95\tTAX1\n"
+        input_file + "\t95\tTAX1\n" +
+        input_file + ";" + input_file + "\t95\tTAX2\n"
     };
 
     testing::internal::CaptureStdout();
