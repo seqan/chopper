@@ -4,7 +4,7 @@
 
 ## System requirements
 
-* GCC Version >= 7
+* GCC Version >= 9
 * CMake Version >= 3.8 && <= 3.18
 
 ## General setup
