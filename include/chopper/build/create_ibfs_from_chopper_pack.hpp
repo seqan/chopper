@@ -74,7 +74,8 @@ inline void insert_into_ibf(build_config const & config,
 }
 
 // forward declaration
-inline void build(std::unordered_set<size_t> & parent_kmers,
+template <typename parent_kmers_type>
+inline void build(parent_kmers_type & parent_kmers,
                   lemon::ListDigraph::Node const & current_node,
                   build_data<chopper_pack_record> & data,
                   build_config const & config);
@@ -150,6 +151,7 @@ void loop_over_children(parent_kmers_type & parent_kmers,
                         build_data<chopper_pack_record> & data,
                         build_config const & config)
 {
+    constexpr bool is_root = !std::same_as<parent_kmers_type, std::unordered_set<size_t>>;
     auto & current_node_data = data.node_map[current_node];
     std::unordered_set<size_t> kmers{};
 
@@ -164,96 +166,94 @@ void loop_over_children(parent_kmers_type & parent_kmers,
             insert_into_ibf(kmers, 1, child_data.parent_bin_index, ibf);
             ibf_positions[child_data.parent_bin_index] = data.hibf.size();
 
-            if constexpr (std::same_as<parent_kmers_type, std::unordered_set<size_t>>)
+            if constexpr (!is_root)
                 parent_kmers.merge(kmers);
         }
     }
 }
 
-inline void build(std::unordered_set<size_t> & parent_kmers,
+template <typename parent_kmers_type>
+inline void build(parent_kmers_type & parent_kmers,
                   lemon::ListDigraph::Node const & current_node,
                   build_data<chopper_pack_record> & data,
                   build_config const & config)
 {
+    constexpr bool is_root = !std::same_as<parent_kmers_type, std::unordered_set<size_t>>;
     auto & current_node_data = data.node_map[current_node];
 
     std::vector<int64_t> ibf_positions(current_node_data.number_of_technical_bins, -1);
     std::vector<int64_t> ibf_filenames(current_node_data.number_of_technical_bins, -1);
-    std::unordered_set<size_t> max_bin_kmers{};
+    std::unordered_set<size_t> kmers{};
 
     // initialize lower level IBF
-    size_t const max_bin_tbs = initialise_max_bin_kmers(max_bin_kmers, ibf_positions, ibf_filenames, current_node, data, config);
-    auto && ibf = construct_ibf(max_bin_kmers, max_bin_tbs, current_node, data, config);
-    parent_kmers.merge(max_bin_kmers);
-    max_bin_kmers.clear(); // reduce memory peak
+    size_t const max_bin_tbs = initialise_max_bin_kmers(kmers, ibf_positions, ibf_filenames, current_node, data, config);
+    auto && ibf = construct_ibf(kmers, max_bin_tbs, current_node, data, config);
+    if constexpr (!is_root) // no merge if root
+        parent_kmers.merge(kmers);
+    kmers.clear(); // reduce memory peak
 
     // parse all other children (merged bins) of the current ibf
     loop_over_children(parent_kmers, ibf, ibf_positions, current_node, data, config);
 
     // If max bin was a merged bin, process all remaining records, otherwise the first one has already been processed
-    std::unordered_set<size_t> kmers{};
     size_t const start{(current_node_data.favourite_child != lemon::INVALID) ? 0u : 1u};
     for (size_t i = start; i < current_node_data.remaining_records.size(); ++i)
     {
         auto const & record = current_node_data.remaining_records[i];
-        compute_kmers(kmers, config, record);
-        insert_into_ibf(kmers, record.number_of_bins.back(), record.bin_indices.back(), ibf);
-        parent_kmers.merge(kmers);
+
+        if constexpr (is_root)
+        {
+            if (record.number_of_bins.back() == 1) // no splitting needed
+            {
+                insert_into_ibf(config, record, ibf);
+            }
+            else // same as non-root
+            {
+                compute_kmers(kmers, config, record);
+                insert_into_ibf(kmers, record.number_of_bins.back(), record.bin_indices.back(), ibf);
+            }
+        }
+        else
+        {
+            compute_kmers(kmers, config, record);
+            insert_into_ibf(kmers, record.number_of_bins.back(), record.bin_indices.back(), ibf);
+
+            parent_kmers.merge(kmers); // no merge if root
+        }
+
         update_user_bins(data, ibf_filenames, record);
         kmers.clear();
     }
 
-    data.hibf.push_back(std::move(ibf));
+    if constexpr (is_root) // insert high level IBF at beginning
+    {
+        data.hibf.insert(data.hibf.begin(), std::move(ibf));
 
-    for (auto & pos : ibf_positions)
-        if (pos == -1)
-            pos = data.hibf.size();
+        for (auto & pos : ibf_positions)
+            if (pos == -1)
+                pos = 0;
 
-    data.hibf_bin_levels.push_back(std::move(ibf_positions));
-    data.user_bins.add_user_bin_positions(std::move(ibf_filenames));
+        data.hibf_bin_levels.insert(data.hibf_bin_levels.begin(), std::move(ibf_positions));
+        data.user_bins.prepend_user_bin_positions(std::move(ibf_filenames));
+    }
+    else // other IBFs go to the end
+    {
+        data.hibf.push_back(std::move(ibf));
+
+        for (auto & pos : ibf_positions)
+            if (pos == -1)
+                pos = data.hibf.size();
+
+        data.hibf_bin_levels.push_back(std::move(ibf_positions));
+        data.user_bins.add_user_bin_positions(std::move(ibf_filenames));
+    }
 }
 
 inline void create_ibfs_from_chopper_pack(build_data<chopper_pack_record> & data, build_config const & config)
 {
     read_chopper_pack_file(data, config.chopper_pack_filename);
-
     lemon::ListDigraph::Node root = data.ibf_graph.nodeFromId(0); // root node = high level IBF node
-    auto & root_node_data = data.node_map[root];
+    size_t dummy{};
 
-    std::vector<int64_t> ibf_positions(root_node_data.number_of_technical_bins, 0);
-    std::vector<int64_t> ibf_filenames(root_node_data.number_of_technical_bins, -1);
-    std::unordered_set<size_t> max_bin_kmers{};
-
-    // initialize high level IBF
-    size_t const max_bin_tbs = initialise_max_bin_kmers(max_bin_kmers, ibf_positions, ibf_filenames, root, data, config);
-    auto && high_level_ibf = construct_ibf(max_bin_kmers, max_bin_tbs, root, data, config);
-    max_bin_kmers.clear(); // clear memory allocation
-
-    // parse all other children (merged bins) of the high level-ibf (will build the whole HIBF)
-    size_t dummy;
-    loop_over_children(dummy, high_level_ibf, ibf_positions, root, data, config);
-
-    // parse remaining (split) bins
-    size_t const start{(root_node_data.favourite_child != lemon::INVALID) ? 0u : 1u};
-    for (size_t i = start; i < root_node_data.remaining_records.size(); ++i)
-    {
-        auto const & record = root_node_data.remaining_records[i];
-
-        if (record.number_of_bins.back() == 1) // no splitting needed
-        {
-            insert_into_ibf(config, record, high_level_ibf);
-        }
-        else
-        {
-            max_bin_kmers.clear(); // reuse allocated space
-            compute_kmers(max_bin_kmers, config, record);
-            insert_into_ibf(max_bin_kmers, record.number_of_bins.back(), record.bin_indices.back(), high_level_ibf);
-        }
-
-        update_user_bins(data, ibf_filenames, record);
-    }
-
-    data.hibf.insert(data.hibf.begin(), std::move(high_level_ibf)); // insert High level at the beginning
-    data.hibf_bin_levels.insert(data.hibf_bin_levels.begin(), std::move(ibf_positions));
-    data.user_bins.prepend_user_bin_positions(std::move(ibf_filenames));
+    build(dummy, root, data, config);
 }
