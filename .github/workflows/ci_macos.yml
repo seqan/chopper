@@ -25,6 +25,12 @@ jobs:
       fail-fast: true
       matrix:
         include:
+          - name: "gcc11"
+            os: macos-10.15
+            cxx: "g++-11"
+            cc: "gcc-11"
+            build_type: Release
+
           - name: "gcc10"
             os: macos-10.15
             cxx: "g++-10"
@@ -37,18 +43,6 @@ jobs:
             cc: "gcc-9"
             build_type: Release
             cxx_flags: "-std=c++2a"
-
-          - name: "gcc8"
-            os: macos-10.15
-            cxx: "g++-8"
-            cc: "gcc-8"
-            build_type: Release
-
-          - name: "gcc7"
-            os: macos-10.15
-            cxx: "g++-7"
-            cc: "gcc-7"
-            build_type: Release
 
     steps:
       - name: Checkout

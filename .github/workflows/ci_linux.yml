@@ -26,9 +26,9 @@ jobs:
       fail-fast: true
       matrix:
         include:
-          - name: "Coverage gcc10"
-            cxx: "g++-10"
-            cc: "gcc-10"
+          - name: "Coverage gcc11"
+            cxx: "g++-11"
+            cc: "gcc-11"
             build: coverage
             build_type: Coverage
 
@@ -47,16 +47,6 @@ jobs:
             cc: "gcc-9"
             build_type: Release
             cxx_flags: "-std=c++2a"
-
-          - name: "gcc8"
-            cxx: "g++-8"
-            cc: "gcc-8"
-            build_type: Release
-
-          - name: "gcc7"
-            cxx: "g++-7"
-            cc: "gcc-7"
-            build_type: Release
 
     steps:
       - name: Checkout
@@ -82,7 +72,7 @@ jobs:
         if: matrix.build == 'coverage'
         run: |
           sudo apt-get install --yes lcov
-          sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-10 100
+          sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-11 100
 
       - name: Load ccache
         uses: actions/cache@v2
