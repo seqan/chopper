@@ -96,8 +96,7 @@ inline void build(parent_kmers_type & parent_kmers,
 inline void update_user_bins(build_data<chopper_pack_record> & data, std::vector<int64_t> & ibf_filenames, chopper_pack_record const & record)
 {
     auto const user_bin_pos = data.user_bins.add_user_bin(record.filenames);
-    for (size_t i = 0; i < record.number_of_bins.back(); ++i)
-        ibf_filenames[record.bin_indices.back() + i] = user_bin_pos;
+    std::fill_n(ibf_filenames.begin() + record.bin_indices.back(), record.number_of_bins.back(), user_bin_pos);
 }
 
 inline size_t initialise_max_bin_kmers(robin_hood::unordered_set<size_t> & kmers,
