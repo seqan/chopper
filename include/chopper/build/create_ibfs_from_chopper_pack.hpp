@@ -4,6 +4,8 @@
 #include <unordered_set>
 #include <seqan3/std/ranges>
 
+#include <robin_hood.h>
+
 #include <seqan3/alphabet/nucleotide/dna4.hpp>
 #include <seqan3/core/debug_stream.hpp>
 #include <seqan3/io/sequence_file/all.hpp>
@@ -23,9 +25,9 @@ using sequence_file_t = seqan3::sequence_file_input<file_traits,
                                                     seqan3::fields<seqan3::field::seq>,
                                                     seqan3::type_list<seqan3::format_fasta, seqan3::format_fastq>>;
 
-inline std::unordered_set<size_t> compute_kmers(build_config const & config, chopper_pack_record const & record)
+inline robin_hood::unordered_set<size_t> compute_kmers(build_config const & config, chopper_pack_record const & record)
 {
-    std::unordered_set<size_t> kmers{};
+    robin_hood::unordered_set<size_t> kmers{};
 
     for (auto const & filename : record.filenames)
         for (auto && [seq] : sequence_file_t{filename})
@@ -35,7 +37,7 @@ inline std::unordered_set<size_t> compute_kmers(build_config const & config, cho
     return kmers;
 }
 
-inline void compute_kmers(std::unordered_set<size_t> & kmers,
+inline void compute_kmers(robin_hood::unordered_set<size_t> & kmers,
                           build_config const & config,
                           chopper_pack_record const & record)
 {
@@ -46,7 +48,9 @@ inline void compute_kmers(std::unordered_set<size_t> & kmers,
 }
 
 // automatically does naive splitting if number_of_bins > 1
-inline void insert_into_ibf(std::unordered_set<size_t> const & kmers,
+template <typename parent_kmers_type>
+inline void insert_into_ibf(parent_kmers_type & parent_kmers,
+                            robin_hood::unordered_set<size_t> const & kmers,
                             size_t const number_of_bins,
                             size_t const bin_index,
                             seqan3::interleaved_bloom_filter<> & ibf)
@@ -55,7 +59,18 @@ inline void insert_into_ibf(std::unordered_set<size_t> const & kmers,
     auto it = kmers.begin();
     for (size_t chunk = 0; chunk < number_of_bins; ++chunk)
         for (size_t i = chunk * kmers_per_chunk; i < std::min((chunk + 1) * kmers_per_chunk, kmers.size()); ++i, ++it)
-            ibf.emplace(*it, seqan3::bin_index{bin_index + chunk});
+        {
+            if constexpr(std::same_as<parent_kmers_type, robin_hood::unordered_set<size_t>>)
+            {
+                auto const value = *it;
+                ibf.emplace(value, seqan3::bin_index{bin_index + chunk});
+                parent_kmers.insert(value);
+            }
+            else
+            {
+                ibf.emplace(*it, seqan3::bin_index{bin_index + chunk});
+            }
+        }
 }
 
 inline void insert_into_ibf(build_config const & config,
@@ -87,7 +102,7 @@ inline void update_user_bins(build_data<chopper_pack_record> & data, std::vector
         ibf_filenames[record.bin_indices.back() + i] = user_bin_pos;
 }
 
-inline size_t initialise_max_bin_kmers(std::unordered_set<size_t> & kmers,
+inline size_t initialise_max_bin_kmers(robin_hood::unordered_set<size_t> & kmers,
                                        std::vector<int64_t> & ibf_positions,
                                        std::vector<int64_t> & ibf_filenames,
                                        lemon::ListDigraph::Node const & node,
@@ -120,7 +135,9 @@ protected:
     virtual std::string do_grouping() const { return "\03"; }
 };
 
-inline auto construct_ibf(std::unordered_set<size_t> & kmers,
+template <typename parent_kmers_type>
+inline auto construct_ibf(parent_kmers_type & parent_kmers,
+                          robin_hood::unordered_set<size_t> & kmers,
                           size_t const number_of_bins,
                           lemon::ListDigraph::Node const & node,
                           build_data<chopper_pack_record> & data,
@@ -138,7 +155,7 @@ inline auto construct_ibf(std::unordered_set<size_t> & kmers,
         std::cout << "  > Initialised IBF with bin size " << bin_size.get() << std::endl;
     }
 
-    insert_into_ibf(kmers, number_of_bins, node_data.max_bin_index, ibf);
+    insert_into_ibf(parent_kmers, kmers, number_of_bins, node_data.max_bin_index, ibf);
 
     return ibf;
 }
@@ -151,9 +168,8 @@ void loop_over_children(parent_kmers_type & parent_kmers,
                         build_data<chopper_pack_record> & data,
                         build_config const & config)
 {
-    constexpr bool is_root = !std::same_as<parent_kmers_type, std::unordered_set<size_t>>;
     auto & current_node_data = data.node_map[current_node];
-    std::unordered_set<size_t> kmers{};
+    robin_hood::unordered_set<size_t> kmers{};
 
     for (lemon::ListDigraph::OutArcIt arc_it(data.ibf_graph, current_node); arc_it != lemon::INVALID; ++arc_it)
     {
@@ -163,11 +179,8 @@ void loop_over_children(parent_kmers_type & parent_kmers,
         if (child != current_node_data.favourite_child)
         {
             build(kmers, child, data, config); // also appends that childs counts to 'kmers'
-            insert_into_ibf(kmers, 1, child_data.parent_bin_index, ibf);
+            insert_into_ibf(parent_kmers, kmers, 1, child_data.parent_bin_index, ibf);
             ibf_positions[child_data.parent_bin_index] = data.hibf.size();
-
-            if constexpr (!is_root)
-                parent_kmers.merge(kmers);
         }
     }
 }
@@ -178,18 +191,16 @@ inline void build(parent_kmers_type & parent_kmers,
                   build_data<chopper_pack_record> & data,
                   build_config const & config)
 {
-    constexpr bool is_root = !std::same_as<parent_kmers_type, std::unordered_set<size_t>>;
+    constexpr bool is_root = !std::same_as<parent_kmers_type, robin_hood::unordered_set<size_t>>;
     auto & current_node_data = data.node_map[current_node];
 
     std::vector<int64_t> ibf_positions(current_node_data.number_of_technical_bins, -1);
     std::vector<int64_t> ibf_filenames(current_node_data.number_of_technical_bins, -1);
-    std::unordered_set<size_t> kmers{};
+    robin_hood::unordered_set<size_t> kmers{};
 
     // initialize lower level IBF
     size_t const max_bin_tbs = initialise_max_bin_kmers(kmers, ibf_positions, ibf_filenames, current_node, data, config);
-    auto && ibf = construct_ibf(kmers, max_bin_tbs, current_node, data, config);
-    if constexpr (!is_root) // no merge if root
-        parent_kmers.merge(kmers);
+    auto && ibf = construct_ibf(parent_kmers, kmers, max_bin_tbs, current_node, data, config);
     kmers.clear(); // reduce memory peak
 
     // parse all other children (merged bins) of the current ibf
@@ -210,15 +221,13 @@ inline void build(parent_kmers_type & parent_kmers,
             else // same as non-root
             {
                 compute_kmers(kmers, config, record);
-                insert_into_ibf(kmers, record.number_of_bins.back(), record.bin_indices.back(), ibf);
+                insert_into_ibf(parent_kmers, kmers, record.number_of_bins.back(), record.bin_indices.back(), ibf);
             }
         }
         else
         {
             compute_kmers(kmers, config, record);
-            insert_into_ibf(kmers, record.number_of_bins.back(), record.bin_indices.back(), ibf);
-
-            parent_kmers.merge(kmers); // no merge if root
+            insert_into_ibf(parent_kmers, kmers, record.number_of_bins.back(), record.bin_indices.back(), ibf);
         }
 
         update_user_bins(data, ibf_filenames, record);
