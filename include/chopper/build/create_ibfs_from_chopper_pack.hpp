@@ -102,7 +102,7 @@ inline size_t initialise_max_bin_kmers(std::unordered_set<size_t> & kmers,
         ibf_positions[node_data.max_bin_index] = data.hibf.size();
         return 1;
     }
-    else // there a max bin, that is ot a merged bin
+    else // max bin is not a merged bin
     {
         // we assume that the max record is at the beginning of the list of remaining records.
         auto const & record = node_data.remaining_records[0];
