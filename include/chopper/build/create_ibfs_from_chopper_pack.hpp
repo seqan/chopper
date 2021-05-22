@@ -55,22 +55,21 @@ inline void insert_into_ibf(parent_kmers_type & parent_kmers,
                             size_t const bin_index,
                             seqan3::interleaved_bloom_filter<> & ibf)
 {
-    size_t const kmers_per_chunk = (kmers.size() / number_of_bins) + 1;
-    auto it = kmers.begin();
-    for (size_t chunk = 0; chunk < number_of_bins; ++chunk)
-        for (size_t i = chunk * kmers_per_chunk; i < std::min((chunk + 1) * kmers_per_chunk, kmers.size()); ++i, ++it)
+    size_t const chunk_size = kmers.size() / number_of_bins + 1;
+    size_t chunk_number{};
+
+    for (auto chunk : kmers | seqan3::views::chunk(chunk_size))
+    {
+        assert(chunk_number < number_of_bins);
+        seqan3::bin_index const bin_idx{bin_index + chunk_number};
+        ++chunk_number;
+        for (size_t const value : chunk)
         {
+            ibf.emplace(value, bin_idx);
             if constexpr(std::same_as<parent_kmers_type, robin_hood::unordered_set<size_t>>)
-            {
-                auto const value = *it;
-                ibf.emplace(value, seqan3::bin_index{bin_index + chunk});
                 parent_kmers.insert(value);
-            }
-            else
-            {
-                ibf.emplace(*it, seqan3::bin_index{bin_index + chunk});
-            }
         }
+    }
 }
 
 inline void insert_into_ibf(build_config const & config,
@@ -85,7 +84,6 @@ inline void insert_into_ibf(build_config const & config,
         for (auto && [seq] : sequence_file_t{filename})
             for (auto hash : seq | hash_view)
                 hibf.emplace(hash, bin_index);
-
 }
 
 // forward declaration
