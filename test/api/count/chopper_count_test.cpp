@@ -9,9 +9,11 @@
 #include <chopper/count/count_config.hpp>
 #include <chopper/count/chopper_count.hpp>
 
+#include "../api_test.hpp"
+
 TEST(chopper_count_test, small_example_parallel_2_threads)
 {
-    std::string input_filename = DATADIR"small.fa";
+    std::string input_filename = data("small.fa");
     seqan3::test::tmp_filename data_filename{"data.tsv"};
 
     // generate data filename
@@ -42,7 +44,7 @@ TEST(chopper_count_test, small_example_parallel_2_threads)
 
 TEST(chopper_count_test, disable_minimizers)
 {
-    std::string input_filename = DATADIR"small.fa";
+    std::string input_filename = data("small.fa");
     seqan3::test::tmp_filename data_filename{"data.tsv"};
 
     // generate data filename
