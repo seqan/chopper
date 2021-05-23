@@ -3,13 +3,14 @@
 #include <seqan3/core/detail/debug_stream_alphabet.hpp>
 #include <seqan3/test/expect_range_eq.hpp>
 
+#include "api_test.hpp"
 #include "fastq_conversion.hpp"
 
 TEST(group1, out_empty)
 {
     std::string expected{"> seq1\nACGTTTGATTCGCG\n> seq2\nTCGGGGGATTCGCG\n"};
     testing::internal::CaptureStdout();
-    convert_fastq(DATADIR"in.fastq", "");
+    convert_fastq(data("in.fastq"), "");
     std::string std_cout = testing::internal::GetCapturedStdout();
     EXPECT_RANGE_EQ(expected, std_cout);
 }
@@ -17,7 +18,7 @@ TEST(group1, out_empty)
 TEST(group1, out_not_empty)
 {
     std::filesystem::path tmp_dir = std::filesystem::temp_directory_path(); // get the temp directory
-    convert_fastq(DATADIR"in.fastq", tmp_dir/"out.fasta");                 // create out.fasta
+    convert_fastq(data("in.fastq"), tmp_dir/"out.fasta");                 // create out.fasta
 
     // Check if out.fasta is correct
     using seqan3::operator""_dna5;

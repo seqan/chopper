@@ -10,10 +10,12 @@
 #include <chopper/split/sequence_input.hpp>
 #include <chopper/split/chopper_split.hpp>
 
+#include "../api_test.hpp"
+
 TEST(chopper_split_test, simple_example)
 {
-    std::string input_filename1 = DATADIR"small.fa";
-    std::string input_filename2 = DATADIR"small2.fa";
+    std::string input_filename1 = data("small.fa");
+    std::string input_filename2 = data("small2.fa");
     seqan3::test::tmp_filename output_filename{"small.split"};
     const char * argv[] = {"./chopper-split", "-k", "15", "-w", "25", "-b", "3",
                            "-s", input_filename1.c_str(), "-s", input_filename2.c_str(),
@@ -55,7 +57,7 @@ TEST(chopper_split_test, simple_example)
 
 TEST(chopper_split_test, no_s_or_f_option)
 {
-    std::string input_filename = DATADIR"small.fa";
+    std::string input_filename = data("small.fa");
     const char * argv[] = {"./chopper-split", "-k", "15"};
     int argc = 3;
     seqan3::argument_parser split_parser{"chopper-split", argc, argv, seqan3::update_notifications::off};
@@ -65,8 +67,8 @@ TEST(chopper_split_test, no_s_or_f_option)
 
 TEST(chopper_split_test, data_file_as_input)
 {
-    std::string input_filename1 = DATADIR"small.fa";
-    std::string input_filename2 = DATADIR"small2.fa";
+    std::string input_filename1 = data("small.fa");
+    std::string input_filename2 = data("small2.fa");
     seqan3::test::tmp_filename chopper_pack_filename{"small.pack"};
 
     {

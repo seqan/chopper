@@ -9,12 +9,14 @@
 
 #include <chopper/build/create_ibfs_from_chopper_split.hpp>
 
+#include "../api_test.hpp"
+
 using seqan3::operator""_dna4;
 
 TEST(create_ibfs_from_chopper_split_test, small_example)
 {
-    std::string input_filename1 = DATADIR"small.fa";
-    std::string input_filename2 = DATADIR"small2.fa";
+    std::string input_filename1 = data("small.fa");
+    std::string input_filename2 = data("small2.fa");
     seqan3::test::tmp_filename data_filename{"data.tsv"};
 
     seqan3::test::tmp_filename chopper_split_filename{"small.split"};
@@ -189,7 +191,7 @@ TEST(create_ibfs_from_chopper_split_test, small_example)
 
 // TEST(create_ibfs_from_chopper_split_test, config_overlap)
 // {
-//     std::string input_filename1 = DATADIR"small.fa";
+//     std::string input_filename1 = data("small.fa");
 //     seqan3::test::tmp_filename chopper_split_filename{"test.split"};
 
 //     { // generate chopper_split file
@@ -290,7 +292,7 @@ TEST(create_ibfs_from_chopper_split_test, small_example)
 
 // TEST(create_ibfs_from_chopper_split_test, high_level_size)
 // {
-//     std::string input_filename1 = DATADIR"small.fa";
+//     std::string input_filename1 = data("small.fa");
 //     seqan3::test::tmp_filename data_filename{"data.tsv"};
 
 //     seqan3::test::tmp_filename chopper_split_file{"test.split"};

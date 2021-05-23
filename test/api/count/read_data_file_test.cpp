@@ -8,10 +8,12 @@
 #include <chopper/count/count_config.hpp>
 #include <chopper/count/read_data_file.hpp>
 
+#include "../api_test.hpp"
+
 TEST(read_data_file_test, small_example)
 {
     count_config config;
-    config.data_file = DATADIR"seqinfo.tsv";
+    config.data_file = data("seqinfo.tsv");
 
     {
         config.column_index_to_cluster = 2;

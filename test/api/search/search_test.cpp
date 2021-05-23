@@ -11,6 +11,8 @@
 #include <chopper/search/search_config.hpp>
 #include <chopper/search/search_data.hpp>
 
+#include "../api_test.hpp"
+
 using seqan3::operator""_dna4;
 
 struct chopper_search_test : public ::testing::Test
@@ -36,9 +38,9 @@ struct chopper_search_test : public ::testing::Test
 
 TEST_F(chopper_search_test, first_example)
 {
-    std::string seq1_filename = DATADIR"seq1.fa";
-    std::string seq2_filename = DATADIR"seq2.fa";
-    std::string seq3_filename = DATADIR"seq3.fa";
+    std::string seq1_filename = data("seq1.fa");
+    std::string seq2_filename = data("seq2.fa");
+    std::string seq3_filename = data("seq3.fa");
 
     seqan3::test::tmp_filename chopper_pack_filename{"small.pack"};
 
@@ -129,9 +131,9 @@ TEST_F(chopper_search_test, first_example)
 
 TEST_F(chopper_search_test, multi_level_example)
 {
-    std::string seq1_filename = DATADIR"seq1.fa";
-    std::string seq2_filename = DATADIR"seq2.fa";
-    std::string seq3_filename = DATADIR"seq3.fa";
+    std::string seq1_filename = data("seq1.fa");
+    std::string seq2_filename = data("seq2.fa");
+    std::string seq3_filename = data("seq3.fa");
     std::string seq12_filename = seq1_filename + ";" + seq2_filename;
     std::string seq13_filename = seq1_filename + ";" + seq3_filename;
     std::string seq23_filename = seq2_filename + ";" + seq3_filename;

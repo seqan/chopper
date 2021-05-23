@@ -9,12 +9,14 @@
 
 #include <chopper/build/chopper_build.hpp>
 
+#include "../api_test.hpp"
+
 using seqan3::operator""_dna4;
 
 // TEST(chopper_build_test, chopper_split_file)
 // {
-//     std::string input_filename1 = DATADIR"small.fa";
-//     std::string input_filename2 = DATADIR"small2.fa";
+//     std::string input_filename1 = data("small.fa");
+//     std::string input_filename2 = data("small2.fa");
 //     seqan3::test::tmp_filename data_filename{"data.tsv"};
 
 //     seqan3::test::tmp_filename chopper_split_filename{"test.split"};
@@ -65,8 +67,8 @@ using seqan3::operator""_dna4;
 
 TEST(chopper_build_test, chopper_pack_file)
 {
-    std::string input_filename1 = DATADIR"small.fa";
-    std::string input_filename2 = DATADIR"small2.fa";
+    std::string input_filename1 = data("small.fa");
+    std::string input_filename2 = data("small2.fa");
 
     seqan3::test::tmp_filename chopper_pack_filename{"test.pack"};
 
@@ -153,8 +155,8 @@ TEST(chopper_build_test, chopper_pack_file)
 
 // TEST(chopper_build_test, create_output_dir_if_it_does_not_exist)
 // {
-//     std::string input_filename1 = DATADIR"small.fa";
-//     std::string input_filename2 = DATADIR"small2.fa";
+//     std::string input_filename1 = data("small.fa");
+//     std::string input_filename2 = data("small2.fa");
 
 //     seqan3::test::tmp_filename chopper_pack_filename{"test.pack"};
 

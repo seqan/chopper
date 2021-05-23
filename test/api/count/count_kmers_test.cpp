@@ -9,6 +9,8 @@
 #include <chopper/count/count_config.hpp>
 #include <chopper/count/count_kmers.hpp>
 
+#include "../api_test.hpp"
+
 TEST(count_kmers_test, small_example_serial)
 {
     count_config config;
@@ -16,7 +18,7 @@ TEST(count_kmers_test, small_example_serial)
     config.w = 25;
     config.num_threads = 1;
 
-    std::string input_file = DATADIR"small.fa";
+    std::string input_file = data("small.fa");
 
     robin_hood::unordered_map<std::string, std::vector<std::string>> filename_clusters
     {
@@ -43,7 +45,7 @@ TEST(count_kmers_test, small_example_parallel_2_threads)
     config.w = 25;
     config.num_threads = 2;
 
-    std::string input_file = DATADIR"small.fa";
+    std::string input_file = data("small.fa");
 
     robin_hood::unordered_map<std::string, std::vector<std::string>> filename_clusters
     {

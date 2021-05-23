@@ -10,6 +10,8 @@
 
 #include <chopper/build/create_ibfs_from_chopper_pack.hpp>
 
+#include "../api_test.hpp"
+
 using seqan3::operator""_dna4;
 
 struct create_ibfs_from_chopper_pack_test : public ::testing::Test
@@ -52,9 +54,9 @@ struct create_ibfs_from_chopper_pack_test : public ::testing::Test
 
 TEST_F(create_ibfs_from_chopper_pack_test, small_example_2_levels)
 {
-    std::string seq1_filename = DATADIR"seq1.fa";
-    std::string seq2_filename = DATADIR"seq2.fa";
-    std::string seq3_filename = DATADIR"seq3.fa";
+    std::string seq1_filename = data("seq1.fa");
+    std::string seq2_filename = data("seq2.fa");
+    std::string seq3_filename = data("seq3.fa");
 
     seqan3::test::tmp_filename chopper_pack_filename{"small.pack"};
 
@@ -158,10 +160,10 @@ TEST_F(create_ibfs_from_chopper_pack_test, small_example_2_levels)
 
 TEST_F(create_ibfs_from_chopper_pack_test, uniform_splitting)
 {
-    std::string seq1_filename = DATADIR"seq1.fa";
-    std::string seq2_filename = DATADIR"seq2.fa";
-    std::string seq3_filename = DATADIR"seq3.fa";
-    std::string all_seq_filename = DATADIR"small.fa";
+    std::string seq1_filename = data("seq1.fa");
+    std::string seq2_filename = data("seq2.fa");
+    std::string seq3_filename = data("seq3.fa");
+    std::string all_seq_filename = data("small.fa");
 
     seqan3::test::tmp_filename chopper_pack_filename{"small.pack"};
 
@@ -249,9 +251,9 @@ TEST_F(create_ibfs_from_chopper_pack_test, uniform_splitting)
 
 TEST_F(create_ibfs_from_chopper_pack_test, same_example_two_levels_but_split_bin_as_hibf_max_bin)
 {
-    std::string seq1_filename = DATADIR"seq1.fa";
-    std::string seq2_filename = DATADIR"seq2.fa";
-    std::string seq3_filename = DATADIR"seq3.fa";
+    std::string seq1_filename = data("seq1.fa");
+    std::string seq2_filename = data("seq2.fa");
+    std::string seq3_filename = data("seq3.fa");
 
     seqan3::test::tmp_filename chopper_pack_filename{"small.pack"};
 
@@ -355,9 +357,9 @@ TEST_F(create_ibfs_from_chopper_pack_test, same_example_two_levels_but_split_bin
 
 TEST_F(create_ibfs_from_chopper_pack_test, multi_level_ibf)
 {
-    std::string seq1_filename = DATADIR"seq1.fa";
-    std::string seq2_filename = DATADIR"seq2.fa";
-    std::string seq3_filename = DATADIR"seq3.fa";
+    std::string seq1_filename = data("seq1.fa");
+    std::string seq2_filename = data("seq2.fa");
+    std::string seq3_filename = data("seq3.fa");
     std::string seq12_filename = seq1_filename + ";" + seq2_filename;
     std::string seq13_filename = seq1_filename + ";" + seq3_filename;
     std::string seq23_filename = seq2_filename + ";" + seq3_filename;

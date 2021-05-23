@@ -19,7 +19,7 @@ TEST_F(cli_test, chopper_pipeline)
 {
     // CHOPPER COUNT
     // =========================================================================
-    std::string seq_filename = DATADIR"small.fa";
+    std::string seq_filename = data("small.fa");
     seqan3::test::tmp_filename const taxa_filename{"data.tsv"};
 
     // we need to have tax ids from the user
