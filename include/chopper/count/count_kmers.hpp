@@ -72,12 +72,16 @@ inline void count_kmers(robin_hood::unordered_map<std::string, std::vector<std::
         return pair_t{inner_pair_t{cluster.first, cluster.second}, result};
     });
 
-    auto cluster_view = filename_clusters
-                      | read_files
-                      | seqan3::views::async_input_buffer(counting_threads);
+    std::vector<std::pair<std::string, std::vector<std::string>>> cluster_vector{};
+    for (auto const & cluster : filename_clusters)
+        cluster_vector.emplace_back(cluster.first, cluster.second);
 
-    auto worker = [&config, &cluster_view, &compute_minimiser, &compute_kmers] ()
+    auto filename = cluster_vector | seqan3::views::async_input_buffer(counting_threads * 5);
+
+    auto worker = [&] ()
     {
+        auto cluster_view = filename | read_files;
+
         if (config.disable_minimizers)
             compute_hashes(cluster_view, compute_kmers);
         else
