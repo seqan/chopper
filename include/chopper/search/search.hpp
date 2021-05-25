@@ -50,8 +50,8 @@ inline void search(std::unordered_set<std::pair<int32_t, uint32_t>, pair_hash> &
                    search_config const & config,
                    int64_t const ibf_idx)
 {
-    size_t const kmer_lemma = (kmers.size() > config.errors * config.k)
-                              ? kmers.size() - config.errors * config.k
+    size_t const kmer_lemma = (kmers.size() > (config.errors + 1) * config.k)
+                              ? kmers.size() - (config.errors + 1) * config.k
                               : 0;
 
     auto counting_agent = data.hibf[ibf_idx].counting_agent<uint16_t>();
