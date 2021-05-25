@@ -176,11 +176,10 @@ TEST_F(chopper_search_test, first_example)
     seqan3::test::tmp_filename output_filename{"search.out"};
 
     const char * argv[] = {"./chopper-search",
-                           "-k", "15",
                            "-i", output_path.get_path().c_str(),
                            "-q", query_filename.get_path().c_str(),
                            "-o", output_filename.get_path().c_str()};
-    int argc = 9;
+    int argc = 7;
     seqan3::argument_parser search_parser{"chopper-search", argc, argv, seqan3::update_notifications::off};
 
     testing::internal::CaptureStderr();
@@ -343,11 +342,10 @@ TEST_F(chopper_search_test, multi_level_example)
     seqan3::test::tmp_filename output_filename{"search.out"};
 
     const char * argv[] = {"./chopper-search",
-                           "-k", "15",
                            "-i", output_path.get_path().c_str(),
                            "-q", query_filename.get_path().c_str(),
                            "-o", output_filename.get_path().c_str()};
-    int argc = 9;
+    int argc = 7;
     seqan3::argument_parser search_parser{"chopper-search", argc, argv, seqan3::update_notifications::off};
 
     testing::internal::CaptureStderr();
