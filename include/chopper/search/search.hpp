@@ -3,6 +3,7 @@
 #include <chopper/search/pair_hash.hpp>
 #include <chopper/search/search_config.hpp>
 #include <chopper/search/search_data.hpp>
+#include <chopper/search/sync_out.hpp>
 
 inline void clear_and_compute_kmers(std::vector<size_t> & kmers, seqan3::dna4_vector const & query, search_config const & config)
 {
@@ -11,7 +12,7 @@ inline void clear_and_compute_kmers(std::vector<size_t> & kmers, seqan3::dna4_ve
     std::ranges::move(hash_view, std::cpp20::back_inserter(kmers));
 }
 
-inline void write_header(search_data const & data, std::ostream & out_stream)
+inline void write_header(search_data const & data, sync_out & out_stream)
 {
     data.user_bins.write_filenames(out_stream);
     out_stream << "#QUERY_NAME\tUSER_BINS\n";
@@ -20,13 +21,13 @@ inline void write_header(search_data const & data, std::ostream & out_stream)
 inline void write_result(std::vector<std::pair<int32_t, uint32_t>> & membership_result,
                          std::string const & id,
                          search_data const & data,
-                         std::ostream & out_stream)
+                         sync_out & out_stream)
 {
     out_stream << id << '\t';
 
     if (membership_result.empty())
     {
-        out_stream << std::endl;
+        out_stream << '\n';
         return;
     }
 
@@ -44,7 +45,7 @@ inline void write_result(std::vector<std::pair<int32_t, uint32_t>> & membership_
         out_stream << data.user_bins.filename_index(ibf_idx, bin_idx) << ',';
     }
 
-    out_stream << data.user_bins.filename_index(membership_result.back().first, membership_result.back().second) << std::endl;
+    out_stream << data.user_bins.filename_index(membership_result.back().first, membership_result.back().second) << '\n';
 }
 
 inline void search(std::vector<std::pair<int32_t, uint32_t>> & membership_result,

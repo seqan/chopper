@@ -12,6 +12,7 @@
 #include <chopper/search/search.hpp>
 #include <chopper/search/search_config.hpp>
 #include <chopper/search/search_data.hpp>
+#include <chopper/search/sync_out.hpp>
 
 void initialize_argument_parser(seqan3::argument_parser & parser, search_config & config)
 {
@@ -24,6 +25,7 @@ void initialize_argument_parser(seqan3::argument_parser & parser, search_config 
     parser.add_option(config.k, 'k', "kmer-size", "The kmer size to build kmers.");
     parser.add_option(config.errors, 'e', "errors", "The errors to allow in the search.");
     parser.add_option(config.query_filename, 'q', "queries", "The query sequences to seach for in the index.");
+    parser.add_option(config.output_filename, 'o', "output", "The file to write results to.");
     parser.add_flag(config.verbose, 'v', "verbose", "Output logging/progress information.");
 }
 
@@ -52,6 +54,7 @@ int chopper_search(seqan3::argument_parser & parser)
     }
 
     search_data data;
+    sync_out sync_file{config.output_filename};
 
     { // read ibf vector
         std::ifstream is{config.chopper_index_filename, std::ios::binary};
@@ -65,7 +68,7 @@ int chopper_search(seqan3::argument_parser & parser)
         iarchive(data.user_bins);
     }
 
-    write_header(data, std::cout);
+    write_header(data, sync_file);
 
     std::vector<size_t> read_kmers;
     std::vector<std::pair<int32_t, uint32_t>> result{};
@@ -77,7 +80,7 @@ int chopper_search(seqan3::argument_parser & parser)
 
         search(result, read_kmers, data, config, 0); // start at top level ibf
 
-        write_result(result, id, data, std::cout);
+        write_result(result, id, data, sync_file);
     }
 
     return 0;
