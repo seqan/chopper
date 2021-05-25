@@ -4,7 +4,6 @@
 
 #include <seqan3/argument_parser/all.hpp>
 #include <seqan3/std/filesystem>
-#include <seqan3/test/tmp_filename.hpp>
 
 #include <chopper/split/split_data.hpp>
 #include <chopper/split/sequence_input.hpp>

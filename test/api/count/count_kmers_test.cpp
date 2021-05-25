@@ -1,11 +1,5 @@
 #include <gtest/gtest.h>
 
-#include <vector>
-
-#include <robin_hood.h>
-
-#include <seqan3/test/expect_range_eq.hpp>
-
 #include <chopper/count/count_config.hpp>
 #include <chopper/count/count_kmers.hpp>
 

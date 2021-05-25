@@ -2,8 +2,6 @@
 
 #include <fstream>
 
-#include <seqan3/test/tmp_filename.hpp>
-
 #include <chopper/build/create_ibfs_from_chopper_pack.hpp>
 #include <chopper/search/chopper_search.hpp>
 #include <chopper/search/pair_hash.hpp>
@@ -17,22 +15,20 @@ using seqan3::operator""_dna4;
 
 struct chopper_search_test : public ::testing::Test
 {
-    bool is_unique_range(std::vector<std::pair<int32_t, uint32_t>> v)
+    bool is_unique_range(std::vector<std::pair<int32_t, uint32_t>> & rng)
     {
-        std::sort(v.begin(), v.end());
-        auto it = std::unique(v.begin(), v.end());
-        return it == v.end();
+        std::ranges::sort(rng);
+        auto it = std::unique(rng.begin(), rng.end());
+        return it == rng.end();
     }
 
-    auto compare_result(std::unordered_set<std::pair<int32_t, uint32_t>, pair_hash> const & result_set,
-                        std::vector<std::pair<int32_t, uint32_t>> const & bins_in_result_set)
+    auto compare_result(std::vector<std::pair<int32_t, uint32_t>> & result_set,
+                        std::vector<std::pair<int32_t, uint32_t>> && expected_set)
     {
-        ASSERT_TRUE(is_unique_range(bins_in_result_set)); // sanity check expected result
+        ASSERT_TRUE(is_unique_range(result_set)); // sanity check actual result
+        ASSERT_TRUE(is_unique_range(expected_set)); // sanity check expected result
 
-        EXPECT_EQ(result_set.size(), bins_in_result_set.size());
-
-        for (auto const & bin : bins_in_result_set)
-            EXPECT_TRUE(result_set.find(bin) != result_set.end());
+        EXPECT_RANGE_EQ(result_set, expected_set);
     }
 };
 
@@ -104,8 +100,8 @@ TEST_F(chopper_search_test, first_example)
     std::vector<size_t> kmers{};
 
     { // unspecific
-        compute_kmers(kmers, unspecific, config);
-        std::unordered_set<std::pair<int32_t, uint32_t>, pair_hash> result{};
+        clear_and_compute_kmers(kmers, unspecific, config);
+        std::vector<std::pair<int32_t, uint32_t>> result{};
 
         search(result, kmers, data, config, 0); // start at top level ibf
 
@@ -113,8 +109,8 @@ TEST_F(chopper_search_test, first_example)
     }
 
     { // seq2_specific
-        compute_kmers(kmers, seq2_specific, config);
-        std::unordered_set<std::pair<int32_t, uint32_t>, pair_hash> result{};
+        clear_and_compute_kmers(kmers, seq2_specific, config);
+        std::vector<std::pair<int32_t, uint32_t>> result{};
 
         search(result, kmers, data, config, 0); // start at top level ibf
 
@@ -122,8 +118,8 @@ TEST_F(chopper_search_test, first_example)
     }
 
     { // seq3_specific
-        compute_kmers(kmers, seq3_specific, config);
-        std::unordered_set<std::pair<int32_t, uint32_t>, pair_hash> result{};
+        clear_and_compute_kmers(kmers, seq3_specific, config);
+        std::vector<std::pair<int32_t, uint32_t>> result{};
 
         search(result, kmers, data, config, 0); // start at top level ibf
 
@@ -259,8 +255,8 @@ TEST_F(chopper_search_test, multi_level_example)
     std::vector<size_t> kmers{};
 
     { // unspecific
-        compute_kmers(kmers, unspecific, config);
-        std::unordered_set<std::pair<int32_t, uint32_t>, pair_hash> result{};
+        clear_and_compute_kmers(kmers, unspecific, config);
+        std::vector<std::pair<int32_t, uint32_t>> result{};
 
         search(result, kmers, data, config, 0); // start at top level ibf
 
@@ -275,8 +271,8 @@ TEST_F(chopper_search_test, multi_level_example)
     }
 
     { // seq2_specific
-        compute_kmers(kmers, seq2_specific, config);
-        std::unordered_set<std::pair<int32_t, uint32_t>, pair_hash> result{};
+        clear_and_compute_kmers(kmers, seq2_specific, config);
+        std::vector<std::pair<int32_t, uint32_t>> result{};
 
         search(result, kmers, data, config, 0); // start at top level ibf
 
@@ -291,8 +287,8 @@ TEST_F(chopper_search_test, multi_level_example)
     }
 
     { // seq3_specific
-        compute_kmers(kmers, seq3_specific, config);
-        std::unordered_set<std::pair<int32_t, uint32_t>, pair_hash> result{};
+        clear_and_compute_kmers(kmers, seq3_specific, config);
+        std::vector<std::pair<int32_t, uint32_t>> result{};
 
         search(result, kmers, data, config, 0); // start at top level ibf
 

@@ -77,6 +77,7 @@ int chopper_build(seqan3::argument_parser & parser)
         archive(data.hibf);
         archive(data.hibf_bin_levels);
         archive(data.user_bins);
+        archive(config.k);
     }
 
     return 0;

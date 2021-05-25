@@ -3,14 +3,13 @@
 #include <fstream>
 #include <sstream>
 
-#include <seqan3/test/tmp_filename.hpp>
-
 #include <chopper/build/chopper_build.hpp>
 #include <chopper/build/create_ibfs_from_chopper_pack.hpp>
 #include <chopper/search/pair_hash.hpp>
 #include <chopper/search/chopper_search.hpp>
 #include <chopper/search/search.hpp>
 #include <chopper/search/search_data.hpp>
+#include <chopper/search/sync_out.hpp>
 
 #include "../api_test.hpp"
 
@@ -35,17 +34,28 @@ struct chopper_search_test : public ::testing::Test
         for (auto const & bin : bins_in_result_set)
             EXPECT_TRUE(result_set.find(bin) != result_set.end());
     }
+
+    static inline std::string const string_from_file(std::filesystem::path const & path,
+                                                     std::ios_base::openmode const mode = std::ios_base::in)
+    {
+        std::ifstream file_stream(path, mode);
+        if (!file_stream.is_open())
+            throw std::logic_error{"[string_from_file] Cannot open " + path.string()};
+        std::stringstream file_buffer;
+        file_buffer << file_stream.rdbuf();
+        return {file_buffer.str()};
+    }
 };
 
 TEST_F(chopper_search_test, write_result)
 {
-    std::unordered_set<std::pair<int32_t, uint32_t>, pair_hash> result;
-    result.emplace(0, 0);
-    result.emplace(0, 1);
-    result.emplace(0, 2);
-    result.emplace(0, 5);
-    result.emplace(1, 0);
-    result.emplace(1, 2);
+    std::vector<std::pair<int32_t, uint32_t>> result;
+    result.emplace_back(0, 0u);
+    result.emplace_back(0, 1u);
+    result.emplace_back(0, 2u);
+    result.emplace_back(0, 5u);
+    result.emplace_back(1, 0u);
+    result.emplace_back(1, 2u);
 
     std::string query_id{"query1"};
 
@@ -64,9 +74,12 @@ TEST_F(chopper_search_test, write_result)
     data.user_bins.add_user_bin_positions({0, 1, 2, 3, 4, 5});
     data.user_bins.add_user_bin_positions({6, 7, 8});
 
-    std::stringstream ss;
-    write_header(data, ss);
-    write_result(result, query_id, data, ss);
+    seqan3::test::tmp_filename tmp_file{"chopper_search_test_write_result"};
+    {
+        sync_out out_file{tmp_file.get_path()};
+        write_header(data, out_file);
+        write_result(result, query_id, data, out_file);
+    }
 
     std::string expected
     {
@@ -83,7 +96,7 @@ TEST_F(chopper_search_test, write_result)
         "query1\t0,1,2,5,6,8\n"
     };
 
-    EXPECT_EQ(ss.str(), expected);
+    EXPECT_EQ(string_from_file(tmp_file.get_path()), expected);
 }
 
 TEST_F(chopper_search_test, first_example)
@@ -160,18 +173,18 @@ TEST_F(chopper_search_test, first_example)
              << "ATCGATCACGATCAGCGAGCGATATCTTATCGTAGGCATCGAGCATCGAGGAGCGATCTATCTATCTATCATCTATCTAT\n";
     }
 
+    seqan3::test::tmp_filename output_filename{"search.out"};
+
     const char * argv[] = {"./chopper-search",
-                           "-k", "15",
                            "-i", output_path.get_path().c_str(),
-                           "-q", query_filename.get_path().c_str()};
+                           "-q", query_filename.get_path().c_str(),
+                           "-o", output_filename.get_path().c_str()};
     int argc = 7;
     seqan3::argument_parser search_parser{"chopper-search", argc, argv, seqan3::update_notifications::off};
 
     testing::internal::CaptureStderr();
-    testing::internal::CaptureStdout();
     auto parse_res = chopper_search(search_parser);
     std::string std_cerr = testing::internal::GetCapturedStderr();
-    std::string std_cout = testing::internal::GetCapturedStdout();
     ASSERT_EQ(parse_res, 0) << std_cerr;
 
     std::string expected
@@ -190,7 +203,7 @@ TEST_F(chopper_search_test, first_example)
         "seq3_specific\t2,3,5,6,7\n"
     };
 
-    EXPECT_EQ(std_cout, expected);
+    EXPECT_EQ(string_from_file(output_filename.get_path()), expected);
 }
 
 TEST_F(chopper_search_test, multi_level_example)
@@ -326,18 +339,18 @@ TEST_F(chopper_search_test, multi_level_example)
              << "ATCGATCACGATCAGCGAGCGATATCTTATCGTAGGCATCGAGCATCGAGGAGCGATCTATCTATCTATCATCTATCTAT\n";
     }
 
+    seqan3::test::tmp_filename output_filename{"search.out"};
+
     const char * argv[] = {"./chopper-search",
-                           "-k", "15",
                            "-i", output_path.get_path().c_str(),
-                           "-q", query_filename.get_path().c_str()};
+                           "-q", query_filename.get_path().c_str(),
+                           "-o", output_filename.get_path().c_str()};
     int argc = 7;
     seqan3::argument_parser search_parser{"chopper-search", argc, argv, seqan3::update_notifications::off};
 
     testing::internal::CaptureStderr();
-    testing::internal::CaptureStdout();
     auto parse_res = chopper_search(search_parser);
     std::string std_cerr = testing::internal::GetCapturedStderr();
-    std::string std_cout = testing::internal::GetCapturedStdout();
     ASSERT_EQ(parse_res, 0) << std_cerr;
 
     std::string expected
@@ -368,5 +381,5 @@ TEST_F(chopper_search_test, multi_level_example)
         "seq3_specific\t3,4,5,8,9,13,14,18,19\n"
     };
 
-    EXPECT_EQ(std_cout, expected);
+    EXPECT_EQ(string_from_file(output_filename.get_path()), expected);
 }

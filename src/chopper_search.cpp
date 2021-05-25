@@ -4,6 +4,7 @@
 #include <cereal/archives/binary.hpp>
 
 #include <seqan3/argument_parser/all.hpp>
+#include <seqan3/core/algorithm/detail/execution_handler_parallel.hpp>
 #include <seqan3/core/debug_stream.hpp>
 #include <seqan3/io/sequence_file/input.hpp>
 #include <seqan3/search/views/kmer_hash.hpp>
@@ -12,6 +13,7 @@
 #include <chopper/search/search.hpp>
 #include <chopper/search/search_config.hpp>
 #include <chopper/search/search_data.hpp>
+#include <chopper/search/sync_out.hpp>
 
 void initialize_argument_parser(seqan3::argument_parser & parser, search_config & config)
 {
@@ -19,11 +21,10 @@ void initialize_argument_parser(seqan3::argument_parser & parser, search_config 
     parser.info.short_description = "Read an HIBF on results from chopper-build and search queries in it.";
     parser.info.version = "1.0.0";
 
-    // todo: k-mer size should be serialized with building the index to avoid inconsistencies
     parser.add_option(config.chopper_index_filename, 'i', "index", "Provide the HIBF index file produced by chopper build.");
-    parser.add_option(config.k, 'k', "kmer-size", "The kmer size to build kmers.");
     parser.add_option(config.errors, 'e', "errors", "The errors to allow in the search.");
     parser.add_option(config.query_filename, 'q', "queries", "The query sequences to seach for in the index.");
+    parser.add_option(config.output_filename, 'o', "output", "The file to write results to.");
     parser.add_flag(config.verbose, 'v', "verbose", "Output logging/progress information.");
 }
 
@@ -33,8 +34,8 @@ struct search_file_traits : public seqan3::sequence_file_input_default_traits_dn
 };
 
 using search_sequence_file_t = seqan3::sequence_file_input<search_file_traits,
-                                                    seqan3::fields<seqan3::field::id, seqan3::field::seq>,
-                                                    seqan3::type_list<seqan3::format_fasta, seqan3::format_fastq>>;
+                                                           seqan3::fields<seqan3::field::id, seqan3::field::seq>,
+                                                           seqan3::type_list<seqan3::format_fasta, seqan3::format_fastq>>;
 
 int chopper_search(seqan3::argument_parser & parser)
 {
@@ -52,6 +53,7 @@ int chopper_search(seqan3::argument_parser & parser)
     }
 
     search_data data;
+    sync_out sync_file{config.output_filename};
 
     { // read ibf vector
         std::ifstream is{config.chopper_index_filename, std::ios::binary};
@@ -63,21 +65,39 @@ int chopper_search(seqan3::argument_parser & parser)
         iarchive(data.hibf);
         iarchive(data.hibf_bin_levels);
         iarchive(data.user_bins);
+        iarchive(config.k);
     }
 
-    write_header(data, std::cout);
+    write_header(data, sync_file);
 
-    std::vector<size_t> read_kmers; // allocate space once
-    std::unordered_set<std::pair<int32_t, uint32_t>, pair_hash> result{};
+    search_sequence_file_t fin{config.query_filename};
+    std::vector<search_sequence_file_t::record_type> records{};
 
-    for (auto && [id, seq] : search_sequence_file_t{config.query_filename})
+    auto worker = [&] (auto && chunked_view, auto &&)
     {
-        compute_kmers(read_kmers, seq, config);
-        result.clear();
+        std::vector<size_t> read_kmers;
+        std::vector<std::pair<int32_t, uint32_t>> result{};
 
-        search(result, read_kmers, data, config, 0); // start at top level ibf
+        for (auto && [id, seq] : chunked_view)
+        {
+            clear_and_compute_kmers(read_kmers, seq, config);
+            result.clear();
 
-        write_result(result, id, data, std::cout);
+            search(result, read_kmers, data, config, 0); // start at top level ibf
+
+            write_result(result, id, data, sync_file);
+        }
+    };
+
+    for (auto && record_batch : fin | seqan3::views::chunk((1ULL<<20)*10))
+    {
+        records.clear();
+        std::ranges::move(record_batch, std::cpp20::back_inserter(records));
+
+        size_t const records_per_thread = records.size() / config.threads;
+        seqan3::detail::execution_handler_parallel executioner{config.threads};
+        auto chunked_records = records | seqan3::views::chunk(records_per_thread);
+        executioner.bulk_execute(std::move(worker), std::move(chunked_records), [](){});
     }
 
     return 0;

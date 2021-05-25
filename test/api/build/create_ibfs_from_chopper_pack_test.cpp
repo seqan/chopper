@@ -4,10 +4,6 @@
 #include <unordered_map>
 #include <vector>
 
-#include <seqan3/test/expect_range_eq.hpp>
-#include <seqan3/test/tmp_filename.hpp>
-#include <seqan3/alphabet/nucleotide/dna4.hpp>
-
 #include <chopper/build/create_ibfs_from_chopper_pack.hpp>
 
 #include "../api_test.hpp"

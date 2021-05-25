@@ -12,6 +12,8 @@
 #include <seqan3/utility/views/join_with.hpp>
 #include <seqan3/utility/views/to.hpp>
 
+#include <chopper/search/sync_out.hpp>
+
 struct hibf_user_bins
 {
 private:
@@ -61,12 +63,12 @@ public:
                  });
     }
 
-    int64_t get_position(size_t const ibf_idx, size_t const bin_idx) const
+    int64_t filename_index(size_t const ibf_idx, size_t const bin_idx) const
     {
         return bin_to_filename_position[ibf_idx][bin_idx];
     }
 
-    void write_filenames(std::ostream & out_stream) const
+    void write_filenames(sync_out & out_stream) const
     {
         size_t position{};
         for (auto const & filename : filenames)

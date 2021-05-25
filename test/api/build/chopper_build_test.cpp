@@ -4,7 +4,6 @@
 #include <unordered_map>
 #include <vector>
 
-#include <seqan3/test/tmp_filename.hpp>
 #include <seqan3/alphabet/nucleotide/dna4.hpp>
 
 #include <chopper/build/chopper_build.hpp>
