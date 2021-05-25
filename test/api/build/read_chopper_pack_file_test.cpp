@@ -1,9 +1,8 @@
 #include <gtest/gtest.h>
 
-#include <seqan3/test/expect_range_eq.hpp>
-#include <seqan3/test/tmp_filename.hpp>
-
 #include <chopper/build/read_chopper_pack_file.hpp>
+
+#include "../api_test.hpp"
 
 TEST(read_chopper_pack_file_test, small_example)
 {

@@ -6,7 +6,7 @@
 #include <chopper/pack/pack_data.hpp>
 #include <chopper/pack/aggregate_by.hpp>
 
-#include <seqan3/test/expect_range_eq.hpp>
+#include "../api_test.hpp"
 
 TEST(sort_by_test, small_example)
 {

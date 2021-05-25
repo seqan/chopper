@@ -4,10 +4,9 @@
 #include <sstream>
 #include <vector>
 
-#include <seqan3/argument_parser/all.hpp>
-#include <seqan3/test/tmp_filename.hpp>
-
 #include <chopper/pack/chopper_pack.hpp>
+
+#include "../api_test.hpp"
 
 TEST(chopper_pack_test, small_example)
 {

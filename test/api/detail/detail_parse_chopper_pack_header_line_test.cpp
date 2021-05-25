@@ -8,8 +8,7 @@
 
 #include <chopper/detail_parse_chopper_pack_header_line.hpp>
 
-#include <seqan3/test/expect_range_eq.hpp>
-#include <seqan3/test/tmp_filename.hpp>
+#include "../api_test.hpp"
 
 template <typename record_type>
 void write_graph(lemon::ListDigraph const & g,

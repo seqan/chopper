@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
-#include <seqan3/test/expect_range_eq.hpp>
-
 #include <chopper/detail_parse_chopper_pack_line.hpp>
+
+#include "../api_test.hpp"
 
 TEST(chopper_pack_record_test, euality_operator)
 {

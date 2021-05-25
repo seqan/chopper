@@ -3,8 +3,6 @@
 #include <fstream>
 #include <sstream>
 
-#include <seqan3/test/tmp_filename.hpp>
-
 #include <chopper/build/chopper_build.hpp>
 #include <chopper/build/create_ibfs_from_chopper_pack.hpp>
 #include <chopper/search/pair_hash.hpp>

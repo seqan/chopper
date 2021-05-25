@@ -4,11 +4,10 @@
 #include <seqan/graph_algorithms.h>
 #include <fstream>
 
-#include <seqan3/test/expect_range_eq.hpp>
-
 #include <chopper/split/map_distance_matrix.hpp>
 #include <chopper/split/neighbour_joining.hpp>
 
+#include "../api_test.hpp"
 
 TEST(neighbour_joining_test, small_example_seqan_string)
 {

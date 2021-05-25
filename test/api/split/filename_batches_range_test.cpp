@@ -2,11 +2,10 @@
 
 #include <fstream>
 
-#include <seqan3/test/expect_range_eq.hpp>
-#include <seqan3/test/tmp_filename.hpp>
-
 #include <chopper/split/split_config.hpp>
 #include <chopper/split/filename_batches_range.hpp>
+
+#include "../api_test.hpp"
 
 TEST(filename_batches_range_test, high_level_data_file)
 {

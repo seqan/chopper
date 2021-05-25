@@ -4,8 +4,6 @@
 #include <unordered_map>
 #include <vector>
 
-#include <seqan3/test/tmp_filename.hpp>
-
 #include <chopper/count/count_config.hpp>
 #include <chopper/count/chopper_count.hpp>
 

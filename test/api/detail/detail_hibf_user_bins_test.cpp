@@ -2,10 +2,9 @@
 
 #include <fstream>
 
-#include <seqan3/test/expect_range_eq.hpp>
-#include <seqan3/test/tmp_filename.hpp>
-
 #include <chopper/detail_hibf_user_bins.hpp>
+
+#include "../api_test.hpp"
 
 TEST(hibf_user_bins_test, small_test)
 {

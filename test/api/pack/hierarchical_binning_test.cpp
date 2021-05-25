@@ -4,9 +4,9 @@
 #include <sstream>
 #include <vector>
 
-#include <seqan3/test/tmp_filename.hpp>
-
 #include <chopper/pack/hierarchical_binning.hpp>
+
+#include "../api_test.hpp"
 
 TEST(hierarchical_binning_test, small_example)
 {
