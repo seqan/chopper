@@ -4,7 +4,7 @@
 #include <chopper/search/search_config.hpp>
 #include <chopper/search/search_data.hpp>
 
-inline void compute_kmers(std::vector<size_t> & kmers, seqan3::dna4_vector const & query, search_config const & config)
+inline void clear_and_compute_kmers(std::vector<size_t> & kmers, seqan3::dna4_vector const & query, search_config const & config)
 {
     kmers.clear();
     auto hash_view = query | seqan3::views::kmer_hash(seqan3::ungapped{config.k});

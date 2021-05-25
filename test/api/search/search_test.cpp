@@ -104,7 +104,7 @@ TEST_F(chopper_search_test, first_example)
     std::vector<size_t> kmers{};
 
     { // unspecific
-        compute_kmers(kmers, unspecific, config);
+        clear_and_compute_kmers(kmers, unspecific, config);
         std::unordered_set<std::pair<int32_t, uint32_t>, pair_hash> result{};
 
         search(result, kmers, data, config, 0); // start at top level ibf
@@ -113,7 +113,7 @@ TEST_F(chopper_search_test, first_example)
     }
 
     { // seq2_specific
-        compute_kmers(kmers, seq2_specific, config);
+        clear_and_compute_kmers(kmers, seq2_specific, config);
         std::unordered_set<std::pair<int32_t, uint32_t>, pair_hash> result{};
 
         search(result, kmers, data, config, 0); // start at top level ibf
@@ -122,7 +122,7 @@ TEST_F(chopper_search_test, first_example)
     }
 
     { // seq3_specific
-        compute_kmers(kmers, seq3_specific, config);
+        clear_and_compute_kmers(kmers, seq3_specific, config);
         std::unordered_set<std::pair<int32_t, uint32_t>, pair_hash> result{};
 
         search(result, kmers, data, config, 0); // start at top level ibf
@@ -259,7 +259,7 @@ TEST_F(chopper_search_test, multi_level_example)
     std::vector<size_t> kmers{};
 
     { // unspecific
-        compute_kmers(kmers, unspecific, config);
+        clear_and_compute_kmers(kmers, unspecific, config);
         std::unordered_set<std::pair<int32_t, uint32_t>, pair_hash> result{};
 
         search(result, kmers, data, config, 0); // start at top level ibf
@@ -275,7 +275,7 @@ TEST_F(chopper_search_test, multi_level_example)
     }
 
     { // seq2_specific
-        compute_kmers(kmers, seq2_specific, config);
+        clear_and_compute_kmers(kmers, seq2_specific, config);
         std::unordered_set<std::pair<int32_t, uint32_t>, pair_hash> result{};
 
         search(result, kmers, data, config, 0); // start at top level ibf
@@ -291,7 +291,7 @@ TEST_F(chopper_search_test, multi_level_example)
     }
 
     { // seq3_specific
-        compute_kmers(kmers, seq3_specific, config);
+        clear_and_compute_kmers(kmers, seq3_specific, config);
         std::unordered_set<std::pair<int32_t, uint32_t>, pair_hash> result{};
 
         search(result, kmers, data, config, 0); // start at top level ibf

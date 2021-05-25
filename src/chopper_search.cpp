@@ -72,7 +72,7 @@ int chopper_search(seqan3::argument_parser & parser)
 
     for (auto && [id, seq] : search_sequence_file_t{config.query_filename})
     {
-        compute_kmers(read_kmers, seq, config);
+        clear_and_compute_kmers(read_kmers, seq, config);
         result.clear();
 
         search(result, read_kmers, data, config, 0); // start at top level ibf
