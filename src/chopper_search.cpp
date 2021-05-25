@@ -25,6 +25,7 @@ void initialize_argument_parser(seqan3::argument_parser & parser, search_config 
     parser.add_option(config.errors, 'e', "errors", "The errors to allow in the search.");
     parser.add_option(config.query_filename, 'q', "queries", "The query sequences to seach for in the index.");
     parser.add_option(config.output_filename, 'o', "output", "The file to write results to.");
+    parser.add_option(config.threads, 't', "threads", "The number of threads to use.");
     parser.add_flag(config.verbose, 'v', "verbose", "Output logging/progress information.");
 }
 
