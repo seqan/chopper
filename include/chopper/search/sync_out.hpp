@@ -18,11 +18,10 @@ public:
     sync_out(std::filesystem::path const & path) : file(std::ofstream{path}) {}
 
     template <typename t>
-    sync_out & operator<<(t && data)
+    void operator<<(t && data) // Cannot return a reference to itself since multiple threads write in the meantime.
     {
         std::lock_guard<std::mutex> lock(write_mutex);
         file << std::forward<t>(data);
-        return *this;
     }
 
 private:

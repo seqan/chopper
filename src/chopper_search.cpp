@@ -78,6 +78,7 @@ int chopper_search(seqan3::argument_parser & parser)
     {
         std::vector<size_t> read_kmers;
         std::vector<std::pair<int32_t, uint32_t>> result{};
+        std::string buffer{};
 
         for (auto && [id, seq] : chunked_view)
         {
@@ -86,7 +87,7 @@ int chopper_search(seqan3::argument_parser & parser)
 
             search(result, read_kmers, data, config, 0); // start at top level ibf
 
-            write_result(result, id, data, sync_file);
+            write_result(buffer, result, id, data, sync_file);
         }
     };
 
