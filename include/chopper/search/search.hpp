@@ -33,8 +33,8 @@ inline void write_result(std::unordered_set<std::pair<int32_t, uint32_t>, pair_h
     std::vector<int64_t> result_positions; // TODO allocate this outside of this function
     for (auto const & [ibf_idx, bin_idx] : membership_result)
     {
-        assert(data.user_bins.get_position(ibf_idx, bin_idx) > -1);
-        result_positions.push_back(data.user_bins.get_position(ibf_idx, bin_idx));
+        assert(data.user_bins.filename_index(ibf_idx, bin_idx) > -1);
+        result_positions.push_back(data.user_bins.filename_index(ibf_idx, bin_idx));
     }
     std::sort(result_positions.begin(), result_positions.end()); // otherwise the result output is not testable
 
@@ -67,8 +67,8 @@ inline void search(std::unordered_set<std::pair<int32_t, uint32_t>, pair_hash> &
     {
         sum += result[bin];
 
-        if (data.user_bins.get_position(ibf_idx, bin) < 0 /*merged bin*/ ||
-            data.user_bins.get_position(ibf_idx, bin) != data.user_bins.get_position(ibf_idx, bin + 1))
+        if (data.user_bins.filename_index(ibf_idx, bin) < 0 /*merged bin*/ ||
+            data.user_bins.filename_index(ibf_idx, bin) != data.user_bins.filename_index(ibf_idx, bin + 1))
         {
             if (sum >= kmer_lemma)
             {

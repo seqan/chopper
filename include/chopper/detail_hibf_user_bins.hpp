@@ -61,7 +61,7 @@ public:
                  });
     }
 
-    int64_t get_position(size_t const ibf_idx, size_t const bin_idx) const
+    int64_t filename_index(size_t const ibf_idx, size_t const bin_idx) const
     {
         return bin_to_filename_position[ibf_idx][bin_idx];
     }
