@@ -7,5 +7,6 @@ struct search_config
     std::string query_filename{};
     uint8_t k{25};
     uint8_t errors{0};
+    uint8_t threads{1};
     bool verbose{false};
 };
