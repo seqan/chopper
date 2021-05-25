@@ -78,7 +78,8 @@ TEST_F(chopper_search_test, write_result)
     {
         sync_out out_file{tmp_file.get_path()};
         write_header(data, out_file);
-        write_result(result, query_id, data, out_file);
+        std::string buffer{};
+        write_result(buffer, result, query_id, data, out_file);
     }
 
     std::string expected

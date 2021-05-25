@@ -18,16 +18,20 @@ inline void write_header(search_data const & data, sync_out & out_stream)
     out_stream << "#QUERY_NAME\tUSER_BINS\n";
 }
 
-inline void write_result(std::vector<std::pair<int32_t, uint32_t>> & membership_result,
+inline void write_result(std::string & line,
+                         std::vector<std::pair<int32_t, uint32_t>> & membership_result,
                          std::string const & id,
                          search_data const & data,
                          sync_out & out_stream)
 {
-    out_stream << id << '\t';
+    line.clear();
+    line += id;
+    line += '\t';
 
     if (membership_result.empty())
     {
-        out_stream << '\n';
+        line += '\n';
+        out_stream << line;
         return;
     }
 
@@ -38,14 +42,16 @@ inline void write_result(std::vector<std::pair<int32_t, uint32_t>> & membership_
                                                     data.user_bins.filename_index(pair2.first, pair2.second);
                                          });
 
-    for (size_t i = 0; i < membership_result.size() - 1; ++i)
+    for (size_t i = 0; i < membership_result.size(); ++i)
     {
         auto & [ibf_idx, bin_idx] = membership_result[i];
         assert(data.user_bins.filename_index(ibf_idx, bin_idx) > -1);
-        out_stream << data.user_bins.filename_index(ibf_idx, bin_idx) << ',';
+        line += std::to_string(data.user_bins.filename_index(ibf_idx, bin_idx));
+        line += ',';
     }
 
-    out_stream << data.user_bins.filename_index(membership_result.back().first, membership_result.back().second) << '\n';
+    line.back() = '\n';
+    out_stream << line;
 }
 
 inline void search(std::vector<std::pair<int32_t, uint32_t>> & membership_result,

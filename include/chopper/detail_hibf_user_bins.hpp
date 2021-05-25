@@ -71,9 +71,16 @@ public:
     void write_filenames(sync_out & out_stream) const
     {
         size_t position{};
+        std::string line{};
         for (auto const & filename : filenames)
         {
-            out_stream << '#' << position << '\t' << filename << '\n';
+            line.clear();
+            line = '#';
+            line += std::to_string(position);
+            line += '\t';
+            line += filename;
+            line += '\n';
+            out_stream << line;
             ++position;
         }
     }
