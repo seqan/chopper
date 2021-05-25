@@ -58,51 +58,36 @@ inline void search(std::vector<std::pair<int32_t, uint32_t>> & membership_result
                               : 0;
 
     auto counting_agent = data.hibf[ibf_idx].counting_agent<uint16_t>();
-
     auto const & result = counting_agent.bulk_count(kmers);
-
-    size_t bin = 0;
-    size_t sum = 0;
-
     assert(result.size() > 0);
 
-    while (bin < result.size() - 1)
+    size_t sum{};
+
+    for (size_t bin{}; bin < result.size() - 1; ++bin)
     {
         sum += result[bin];
+        auto const current_filename_index = data.user_bins.filename_index(ibf_idx, bin);
 
-        if (data.user_bins.filename_index(ibf_idx, bin) < 0 /*merged bin*/ ||
-            data.user_bins.filename_index(ibf_idx, bin) != data.user_bins.filename_index(ibf_idx, bin + 1))
+        if (current_filename_index < 0) // merged bin
         {
+            // if threshold, next level
             if (sum >= kmer_lemma)
-            {
-                int64_t const next_ibf_idx = data.hibf_bin_levels[ibf_idx][bin];
-                if (next_ibf_idx != ibf_idx)
-                {
-                    search(membership_result, kmers, data, config, next_ibf_idx);
-                }
-                else
-                {
-                    membership_result.emplace_back(ibf_idx, bin);
-                }
-
-            }
+                search(membership_result, kmers, data, config, data.hibf_bin_levels[ibf_idx][bin]);
             sum = 0;
         }
-        ++bin;
+        else if (current_filename_index != data.user_bins.filename_index(ibf_idx, bin + 1)) // end of split bin
+        {
+            // if threshold, write
+            if (sum >= kmer_lemma)
+                membership_result.emplace_back(ibf_idx, bin);
+            sum = 0;
+        }
     }
 
-    sum += result[bin];
-    if (sum >= kmer_lemma)
-    {
-        int64_t const next_ibf_idx = data.hibf_bin_levels[ibf_idx][bin];
-        if (next_ibf_idx != ibf_idx)
-        {
-            search(membership_result, kmers, data, config, next_ibf_idx);
-        }
+    // check the last bin
+    if (sum + result.back() >= kmer_lemma)
+        if (auto bin =  result.size() - 1; data.user_bins.filename_index(ibf_idx, bin) < 0)
+            search(membership_result, kmers, data, config, data.hibf_bin_levels[ibf_idx][bin]);
         else
-        {
             membership_result.emplace_back(ibf_idx, bin);
-        }
-
-    }
 }
