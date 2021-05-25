@@ -4,14 +4,11 @@
 #include <chopper/search/search_config.hpp>
 #include <chopper/search/search_data.hpp>
 
-inline std::vector<size_t> compute_kmers(seqan3::dna4_vector const & query, search_config const & config)
+inline void compute_kmers(std::vector<size_t> & kmers, seqan3::dna4_vector const & query, search_config const & config)
 {
-    std::vector<size_t> kmers{};
-
-    for (auto hash : query | seqan3::views::kmer_hash(seqan3::ungapped{config.k}))
-        kmers.push_back(hash);
-
-    return kmers;
+    kmers.clear();
+    auto hash_view = query | seqan3::views::kmer_hash(seqan3::ungapped{config.k});
+    std::ranges::move(hash_view, std::cpp20::back_inserter(kmers));
 }
 
 inline void write_header(search_data const & data, std::ostream & out_stream)

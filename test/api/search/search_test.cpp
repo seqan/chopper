@@ -101,8 +101,10 @@ TEST_F(chopper_search_test, first_example)
     auto seq2_specific = "ATATCGATCGAGCGAGGCAGGCAGCGATCGAGCGAGCGCATGCAGCGACTAGCTACGACAGCTACTATCAGCAGCGAGCG"_dna4;
     auto seq3_specific = "ATCGATCACGATCAGCGAGCGATATCTTATCGTAGGCATCGAGCATCGAGGAGCGATCTATCTATCTATCATCTATCTAT"_dna4;
 
+    std::vector<size_t> kmers{};
+
     { // unspecific
-        std::vector<size_t> kmers = compute_kmers(unspecific, config);
+        compute_kmers(kmers, unspecific, config);
         std::unordered_set<std::pair<int32_t, uint32_t>, pair_hash> result{};
 
         search(result, kmers, data, config, 0); // start at top level ibf
@@ -111,7 +113,7 @@ TEST_F(chopper_search_test, first_example)
     }
 
     { // seq2_specific
-        std::vector<size_t> kmers = compute_kmers(seq2_specific, config);
+        compute_kmers(kmers, seq2_specific, config);
         std::unordered_set<std::pair<int32_t, uint32_t>, pair_hash> result{};
 
         search(result, kmers, data, config, 0); // start at top level ibf
@@ -120,7 +122,7 @@ TEST_F(chopper_search_test, first_example)
     }
 
     { // seq3_specific
-        std::vector<size_t> kmers = compute_kmers(seq3_specific, config);
+        compute_kmers(kmers, seq3_specific, config);
         std::unordered_set<std::pair<int32_t, uint32_t>, pair_hash> result{};
 
         search(result, kmers, data, config, 0); // start at top level ibf
@@ -254,8 +256,10 @@ TEST_F(chopper_search_test, multi_level_example)
     auto seq2_specific = "ATATCGATCGAGCGAGGCAGGCAGCGATCGAGCGAGCGCATGCAGCGACTAGCTACGACAGCTACTATCAGCAGCGAGCG"_dna4;
     auto seq3_specific = "ATCGATCACGATCAGCGAGCGATATCTTATCGTAGGCATCGAGCATCGAGGAGCGATCTATCTATCTATCATCTATCTAT"_dna4;
 
+    std::vector<size_t> kmers{};
+
     { // unspecific
-        std::vector<size_t> kmers = compute_kmers(unspecific, config);
+        compute_kmers(kmers, unspecific, config);
         std::unordered_set<std::pair<int32_t, uint32_t>, pair_hash> result{};
 
         search(result, kmers, data, config, 0); // start at top level ibf
@@ -271,7 +275,7 @@ TEST_F(chopper_search_test, multi_level_example)
     }
 
     { // seq2_specific
-        std::vector<size_t> kmers = compute_kmers(seq2_specific, config);
+        compute_kmers(kmers, seq2_specific, config);
         std::unordered_set<std::pair<int32_t, uint32_t>, pair_hash> result{};
 
         search(result, kmers, data, config, 0); // start at top level ibf
@@ -287,7 +291,7 @@ TEST_F(chopper_search_test, multi_level_example)
     }
 
     { // seq3_specific
-        std::vector<size_t> kmers = compute_kmers(seq3_specific, config);
+        compute_kmers(kmers, seq3_specific, config);
         std::unordered_set<std::pair<int32_t, uint32_t>, pair_hash> result{};
 
         search(result, kmers, data, config, 0); // start at top level ibf
