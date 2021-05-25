@@ -39,13 +39,13 @@ struct chopper_search_test : public ::testing::Test
 
 TEST_F(chopper_search_test, write_result)
 {
-    std::unordered_set<std::pair<int32_t, uint32_t>, pair_hash> result;
-    result.emplace(0, 0);
-    result.emplace(0, 1);
-    result.emplace(0, 2);
-    result.emplace(0, 5);
-    result.emplace(1, 0);
-    result.emplace(1, 2);
+    std::vector<std::pair<int32_t, uint32_t>> result;
+    result.emplace_back(0, 0u);
+    result.emplace_back(0, 1u);
+    result.emplace_back(0, 2u);
+    result.emplace_back(0, 5u);
+    result.emplace_back(1, 0u);
+    result.emplace_back(1, 2u);
 
     std::string query_id{"query1"};
 

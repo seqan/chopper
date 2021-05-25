@@ -67,8 +67,8 @@ int chopper_search(seqan3::argument_parser & parser)
 
     write_header(data, std::cout);
 
-    std::vector<size_t> read_kmers; // allocate space once
-    std::unordered_set<std::pair<int32_t, uint32_t>, pair_hash> result{};
+    std::vector<size_t> read_kmers;
+    std::vector<std::pair<int32_t, uint32_t>> result{};
 
     for (auto && [id, seq] : search_sequence_file_t{config.query_filename})
     {
