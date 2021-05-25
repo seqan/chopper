@@ -1,7 +1,6 @@
 #pragma once
 
 #include <fstream>
-#include <unordered_set>
 #include <seqan3/std/ranges>
 
 #include <robin_hood.h>
@@ -25,9 +24,9 @@ using sequence_file_t = seqan3::sequence_file_input<file_traits,
                                                     seqan3::fields<seqan3::field::seq>,
                                                     seqan3::type_list<seqan3::format_fasta, seqan3::format_fastq>>;
 
-inline robin_hood::unordered_set<size_t> compute_kmers(build_config const & config, chopper_pack_record const & record)
+inline robin_hood::unordered_flat_set<size_t> compute_kmers(build_config const & config, chopper_pack_record const & record)
 {
-    robin_hood::unordered_set<size_t> kmers{};
+    robin_hood::unordered_flat_set<size_t> kmers{};
 
     for (auto const & filename : record.filenames)
         for (auto && [seq] : sequence_file_t{filename})
@@ -37,7 +36,7 @@ inline robin_hood::unordered_set<size_t> compute_kmers(build_config const & conf
     return kmers;
 }
 
-inline void compute_kmers(robin_hood::unordered_set<size_t> & kmers,
+inline void compute_kmers(robin_hood::unordered_flat_set<size_t> & kmers,
                           build_config const & config,
                           chopper_pack_record const & record)
 {
@@ -50,7 +49,7 @@ inline void compute_kmers(robin_hood::unordered_set<size_t> & kmers,
 // automatically does naive splitting if number_of_bins > 1
 template <typename parent_kmers_type>
 inline void insert_into_ibf(parent_kmers_type & parent_kmers,
-                            robin_hood::unordered_set<size_t> const & kmers,
+                            robin_hood::unordered_flat_set<size_t> const & kmers,
                             size_t const number_of_bins,
                             size_t const bin_index,
                             seqan3::interleaved_bloom_filter<> & ibf)
@@ -66,7 +65,7 @@ inline void insert_into_ibf(parent_kmers_type & parent_kmers,
         for (size_t const value : chunk)
         {
             ibf.emplace(value, bin_idx);
-            if constexpr(std::same_as<parent_kmers_type, robin_hood::unordered_set<size_t>>)
+            if constexpr(std::same_as<parent_kmers_type, robin_hood::unordered_flat_set<size_t>>)
                 parent_kmers.insert(value);
         }
     }
@@ -99,7 +98,7 @@ inline void update_user_bins(build_data<chopper_pack_record> & data, std::vector
     std::fill_n(ibf_filenames.begin() + record.bin_indices.back(), record.number_of_bins.back(), user_bin_pos);
 }
 
-inline size_t initialise_max_bin_kmers(robin_hood::unordered_set<size_t> & kmers,
+inline size_t initialise_max_bin_kmers(robin_hood::unordered_flat_set<size_t> & kmers,
                                        std::vector<int64_t> & ibf_positions,
                                        std::vector<int64_t> & ibf_filenames,
                                        lemon::ListDigraph::Node const & node,
@@ -134,7 +133,7 @@ protected:
 
 template <typename parent_kmers_type>
 inline auto construct_ibf(parent_kmers_type & parent_kmers,
-                          robin_hood::unordered_set<size_t> & kmers,
+                          robin_hood::unordered_flat_set<size_t> & kmers,
                           size_t const number_of_bins,
                           lemon::ListDigraph::Node const & node,
                           build_data<chopper_pack_record> & data,
@@ -166,7 +165,7 @@ void loop_over_children(parent_kmers_type & parent_kmers,
                         build_config const & config)
 {
     auto & current_node_data = data.node_map[current_node];
-    robin_hood::unordered_set<size_t> kmers{};
+    robin_hood::unordered_flat_set<size_t> kmers{};
 
     for (lemon::ListDigraph::OutArcIt arc_it(data.ibf_graph, current_node); arc_it != lemon::INVALID; ++arc_it)
     {
@@ -188,12 +187,12 @@ inline void build(parent_kmers_type & parent_kmers,
                   build_data<chopper_pack_record> & data,
                   build_config const & config)
 {
-    constexpr bool is_root = !std::same_as<parent_kmers_type, robin_hood::unordered_set<size_t>>;
+    constexpr bool is_root = !std::same_as<parent_kmers_type, robin_hood::unordered_flat_set<size_t>>;
     auto & current_node_data = data.node_map[current_node];
 
     std::vector<int64_t> ibf_positions(current_node_data.number_of_technical_bins, -1);
     std::vector<int64_t> ibf_filenames(current_node_data.number_of_technical_bins, -1);
-    robin_hood::unordered_set<size_t> kmers{};
+    robin_hood::unordered_flat_set<size_t> kmers{};
 
     // initialize lower level IBF
     size_t const max_bin_tbs = initialise_max_bin_kmers(kmers, ibf_positions, ibf_filenames, current_node, data, config);
