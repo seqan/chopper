@@ -4,6 +4,7 @@
 #include <cereal/archives/binary.hpp>
 
 #include <seqan3/argument_parser/all.hpp>
+#include <seqan3/core/algorithm/detail/execution_handler_parallel.hpp>
 #include <seqan3/core/debug_stream.hpp>
 #include <seqan3/io/sequence_file/input.hpp>
 #include <seqan3/search/views/kmer_hash.hpp>
@@ -35,8 +36,8 @@ struct search_file_traits : public seqan3::sequence_file_input_default_traits_dn
 };
 
 using search_sequence_file_t = seqan3::sequence_file_input<search_file_traits,
-                                                    seqan3::fields<seqan3::field::id, seqan3::field::seq>,
-                                                    seqan3::type_list<seqan3::format_fasta, seqan3::format_fastq>>;
+                                                           seqan3::fields<seqan3::field::id, seqan3::field::seq>,
+                                                           seqan3::type_list<seqan3::format_fasta, seqan3::format_fastq>>;
 
 int chopper_search(seqan3::argument_parser & parser)
 {
@@ -70,17 +71,34 @@ int chopper_search(seqan3::argument_parser & parser)
 
     write_header(data, sync_file);
 
-    std::vector<size_t> read_kmers;
-    std::vector<std::pair<int32_t, uint32_t>> result{};
+    search_sequence_file_t fin{config.query_filename};
+    std::vector<search_sequence_file_t::record_type> records{};
 
-    for (auto && [id, seq] : search_sequence_file_t{config.query_filename})
+    auto worker = [&] (auto && chunked_view, auto &&)
     {
-        clear_and_compute_kmers(read_kmers, seq, config);
-        result.clear();
+        std::vector<size_t> read_kmers;
+        std::vector<std::pair<int32_t, uint32_t>> result{};
 
-        search(result, read_kmers, data, config, 0); // start at top level ibf
+        for (auto && [id, seq] : chunked_view)
+        {
+            clear_and_compute_kmers(read_kmers, seq, config);
+            result.clear();
 
-        write_result(result, id, data, sync_file);
+            search(result, read_kmers, data, config, 0); // start at top level ibf
+
+            write_result(result, id, data, sync_file);
+        }
+    };
+
+    for (auto && record_batch : fin | seqan3::views::chunk((1ULL<<20)*10))
+    {
+        records.clear();
+        std::ranges::move(record_batch, std::cpp20::back_inserter(records));
+
+        size_t const records_per_thread = records.size() / config.threads;
+        seqan3::detail::execution_handler_parallel executioner{config.threads};
+        auto chunked_records = records | seqan3::views::chunk(records_per_thread);
+        executioner.bulk_execute(std::move(worker), std::move(chunked_records), [](){});
     }
 
     return 0;
