@@ -1,6 +1,6 @@
 # Chopper - partition your sequences
 
-[![Build Status](https://github.com/smehringer/Chopper/workflows/Chopper%20CI/badge.svg)](https://github.com/smehringer/Chopper/actions?query=branch%3Amaster+workflow%3A%22Chopper+CI%22)
+[![Build Status](https://img.shields.io/github/workflow/status/seqan/chopper/CI%20on%20Linux/master?style=flat&logo=github&label=Chopper%20CI)](https://github.com/seqan/chopper/actions?query=branch%3Amaster)
 
 ## System requirements
 
@@ -12,20 +12,22 @@
 Set up the repository:
 
 ```
-git clone --recurse-submodules https://github.com/smehringer/Chopper
+git clone --recurse-submodules https://github.com/seqan/chopper
 ```
 
 Set up the build directory
 ```
 mkdir chopper_build
 cd chopper_build
-cmake ../Chopper
+cmake ../chopper
 ```
 
 Build the test to check if everything works
 ```
 make test
 ```
+
+:warning: The following section is not yet adapted to the multi-level approach :warning:
 
 ## Chopper pack
 
