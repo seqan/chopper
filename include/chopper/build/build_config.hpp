@@ -6,6 +6,7 @@ struct build_config
     std::string chopper_pack_filename{};
     std::string binning_filename{};
     std::string output_filename{"out.chopper"};
+    uint8_t threads{1};
     bool verbose{false};
 
     size_t hash_funs{2};
