@@ -21,6 +21,7 @@ void initialize_argument_parser(seqan3::argument_parser & parser, build_config &
     parser.add_option(config.hash_funs, '\0', "hash-functions", "The number of hash functions to use for the IBF.");
     parser.add_option(config.overlap, 'l', "overlap", "The overlap between split regions of the same sequence.");
     parser.add_option(config.FPR, 'r', "false-positive-rate", "The minimum false positive rate of every IBF.");
+    parser.add_option(config.threads, 't', "threads", "The number of threads to use.");
     parser.add_option(config.output_filename, 'o', "out-prefix", "Output filename.", seqan3::option_spec::standard, seqan3::output_file_validator{seqan3::output_file_open_options::create_new});
     parser.add_flag(config.verbose, 'v', "verbose", "Output logging/progress information.");
 }
