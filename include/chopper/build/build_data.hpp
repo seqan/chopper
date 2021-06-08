@@ -13,18 +13,6 @@
 template <typename record_type>
 struct build_data
 {
-    size_t hibf_num_technical_bins{};
-    size_t num_libfs{};
-    std::string hibf_max_bin_id{};
-    size_t hibf_max_bin{};
-    chopper_pack_record * hibf_max_record{nullptr};
-    batch * hibf_max_batch_record{nullptr};
-
-    robin_hood::unordered_map<size_t, size_t> merged_max_bin_map{};
-    robin_hood::unordered_map<std::string, size_t> merged_bin_map{};
-    robin_hood::unordered_map<std::string, std::vector<region>> region_map{};
-
-    // new stuff
     lemon::ListDigraph ibf_graph{};
     lemon::ListDigraph::NodeMap<node_data<record_type>> node_map{ibf_graph};
 
