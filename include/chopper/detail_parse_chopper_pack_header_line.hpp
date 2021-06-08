@@ -1,40 +1,11 @@
 #pragma once
 
-#include <seqan3/std/charconv>
 #include <seqan3/std/algorithm>
+#include <seqan3/std/charconv>
 #include <string>
 
 #include <chopper/build/build_data.hpp>
 #include <chopper/detail_bin_prefixes.hpp>
-
-template <typename record_type>
-void parse_chopper_pack_header_line(std::string const & line, build_data<record_type> & data)
-{
-    if (line.substr(1, hibf_prefix.size()) == hibf_prefix)
-    {
-        assert(line.substr(hibf_prefix.size() + 2, 11) == "max_bin_id:");
-        auto it = std::find(line.begin() + hibf_prefix.size() + 13, line.end(), '_'); // skip "MERGED"/"SPLIT"
-        ++it; // skip "_"
-        it = std::find(it, line.end(), '_'); // skip "BIN"
-        ++it; // skip "_"
-        data.hibf_max_bin = std::atoi(std::string(it, line.end()).c_str());
-    }
-    else if (line.substr(1, merged_bin_prefix.size()) == merged_bin_prefix)
-    {
-        std::string const hidx_str(line.begin() + 1 /*#*/ + merged_bin_prefix.size() + 1 /*_*/,
-                                   std::find(line.begin() + merged_bin_prefix.size() + 2, line.end(), ' '));
-        assert(line.substr(merged_bin_prefix.size() + hidx_str.size() + 3, 11) == "max_bin_id:");
-        std::string const lidx_str = line.substr(merged_bin_prefix.size() + hidx_str.size() + 14,
-                                                 line.size() - merged_bin_prefix.size() - hidx_str.size() - 14);
-
-        size_t const hidx = std::atoi(hidx_str.c_str());
-        size_t const lidx = std::atoi(lidx_str.c_str());
-
-        data.merged_max_bin_map.emplace(hidx, lidx);
-    }
-}
-
-// [root node, high-level node, ]
 
 inline auto parse_bin_indices(std::string const & str)
 {
@@ -57,9 +28,9 @@ inline auto parse_bin_indices(std::string const & str)
 }
 
 template <typename record_type>
-void parse_chopper_pack_header(lemon::ListDigraph & ibf_graph,
-                               lemon::ListDigraph::NodeMap<node_data<record_type>> & node_map,
-                               std::istream & chopper_pack_file)
+size_t parse_chopper_pack_header(lemon::ListDigraph & ibf_graph,
+                                 lemon::ListDigraph::NodeMap<node_data<record_type>> & node_map,
+                                 std::istream & chopper_pack_file)
 {
     std::string line;
     std::getline(chopper_pack_file, line); // read first line
@@ -125,4 +96,6 @@ void parse_chopper_pack_header(lemon::ListDigraph & ibf_graph,
         if (node_map[current_node].max_bin_index == bin_indices.back())
             node_map[current_node].favourite_child = new_node;
     }
+
+    return header_records.size();
 }

@@ -6,43 +6,19 @@
 
 #include "../api_test.hpp"
 
-TEST(hibf_user_bins_test, small_test)
-{
-    hibf_user_bins user_bins{};
-
-    user_bins.add_user_bin("foo");
-    user_bins.add_user_bin("bar");
-
-    user_bins.add_user_bin_positions({0, 0, 1});
-
-    EXPECT_EQ((user_bins[{0, 0}]), std::string{"foo"});
-    EXPECT_EQ((user_bins[{0, 1}]), std::string{"foo"});
-    EXPECT_EQ((user_bins[{0, 2}]), std::string{"bar"});
-}
-
-TEST(hibf_user_bins_test, with_concatenation)
-{
-    hibf_user_bins user_bins{};
-
-    user_bins.add_user_bin(std::vector<std::string>{"foo", "bar"});
-    user_bins.add_user_bin("bar");
-
-    user_bins.add_user_bin_positions({0, 0, 1});
-
-    EXPECT_EQ((user_bins[{0, 0}]), std::string{"foo;bar"});
-    EXPECT_EQ((user_bins[{0, 1}]), std::string{"foo;bar"});
-    EXPECT_EQ((user_bins[{0, 2}]), std::string{"bar"});
-}
 
 TEST(hibf_user_bins_test, access_vector)
 {
     hibf_user_bins user_bins{};
 
-    user_bins.add_user_bin(std::vector<std::string>{"foo", "bar"});
-    user_bins.add_user_bin("bar");
+    user_bins.resize_bins(2);
+    user_bins.resize_filename(2);
 
-    user_bins.add_user_bin_positions({0, 0, 1});
-    user_bins.add_user_bin_positions({-1, 0, 1});
+    user_bins.filename_at(0) = "foo;bar";
+    user_bins.filename_at(1) = "bar";
+
+    user_bins.bin_at(0) = std::vector<int64_t>{0, 0, 1};
+    user_bins.bin_at(1) = std::vector<int64_t>{-1, 0, 1};
 
     EXPECT_RANGE_EQ(user_bins[0], (std::vector<std::string>{"foo;bar", "foo;bar", "bar"}));
     EXPECT_RANGE_EQ(user_bins[1], (std::vector<std::string>{"", "foo;bar", "bar"}));
@@ -52,11 +28,14 @@ TEST(hibf_user_bins_test, cerealize)
 {
     hibf_user_bins user_bins{};
 
-    user_bins.add_user_bin(std::vector<std::string>{"foo", "bar"});
-    user_bins.add_user_bin("bar");
+    user_bins.resize_bins(2);
+    user_bins.resize_filename(2);
 
-    user_bins.add_user_bin_positions({0, 0, 1});
-    user_bins.add_user_bin_positions({-1, 0, 1});
+    user_bins.filename_at(0) = "foo;bar";
+    user_bins.filename_at(1) = "bar";
+
+    user_bins.bin_at(0) = std::vector<int64_t>{0, 0, 1};
+    user_bins.bin_at(1) = std::vector<int64_t>{-1, 0, 1};
 
     seqan3::test::tmp_filename filename{"user_bins.out"};
 

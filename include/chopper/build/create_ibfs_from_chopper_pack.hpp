@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <future>
+#include <random>
 #include <seqan3/std/ranges>
 
 #include <robin_hood.h>
@@ -89,33 +90,31 @@ inline void insert_into_ibf(build_config const & config,
 
 // forward declaration
 template <typename parent_kmers_type>
-inline void build(parent_kmers_type & parent_kmers,
-                  lemon::ListDigraph::Node const & current_node,
-                  build_data<chopper_pack_record> & data,
-                  build_config const & config,
-                  std::mutex & ibf_mutex,
-                  bool const recursion = false);
+inline size_t build(parent_kmers_type & parent_kmers,
+                    lemon::ListDigraph::Node const & current_node,
+                    build_data<chopper_pack_record> & data,
+                    build_config const & config);
 
-inline void update_user_bins(build_data<chopper_pack_record> & data, std::vector<int64_t> & ibf_filenames, chopper_pack_record const & record)
+inline void update_user_bins(build_data<chopper_pack_record> & data, std::vector<int64_t> & filename_indices, chopper_pack_record const & record)
 {
-    auto const user_bin_pos = data.user_bins.add_user_bin(record.filenames);
-    std::fill_n(ibf_filenames.begin() + record.bin_indices.back(), record.number_of_bins.back(), user_bin_pos);
+    size_t const idx = data.request_user_bin_idx();
+    data.user_bins.filename_at(idx) = record.filenames | seqan3::views::join_with(std::string{";"}) | seqan3::views::to<std::string>;
+    std::fill_n(filename_indices.begin() + record.bin_indices.back(), record.number_of_bins.back(), idx);
 }
 
 inline size_t initialise_max_bin_kmers(robin_hood::unordered_flat_set<size_t> & kmers,
                                        std::vector<int64_t> & ibf_positions,
-                                       std::vector<int64_t> & ibf_filenames,
+                                       std::vector<int64_t> & filename_indices,
                                        lemon::ListDigraph::Node const & node,
                                        build_data<chopper_pack_record> & data,
-                                       build_config const & config,
-                                       std::mutex & ibf_mutex)
+                                       build_config const & config)
 {
     auto & node_data = data.node_map[node];
 
     if (node_data.favourite_child != lemon::INVALID) // max bin is a merged bin
     {
-        build(kmers, node_data.favourite_child, data, config, ibf_mutex); // recursively initialize favourite child first
-        ibf_positions[node_data.max_bin_index] = data.hibf.size();
+        // recursively initialize favourite child first
+        ibf_positions[node_data.max_bin_index] = build(kmers, node_data.favourite_child, data, config);
         return 1;
     }
     else // max bin is not a merged bin
@@ -123,7 +122,7 @@ inline size_t initialise_max_bin_kmers(robin_hood::unordered_flat_set<size_t> & 
         // we assume that the max record is at the beginning of the list of remaining records.
         auto const & record = node_data.remaining_records[0];
         compute_kmers(kmers, config, record);
-        update_user_bins(data, ibf_filenames, record);
+        update_user_bins(data, filename_indices, record);
 
         return record.number_of_bins.back();
     }
@@ -167,9 +166,7 @@ void loop_over_children(parent_kmers_type & parent_kmers,
                         std::vector<int64_t> & ibf_positions,
                         lemon::ListDigraph::Node const & current_node,
                         build_data<chopper_pack_record> & data,
-                        build_config const & config,
-                        std::mutex & ibf_mutex,
-                        bool const recursion)
+                        build_config const & config)
 {
     auto & current_node_data = data.node_map[current_node];
     std::vector<lemon::ListDigraph::Node> children{};
@@ -180,7 +177,8 @@ void loop_over_children(parent_kmers_type & parent_kmers,
     if (children.empty())
         return;
 
-    std::mutex local_ibf_mutex{};
+    size_t const number_of_mutex = (data.node_map[current_node].number_of_technical_bins + 63) / 64;
+    std::vector<std::mutex> local_ibf_mutex(number_of_mutex);
 
     auto worker = [&] (auto && index, auto &&)
     {
@@ -189,42 +187,58 @@ void loop_over_children(parent_kmers_type & parent_kmers,
         if (child != current_node_data.favourite_child)
         {
             robin_hood::unordered_flat_set<size_t> kmers{};
-            build(kmers, child, data, config, ibf_mutex, true);
+            size_t const ibf_pos = build(kmers, child, data, config);
             auto parent_bin_index = data.node_map[child].parent_bin_index;
             {
-                std::lock_guard<std::mutex> guard{local_ibf_mutex};
-                ibf_positions[parent_bin_index] = data.hibf.size();
+                size_t const mutex_id{parent_bin_index / 64};
+                std::lock_guard<std::mutex> guard{local_ibf_mutex[mutex_id]};
+                ibf_positions[parent_bin_index] = ibf_pos;
                 insert_into_ibf(parent_kmers, kmers, 1, parent_bin_index, ibf);
             }
         }
     };
 
-    seqan3::detail::execution_handler_parallel executioner{recursion ? 1u : config.threads};
-    executioner.bulk_execute(std::move(worker), std::move(std::views::iota(0u, children.size())), [] () {});
+    size_t number_of_threads{};
+    auto indices_view = std::views::iota(0u, children.size()) | std::views::common;
+    std::vector<size_t> indices{indices_view.begin(), indices_view.end()};
+
+    if constexpr(!std::same_as<parent_kmers_type, robin_hood::unordered_flat_set<size_t>>)
+    {
+        // Shuffle indices: More likely to not block each other. Optimal: Interleave
+        std::shuffle(indices.begin(), indices.end(), std::mt19937_64{std::random_device{}()});
+        number_of_threads = config.threads;
+    }
+    else
+    {
+        number_of_threads = 1u;
+    }
+
+    seqan3::detail::execution_handler_parallel executioner{number_of_threads};
+    executioner.bulk_execute(std::move(worker), std::move(indices), [] () {});
 }
 
 template <typename parent_kmers_type>
-inline void build(parent_kmers_type & parent_kmers,
-                  lemon::ListDigraph::Node const & current_node,
-                  build_data<chopper_pack_record> & data,
-                  build_config const & config,
-                  std::mutex & ibf_mutex,
-                  bool const recursion)
+inline size_t build(parent_kmers_type & parent_kmers,
+                    lemon::ListDigraph::Node const & current_node,
+                    build_data<chopper_pack_record> & data,
+                    build_config const & config)
 {
     constexpr bool is_root = !std::same_as<parent_kmers_type, robin_hood::unordered_flat_set<size_t>>;
     auto & current_node_data = data.node_map[current_node];
 
-    std::vector<int64_t> ibf_positions(current_node_data.number_of_technical_bins, -1);
-    std::vector<int64_t> ibf_filenames(current_node_data.number_of_technical_bins, -1);
+    size_t const ibf_pos{data.request_ibf_idx()};
+
+    std::vector<int64_t> ibf_positions(current_node_data.number_of_technical_bins, ibf_pos);
+    std::vector<int64_t> filename_indices(current_node_data.number_of_technical_bins, -1);
     robin_hood::unordered_flat_set<size_t> kmers{};
 
     // initialize lower level IBF
-    size_t const max_bin_tbs = initialise_max_bin_kmers(kmers, ibf_positions, ibf_filenames, current_node, data, config, ibf_mutex);
+    size_t const max_bin_tbs = initialise_max_bin_kmers(kmers, ibf_positions, filename_indices, current_node, data, config);
     auto && ibf = construct_ibf(parent_kmers, kmers, max_bin_tbs, current_node, data, config);
     kmers.clear(); // reduce memory peak
 
     // parse all other children (merged bins) of the current ibf
-    loop_over_children(parent_kmers, ibf, ibf_positions, current_node, data, config, ibf_mutex, recursion);
+    loop_over_children(parent_kmers, ibf, ibf_positions, current_node, data, config);
 
     // If max bin was a merged bin, process all remaining records, otherwise the first one has already been processed
     size_t const start{(current_node_data.favourite_child != lemon::INVALID) ? 0u : 1u};
@@ -250,34 +264,15 @@ inline void build(parent_kmers_type & parent_kmers,
             insert_into_ibf(parent_kmers, kmers, record.number_of_bins.back(), record.bin_indices.back(), ibf);
         }
 
-        update_user_bins(data, ibf_filenames, record);
+        update_user_bins(data, filename_indices, record);
         kmers.clear();
     }
 
-    if constexpr (is_root) // insert high level IBF at beginning
-    {
-        data.hibf.insert(data.hibf.begin(), std::move(ibf));
+    data.hibf[ibf_pos] = std::move(ibf);
+    data.hibf_bin_levels[ibf_pos] = std::move(ibf_positions);
+    data.user_bins.bin_at(ibf_pos) = std::move(filename_indices);
 
-        for (auto & pos : ibf_positions)
-            if (pos == -1)
-                pos = 0;
-
-        data.hibf_bin_levels.insert(data.hibf_bin_levels.begin(), std::move(ibf_positions));
-        data.user_bins.prepend_user_bin_positions(std::move(ibf_filenames));
-    }
-    else // other IBFs go to the end
-    {
-        std::lock_guard<std::mutex> guard{ibf_mutex};
-
-        data.hibf.push_back(std::move(ibf));
-
-        for (auto & pos : ibf_positions)
-            if (pos == -1)
-                pos = data.hibf.size();
-
-        data.hibf_bin_levels.push_back(std::move(ibf_positions));
-        data.user_bins.add_user_bin_positions(std::move(ibf_filenames));
-    }
+    return ibf_pos;
 }
 
 inline void create_ibfs_from_chopper_pack(build_data<chopper_pack_record> & data, build_config const & config)
@@ -285,7 +280,6 @@ inline void create_ibfs_from_chopper_pack(build_data<chopper_pack_record> & data
     read_chopper_pack_file(data, config.chopper_pack_filename);
     lemon::ListDigraph::Node root = data.ibf_graph.nodeFromId(0); // root node = high level IBF node
     size_t dummy{};
-    std::mutex ibf_mutex{};
 
-    build(dummy, root, data, config, ibf_mutex);
+    build(dummy, root, data, config);
 }

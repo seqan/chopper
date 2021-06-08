@@ -408,10 +408,10 @@ TEST_F(create_ibfs_from_chopper_pack_test, multi_level_ibf)
 
     EXPECT_EQ(data.hibf.size(), 6);
     // data.hibf[0] is the high-level IBF
-    // data.hibf[1] is the LOW LEVEL IBF 0;0;0
+    // data.hibf[1] is the LOW LEVEL IBF 0
     // data.hibf[2] is the LOW LEVEL IBF 0;0
-    // data.hibf[3] is the LOW LEVEL IBF 0;1
-    // data.hibf[4] is the LOW LEVEL IBF 0
+    // data.hibf[3] is the LOW LEVEL IBF 0;0;0
+    // data.hibf[4] is the LOW LEVEL IBF 0;1
     // data.hibf[5] is the LOW LEVEL IBF 1
 
     /* HIGH LEVEL IBF
@@ -424,7 +424,7 @@ TEST_F(create_ibfs_from_chopper_pack_test, multi_level_ibf)
      */
     EXPECT_EQ(data.hibf[0].bin_count(), 5u);
     EXPECT_EQ(data.hibf[0].bin_size(), 114226);
-    EXPECT_RANGE_EQ(data.hibf_bin_levels[0], (std::vector<int64_t>{4,5,0,0,0}));
+    EXPECT_RANGE_EQ(data.hibf_bin_levels[0], (std::vector<int64_t>{1,5,0,0,0}));
     EXPECT_RANGE_EQ(data.user_bins[0],
                    (std::vector<std::string>
                    {
@@ -433,6 +433,48 @@ TEST_F(create_ibfs_from_chopper_pack_test, multi_level_ibf)
                         seq2_filename + ";" + seq3_filename,
                         seq1_filename + ";" + seq2_filename + ";" + seq3_filename,
                         seq1_filename + ";" + seq2_filename + ";" + seq3_filename
+                   }));
+
+    /* LOW LEVEL IBF 0
+     * ---------------
+     * Bin 0: seq1, seq2, seq3 (merged)
+     * Bin 1: seq1, seq2, seq3 (merged)
+     * Bin 2: seq1, seq2
+     * Bin 3: seq1, seq3
+     * Bin 4: seq2, seq3
+     */
+    EXPECT_EQ(data.hibf[1].bin_count(), 5u);
+    EXPECT_EQ(data.hibf[1].bin_size(), 114226);
+    EXPECT_RANGE_EQ(data.hibf_bin_levels[1], (std::vector<int64_t>{2,4,1,1,1}));
+    EXPECT_RANGE_EQ(data.user_bins[1],
+                   (std::vector<std::string>
+                   {
+                        "",
+                        "",
+                        seq1_filename + ";" + seq2_filename,
+                        seq1_filename + ";" + seq3_filename,
+                        seq2_filename + ";" + seq3_filename
+                   }));
+
+    /* LOW LEVEL IBF 0;0
+     * -----------------
+     * Bin 0: seq1, seq2, seq3 (merged)
+     * Bin 1: seq1
+     * Bin 2: seq2
+     * Bin 3: seq3
+     * Bin 4: seq1, seq2
+     */
+    EXPECT_EQ(data.hibf[2].bin_count(), 5u);
+    EXPECT_EQ(data.hibf[2].bin_size(), 95321);
+    EXPECT_RANGE_EQ(data.hibf_bin_levels[2], (std::vector<int64_t>{3,2,2,2,2}));
+    EXPECT_RANGE_EQ(data.user_bins[2],
+                   (std::vector<std::string>
+                   {
+                        "",
+                        seq1_filename,
+                        seq2_filename,
+                        seq3_filename,
+                        seq1_filename + ";" + seq2_filename
                    }));
 
     /* LOW LEVEL IBF 0;0;0
@@ -451,10 +493,10 @@ TEST_F(create_ibfs_from_chopper_pack_test, multi_level_ibf)
      * Bin 11: --> belongs to bin 8
      * Bin 12: --> belongs to bin 8
      */
-    EXPECT_EQ(data.hibf[1].bin_count(), 13u);
-    EXPECT_EQ(data.hibf[1].bin_size(), 92535);
-    EXPECT_RANGE_EQ(data.hibf_bin_levels[1], (std::vector<int64_t>(13, 1)));
-    EXPECT_RANGE_EQ(data.user_bins[1],
+    EXPECT_EQ(data.hibf[3].bin_count(), 13u);
+    EXPECT_EQ(data.hibf[3].bin_size(), 92535);
+    EXPECT_RANGE_EQ(data.hibf_bin_levels[3], (std::vector<int64_t>(13, 3)));
+    EXPECT_RANGE_EQ(data.user_bins[3],
                    (std::vector<std::string>
                    {
                         seq1_filename,
@@ -472,63 +514,21 @@ TEST_F(create_ibfs_from_chopper_pack_test, multi_level_ibf)
                         seq1_filename + ";" + seq2_filename + ";" + seq3_filename
                    }));
 
-    /* LOW LEVEL IBF 0;0
-     * -----------------
-     * Bin 0: seq1, seq2, seq3 (merged)
-     * Bin 1: seq1
-     * Bin 2: seq2
-     * Bin 3: seq3
-     * Bin 4: seq1, seq2
-     */
-    EXPECT_EQ(data.hibf[2].bin_count(), 5u);
-    EXPECT_EQ(data.hibf[2].bin_size(), 95321);
-    EXPECT_RANGE_EQ(data.hibf_bin_levels[2], (std::vector<int64_t>{1,2,2,2,2}));
-    EXPECT_RANGE_EQ(data.user_bins[2],
-                   (std::vector<std::string>
-                   {
-                        "",
-                        seq1_filename,
-                        seq2_filename,
-                        seq3_filename,
-                        seq1_filename + ";" + seq2_filename
-                   }));
-
     /* LOW LEVEL IBF 0;1
      * -----------------
      * Bin 0: seq1
      * Bin 1: seq2
      * Bin 2: seq3
      */
-    EXPECT_EQ(data.hibf[3].bin_count(), 3u);
-    EXPECT_EQ(data.hibf[3].bin_size(), 92734);
-    EXPECT_RANGE_EQ(data.hibf_bin_levels[3], (std::vector<int64_t>{3,3,3}));
-    EXPECT_RANGE_EQ(data.user_bins[3],
+    EXPECT_EQ(data.hibf[4].bin_count(), 3u);
+    EXPECT_EQ(data.hibf[4].bin_size(), 92734);
+    EXPECT_RANGE_EQ(data.hibf_bin_levels[4], (std::vector<int64_t>{4,4,4}));
+    EXPECT_RANGE_EQ(data.user_bins[4],
                    (std::vector<std::string>
                    {
                         seq1_filename,
                         seq2_filename,
                         seq3_filename
-                   }));
-
-    /* LOW LEVEL IBF 0
-     * ---------------
-     * Bin 0: seq1, seq2, seq3 (merged)
-     * Bin 1: seq1, seq2, seq3 (merged)
-     * Bin 2: seq1, seq2
-     * Bin 3: seq1, seq3
-     * Bin 4: seq2, seq3
-     */
-    EXPECT_EQ(data.hibf[4].bin_count(), 5u);
-    EXPECT_EQ(data.hibf[4].bin_size(), 114226);
-    EXPECT_RANGE_EQ(data.hibf_bin_levels[4], (std::vector<int64_t>{2,3,4,4,4}));
-    EXPECT_RANGE_EQ(data.user_bins[4],
-                   (std::vector<std::string>
-                   {
-                        "",
-                        "",
-                        seq1_filename + ";" + seq2_filename,
-                        seq1_filename + ";" + seq3_filename,
-                        seq2_filename + ";" + seq3_filename
                    }));
 
     /* LOW LEVEL IBF 1
@@ -556,25 +556,25 @@ TEST_F(create_ibfs_from_chopper_pack_test, multi_level_ibf)
 
     // UNSPECIFIC - unspecific region should be found in all bins that include a whole sequence
     compare_counts(data.hibf[0], unspecific, {{0}, {1}, {2}, {3,4}}, config);
-    compare_counts(data.hibf[1], unspecific, {{0, 1, 2}, {3}, {4,5}, {6,7}, {8,9,10,11,12}}, config);
+    compare_counts(data.hibf[1], unspecific, {{0}, {1}, {2}, {3}, {4}}, config);
     compare_counts(data.hibf[2], unspecific, {{0}, {1}, {2}, {3}, {4}}, config);
-    compare_counts(data.hibf[3], unspecific, {{0}, {1}, {2}}, config);
-    compare_counts(data.hibf[4], unspecific, {{0}, {1}, {2}, {3}, {4}}, config);
+    compare_counts(data.hibf[3], unspecific, {{0, 1, 2}, {3}, {4,5}, {6,7}, {8,9,10,11,12}}, config);
+    compare_counts(data.hibf[4], unspecific, {{0}, {1}, {2}}, config);
     compare_counts(data.hibf[5], unspecific, {{0}, {1}, {2,3}}, config);
 
     // SEQ2 SPECIFIC
     compare_counts(data.hibf[0], seq2_specific, {{0}, {1}, {2}, {3,4}}, config);
-    compare_counts(data.hibf[1], seq2_specific, {{3}, {6,7}, {8,9,10,11,12}}, config);
+    compare_counts(data.hibf[1], seq2_specific, {{0}, {1}, {2}, {4}}, config);
     compare_counts(data.hibf[2], seq2_specific, {{0}, {2}, {4}}, config);
-    compare_counts(data.hibf[3], seq2_specific, {{1}}, config);
-    compare_counts(data.hibf[4], seq2_specific, {{0}, {1}, {2}, {4}}, config);
+    compare_counts(data.hibf[3], seq2_specific, {{3}, {6,7}, {8,9,10,11,12}}, config);
+    compare_counts(data.hibf[4], seq2_specific, {{1}}, config);
     compare_counts(data.hibf[5], seq2_specific, {{1}, {2,3}}, config);
 
     // SEQ3 SPECIFIC
     compare_counts(data.hibf[0], seq3_specific, {{0}, {2}, {3,4}}, config);
-    compare_counts(data.hibf[1], seq3_specific, {{4,5}, {6,7}, {8,9,10,11,12}}, config);
+    compare_counts(data.hibf[1], seq3_specific, {{0}, {1}, {3}, {4}}, config);
     compare_counts(data.hibf[2], seq3_specific, {{0}, {3}}, config);
-    compare_counts(data.hibf[3], seq3_specific, {{2}}, config);
-    compare_counts(data.hibf[4], seq3_specific, {{0}, {1}, {3}, {4}}, config);
+    compare_counts(data.hibf[3], seq3_specific, {{4,5}, {6,7}, {8,9,10,11,12}}, config);
+    compare_counts(data.hibf[4], seq3_specific, {{2}}, config);
     compare_counts(data.hibf[5], seq3_specific, {}, config);
 }

@@ -1,5 +1,7 @@
 #pragma once
 
+#if 0 // split is not implemented for multi-level
+
 #include <fstream>
 #include <seqan3/std/ranges>
 #include <unordered_map>
@@ -26,7 +28,7 @@ struct file_type_traits : public seqan3::sequence_file_input_default_traits_dna
 
 inline auto hash_infix(build_config const & config, auto const & seq, auto const begin, auto const end)
 {
-    return seq | seqan3::views::slice(begin, end + config.overlap) 
+    return seq | seqan3::views::slice(begin, end + config.overlap)
                | seqan3::views::kmer_hash(seqan3::ungapped{config.k});
 };
 
@@ -279,3 +281,5 @@ inline void create_ibfs_from_chopper_split(build_data<chopper_split_record> & da
     data.hibf_bin_levels.insert(data.hibf_bin_levels.begin(), std::move(ibf_positions));
     data.user_bins.prepend_user_bin_positions(std::move(ibf_filenames));
 }
+
+#endif

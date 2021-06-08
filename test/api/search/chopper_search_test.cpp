@@ -61,18 +61,20 @@ TEST_F(chopper_search_test, write_result)
 
     search_data data;
 
-    data.user_bins.add_user_bin("user_bin_0-0");
-    data.user_bins.add_user_bin("user_bin_0-1");
-    data.user_bins.add_user_bin("user_bin_0-2");
-    data.user_bins.add_user_bin("user_bin_0-3");
-    data.user_bins.add_user_bin("user_bin_0-4");
-    data.user_bins.add_user_bin("user_bin_0-5");
-    data.user_bins.add_user_bin("user_bin_1-0");
-    data.user_bins.add_user_bin("user_bin_1-1");
-    data.user_bins.add_user_bin("user_bin_1-2");
+    data.user_bins.resize_filename(9);
+    data.user_bins.filename_at(0) = "user_bin_0-0";
+    data.user_bins.filename_at(1) = "user_bin_0-1";
+    data.user_bins.filename_at(2) = "user_bin_0-2";
+    data.user_bins.filename_at(3) = "user_bin_0-3";
+    data.user_bins.filename_at(4) = "user_bin_0-4";
+    data.user_bins.filename_at(5) = "user_bin_0-5";
+    data.user_bins.filename_at(6) = "user_bin_1-0";
+    data.user_bins.filename_at(7) = "user_bin_1-1";
+    data.user_bins.filename_at(8) = "user_bin_1-2";
 
-    data.user_bins.add_user_bin_positions({0, 1, 2, 3, 4, 5});
-    data.user_bins.add_user_bin_positions({6, 7, 8});
+    data.user_bins.resize_bins(2);
+    data.user_bins.bin_at(0) = std::vector<int64_t>{0, 1, 2, 3, 4, 5};
+    data.user_bins.bin_at(1) = std::vector<int64_t>{6, 7, 8};
 
     seqan3::test::tmp_filename tmp_file{"chopper_search_test_write_result"};
     {
