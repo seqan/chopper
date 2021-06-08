@@ -1,7 +1,7 @@
 #pragma once
 
-#include <seqan3/std/charconv>
 #include <seqan3/std/algorithm>
+#include <seqan3/std/charconv>
 #include <string>
 
 #include <chopper/build/build_data.hpp>
@@ -28,9 +28,9 @@ inline auto parse_bin_indices(std::string const & str)
 }
 
 template <typename record_type>
-void parse_chopper_pack_header(lemon::ListDigraph & ibf_graph,
-                               lemon::ListDigraph::NodeMap<node_data<record_type>> & node_map,
-                               std::istream & chopper_pack_file)
+size_t parse_chopper_pack_header(lemon::ListDigraph & ibf_graph,
+                                 lemon::ListDigraph::NodeMap<node_data<record_type>> & node_map,
+                                 std::istream & chopper_pack_file)
 {
     std::string line;
     std::getline(chopper_pack_file, line); // read first line
@@ -96,4 +96,6 @@ void parse_chopper_pack_header(lemon::ListDigraph & ibf_graph,
         if (node_map[current_node].max_bin_index == bin_indices.back())
             node_map[current_node].favourite_child = new_node;
     }
+
+    return header_records.size();
 }

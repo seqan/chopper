@@ -198,6 +198,24 @@ TEST_F(chopper_search_test, multi_level_example)
      * Bin 4: --> belongs to bin 3
      */
 
+    /* LOW LEVEL IBF 0
+     * ---------------
+     * Bin 0: seq1, seq2, seq3 (merged)
+     * Bin 1: seq1, seq2, seq3 (merged)
+     * Bin 2: seq1, seq2
+     * Bin 3: seq1, seq3
+     * Bin 4: seq2, seq3
+     */
+
+    /* LOW LEVEL IBF 0;0
+     * -----------------
+     * Bin 0: seq1, seq2, seq3 (merged)
+     * Bin 1: seq1
+     * Bin 2: seq2
+     * Bin 3: seq3
+     * Bin 4: seq1, seq2
+     */
+
     /* LOW LEVEL IBF 0;0;0
      * -------------------
      * Bin 0: split but together: seq1
@@ -215,29 +233,11 @@ TEST_F(chopper_search_test, multi_level_example)
      * Bin 12: --> belongs to bin 8
      */
 
-    /* LOW LEVEL IBF 0;0
-     * -----------------
-     * Bin 0: seq1, seq2, seq3 (merged)
-     * Bin 1: seq1
-     * Bin 2: seq2
-     * Bin 3: seq3
-     * Bin 4: seq1, seq2
-     */
-
     /* LOW LEVEL IBF 0;1
      * -----------------
      * Bin 0: seq1
      * Bin 1: seq2
      * Bin 2: seq3
-     */
-
-    /* LOW LEVEL IBF 0
-     * ---------------
-     * Bin 0: seq1, seq2, seq3 (merged)
-     * Bin 1: seq1, seq2, seq3 (merged)
-     * Bin 2: seq1, seq2
-     * Bin 3: seq1, seq3
-     * Bin 4: seq2, seq3
      */
 
     /* LOW LEVEL IBF 1
@@ -262,10 +262,10 @@ TEST_F(chopper_search_test, multi_level_example)
 
         this->compare_result(result, {
             /*high-level IBF      */ {0,2},{0,4},
-            /*LOW LEVEL IBF 0;0;0 */ {1,2},{1,3},{1,5},{1,7},{1,12},
+            /*LOW LEVEL IBF 0     */ {1,2},{1,3},{1,4},
             /*LOW LEVEL IBF 0;0   */ {2,1},{2,2},{2,3},{2,4},
-            /*LOW LEVEL IBF 0;1   */ {3,0},{3,1},{3,2},
-            /*LOW LEVEL IBF 0     */ {4,2},{4,3},{4,4},
+            /*LOW LEVEL IBF 0;0;0 */ {3,2},{3,3},{3,5},{3,7},{3,12},
+            /*LOW LEVEL IBF 0;1   */ {4,0},{4,1},{4,2},
             /*LOW LEVEL IBF 1     */ {5,0},{5,1},{5,3}
         });
     }
@@ -278,10 +278,10 @@ TEST_F(chopper_search_test, multi_level_example)
 
         this->compare_result(result, {
             /*high-level IBF      */ {0,2},{0,4},
-            /*LOW LEVEL IBF 0;0;0 */ {1,3},{1,7},{1,12},
+            /*LOW LEVEL IBF 0     */ {1,2},{1,4},
             /*LOW LEVEL IBF 0;0   */ {2,2},{2,4},
-            /*LOW LEVEL IBF 0;1   */ {3,1},
-            /*LOW LEVEL IBF 0     */ {4,2},{4,4},
+            /*LOW LEVEL IBF 0;0;0 */ {3,3},{3,7},{3,12},
+            /*LOW LEVEL IBF 0;1   */ {4,1},
             /*LOW LEVEL IBF 1     */ {5,1},{5,3}
         });
     }
@@ -294,10 +294,10 @@ TEST_F(chopper_search_test, multi_level_example)
 
         this->compare_result(result, {
             /*high-level IBF      */ {0,2},{0,4},
-            /*LOW LEVEL IBF 0;0;0 */ {1,5},{1,7},{1,12},
+            /*LOW LEVEL IBF 0     */ {1,3},{1,4},
             /*LOW LEVEL IBF 0;0   */ {2,3},
-            /*LOW LEVEL IBF 0;1   */ {3,2},
-            /*LOW LEVEL IBF 0     */ {4,3},{4,4}
+            /*LOW LEVEL IBF 0;0;0 */ {3,5},{3,7},{3,12},
+            /*LOW LEVEL IBF 0;1   */ {4,2}
             /*LOW LEVEL IBF 1     */
         });
     }

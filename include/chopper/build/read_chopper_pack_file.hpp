@@ -22,13 +22,15 @@ inline void read_chopper_pack_file(build_data<chopper_pack_record> & data, std::
 
     // parse header
     // -------------------------------------------------------------------------
-    parse_chopper_pack_header(data.ibf_graph, data.node_map, chopper_pack_file);
+    data.number_of_ibfs = parse_chopper_pack_header(data.ibf_graph, data.node_map, chopper_pack_file) + 1;
 
     // parse lines
     // -------------------------------------------------------------------------
     std::string current_line;
+    size_t user_bins{};
     while (std::getline(chopper_pack_file, current_line))
     {
+        ++user_bins;
         chopper_pack_record const && record = parse_chopper_pack_line(current_line);
 
         // go down the tree until you find the matching parent
@@ -69,4 +71,7 @@ inline void read_chopper_pack_file(build_data<chopper_pack_record> & data, std::
         else
             current_data.remaining_records.push_back(record);
     }
+
+    data.number_of_user_bins = user_bins;
+    data.resize();
 };

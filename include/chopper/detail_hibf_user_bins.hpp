@@ -23,27 +23,24 @@ private:
 
 public:
 
-    size_t add_user_bin(std::string const & name)
+    void resize_bins(size_t const size)
     {
-        filenames.push_back(name);
-        return filenames.size() - 1;
+        bin_to_filename_position.resize(size);
     }
 
-    size_t add_user_bin(std::vector<std::string> const & names)
+    void resize_filename(size_t const size)
     {
-        // concat
-        filenames.push_back((names | seqan3::views::join_with(std::string{";"}) | seqan3::views::to<std::string>));
-        return filenames.size() - 1;
+        filenames.resize(size);
     }
 
-    void add_user_bin_positions(std::vector<int64_t> const & bin_indices)
+    std::vector<int64_t> & bin_at(size_t const idx)
     {
-        bin_to_filename_position.push_back(bin_indices);
+        return bin_to_filename_position[idx];
     }
 
-    void prepend_user_bin_positions(std::vector<int64_t> const & bin_indices)
+    std::string & filename_at(size_t const idx)
     {
-        bin_to_filename_position.insert(bin_to_filename_position.begin(), bin_indices);
+        return filenames[idx];
     }
 
     std::string const & operator[](std::pair<size_t, size_t> const & index_pair) const
