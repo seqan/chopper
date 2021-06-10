@@ -177,12 +177,15 @@ TEST_F(chopper_search_test, first_example)
     }
 
     seqan3::test::tmp_filename output_filename{"search.out"};
+    std::filesystem::path timing_filename{output_filename.get_path()};
+    timing_filename += ".time";
 
     const char * argv[] = {"./chopper-search",
                            "-i", output_path.get_path().c_str(),
                            "-q", query_filename.get_path().c_str(),
-                           "-o", output_filename.get_path().c_str()};
-    int argc = 7;
+                           "-o", output_filename.get_path().c_str(),
+                           "--time"};
+    int argc = 8;
     seqan3::argument_parser search_parser{"chopper-search", argc, argv, seqan3::update_notifications::off};
 
     testing::internal::CaptureStderr();
@@ -206,6 +209,8 @@ TEST_F(chopper_search_test, first_example)
         "seq3_specific\t2,3,5,6,7\n"
     };
 
+    EXPECT_TRUE(std::filesystem::exists(timing_filename));
+    std::filesystem::remove(timing_filename);
     EXPECT_EQ(string_from_file(output_filename.get_path()), expected);
 }
 
