@@ -27,6 +27,7 @@ void initialize_argument_parser(seqan3::argument_parser & parser, search_config 
     parser.add_option(config.output_filename, 'o', "output", "The file to write results to.");
     parser.add_option(config.threads, 't', "threads", "The number of threads to use.");
     parser.add_flag(config.verbose, 'v', "verbose", "Output logging/progress information.");
+    parser.add_flag(config.write_time, '\0', "time", "Write timing file.", seqan3::option_spec::advanced);
 }
 
 struct search_file_traits : public seqan3::sequence_file_input_default_traits_dna
@@ -43,6 +44,10 @@ int chopper_search(seqan3::argument_parser & parser)
     search_config config{};
     initialize_argument_parser(parser, config);
 
+    double ibf_io_time{0.0};
+    double reads_io_time{0.0};
+    double compute_time{0.0};
+
     try
     {
         parser.parse();
@@ -56,20 +61,28 @@ int chopper_search(seqan3::argument_parser & parser)
     search_data data;
     sync_out sync_file{config.output_filename};
 
-    { // read ibf vector
+    auto cereal_worker = [&] ()
+    {
         std::ifstream is{config.chopper_index_filename, std::ios::binary};
 
         if (!is.good() && !is.is_open())
             throw std::runtime_error{"File " + config.chopper_index_filename + " could not be opened"};
 
         cereal::BinaryInputArchive iarchive{is};
+
+        auto start = std::chrono::high_resolution_clock::now();
         iarchive(data.hibf);
         iarchive(data.hibf_bin_levels);
         iarchive(data.user_bins);
         iarchive(config.k);
-    }
+        auto end = std::chrono::high_resolution_clock::now();
 
-    write_header(data, sync_file);
+        ibf_io_time += std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count();
+
+        write_header(data, sync_file);
+    };
+
+    auto cereal_handle = std::async(std::launch::async, cereal_worker);
 
     search_sequence_file_t fin{config.query_filename};
     std::vector<search_sequence_file_t::record_type> records{};
@@ -94,12 +107,35 @@ int chopper_search(seqan3::argument_parser & parser)
     for (auto && record_batch : fin | seqan3::views::chunk((1ULL<<20)*10))
     {
         records.clear();
+
+        auto start = std::chrono::high_resolution_clock::now();
         std::ranges::move(record_batch, std::cpp20::back_inserter(records));
+        auto end = std::chrono::high_resolution_clock::now();
+        reads_io_time += std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count();
 
         size_t const records_per_thread = records.size() / config.threads;
         seqan3::detail::execution_handler_parallel executioner{config.threads};
         auto chunked_records = records | seqan3::views::chunk(records_per_thread);
+
+        cereal_handle.wait();
+
+        start = std::chrono::high_resolution_clock::now();
         executioner.bulk_execute(std::move(worker), std::move(chunked_records), [](){});
+        end = std::chrono::high_resolution_clock::now();
+        compute_time += std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count();
+    }
+
+    if (config.write_time)
+    {
+        std::filesystem::path file_path{config.output_filename};
+        file_path += ".time";
+        std::ofstream file_handle{file_path};
+        file_handle << "IBF I/O\tReads I/O\tCompute\n";
+        file_handle << std::fixed
+                    << std::setprecision(2)
+                    << ibf_io_time << '\t'
+                    << reads_io_time << '\t'
+                    << compute_time;
     }
 
     return 0;

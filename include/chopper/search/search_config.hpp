@@ -10,4 +10,5 @@ struct search_config
     uint8_t errors{0};
     uint8_t threads{1};
     bool verbose{false};
+    bool write_time{false};
 };
