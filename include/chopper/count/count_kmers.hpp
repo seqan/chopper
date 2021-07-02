@@ -1,6 +1,6 @@
+#include <seqan3/std/filesystem>
 #include <future>
-#include <iostream>
-#include <utility>
+#include <fstream>
 #include <thread>
 
 #include <robin_hood.h>
@@ -11,19 +11,19 @@
 #include <seqan3/search/views/minimiser_hash.hpp>
 #include <seqan3/utility/views/to.hpp>
 
-std::mutex mu;
+#include <chopper/union/hyperloglog.hpp>
 
-inline void print_safely(std::pair<std::string, std::vector<std::string>> const & cluster,
-                         std::set<uint64_t> const & result)
+inline void write_cluster_data(std::pair<std::string, std::vector<std::string>> const & cluster,
+                               uint64_t const size,
+                               std::ofstream & fout)
 {
-    std::lock_guard<std::mutex> lock(mu);  // Acquire the mutex
     assert(cluster.second.size() >= 1);
 
-    std::cout << cluster.second[0]; // print first filename
+    fout << cluster.second[0]; // write first filename
     for (size_t i = 1; i < cluster.second.size(); ++i)
-        std::cout << ";" << cluster.second[i];
-    std::cout << '\t' << result.size() << '\t' << cluster.first << std::endl;
-}// lock_guard object is destroyed and mutex mu is released
+        fout << ";" << cluster.second[i];
+    fout << '\t' << size << '\t' << cluster.first << std::endl;
+}
 
 struct mytraits : public seqan3::sequence_file_input_default_traits_dna
 {
@@ -34,63 +34,79 @@ using sequence_file_type = seqan3::sequence_file_input<mytraits,
                                                        seqan3::fields<seqan3::field::seq>,
                                                        seqan3::type_list<seqan3::format_fasta, seqan3::format_fastq>>;
 
-template <typename cluster_view_type, typename compute_view_type>
-void compute_hashes(cluster_view_type && cluster_view, compute_view_type && compute_fn)
+template <typename seq_type, typename compute_view_type>
+void compute_hashes(seq_type && seq,
+                    compute_view_type && compute_fn,
+                    count_config const & config,
+                    robin_hood::unordered_node_set<uint64_t> & result,
+                    hyperloglog & sketch)
 {
-    for (auto && [cluster, sequence_vector] : cluster_view)
+    if (!config.exclusively_hlls)
     {
-        std::set<uint64_t> result;
-        for (auto && seq : sequence_vector)
-            for (auto hash : seq | compute_fn)
-                result.insert(hash);
-        print_safely(cluster, result);
+        auto hash_view = seq | compute_fn | std::views::common;
+        result.insert(hash_view.begin(), hash_view.end());
     }
+
+    if (config.exclusively_hlls || !config.hll_dir.empty())
+        for (auto && hash : seq | compute_fn)
+            sketch.add(reinterpret_cast<char*>(&hash), sizeof(hash));
 }
 
 inline void count_kmers(robin_hood::unordered_map<std::string, std::vector<std::string>> const & filename_clusters,
                         count_config const & config)
 {
-    size_t const counting_threads = (config.num_threads <= 1) ? 1 : config.num_threads - 1;
+    // output file
+    std::ofstream fout{config.output_filename};
+
+    // create the hll dir if it doesn't already exist
+    if (!config.hll_dir.empty())
+        std::filesystem::create_directory(config.hll_dir);
 
     auto compute_minimiser = seqan3::views::minimiser_hash(seqan3::ungapped{config.k}, seqan3::window_size{config.w});
     auto compute_kmers = seqan3::views::kmer_hash(seqan3::ungapped{config.k});
 
-    auto read_files = std::views::transform([] (auto const & cluster)
-    {
-        using result_t = std::vector<std::vector<seqan3::dna4>>;
-        using inner_pair_t = std::pair<std::string, std::vector<std::string>>;
-        using pair_t = std::pair<inner_pair_t, result_t>;
-
-        result_t result;
-        for (auto const & filename : cluster.second)
-        {
-            sequence_file_type fin{filename};
-            for (auto & [seq] : fin)
-                result.push_back(seq);
-        }
-
-        return pair_t{inner_pair_t{cluster.first, cluster.second}, result};
-    });
-
+    // copy filename clusters to vector
     std::vector<std::pair<std::string, std::vector<std::string>>> cluster_vector{};
     for (auto const & cluster : filename_clusters)
         cluster_vector.emplace_back(cluster.first, cluster.second);
 
-    auto filename = cluster_vector | seqan3::views::async_input_buffer(counting_threads * 5);
-
-    auto worker = [&] ()
+    #pragma omp parallel for schedule(static) num_threads(config.num_threads)
+    for (size_t i = 0; i < cluster_vector.size(); ++i)
     {
-        auto cluster_view = filename | read_files;
+        // read files
+        std::vector<std::vector<seqan3::dna4>> sequence_vector{};
+        for (auto const & filename : cluster_vector[i].second)
+            for (auto && [seq] : sequence_file_type{filename})
+                sequence_vector.push_back(seq);
+
+        robin_hood::unordered_node_set<uint64_t> result{};
+        hyperloglog sketch(config.sketch_bits);
 
         if (config.disable_minimizers)
-            compute_hashes(cluster_view, compute_kmers);
+            for (auto && seq : sequence_vector)
+                compute_hashes(seq, compute_kmers, config, result, sketch);
         else
-            compute_hashes(cluster_view, compute_minimiser);
-    };
+            for (auto && seq : sequence_vector)
+                compute_hashes(seq, compute_minimiser, config, result, sketch);
 
-    // launch threads with worker
-    std::vector<decltype(std::async(std::launch::async, worker))> handles;
+        // print either the exact or the approximate count, depending on exclusively_hlls
+        uint64_t const size = config.exclusively_hlls ? static_cast<uint64_t>(sketch.estimate()) : result.size();
 
-    for (size_t i = 0; i < counting_threads; ++i)
-        handles.emplace_back(std::async(std::launch::async, worker));
+        #pragma omp critical
+        write_cluster_data(cluster_vector[i], size, fout);
+
+        if (!config.hll_dir.empty())
+        {
+            // For more than one file in the cluster, Felix doesn't know how to name the file
+            // and what exactly is supposed to happen.
+            if (cluster_vector[i].second.size() > 1)
+                throw std::runtime_error("This mode is not implemented yet for multiple files grouped together.");
+
+            // For one file in the cluster, the file stem is used with the .hll ending
+            std::filesystem::path path = config.hll_dir / std::filesystem::path(cluster_vector[i].first).stem();
+            path += ".hll";
+            std::ofstream hll_fout(path, std::ios::binary);
+            sketch.dump(hll_fout);
+        }
+    }
 }
