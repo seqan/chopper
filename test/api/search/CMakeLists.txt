@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.8)
+cmake_minimum_required (VERSION 3.11)
 
 add_api_test (search_test.cpp)
 target_use_datasources (search_test FILES seq1.fa)

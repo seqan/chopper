@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.8)
+cmake_minimum_required (VERSION 3.11)
 
 add_api_test (chopper_split_test.cpp)
 target_use_datasources (chopper_split_test FILES small.fa)

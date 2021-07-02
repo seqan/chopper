@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.8)
+cmake_minimum_required (VERSION 3.11)
 
 add_api_test(read_data_file_test.cpp)
 target_use_datasources (read_data_file_test FILES seqinfo.tsv)
