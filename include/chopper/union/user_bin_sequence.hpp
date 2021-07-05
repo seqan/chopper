@@ -300,6 +300,10 @@ private:
             // keep merging nodes until we have a complete tree
             while (remaining_ids.size() > 1)
             {
+                // Wait for all threads to have evaluated remaining_ids.size() as remaining_ids
+                // may be modified by the following pragma omp single.
+                #pragma omp barrier
+
                 #pragma omp single
                 {
                     // perform critical update
