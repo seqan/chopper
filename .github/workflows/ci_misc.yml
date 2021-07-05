@@ -5,7 +5,6 @@ on:
     branches:
       # Push events to branches matching refs/heads/master
       - 'master'
-      - 'multi_level_hierarchical_ibf'
   pull_request:
 
 env:
@@ -29,7 +28,7 @@ jobs:
             build: documentation
             build_threads: 2
             test_threads: 2
-            cmake: 3.8.2
+            cmake: 3.11.4
             doxygen: 1.9.1
             requires_toolchain: false
             requires_ccache: false

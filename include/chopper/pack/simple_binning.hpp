@@ -127,8 +127,8 @@ public:
         kmer_count_sum{std::accumulate(user_bin_kmer_counts.begin(), user_bin_kmer_counts.end(), 0u)},
         kmer_count_average_per_bin{std::max<size_t>(1u, kmer_count_sum / num_technical_bins)}
     {
-        std::cout << "#Techincal bins: " << num_technical_bins << std::endl;
-        std::cout << "#User bins: " << data.kmer_counts.size() << std::endl;
+        // std::cout << "#Techincal bins: " << num_technical_bins << std::endl;
+        // std::cout << "#User bins: " << data.kmer_counts.size() << std::endl;
 
         if (num_user_bins > num_technical_bins)
         {

@@ -14,3 +14,7 @@
 	path = lib/robin-hood-hashing
 	url = https://github.com/martinus/robin-hood-hashing
 	branch = master
+[submodule "lib/simde"]
+	path = lib/simde
+	url = https://github.com/simd-everywhere/simde
+	branch = master

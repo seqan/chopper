@@ -1,24 +1,15 @@
 #pragma once
 
-#include <algorithm>
 #include <cassert>
-#include <fstream>
-#include <iostream>
-#include <limits>
-#include <numeric>
-#include <vector>
 
-#include <seqan3/core/debug_stream.hpp>
 #include <seqan3/utility/views/to.hpp>
 
 #include <chopper/detail_bin_prefixes.hpp>
 #include <chopper/pack/pack_config.hpp>
-#include <chopper/pack/pack_data.hpp>
-#include <chopper/pack/previous_level.hpp>
-#include <chopper/pack/print_matrix.hpp>
 #include <chopper/pack/simple_binning.hpp>
+#include <chopper/union/user_bin_sequence.hpp>
 
-struct hierarchical_binning
+class hierarchical_binning
 {
 private:
     //!\brief The file names of the user input. Since the input might be sorted, we need to keep track of the names.
@@ -47,12 +38,31 @@ private:
     //!\brief The average count calculated from kmer_count_sum / num_technical_bins.
     size_t const kmer_count_average_per_bin;
 
+    //!\brief If given, the hll sketches are dumped to this directory and restored when they already exist.
+    std::filesystem::path const & hll_dir;
+
+    //!\brief Whether to estimate the union of kmer sets to possibly improve the binning or not.
+    bool const estimate_union;
+    //!\brief Whether to do a second sorting of the bins which takes into account similarity or not.
+    bool const rearrange_bins;
+    //!\brief The maximal cardinality ratio in the clustering intervals.
+    double const max_ratio;
+    //!\brief The number of threads to use to compute merged HLL sketches.
+    size_t const num_threads;
+
     //!\brief A reference to the output stream to cache the results to.
     std::stringstream & output_buff;
     //!\brief A reference to the stream to cache the header to.
     std::stringstream & header_buff;
 
 public:
+    hierarchical_binning() = delete; //!< Deleted.
+    hierarchical_binning(hierarchical_binning const &) = delete; //!< Deleted.
+    hierarchical_binning & operator=(hierarchical_binning const &) = delete; //!< Deleted.
+    hierarchical_binning(hierarchical_binning &&) = default; //!< Defaulted.
+    hierarchical_binning & operator=(hierarchical_binning &&) = default; //!< Defaulted.
+    ~hierarchical_binning() = default; //!< Defaulted.
+
     /*!\brief The constructor from user bin names, their kmer counts and a configuration.
      * \param[in, out] data The data input: filenames associated with the user bin and a kmer count per user bin.
      * \param[in] config_ A configuration object that holds information from the user that influence the computation.
@@ -71,12 +81,17 @@ public:
         num_technical_bins{(config.bins == 0) ? ((user_bin_kmer_counts.size() + 63) / 64 * 64) : config.bins},
         kmer_count_sum{std::accumulate(user_bin_kmer_counts.begin(), user_bin_kmer_counts.end(), 0u)},
         kmer_count_average_per_bin{std::max<size_t>(1u, kmer_count_sum / num_technical_bins)},
+        hll_dir{config.hll_dir},
+        estimate_union{config.union_estimate},
+        rearrange_bins{config.rearrange_bins},
+        max_ratio{config.max_ratio},
+        num_threads{config.num_threads},
         output_buff{*data.output_buffer},
         header_buff{*data.header_buffer}
     {
-        std::cout << "#Techincal bins: " << num_technical_bins << std::endl;
-        std::cout << "#User bins: " << data.kmer_counts.size() << std::endl;
-        std::cout << "Output file: " << config.output_filename.string() << std::endl;
+        // std::cout << "#Techincal bins: " << num_technical_bins << std::endl;
+        // std::cout << "#User bins: " << data.kmer_counts.size() << std::endl;
+        // std::cout << "Output file: " << config.output_filename.string() << std::endl;
 
         if (names.size() != user_bin_kmer_counts.size())
             throw std::runtime_error{"The filenames and kmer counts do not have the same length."};
@@ -85,32 +100,45 @@ public:
     //!\brief Executes the hierarchical binning algorithm and packs user bins into technical bins.
     size_t execute()
     {
+        static constexpr size_t max_size_t{std::numeric_limits<size_t>::max()};
+
         sort_by_distribution(names, user_bin_kmer_counts);
         // seqan3::debug_stream << std::endl << "Sorted list: " << user_bin_kmer_counts << std::endl << std::endl;
 
-        std::vector<std::vector<size_t>> matrix(num_technical_bins); // rows
-        for (auto & v : matrix)
-            v.resize(num_user_bins, std::numeric_limits<size_t>::max()); // columns
+        std::vector<std::vector<uint64_t>> union_estimates;
+        // Depending on cli flags given, use HyperLogLog estimates and/or rearrangement algorithms
+        if (estimate_union)
+        {
+            user_bin_sequence bin_sequence(names, user_bin_kmer_counts, hll_dir);
 
-        std::vector<std::vector<size_t>> ll_matrix(num_technical_bins); // rows
-        for (auto & v : ll_matrix)
-            v.resize(num_user_bins, 0u); // columns
+            if (rearrange_bins)
+                bin_sequence.rearrange_bins(max_ratio, num_threads);
 
-        std::vector<std::vector<std::pair<size_t, size_t>>> trace(num_technical_bins); // rows
-        for (auto & v : trace)
-            v.resize(num_user_bins, {std::numeric_limits<size_t>::max(), std::numeric_limits<size_t>::max()}); // columns
+            bin_sequence.estimate_interval_unions(union_estimates, num_threads);
+        }
 
-        initialization(matrix, ll_matrix, trace);
+        // technical bins (outer) = rows; user bins (inner) = columns
+        std::vector<std::vector<size_t>> matrix(num_technical_bins,
+                                                std::vector<size_t>(num_user_bins, max_size_t));
 
-        recursion(matrix, ll_matrix, trace);
+        // technical bins (outer) = rows; user bins (inner) = columns
+        std::vector<std::vector<size_t>> ll_matrix(num_technical_bins,
+                                                   std::vector<size_t>(num_user_bins, 0u));
 
-        // print_matrix(matrix, num_technical_bins, num_user_bins, std::numeric_limits<size_t>::max());
-        // print_matrix(ll_matrix, num_technical_bins, num_user_bins, std::numeric_limits<size_t>::max());
-        // print_matrix(trace, num_technical_bins, num_user_bins, std::make_pair(std::numeric_limits<size_t>::max(), std::numeric_limits<size_t>::max()));
+        // technical bins (outer) = rows; user bins (inner) = columns
+        std::vector<std::vector<std::pair<size_t, size_t>>> trace(num_technical_bins,
+                                                                  std::vector<std::pair<size_t, size_t>>(
+                                                                      num_user_bins, {max_size_t, max_size_t}));
 
-        size_t max_bin_id = backtracking(matrix, ll_matrix, trace);
+        initialization(matrix, ll_matrix, trace, union_estimates);
 
-        return max_bin_id;
+        recursion(matrix, ll_matrix, trace, union_estimates);
+
+        // print_matrix(matrix, num_technical_bins, num_user_bins, max_size_t);
+        // print_matrix(ll_matrix, num_technical_bins, num_user_bins, max_size_t);
+        // print_matrix(trace, num_technical_bins, num_user_bins, std::make_pair(max_size_t, max_size_t));
+
+        return backtracking(matrix, ll_matrix, trace);
     }
 
 private:
@@ -150,7 +178,8 @@ private:
      */
     void initialization(std::vector<std::vector<size_t>> & matrix,
                         std::vector<std::vector<size_t>> & ll_matrix,
-                        std::vector<std::vector<std::pair<size_t, size_t>>> & trace)
+                        std::vector<std::vector<std::pair<size_t, size_t>>> & trace,
+                        std::vector<std::vector<uint64_t>> const & union_estimates)
     {
         // initialize first column
         for (size_t i = 0; i < num_technical_bins; ++i)
@@ -160,11 +189,24 @@ private:
         }
 
         // initialize first row
-        for (size_t j = 1; j < num_user_bins; ++j)
+        if (estimate_union)
         {
-            matrix[0][j] = user_bin_kmer_counts[j] + matrix[0][j - 1];
-            ll_matrix[0][j] = matrix[0][j];
-            trace[0][j] = {0u, j - 1}; // unnecessary?
+            for (size_t j = 1; j < num_user_bins; ++j)
+            {
+                ll_matrix[0][j] = user_bin_kmer_counts[j] + matrix[0][j - 1];
+                matrix[0][j] = union_estimates[j][0];
+                trace[0][j] = {0u, j - 1}; // unnecessary?
+            }
+        }
+        else
+        {
+            for (size_t j = 1; j < num_user_bins; ++j)
+            {
+                size_t const sum = user_bin_kmer_counts[j] + matrix[0][j - 1];
+                matrix[0][j] = sum;
+                ll_matrix[0][j] = sum;
+                trace[0][j] = {0u, j - 1}; // unnecessary?
+            }
         }
     }
 
@@ -208,7 +250,8 @@ private:
      */
     void recursion(std::vector<std::vector<size_t>> & matrix,
                    std::vector<std::vector<size_t>> & ll_matrix,
-                   std::vector<std::vector<std::pair<size_t, size_t>>> & trace)
+                   std::vector<std::vector<std::pair<size_t, size_t>>> & trace,
+                   std::vector<std::vector<uint64_t>> const & union_estimates)
     {
         // we must iterate column wise
         for (size_t j = 1; j < num_user_bins; ++j)
@@ -247,17 +290,26 @@ private:
                 // check horizontal cells
                 size_t j_prime{j - 1};
                 size_t weight{current_weight};
+
+                auto get_weight = [&] ()
+                {
+                    // if we use the union estimate we plug in that value instead of the sum (weight)
+                    // union_estimate[i][j] is the union of {j, ..., i}
+                    // the + 1 is necessary because j_prime is decremented directly after weight is updated
+                    return estimate_union ? union_estimates[j][j_prime + 1] : weight;
+                };
+
                 // if the user bin j-1 was not split into multiple technical bins!
                 // I may merge the current user bin j into the former
-                while (j_prime != 0 && ((i - trace[i][j_prime].first) < 2) && weight < minimum)
+                while (j_prime != 0 && ((i - trace[i][j_prime].first) < 2) && get_weight() < minimum)
                 {
                     weight += user_bin_kmer_counts[j_prime];
                     --j_prime;
 
                     // score: The current maximum technical bin size for the high-level IBF (score for the matrix M)
                     // full_score: The score to minimize -> score * #TB-high_level + low_level_memory footprint
-                    size_t score = std::max<size_t>(weight, matrix[i - 1][j_prime]);
-                    size_t full_score = score * (i + 1) /*#TBs*/ + alpha * (ll_matrix[i - 1][j_prime] + weight);
+                    size_t const score = std::max<size_t>(get_weight(), matrix[i - 1][j_prime]);
+                    size_t const full_score = score * (i + 1) /*#TBs*/ + alpha * (ll_matrix[i - 1][j_prime] + weight);
 
                     // seqan3::debug_stream << " -- " << "j_prime:" << j_prime
                     //                      << " -> full_score:" << full_score << " (M_{i-1,j'}=" << score << ")"
@@ -287,8 +339,8 @@ private:
         // backtracking
         size_t trace_i = num_technical_bins - 1;
         int trace_j = num_user_bins - 1;
-        std::cout << "optimum: " << matrix[trace_i][trace_j] << std::endl;
-        std::cout << std::endl;
+        // std::cout << "optimum: " << matrix[trace_i][trace_j] << std::endl;
+        // std::cout << std::endl;
 
         if (output_buff.tellp() == 0) // beginning of the file
             output_buff << "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\tEST_MAX_TB_SIZES" << std::endl;

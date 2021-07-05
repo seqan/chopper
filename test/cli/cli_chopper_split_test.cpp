@@ -32,6 +32,10 @@ TEST_F(cli_test, with_out_file)
                                          "-s", data("small2.fa"),
                                          "-o", output_filename.get_path().c_str());
 
+    EXPECT_EQ(result.exit_code, 0);
+    EXPECT_EQ(result.out, std::string{});
+    EXPECT_EQ(result.err, std::string{});
+
     // compare results
     std::string expected_file_str
     {

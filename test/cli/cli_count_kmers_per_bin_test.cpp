@@ -46,6 +46,7 @@ TEST_F(cli_test, small_example_only_high_level_bins)
     };
 
     // compare results
+    EXPECT_EQ(result.exit_code, 0);
     EXPECT_EQ(result.out, expected_stdout);
     EXPECT_EQ(result.err, std::string{""});
 }

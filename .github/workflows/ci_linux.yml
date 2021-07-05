@@ -5,11 +5,10 @@ on:
     branches:
       # Push events to branches matching refs/heads/master
       - 'master'
-      - 'multi_level_hierarchical_ibf'
   pull_request:
 
 env:
-  CMAKE_VERSION: 3.8.2
+  CMAKE_VERSION: 3.11.4
   SEQAN3_NO_VERSION_CHECK: 1
   TZ: Europe/Berlin
 
