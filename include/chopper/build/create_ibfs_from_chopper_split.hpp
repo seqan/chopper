@@ -112,7 +112,7 @@ inline void update_user_bins(build_data<chopper_split_record> & data,
                              std::vector<int64_t> & ibf_filenames,
                              chopper_split_record const & record)
 {
-    auto const user_bin_pos = data.user_bins.add_user_bin(record.filenames);
+    auto const user_bin_pos = data.hibf.user_bins.add_user_bin(record.filenames);
     for (size_t i = 0; i < record.number_of_bins.back(); ++i)
         ibf_filenames.at(record.bin_indices.back() + i) = user_bin_pos;
 }
@@ -134,7 +134,7 @@ inline size_t initialise_max_bin_kmers(std::unordered_set<size_t> & kmers,
     if (node_data.favourite_child != lemon::INVALID) // max bin is a merged bin
     {
         build(kmers, node_data.favourite_child, data, config); // recursively initialize favourite child first
-        ibf_positions[node_data.max_bin_index] = data.hibf.size();
+        ibf_positions[node_data.max_bin_index] = data.hibf.ibf_vector.size();
         return 1;
     }
     else // there a max bin, that is ot a merged bin
@@ -189,7 +189,7 @@ void loop_over_children(parent_kmers_type & parent_kmers,
             std::unordered_set<size_t> kmers{}; // todo: maybe it is more efficient if this is declared outside and cleared every iteration
             build(kmers, child, data, config); // also appends that childs counts to 'kmers'
             insert_into_ibf_from_set(kmers, child_data.parent_bin_index, ibf);
-            ibf_positions[child_data.parent_bin_index] = data.hibf.size();
+            ibf_positions[child_data.parent_bin_index] = data.hibf.ibf_vector.size();
 
             if constexpr (std::same_as<parent_kmers_type, std::unordered_set<size_t>>)
                 parent_kmers.merge(kmers);
@@ -228,14 +228,14 @@ inline void build(std::unordered_set<size_t> & parent_kmers,
         update_user_bins(data, ibf_filenames, record);
     }
 
-    data.hibf.push_back(std::move(ibf));
+    data.hibf.ibf_vector.push_back(std::move(ibf));
 
     for (auto & pos : ibf_positions)
         if (pos == -1)
-            pos = data.hibf.size();
+            pos = data.hibf.ibf_vector.size();
 
-    data.hibf_bin_levels.push_back(std::move(ibf_positions));
-    data.user_bins.add_user_bin_positions(std::move(ibf_filenames));
+    data.hibf.next_ibf_id.push_back(std::move(ibf_positions));
+    data.hibf.user_bins.add_user_bin_positions(std::move(ibf_filenames));
 }
 
 inline void create_ibfs_from_chopper_split(build_data<chopper_split_record> & data, build_config const & config)
@@ -277,9 +277,9 @@ inline void create_ibfs_from_chopper_split(build_data<chopper_split_record> & da
         update_user_bins(data, ibf_filenames, record);
     }
 
-    data.hibf.insert(data.hibf.begin(), std::move(high_level_ibf)); // insert High level at the beginning
-    data.hibf_bin_levels.insert(data.hibf_bin_levels.begin(), std::move(ibf_positions));
-    data.user_bins.prepend_user_bin_positions(std::move(ibf_filenames));
+    data.hibf.ibf_vector.insert(data.hibf.ibf_vector.begin(), std::move(high_level_ibf)); // insert High level at the beginning
+    data.hibf.next_ibf_id.insert(data.hibf.next_ibf_id.begin(), std::move(ibf_positions));
+    data.hibf.user_bins.prepend_user_bin_positions(std::move(ibf_filenames));
 }
 
 #endif

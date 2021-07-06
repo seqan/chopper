@@ -7,7 +7,6 @@
 #include <chopper/search/pair_hash.hpp>
 #include <chopper/search/search.hpp>
 #include <chopper/search/search_config.hpp>
-#include <chopper/search/search_data.hpp>
 
 #include "../api_test.hpp"
 
@@ -83,12 +82,8 @@ TEST_F(chopper_search_test, first_example)
 
     create_ibfs_from_chopper_pack(bdata, bconfig);
 
-    // move build data to search data
-    search_data data{};
-
-    data.hibf = std::move(bdata.hibf);
-    data.hibf_bin_levels = std::move(bdata.hibf_bin_levels);
-    data.user_bins = std::move(bdata.user_bins);
+    // move built hibf out of build_data
+    hierarchical_interleaved_bloom_filter hibf{std::move(bdata.hibf)};
 
     search_config config{};
     config.k = bconfig.k;
@@ -103,7 +98,7 @@ TEST_F(chopper_search_test, first_example)
         clear_and_compute_kmers(kmers, unspecific, config);
         std::vector<std::pair<int32_t, uint32_t>> result{};
 
-        search(result, kmers, data, config, 0); // start at top level ibf
+        search(result, kmers, hibf, config, 0); // start at top level ibf
 
         this->compare_result(result, {{0,0},{0,1},{0,2},{0,5},{1,0},{1,1},{1,4},{1,5}});
     }
@@ -112,7 +107,7 @@ TEST_F(chopper_search_test, first_example)
         clear_and_compute_kmers(kmers, seq2_specific, config);
         std::vector<std::pair<int32_t, uint32_t>> result{};
 
-        search(result, kmers, data, config, 0); // start at top level ibf
+        search(result, kmers, hibf, config, 0); // start at top level ibf
 
         this->compare_result(result, {{0,0},{0,2},{0,5},{1,1},{1,4}});
     }
@@ -121,7 +116,7 @@ TEST_F(chopper_search_test, first_example)
         clear_and_compute_kmers(kmers, seq3_specific, config);
         std::vector<std::pair<int32_t, uint32_t>> result{};
 
-        search(result, kmers, data, config, 0); // start at top level ibf
+        search(result, kmers, hibf, config, 0); // start at top level ibf
 
         this->compare_result(result, {{0,1},{0,2},{0,5},{1,4},{1,5}});
     }
@@ -179,12 +174,8 @@ TEST_F(chopper_search_test, multi_level_example)
 
     create_ibfs_from_chopper_pack(bdata, bconfig);
 
-    // move build data to search data
-    search_data data{};
-
-    data.hibf = std::move(bdata.hibf);
-    data.hibf_bin_levels = std::move(bdata.hibf_bin_levels);
-    data.user_bins = std::move(bdata.user_bins);
+    // move built hibf out of build_data
+    hierarchical_interleaved_bloom_filter hibf{std::move(bdata.hibf)};
 
     search_config config{};
     config.k = bconfig.k;
@@ -258,7 +249,7 @@ TEST_F(chopper_search_test, multi_level_example)
         clear_and_compute_kmers(kmers, unspecific, config);
         std::vector<std::pair<int32_t, uint32_t>> result{};
 
-        search(result, kmers, data, config, 0); // start at top level ibf
+        search(result, kmers, hibf, config, 0); // start at top level ibf
 
         this->compare_result(result, {
             /*high-level IBF      */ {0,2},{0,4},
@@ -274,7 +265,7 @@ TEST_F(chopper_search_test, multi_level_example)
         clear_and_compute_kmers(kmers, seq2_specific, config);
         std::vector<std::pair<int32_t, uint32_t>> result{};
 
-        search(result, kmers, data, config, 0); // start at top level ibf
+        search(result, kmers, hibf, config, 0); // start at top level ibf
 
         this->compare_result(result, {
             /*high-level IBF      */ {0,2},{0,4},
@@ -290,7 +281,7 @@ TEST_F(chopper_search_test, multi_level_example)
         clear_and_compute_kmers(kmers, seq3_specific, config);
         std::vector<std::pair<int32_t, uint32_t>> result{};
 
-        search(result, kmers, data, config, 0); // start at top level ibf
+        search(result, kmers, hibf, config, 0); // start at top level ibf
 
         this->compare_result(result, {
             /*high-level IBF      */ {0,2},{0,4},
