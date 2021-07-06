@@ -268,7 +268,7 @@ inline size_t build(parent_kmers_type & parent_kmers,
         kmers.clear();
     }
 
-    data.hibf.hibf[ibf_pos] = std::move(ibf);
+    data.hibf.ibf_vector[ibf_pos] = std::move(ibf);
     data.hibf.next_ibf_id[ibf_pos] = std::move(ibf_positions);
     data.hibf.user_bins.bin_at(ibf_pos) = std::move(filename_indices);
 

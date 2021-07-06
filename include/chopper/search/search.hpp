@@ -67,7 +67,7 @@ inline void search(std::vector<std::pair<int32_t, uint32_t>> & membership_result
                               ? kmers.size() - (config.errors + 1) * config.k
                               : 0;
 
-    auto counting_agent = hibf.hibf[ibf_idx].template counting_agent<uint16_t>();
+    auto counting_agent = hibf.ibf_vector[ibf_idx].template counting_agent<uint16_t>();
     auto const & result = counting_agent.bulk_count(kmers);
     assert(result.size() > 0);
 

@@ -23,14 +23,15 @@ public:
 
     //!\}
 
-    std::vector<seqan3::interleaved_bloom_filter<data_layout_mode_>> hibf;
+    //!\brief The individual interleaved Bloom filters.
+    std::vector<seqan3::interleaved_bloom_filter<data_layout_mode_>> ibf_vector;
 
     /*!\brief Stores for each bin in each IBF of the HIBF the ID of the next IBF.
      * \details
      * Assume we look up a bin `b` in IBF `i`, i.e. `next_ibf_id[i][b]`.
      * If `i` is returned, there is no lower level IBF, bin `b` is hence not a merged bin.
      * If `j != i` is returned, there is a lower level IBF, bin `b` is a merged bin, and `j` is the id of the lower
-     * level IBF in hibf.
+     * level IBF in ibf_vector.
      */
     std::vector<std::vector<int64_t>> next_ibf_id;
 
@@ -46,7 +47,7 @@ public:
     template <seqan3::cereal_archive archive_t>
     void CEREAL_SERIALIZE_FUNCTION_NAME(archive_t & archive)
     {
-        archive(hibf);
+        archive(ibf_vector);
         archive(next_ibf_id);
         archive(user_bins);
     }
