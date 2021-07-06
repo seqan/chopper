@@ -99,13 +99,13 @@ TEST_F(create_ibfs_from_chopper_pack_test, small_example_2_levels)
 
     create_ibfs_from_chopper_pack(data, config);
 
-    EXPECT_EQ(data.hibf.size(), 2);
+    EXPECT_EQ(data.hibf.hibf.size(), 2);
 
-    EXPECT_EQ(data.hibf_bin_levels.size(), 2);
-    EXPECT_RANGE_EQ(data.hibf_bin_levels[0], (std::vector<int64_t>{0,0,0,0,0,0,1}));
-    EXPECT_RANGE_EQ(data.hibf_bin_levels[1], (std::vector<int64_t>{1,1,1,1,1,1}));
+    EXPECT_EQ(data.hibf.hibf_bin_levels.size(), 2);
+    EXPECT_RANGE_EQ(data.hibf.hibf_bin_levels[0], (std::vector<int64_t>{0,0,0,0,0,0,1}));
+    EXPECT_RANGE_EQ(data.hibf.hibf_bin_levels[1], (std::vector<int64_t>{1,1,1,1,1,1}));
 
-    EXPECT_RANGE_EQ(data.user_bins[0],
+    EXPECT_RANGE_EQ(data.hibf.user_bins[0],
                    (std::vector<std::string>
                    {
                         seq1_filename + ";" + seq2_filename,
@@ -117,7 +117,7 @@ TEST_F(create_ibfs_from_chopper_pack_test, small_example_2_levels)
                         ""
                    }));
 
-    EXPECT_RANGE_EQ(data.user_bins[1],
+    EXPECT_RANGE_EQ(data.hibf.user_bins[1],
                    (std::vector<std::string>
                    {
                         seq1_filename,
@@ -128,8 +128,8 @@ TEST_F(create_ibfs_from_chopper_pack_test, small_example_2_levels)
                         seq3_filename
                    }));
 
-    auto & high_level_ibf = data.hibf[0];
-    auto & low_level_ibf = data.hibf[1];
+    auto & high_level_ibf = data.hibf.hibf[0];
+    auto & low_level_ibf = data.hibf.hibf[1];
 
     EXPECT_EQ(high_level_ibf.bin_size(), 114226);
     EXPECT_EQ(low_level_ibf.bin_size(), 76615);
@@ -206,10 +206,10 @@ TEST_F(create_ibfs_from_chopper_pack_test, uniform_splitting)
 
     create_ibfs_from_chopper_pack(data, config);
 
-    ASSERT_EQ(data.hibf.size(), 2);
+    ASSERT_EQ(data.hibf.hibf.size(), 2);
 
-    auto & high_level_ibf = data.hibf[0];
-    auto & low_level_ibf = data.hibf[1];
+    auto & high_level_ibf = data.hibf.hibf[0];
+    auto & low_level_ibf = data.hibf.hibf[1];
 
 
     {
@@ -296,13 +296,13 @@ TEST_F(create_ibfs_from_chopper_pack_test, same_example_two_levels_but_split_bin
 
     create_ibfs_from_chopper_pack(data, config);
 
-    EXPECT_EQ(data.hibf.size(), 2);
+    EXPECT_EQ(data.hibf.hibf.size(), 2);
 
-    EXPECT_EQ(data.hibf_bin_levels.size(), 2);
-    EXPECT_RANGE_EQ(data.hibf_bin_levels[0], (std::vector<int64_t>{0,0,0,0,0,0,1}));
-    EXPECT_RANGE_EQ(data.hibf_bin_levels[1], (std::vector<int64_t>{1,1,1,1,1,1}));
+    EXPECT_EQ(data.hibf.hibf_bin_levels.size(), 2);
+    EXPECT_RANGE_EQ(data.hibf.hibf_bin_levels[0], (std::vector<int64_t>{0,0,0,0,0,0,1}));
+    EXPECT_RANGE_EQ(data.hibf.hibf_bin_levels[1], (std::vector<int64_t>{1,1,1,1,1,1}));
 
-    EXPECT_RANGE_EQ(data.user_bins[0],
+    EXPECT_RANGE_EQ(data.hibf.user_bins[0],
                    (std::vector<std::string>
                    {
                         seq1_filename + ";" + seq2_filename,
@@ -314,7 +314,7 @@ TEST_F(create_ibfs_from_chopper_pack_test, same_example_two_levels_but_split_bin
                         ""
                    }));
 
-    EXPECT_RANGE_EQ(data.user_bins[1],
+    EXPECT_RANGE_EQ(data.hibf.user_bins[1],
                    (std::vector<std::string>
                    {
                         seq1_filename,
@@ -325,8 +325,8 @@ TEST_F(create_ibfs_from_chopper_pack_test, same_example_two_levels_but_split_bin
                         seq3_filename
                    }));
 
-    auto & high_level_ibf = data.hibf[0];
-    auto & low_level_ibf = data.hibf[1];
+    auto & high_level_ibf = data.hibf.hibf[0];
+    auto & low_level_ibf = data.hibf.hibf[1];
 
     EXPECT_EQ(high_level_ibf.bin_size(), 114226);
     EXPECT_EQ(low_level_ibf.bin_size(), 76615);
@@ -403,16 +403,16 @@ TEST_F(create_ibfs_from_chopper_pack_test, multi_level_ibf)
 
     create_ibfs_from_chopper_pack(data, config);
 
-    EXPECT_EQ(data.hibf.size(), 6);
-    EXPECT_EQ(data.hibf_bin_levels.size(), 6);
+    EXPECT_EQ(data.hibf.hibf.size(), 6);
+    EXPECT_EQ(data.hibf.hibf_bin_levels.size(), 6);
 
-    EXPECT_EQ(data.hibf.size(), 6);
-    // data.hibf[0] is the high-level IBF
-    // data.hibf[1] is the LOW LEVEL IBF 0
-    // data.hibf[2] is the LOW LEVEL IBF 0;0
-    // data.hibf[3] is the LOW LEVEL IBF 0;0;0
-    // data.hibf[4] is the LOW LEVEL IBF 0;1
-    // data.hibf[5] is the LOW LEVEL IBF 1
+    EXPECT_EQ(data.hibf.hibf.size(), 6);
+    // data.hibf.hibf[0] is the high-level IBF
+    // data.hibf.hibf[1] is the LOW LEVEL IBF 0
+    // data.hibf.hibf[2] is the LOW LEVEL IBF 0;0
+    // data.hibf.hibf[3] is the LOW LEVEL IBF 0;0;0
+    // data.hibf.hibf[4] is the LOW LEVEL IBF 0;1
+    // data.hibf.hibf[5] is the LOW LEVEL IBF 1
 
     /* HIGH LEVEL IBF
      * --------------
@@ -422,10 +422,10 @@ TEST_F(create_ibfs_from_chopper_pack_test, multi_level_ibf)
      * Bin 3: split but together: seq1, seq2, seq3
      * Bin 4: --> belongs to bin 3
      */
-    EXPECT_EQ(data.hibf[0].bin_count(), 5u);
-    EXPECT_EQ(data.hibf[0].bin_size(), 114226);
-    EXPECT_RANGE_EQ(data.hibf_bin_levels[0], (std::vector<int64_t>{1,5,0,0,0}));
-    EXPECT_RANGE_EQ(data.user_bins[0],
+    EXPECT_EQ(data.hibf.hibf[0].bin_count(), 5u);
+    EXPECT_EQ(data.hibf.hibf[0].bin_size(), 114226);
+    EXPECT_RANGE_EQ(data.hibf.hibf_bin_levels[0], (std::vector<int64_t>{1,5,0,0,0}));
+    EXPECT_RANGE_EQ(data.hibf.user_bins[0],
                    (std::vector<std::string>
                    {
                         "",
@@ -443,10 +443,10 @@ TEST_F(create_ibfs_from_chopper_pack_test, multi_level_ibf)
      * Bin 3: seq1, seq3
      * Bin 4: seq2, seq3
      */
-    EXPECT_EQ(data.hibf[1].bin_count(), 5u);
-    EXPECT_EQ(data.hibf[1].bin_size(), 114226);
-    EXPECT_RANGE_EQ(data.hibf_bin_levels[1], (std::vector<int64_t>{2,4,1,1,1}));
-    EXPECT_RANGE_EQ(data.user_bins[1],
+    EXPECT_EQ(data.hibf.hibf[1].bin_count(), 5u);
+    EXPECT_EQ(data.hibf.hibf[1].bin_size(), 114226);
+    EXPECT_RANGE_EQ(data.hibf.hibf_bin_levels[1], (std::vector<int64_t>{2,4,1,1,1}));
+    EXPECT_RANGE_EQ(data.hibf.user_bins[1],
                    (std::vector<std::string>
                    {
                         "",
@@ -464,10 +464,10 @@ TEST_F(create_ibfs_from_chopper_pack_test, multi_level_ibf)
      * Bin 3: seq3
      * Bin 4: seq1, seq2
      */
-    EXPECT_EQ(data.hibf[2].bin_count(), 5u);
-    EXPECT_EQ(data.hibf[2].bin_size(), 95321);
-    EXPECT_RANGE_EQ(data.hibf_bin_levels[2], (std::vector<int64_t>{3,2,2,2,2}));
-    EXPECT_RANGE_EQ(data.user_bins[2],
+    EXPECT_EQ(data.hibf.hibf[2].bin_count(), 5u);
+    EXPECT_EQ(data.hibf.hibf[2].bin_size(), 95321);
+    EXPECT_RANGE_EQ(data.hibf.hibf_bin_levels[2], (std::vector<int64_t>{3,2,2,2,2}));
+    EXPECT_RANGE_EQ(data.hibf.user_bins[2],
                    (std::vector<std::string>
                    {
                         "",
@@ -493,10 +493,10 @@ TEST_F(create_ibfs_from_chopper_pack_test, multi_level_ibf)
      * Bin 11: --> belongs to bin 8
      * Bin 12: --> belongs to bin 8
      */
-    EXPECT_EQ(data.hibf[3].bin_count(), 13u);
-    EXPECT_EQ(data.hibf[3].bin_size(), 92535);
-    EXPECT_RANGE_EQ(data.hibf_bin_levels[3], (std::vector<int64_t>(13, 3)));
-    EXPECT_RANGE_EQ(data.user_bins[3],
+    EXPECT_EQ(data.hibf.hibf[3].bin_count(), 13u);
+    EXPECT_EQ(data.hibf.hibf[3].bin_size(), 92535);
+    EXPECT_RANGE_EQ(data.hibf.hibf_bin_levels[3], (std::vector<int64_t>(13, 3)));
+    EXPECT_RANGE_EQ(data.hibf.user_bins[3],
                    (std::vector<std::string>
                    {
                         seq1_filename,
@@ -520,10 +520,10 @@ TEST_F(create_ibfs_from_chopper_pack_test, multi_level_ibf)
      * Bin 1: seq2
      * Bin 2: seq3
      */
-    EXPECT_EQ(data.hibf[4].bin_count(), 3u);
-    EXPECT_EQ(data.hibf[4].bin_size(), 92734);
-    EXPECT_RANGE_EQ(data.hibf_bin_levels[4], (std::vector<int64_t>{4,4,4}));
-    EXPECT_RANGE_EQ(data.user_bins[4],
+    EXPECT_EQ(data.hibf.hibf[4].bin_count(), 3u);
+    EXPECT_EQ(data.hibf.hibf[4].bin_size(), 92734);
+    EXPECT_RANGE_EQ(data.hibf.hibf_bin_levels[4], (std::vector<int64_t>{4,4,4}));
+    EXPECT_RANGE_EQ(data.hibf.user_bins[4],
                    (std::vector<std::string>
                    {
                         seq1_filename,
@@ -538,10 +538,10 @@ TEST_F(create_ibfs_from_chopper_pack_test, multi_level_ibf)
      * Bin 2: split but together: seq1, seq2
      * Bin 3: --> belongs to bin 2
      */
-    EXPECT_EQ(data.hibf[5].bin_count(), 4u);
-    EXPECT_EQ(data.hibf[5].bin_size(), 47561);
-    EXPECT_RANGE_EQ(data.hibf_bin_levels[5], (std::vector<int64_t>{5,5,5,5}));
-    EXPECT_RANGE_EQ(data.user_bins[5],
+    EXPECT_EQ(data.hibf.hibf[5].bin_count(), 4u);
+    EXPECT_EQ(data.hibf.hibf[5].bin_size(), 47561);
+    EXPECT_RANGE_EQ(data.hibf.hibf_bin_levels[5], (std::vector<int64_t>{5,5,5,5}));
+    EXPECT_RANGE_EQ(data.hibf.user_bins[5],
                    (std::vector<std::string>
                    {
                         seq1_filename,
@@ -555,26 +555,26 @@ TEST_F(create_ibfs_from_chopper_pack_test, multi_level_ibf)
     auto seq3_specific = "ATCGATCACGATCAGCGAGCGATATCTTATCGTAGGCATCGAGCATCGAGGAGCGATCTATCTATCTATCATCTATCTAT"_dna4;
 
     // UNSPECIFIC - unspecific region should be found in all bins that include a whole sequence
-    compare_counts(data.hibf[0], unspecific, {{0}, {1}, {2}, {3,4}}, config);
-    compare_counts(data.hibf[1], unspecific, {{0}, {1}, {2}, {3}, {4}}, config);
-    compare_counts(data.hibf[2], unspecific, {{0}, {1}, {2}, {3}, {4}}, config);
-    compare_counts(data.hibf[3], unspecific, {{0, 1, 2}, {3}, {4,5}, {6,7}, {8,9,10,11,12}}, config);
-    compare_counts(data.hibf[4], unspecific, {{0}, {1}, {2}}, config);
-    compare_counts(data.hibf[5], unspecific, {{0}, {1}, {2,3}}, config);
+    compare_counts(data.hibf.hibf[0], unspecific, {{0}, {1}, {2}, {3,4}}, config);
+    compare_counts(data.hibf.hibf[1], unspecific, {{0}, {1}, {2}, {3}, {4}}, config);
+    compare_counts(data.hibf.hibf[2], unspecific, {{0}, {1}, {2}, {3}, {4}}, config);
+    compare_counts(data.hibf.hibf[3], unspecific, {{0, 1, 2}, {3}, {4,5}, {6,7}, {8,9,10,11,12}}, config);
+    compare_counts(data.hibf.hibf[4], unspecific, {{0}, {1}, {2}}, config);
+    compare_counts(data.hibf.hibf[5], unspecific, {{0}, {1}, {2,3}}, config);
 
     // SEQ2 SPECIFIC
-    compare_counts(data.hibf[0], seq2_specific, {{0}, {1}, {2}, {3,4}}, config);
-    compare_counts(data.hibf[1], seq2_specific, {{0}, {1}, {2}, {4}}, config);
-    compare_counts(data.hibf[2], seq2_specific, {{0}, {2}, {4}}, config);
-    compare_counts(data.hibf[3], seq2_specific, {{3}, {6,7}, {8,9,10,11,12}}, config);
-    compare_counts(data.hibf[4], seq2_specific, {{1}}, config);
-    compare_counts(data.hibf[5], seq2_specific, {{1}, {2,3}}, config);
+    compare_counts(data.hibf.hibf[0], seq2_specific, {{0}, {1}, {2}, {3,4}}, config);
+    compare_counts(data.hibf.hibf[1], seq2_specific, {{0}, {1}, {2}, {4}}, config);
+    compare_counts(data.hibf.hibf[2], seq2_specific, {{0}, {2}, {4}}, config);
+    compare_counts(data.hibf.hibf[3], seq2_specific, {{3}, {6,7}, {8,9,10,11,12}}, config);
+    compare_counts(data.hibf.hibf[4], seq2_specific, {{1}}, config);
+    compare_counts(data.hibf.hibf[5], seq2_specific, {{1}, {2,3}}, config);
 
     // SEQ3 SPECIFIC
-    compare_counts(data.hibf[0], seq3_specific, {{0}, {2}, {3,4}}, config);
-    compare_counts(data.hibf[1], seq3_specific, {{0}, {1}, {3}, {4}}, config);
-    compare_counts(data.hibf[2], seq3_specific, {{0}, {3}}, config);
-    compare_counts(data.hibf[3], seq3_specific, {{4,5}, {6,7}, {8,9,10,11,12}}, config);
-    compare_counts(data.hibf[4], seq3_specific, {{2}}, config);
-    compare_counts(data.hibf[5], seq3_specific, {}, config);
+    compare_counts(data.hibf.hibf[0], seq3_specific, {{0}, {2}, {3,4}}, config);
+    compare_counts(data.hibf.hibf[1], seq3_specific, {{0}, {1}, {3}, {4}}, config);
+    compare_counts(data.hibf.hibf[2], seq3_specific, {{0}, {3}}, config);
+    compare_counts(data.hibf.hibf[3], seq3_specific, {{4,5}, {6,7}, {8,9,10,11,12}}, config);
+    compare_counts(data.hibf.hibf[4], seq3_specific, {{2}}, config);
+    compare_counts(data.hibf.hibf[5], seq3_specific, {}, config);
 }

@@ -169,12 +169,12 @@ TEST(read_chopper_split_file_test, small_example)
 //     auto const && [data, batches] = read_chopper_split_file(chopper_split_filename.get_path().string());
 
 //     // check data from header information
-//     EXPECT_EQ(data.hibf_max_bin, 2);
+//     EXPECT_EQ(data.hibf.hibf_max_bin, 2);
 //     EXPECT_EQ(data.merged_max_bin_map.size(), 1);
 //     EXPECT_EQ(data.merged_max_bin_map.at(2), 1);
 
 //     // check if HIBF bins were calculated c
-//     EXPECT_EQ(data.hibf_num_technical_bins, 3);
+//     EXPECT_EQ(data.hibf.hibf_num_technical_bins, 3);
 
 //     // check batches
 //     std::vector<batch> expected_batches
@@ -213,12 +213,12 @@ TEST(read_chopper_split_file_test, small_example)
 //     auto const && [data, batches] = read_chopper_split_file(chopper_split_filename.get_path().string());
 
 //     // check data from header information
-//     EXPECT_EQ(data.hibf_max_bin, 0);
+//     EXPECT_EQ(data.hibf.hibf_max_bin, 0);
 //     EXPECT_EQ(data.merged_max_bin_map.size(), 1);
 //     EXPECT_EQ(data.merged_max_bin_map.at(0), 1);
 
 //     // check if HIBF bins were calculated c
-//     EXPECT_EQ(data.hibf_num_technical_bins, 1);
+//     EXPECT_EQ(data.hibf.hibf_num_technical_bins, 1);
 
 //     // check batches
 //     std::vector<batch> expected_batches
@@ -262,12 +262,12 @@ TEST(read_chopper_split_file_test, small_example)
 //     auto const && [data, batches] = read_chopper_split_file(chopper_split_filename.get_path().string());
 
 //     // check data from header information
-//     EXPECT_EQ(data.hibf_max_bin, 3);
+//     EXPECT_EQ(data.hibf.hibf_max_bin, 3);
 //     EXPECT_EQ(data.merged_max_bin_map.size(), 1);
 //     EXPECT_EQ(data.merged_max_bin_map.at(3), 1);
 
 //     // check if HIBF bins were calculated c
-//     EXPECT_EQ(data.hibf_num_technical_bins, 4);
+//     EXPECT_EQ(data.hibf.hibf_num_technical_bins, 4);
 
 //     // check batches
 //     std::vector<batch> expected_batches
@@ -305,7 +305,7 @@ TEST(read_chopper_split_file_test, small_example)
 
 //     auto const && [data, batches] = read_chopper_split_file(chopper_split_filename.get_path().string());
 
-//     EXPECT_EQ(data.hibf_max_bin, 0);
+//     EXPECT_EQ(data.hibf.hibf_max_bin, 0);
 
 //     std::vector<batch> expected_batches
 //     {
@@ -315,7 +315,7 @@ TEST(read_chopper_split_file_test, small_example)
 
 //     EXPECT_RANGE_EQ(batches, expected_batches);
 
-//     ASSERT_NE(data.hibf_max_batch_record, nullptr);
-//     EXPECT_EQ(data.hibf_max_batch_record, &batches[1]);
-//     EXPECT_EQ(*data.hibf_max_batch_record, (batch{{seq_filename}, {0, 1, 2}, 0}));
+//     ASSERT_NE(data.hibf.hibf_max_batch_record, nullptr);
+//     EXPECT_EQ(data.hibf.hibf_max_batch_record, &batches[1]);
+//     EXPECT_EQ(*data.hibf.hibf_max_batch_record, (batch{{seq_filename}, {0, 1, 2}, 0}));
 // }

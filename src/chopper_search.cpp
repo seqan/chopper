@@ -10,9 +10,9 @@
 #include <seqan3/search/views/kmer_hash.hpp>
 #include <seqan3/utility/views/interleave.hpp>
 
+#include <chopper/hierarchical_interleaved_bloom_filter.hpp>
 #include <chopper/search/search.hpp>
 #include <chopper/search/search_config.hpp>
-#include <chopper/search/search_data.hpp>
 #include <chopper/search/sync_out.hpp>
 
 void initialize_argument_parser(seqan3::argument_parser & parser, search_config & config)
@@ -58,7 +58,7 @@ int chopper_search(seqan3::argument_parser & parser)
         return -1;
     }
 
-    search_data data;
+    hierarchical_interleaved_bloom_filter<> hibf;
     sync_out sync_file{config.output_filename};
 
     auto cereal_worker = [&] ()
@@ -71,15 +71,13 @@ int chopper_search(seqan3::argument_parser & parser)
         cereal::BinaryInputArchive iarchive{is};
 
         auto start = std::chrono::high_resolution_clock::now();
-        iarchive(data.hibf);
-        iarchive(data.hibf_bin_levels);
-        iarchive(data.user_bins);
+        iarchive(hibf);
         iarchive(config.k);
         auto end = std::chrono::high_resolution_clock::now();
 
         ibf_io_time += std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count();
 
-        write_header(data, sync_file);
+        write_header(hibf, sync_file);
     };
 
     auto cereal_handle = std::async(std::launch::async, cereal_worker);
@@ -98,9 +96,9 @@ int chopper_search(seqan3::argument_parser & parser)
             clear_and_compute_kmers(read_kmers, seq, config);
             result.clear();
 
-            search(result, read_kmers, data, config, 0); // start at top level ibf
+            search(result, read_kmers, hibf, config, 0); // start at top level ibf
 
-            write_result(buffer, result, id, data, sync_file);
+            write_result(buffer, result, id, hibf, sync_file);
         }
     };
 

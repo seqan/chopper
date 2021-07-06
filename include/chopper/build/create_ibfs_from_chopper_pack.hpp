@@ -98,7 +98,7 @@ inline size_t build(parent_kmers_type & parent_kmers,
 inline void update_user_bins(build_data<chopper_pack_record> & data, std::vector<int64_t> & filename_indices, chopper_pack_record const & record)
 {
     size_t const idx = data.request_user_bin_idx();
-    data.user_bins.filename_at(idx) = record.filenames | seqan3::views::join_with(std::string{";"}) | seqan3::views::to<std::string>;
+    data.hibf.user_bins.filename_at(idx) = record.filenames | seqan3::views::join_with(std::string{";"}) | seqan3::views::to<std::string>;
     std::fill_n(filename_indices.begin() + record.bin_indices.back(), record.number_of_bins.back(), idx);
 }
 
@@ -268,9 +268,9 @@ inline size_t build(parent_kmers_type & parent_kmers,
         kmers.clear();
     }
 
-    data.hibf[ibf_pos] = std::move(ibf);
-    data.hibf_bin_levels[ibf_pos] = std::move(ibf_positions);
-    data.user_bins.bin_at(ibf_pos) = std::move(filename_indices);
+    data.hibf.hibf[ibf_pos] = std::move(ibf);
+    data.hibf.hibf_bin_levels[ibf_pos] = std::move(ibf_positions);
+    data.hibf.user_bins.bin_at(ibf_pos) = std::move(filename_indices);
 
     return ibf_pos;
 }
