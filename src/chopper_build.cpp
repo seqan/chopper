@@ -76,8 +76,6 @@ int chopper_build(seqan3::argument_parser & parser)
 
         cereal::BinaryOutputArchive archive(fout);
         archive(data.hibf);
-        archive(data.hibf_bin_levels);
-        archive(data.user_bins);
         archive(config.k);
     }
 

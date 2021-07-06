@@ -2,10 +2,11 @@
 
 #include <fstream>
 
-#include <chopper/detail_hibf_user_bins.hpp>
+#include <chopper/hierarchical_interleaved_bloom_filter.hpp>
 
 #include "../api_test.hpp"
 
+using hibf_user_bins = typename hierarchical_interleaved_bloom_filter<>::user_bins;
 
 TEST(hibf_user_bins_test, access_vector)
 {
