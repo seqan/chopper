@@ -101,9 +101,9 @@ TEST_F(create_ibfs_from_chopper_pack_test, small_example_2_levels)
 
     EXPECT_EQ(data.hibf.hibf.size(), 2);
 
-    EXPECT_EQ(data.hibf.hibf_bin_levels.size(), 2);
-    EXPECT_RANGE_EQ(data.hibf.hibf_bin_levels[0], (std::vector<int64_t>{0,0,0,0,0,0,1}));
-    EXPECT_RANGE_EQ(data.hibf.hibf_bin_levels[1], (std::vector<int64_t>{1,1,1,1,1,1}));
+    EXPECT_EQ(data.hibf.next_ibf_id.size(), 2);
+    EXPECT_RANGE_EQ(data.hibf.next_ibf_id[0], (std::vector<int64_t>{0,0,0,0,0,0,1}));
+    EXPECT_RANGE_EQ(data.hibf.next_ibf_id[1], (std::vector<int64_t>{1,1,1,1,1,1}));
 
     EXPECT_RANGE_EQ(data.hibf.user_bins[0],
                    (std::vector<std::string>
@@ -298,9 +298,9 @@ TEST_F(create_ibfs_from_chopper_pack_test, same_example_two_levels_but_split_bin
 
     EXPECT_EQ(data.hibf.hibf.size(), 2);
 
-    EXPECT_EQ(data.hibf.hibf_bin_levels.size(), 2);
-    EXPECT_RANGE_EQ(data.hibf.hibf_bin_levels[0], (std::vector<int64_t>{0,0,0,0,0,0,1}));
-    EXPECT_RANGE_EQ(data.hibf.hibf_bin_levels[1], (std::vector<int64_t>{1,1,1,1,1,1}));
+    EXPECT_EQ(data.hibf.next_ibf_id.size(), 2);
+    EXPECT_RANGE_EQ(data.hibf.next_ibf_id[0], (std::vector<int64_t>{0,0,0,0,0,0,1}));
+    EXPECT_RANGE_EQ(data.hibf.next_ibf_id[1], (std::vector<int64_t>{1,1,1,1,1,1}));
 
     EXPECT_RANGE_EQ(data.hibf.user_bins[0],
                    (std::vector<std::string>
@@ -404,7 +404,7 @@ TEST_F(create_ibfs_from_chopper_pack_test, multi_level_ibf)
     create_ibfs_from_chopper_pack(data, config);
 
     EXPECT_EQ(data.hibf.hibf.size(), 6);
-    EXPECT_EQ(data.hibf.hibf_bin_levels.size(), 6);
+    EXPECT_EQ(data.hibf.next_ibf_id.size(), 6);
 
     EXPECT_EQ(data.hibf.hibf.size(), 6);
     // data.hibf.hibf[0] is the high-level IBF
@@ -424,7 +424,7 @@ TEST_F(create_ibfs_from_chopper_pack_test, multi_level_ibf)
      */
     EXPECT_EQ(data.hibf.hibf[0].bin_count(), 5u);
     EXPECT_EQ(data.hibf.hibf[0].bin_size(), 114226);
-    EXPECT_RANGE_EQ(data.hibf.hibf_bin_levels[0], (std::vector<int64_t>{1,5,0,0,0}));
+    EXPECT_RANGE_EQ(data.hibf.next_ibf_id[0], (std::vector<int64_t>{1,5,0,0,0}));
     EXPECT_RANGE_EQ(data.hibf.user_bins[0],
                    (std::vector<std::string>
                    {
@@ -445,7 +445,7 @@ TEST_F(create_ibfs_from_chopper_pack_test, multi_level_ibf)
      */
     EXPECT_EQ(data.hibf.hibf[1].bin_count(), 5u);
     EXPECT_EQ(data.hibf.hibf[1].bin_size(), 114226);
-    EXPECT_RANGE_EQ(data.hibf.hibf_bin_levels[1], (std::vector<int64_t>{2,4,1,1,1}));
+    EXPECT_RANGE_EQ(data.hibf.next_ibf_id[1], (std::vector<int64_t>{2,4,1,1,1}));
     EXPECT_RANGE_EQ(data.hibf.user_bins[1],
                    (std::vector<std::string>
                    {
@@ -466,7 +466,7 @@ TEST_F(create_ibfs_from_chopper_pack_test, multi_level_ibf)
      */
     EXPECT_EQ(data.hibf.hibf[2].bin_count(), 5u);
     EXPECT_EQ(data.hibf.hibf[2].bin_size(), 95321);
-    EXPECT_RANGE_EQ(data.hibf.hibf_bin_levels[2], (std::vector<int64_t>{3,2,2,2,2}));
+    EXPECT_RANGE_EQ(data.hibf.next_ibf_id[2], (std::vector<int64_t>{3,2,2,2,2}));
     EXPECT_RANGE_EQ(data.hibf.user_bins[2],
                    (std::vector<std::string>
                    {
@@ -495,7 +495,7 @@ TEST_F(create_ibfs_from_chopper_pack_test, multi_level_ibf)
      */
     EXPECT_EQ(data.hibf.hibf[3].bin_count(), 13u);
     EXPECT_EQ(data.hibf.hibf[3].bin_size(), 92535);
-    EXPECT_RANGE_EQ(data.hibf.hibf_bin_levels[3], (std::vector<int64_t>(13, 3)));
+    EXPECT_RANGE_EQ(data.hibf.next_ibf_id[3], (std::vector<int64_t>(13, 3)));
     EXPECT_RANGE_EQ(data.hibf.user_bins[3],
                    (std::vector<std::string>
                    {
@@ -522,7 +522,7 @@ TEST_F(create_ibfs_from_chopper_pack_test, multi_level_ibf)
      */
     EXPECT_EQ(data.hibf.hibf[4].bin_count(), 3u);
     EXPECT_EQ(data.hibf.hibf[4].bin_size(), 92734);
-    EXPECT_RANGE_EQ(data.hibf.hibf_bin_levels[4], (std::vector<int64_t>{4,4,4}));
+    EXPECT_RANGE_EQ(data.hibf.next_ibf_id[4], (std::vector<int64_t>{4,4,4}));
     EXPECT_RANGE_EQ(data.hibf.user_bins[4],
                    (std::vector<std::string>
                    {
@@ -540,7 +540,7 @@ TEST_F(create_ibfs_from_chopper_pack_test, multi_level_ibf)
      */
     EXPECT_EQ(data.hibf.hibf[5].bin_count(), 4u);
     EXPECT_EQ(data.hibf.hibf[5].bin_size(), 47561);
-    EXPECT_RANGE_EQ(data.hibf.hibf_bin_levels[5], (std::vector<int64_t>{5,5,5,5}));
+    EXPECT_RANGE_EQ(data.hibf.next_ibf_id[5], (std::vector<int64_t>{5,5,5,5}));
     EXPECT_RANGE_EQ(data.hibf.user_bins[5],
                    (std::vector<std::string>
                    {

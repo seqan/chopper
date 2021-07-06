@@ -25,10 +25,14 @@ public:
 
     std::vector<seqan3::interleaved_bloom_filter<data_layout_mode_>> hibf;
 
-    // maps for each ibf in hibf, each bin to the next ibf postition in hibf (if it is a merged bin)
-    // or to the same ibf (if it is not a merged bin). You can thereby check if you need to query another
-    // lower level IBF.
-    std::vector<std::vector<int64_t>> hibf_bin_levels;
+    /*!\brief Stores for each bin in each IBF of the HIBF the ID of the next IBF.
+     * \details
+     * Assume we look up a bin `b` in IBF `i`, i.e. `next_ibf_id[i][b]`.
+     * If `i` is returned, there is no lower level IBF, bin `b` is hence not a merged bin.
+     * If `j != i` is returned, there is a lower level IBF, bin `b` is a merged bin, and `j` is the id of the lower
+     * level IBF in hibf.
+     */
+    std::vector<std::vector<int64_t>> next_ibf_id;
 
     hibf_user_bins user_bins;
 
@@ -43,7 +47,7 @@ public:
     void CEREAL_SERIALIZE_FUNCTION_NAME(archive_t & archive)
     {
         archive(hibf);
-        archive(hibf_bin_levels);
+        archive(next_ibf_id);
         archive(user_bins);
     }
     //!\endcond

@@ -234,7 +234,7 @@ inline void build(std::unordered_set<size_t> & parent_kmers,
         if (pos == -1)
             pos = data.hibf.hibf.size();
 
-    data.hibf.hibf_bin_levels.push_back(std::move(ibf_positions));
+    data.hibf.next_ibf_id.push_back(std::move(ibf_positions));
     data.hibf.user_bins.add_user_bin_positions(std::move(ibf_filenames));
 }
 
@@ -278,7 +278,7 @@ inline void create_ibfs_from_chopper_split(build_data<chopper_split_record> & da
     }
 
     data.hibf.hibf.insert(data.hibf.hibf.begin(), std::move(high_level_ibf)); // insert High level at the beginning
-    data.hibf.hibf_bin_levels.insert(data.hibf.hibf_bin_levels.begin(), std::move(ibf_positions));
+    data.hibf.next_ibf_id.insert(data.hibf.next_ibf_id.begin(), std::move(ibf_positions));
     data.hibf.user_bins.prepend_user_bin_positions(std::move(ibf_filenames));
 }
 

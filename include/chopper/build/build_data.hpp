@@ -34,7 +34,7 @@ struct build_data
         hibf.hibf.resize(number_of_ibfs);
         hibf.user_bins.resize_bins(number_of_ibfs);
         hibf.user_bins.resize_filename(number_of_user_bins);
-        hibf.hibf_bin_levels.resize(number_of_ibfs);
+        hibf.next_ibf_id.resize(number_of_ibfs);
     }
 
     lemon::ListDigraph ibf_graph{};
