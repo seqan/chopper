@@ -27,6 +27,12 @@ int set_up_and_parse_subparser_split(seqan3::argument_parser & parser, pack_conf
     parser.add_option(config.bins, 'b', "technical-bins",
                       "Into how many technical bins do you want your sequence data to be packed?");
 
+    parser.add_option(config.num_hash_functions, 's', "num-hash-functions",
+                      "The number of hash functions for the IBFs.");
+
+    parser.add_option(config.fp_rate, 'p', "false-positive-rate",
+                      "The desired false positive rate of the IBFs.");
+        
     parser.add_option(config.alpha, 'a', "alpha",
                       "The scaling factor to influence the number of merged bins.");
 

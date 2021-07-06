@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cassert>
+#include <cmath>
 
 #include <seqan3/utility/views/to.hpp>
 
@@ -22,6 +23,11 @@ private:
 
     //!\brief The user configuration passed down from the command line.
     pack_config const config;
+
+    //!\brief The number of hash functions for the IBFs.
+    size_t const num_hash_functions;
+    //!\brief The desired false positive rate of the IBFs.
+    double const fp_rate;
 
     /*\brief A scaling factor to influence the amount of merged bins produced by the algorithm.
      *
@@ -76,6 +82,8 @@ public:
         user_bin_kmer_counts{data.kmer_counts},
         previous{data.previous},
         config{config_},
+        num_hash_functions{config.num_hash_functions},
+        fp_rate{config.fp_rate},
         alpha{config.alpha},
         num_user_bins{data.kmer_counts.size()},
         num_technical_bins{(config.bins == 0) ? ((user_bin_kmer_counts.size() + 63) / 64 * 64) : config.bins},
@@ -105,6 +113,19 @@ public:
         sort_by_distribution(names, user_bin_kmer_counts);
         // seqan3::debug_stream << std::endl << "Sorted list: " << user_bin_kmer_counts << std::endl << std::endl;
 
+        // precompute f_h factors that adjust the split bin size 
+        // to prevent FPR inflation due to multiple testing 
+        std::vector<double> fp_correction(num_technical_bins + 1, 0.0);
+
+        double const h_inverse = 1.0 / static_cast<double>(num_hash_functions);
+        double const denominator = std::log(1 - std::pow(fp_rate, h_inverse));
+
+        for (size_t i = 1; i <= num_technical_bins; ++i)
+        {
+            double const tmp = 1.0 - std::pow(1 - fp_rate, static_cast<double>(i));
+            fp_correction[i] = std::log(1 - std::pow(tmp, h_inverse)) / denominator;
+        }
+
         std::vector<std::vector<uint64_t>> union_estimates;
         // Depending on cli flags given, use HyperLogLog estimates and/or rearrangement algorithms
         if (estimate_union)
@@ -116,7 +137,7 @@ public:
 
             bin_sequence.estimate_interval_unions(union_estimates, num_threads);
         }
-
+    	
         // technical bins (outer) = rows; user bins (inner) = columns
         std::vector<std::vector<size_t>> matrix(num_technical_bins,
                                                 std::vector<size_t>(num_user_bins, max_size_t));
@@ -130,9 +151,9 @@ public:
                                                                   std::vector<std::pair<size_t, size_t>>(
                                                                       num_user_bins, {max_size_t, max_size_t}));
 
-        initialization(matrix, ll_matrix, trace, union_estimates);
+        initialization(matrix, ll_matrix, trace, fp_correction, union_estimates);
 
-        recursion(matrix, ll_matrix, trace, union_estimates);
+        recursion(matrix, ll_matrix, trace, fp_correction, union_estimates);
 
         // print_matrix(matrix, num_technical_bins, num_user_bins, max_size_t);
         // print_matrix(ll_matrix, num_technical_bins, num_user_bins, max_size_t);
@@ -179,12 +200,15 @@ private:
     void initialization(std::vector<std::vector<size_t>> & matrix,
                         std::vector<std::vector<size_t>> & ll_matrix,
                         std::vector<std::vector<std::pair<size_t, size_t>>> & trace,
+                        std::vector<double> const & fp_correction,
                         std::vector<std::vector<uint64_t>> const & union_estimates)
     {
         // initialize first column
+        double const ub_cardinality = static_cast<double>(user_bin_kmer_counts[0]);
         for (size_t i = 0; i < num_technical_bins; ++i)
         {
-            matrix[i][0] = user_bin_kmer_counts[0] / (i + 1);
+            size_t const corrected_ub_cardinality = static_cast<size_t>(ub_cardinality * fp_correction[i + 1]);
+            matrix[i][0] = corrected_ub_cardinality / (i + 1);
             trace[i][0] = {0u, 0u}; // unnecessary?
         }
 
@@ -251,12 +275,14 @@ private:
     void recursion(std::vector<std::vector<size_t>> & matrix,
                    std::vector<std::vector<size_t>> & ll_matrix,
                    std::vector<std::vector<std::pair<size_t, size_t>>> & trace,
+                   std::vector<double> const & fp_correction,
                    std::vector<std::vector<uint64_t>> const & union_estimates)
     {
         // we must iterate column wise
         for (size_t j = 1; j < num_user_bins; ++j)
         {
             size_t const current_weight = user_bin_kmer_counts[j];
+            double const ub_cardinality = static_cast<double>(current_weight);
 
             for (size_t i = 1; i < num_technical_bins; ++i)
             {
@@ -268,7 +294,8 @@ private:
                 {
                     // score: The current maximum technical bin size for the high-level IBF (score for the matrix M)
                     // full_score: The score to minimize -> score * #TB-high_level + low_level_memory footprint
-                    size_t score = std::max<size_t>(current_weight / (i - i_prime), matrix[i_prime][j-1]);
+                    size_t const corrected_ub_cardinality = static_cast<size_t>(ub_cardinality * fp_correction[(i - i_prime)]);
+                    size_t score = std::max<size_t>(corrected_ub_cardinality / (i - i_prime), matrix[i_prime][j-1]);
                     size_t full_score = score * (i + 1) /*#TBs*/ + alpha * ll_matrix[i_prime][j-1];
 
                     // std::cout << " ++ j:" << j << " i:" << i << " i':" << i_prime << " score:" << score << std::endl;
