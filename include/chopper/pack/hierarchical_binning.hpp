@@ -117,13 +117,13 @@ public:
         // to prevent FPR inflation due to multiple testing 
         std::vector<double> fp_correction(num_technical_bins + 1, 0.0);
 
-        double const h_inverse = 1.0 / static_cast<double>(num_hash_functions);
-        double const denominator = std::log(1 - std::pow(fp_rate, h_inverse));
+        double const denominator = std::log(1 - std::exp(std::log(fp_rate) / num_hash_functions)));
 
         for (size_t i = 1; i <= num_technical_bins; ++i)
         {
             double const tmp = 1.0 - std::pow(1 - fp_rate, static_cast<double>(i));
-            fp_correction[i] = std::log(1 - std::pow(tmp, h_inverse)) / denominator;
+            fp_correction[i] = std::log(1 - std::exp(std::log(tmp) / num_hash_functions))) / denominator;
+            assert(fp_correction[i] >= 1.0);
         }
 
         std::vector<std::vector<uint64_t>> union_estimates;
