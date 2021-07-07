@@ -137,7 +137,6 @@ public:
 
             bin_sequence.estimate_interval_unions(union_estimates, num_threads);
         }
-    	
         // technical bins (outer) = rows; user bins (inner) = columns
         std::vector<std::vector<size_t>> matrix(num_technical_bins,
                                                 std::vector<size_t>(num_user_bins, max_size_t));
