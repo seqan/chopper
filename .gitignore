@@ -32,3 +32,6 @@
 
 # build dir
 /build/
+
+# editor configuration
+/.vscode/
