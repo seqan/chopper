@@ -10,8 +10,8 @@ struct pack_config
     std::filesystem::path output_filename{"binning.out"};
     uint16_t bins{64};
     std::filesystem::path hll_dir{};
-    size_t num_hash_functions{4};
-    double fp_rate{0.01};
+    size_t num_hash_functions{2};
+    double fp_rate{0.05};
     double alpha{10};
     double max_ratio{0.5};
     size_t num_threads{1u};
