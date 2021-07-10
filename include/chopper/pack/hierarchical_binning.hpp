@@ -105,6 +105,15 @@ public:
             throw std::runtime_error{"The filenames and kmer counts do not have the same length."};
     }
 
+    /*!\brief Computes and returns the number of additionally needed recursive levels when doing a merge.
+     * \param[in] num_user_bins The number of user bins in the merge
+     */
+    size_t get_needed_levels(size_t const num_user_bins)
+    {
+        double const levels = std::log(num_user_bins) / std::log(num_technical_bins);
+        return static_cast<size_t>(std::ceil(levels));
+    }
+
     //!\brief Executes the hierarchical binning algorithm and packs user bins into technical bins.
     size_t execute()
     {
@@ -214,20 +223,23 @@ private:
         // initialize first row
         if (estimate_union)
         {
+            size_t sum = 0;
             for (size_t j = 1; j < num_user_bins; ++j)
             {
-                ll_matrix[0][j] = user_bin_kmer_counts[j] + matrix[0][j - 1];
+                sum += user_bin_kmer_counts[j];
                 matrix[0][j] = union_estimates[j][0];
+                ll_matrix[0][j] = get_needed_levels(j + 1) * sum;
                 trace[0][j] = {0u, j - 1}; // unnecessary?
             }
         }
         else
         {
+            size_t sum = 0;
             for (size_t j = 1; j < num_user_bins; ++j)
             {
-                size_t const sum = user_bin_kmer_counts[j] + matrix[0][j - 1];
+                sum += user_bin_kmer_counts[j];
                 matrix[0][j] = sum;
-                ll_matrix[0][j] = sum;
+                ll_matrix[0][j] = get_needed_levels(j + 1) * sum;
                 trace[0][j] = {0u, j - 1}; // unnecessary?
             }
         }
@@ -335,7 +347,8 @@ private:
                     // score: The current maximum technical bin size for the high-level IBF (score for the matrix M)
                     // full_score: The score to minimize -> score * #TB-high_level + low_level_memory footprint
                     size_t const score = std::max<size_t>(get_weight(), matrix[i - 1][j_prime]);
-                    size_t const full_score = score * (i + 1) /*#TBs*/ + alpha * (ll_matrix[i - 1][j_prime] + weight);
+                    size_t const ll_kmers = get_needed_levels(j - j_prime) * (ll_matrix[i - 1][j_prime] + weight);
+                    size_t const full_score = score * (i + 1) /*#TBs*/ + alpha * ll_kmers;
 
                     // seqan3::debug_stream << " -- " << "j_prime:" << j_prime
                     //                      << " -> full_score:" << full_score << " (M_{i-1,j'}=" << score << ")"
@@ -346,7 +359,7 @@ private:
                         minimum = score;
                         full_minimum = full_score;
                         trace[i][j] = {i - 1, j_prime};
-                        ll_matrix[i][j] = ll_matrix[i - 1][j_prime] + weight;
+                        ll_matrix[i][j] = ll_kmers;
                     }
                 }
 
