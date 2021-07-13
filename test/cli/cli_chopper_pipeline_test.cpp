@@ -296,14 +296,14 @@ TEST_F(cli_test, chopper_hll_pipeline)
 
     std::string expected_file
     {
-        "#HIGH_LEVEL_IBF max_bin_id:1\n"
-        "#MERGED_BIN_1;0 max_bin_id:0\n"
+        "#HIGH_LEVEL_IBF max_bin_id:0\n"
+        "#MERGED_BIN_0 max_bin_id:0\n"
         "#MERGED_BIN_1 max_bin_id:0\n"
         "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\tEST_MAX_TB_SIZES\n" +
-        seq3_filename + "\t0\t1\t1\n" +
-        seq2_filename + "\t1;0;0\t1;1;62\t4;2;1\n" +
-        seq1_filename + "\t1;0;62\t1;1;2\t4;2;1\n" +
-        seq4_filename + "\t1;1\t1;1\t4;2\n"
+        seq4_filename + "\t0;0\t1;62\t3;1\n" +
+        seq3_filename + "\t0;62\t1;2\t3;1\n" +
+        seq1_filename + "\t1;0\t1;62\t2;1\n" +
+        seq2_filename + "\t1;62\t1;2\t2;1\n"
     };
 
     ASSERT_TRUE(std::filesystem::exists(binning_filename.get_path()));
@@ -341,7 +341,7 @@ TEST_F(cli_test, chopper_hll_pipeline)
 
         ASSERT_EQ(hibf.size(), 3);
         EXPECT_EQ(hibf[0].bin_count(), 2);
-        EXPECT_EQ(hibf[1].bin_count(), 2);
+        EXPECT_EQ(hibf[1].bin_count(), 64);
         EXPECT_EQ(hibf[2].bin_count(), 64);
     }
 }
