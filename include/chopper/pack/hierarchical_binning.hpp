@@ -39,6 +39,8 @@ private:
     size_t const num_user_bins;
     //!\brief The number of technical bins requested by the user.
     size_t const num_technical_bins;
+    //!\brief The natural logarithm of the number of technical bins.
+    double const log_num_technical_bins;
     //!\brief The total sum of all values in user_bin_kmer_counts.
     size_t const kmer_count_sum;
     //!\brief The average count calculated from kmer_count_sum / num_technical_bins.
@@ -87,6 +89,7 @@ public:
         alpha{config.alpha},
         num_user_bins{data.kmer_counts.size()},
         num_technical_bins{(config.bins == 0) ? ((user_bin_kmer_counts.size() + 63) / 64 * 64) : config.bins},
+        log_num_technical_bins{std::log(num_technical_bins)},
         kmer_count_sum{std::accumulate(user_bin_kmer_counts.begin(), user_bin_kmer_counts.end(), 0u)},
         kmer_count_average_per_bin{std::max<size_t>(1u, kmer_count_sum / num_technical_bins)},
         hll_dir{config.hll_dir},
@@ -113,8 +116,8 @@ public:
         sort_by_distribution(names, user_bin_kmer_counts);
         // seqan3::debug_stream << std::endl << "Sorted list: " << user_bin_kmer_counts << std::endl << std::endl;
 
-        // precompute f_h factors that adjust the split bin size 
-        // to prevent FPR inflation due to multiple testing 
+        // precompute f_h factors that adjust the split bin size
+        // to prevent FPR inflation due to multiple testing
         std::vector<double> fp_correction(num_technical_bins + 1, 0.0);
 
         double const denominator = std::log(1 - std::exp(std::log(fp_rate) / num_hash_functions));
@@ -162,6 +165,15 @@ public:
     }
 
 private:
+    /*!\brief Returns the maximum number of needed levels when merging `num_ubs_in_merge` many user bins.
+     * \param[in] num_ubs_in_merge The number of user bins in the merge.
+     */
+    [[nodiscard]] size_t max_merge_levels(size_t const num_ubs_in_merge) const
+    {
+        double const levels = std::log(num_ubs_in_merge) / log_num_technical_bins;
+        return static_cast<size_t>(std::ceil(levels));
+    }
+
     /*!\brief Sorts both input vectors (names and distribution) only by looking at the values in `distribution`.
      * \param[in, out] names The names to be sorted in parallel to the `distribution` vector.
      * \param[in, out] distribution The vector to be used to sort both input vectors by.
@@ -212,12 +224,14 @@ private:
         }
 
         // initialize first row
+        size_t sum = 0;
         if (estimate_union)
         {
             for (size_t j = 1; j < num_user_bins; ++j)
             {
-                ll_matrix[0][j] = user_bin_kmer_counts[j] + matrix[0][j - 1];
+                sum += user_bin_kmer_counts[j];
                 matrix[0][j] = union_estimates[j][0];
+                ll_matrix[0][j] = max_merge_levels(j + 1) * sum;
                 trace[0][j] = {0u, j - 1}; // unnecessary?
             }
         }
@@ -225,9 +239,9 @@ private:
         {
             for (size_t j = 1; j < num_user_bins; ++j)
             {
-                size_t const sum = user_bin_kmer_counts[j] + matrix[0][j - 1];
+                sum += user_bin_kmer_counts[j];
                 matrix[0][j] = sum;
-                ll_matrix[0][j] = sum;
+                ll_matrix[0][j] = max_merge_levels(j + 1) * sum;
                 trace[0][j] = {0u, j - 1}; // unnecessary?
             }
         }
@@ -333,9 +347,11 @@ private:
                     --j_prime;
 
                     // score: The current maximum technical bin size for the high-level IBF (score for the matrix M)
+                    // ll_kmers: estimate for the number of k-mers that have to be resolved on lower levels
                     // full_score: The score to minimize -> score * #TB-high_level + low_level_memory footprint
                     size_t const score = std::max<size_t>(get_weight(), matrix[i - 1][j_prime]);
-                    size_t const full_score = score * (i + 1) /*#TBs*/ + alpha * (ll_matrix[i - 1][j_prime] + weight);
+                    size_t const ll_kmers = max_merge_levels(j - j_prime) * (ll_matrix[i - 1][j_prime] + weight);
+                    size_t const full_score = score * (i + 1) /*#TBs*/ + alpha * ll_kmers;
 
                     // seqan3::debug_stream << " -- " << "j_prime:" << j_prime
                     //                      << " -> full_score:" << full_score << " (M_{i-1,j'}=" << score << ")"
@@ -346,7 +362,7 @@ private:
                         minimum = score;
                         full_minimum = full_score;
                         trace[i][j] = {i - 1, j_prime};
-                        ll_matrix[i][j] = ll_matrix[i - 1][j_prime] + weight;
+                        ll_matrix[i][j] = ll_kmers;
                     }
                 }
 
