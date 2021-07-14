@@ -12,6 +12,7 @@ TEST(simple_binning_test, small_example)
     data.output_buffer = &output_buffer;
     data.kmer_counts = {100, 40, 20, 20};
     data.filenames = {"seq1", "seq2", "seq3", "seq4"};
+    data.fp_correction = std::vector<double>(65, 1.0);
 
     simple_binning algo{data, 9};
     size_t max_bin = algo.execute();
@@ -35,6 +36,7 @@ TEST(simple_binning_test, uniform_distribution)
     data.output_buffer = &output_buffer;
     data.kmer_counts = {20, 20, 20, 20};
     data.filenames = {"seq1", "seq2", "seq3", "seq4"};
+    data.fp_correction = std::vector<double>(65, 1.0);
 
     simple_binning algo{data, 4};
     size_t max_bin = algo.execute();
@@ -58,6 +60,7 @@ TEST(simple_binning_test, user_bins_must_be_smaller_than_technical_bins)
     data.output_buffer = &output_buffer;
     data.kmer_counts = {100, 40, 20, 20};
     data.filenames = {"seq1", "seq2", "seq3", "seq4"};
+    data.fp_correction = std::vector<double>(65, 1.0);
 
     EXPECT_THROW((simple_binning{data, 2}), std::runtime_error);
 }
