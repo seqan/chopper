@@ -20,6 +20,7 @@ TEST(hierarchical_binning_test, small_example)
     data.header_buffer = &header_buffer;
     data.filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6",  "seq7"};
     data.kmer_counts = {500, 1000, 500, 500, 500, 500, 500, 500};
+    data.compute_fp_correction(0.05, 2);
 
     hierarchical_binning algo{data, config};
     EXPECT_EQ(algo.execute(), 3); // #HIGH_LEVEL_IBF max_bin_id:3
@@ -55,6 +56,7 @@ TEST(hierarchical_binning_test, another_example)
     data.header_buffer = &header_buffer;
     data.filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6",  "seq7"};
     data.kmer_counts = {50, 1000, 1000, 50, 5, 10, 10, 5};
+    data.compute_fp_correction(0.05, 2);
 
     hierarchical_binning algo{data, config};
     EXPECT_EQ(algo.execute(), 1); // #HIGH_LEVEL_IBF max_bin_id:1
@@ -90,6 +92,7 @@ TEST(hierarchical_binning_test, knuts_example)
     data.header_buffer = &header_buffer;
     data.filenames = {"seq0", "seq1", "seq2", "seq3", "seq4"};
     data.kmer_counts = {60, 600, 1000, 800, 800};
+    data.compute_fp_correction(0.05, 2);
 
     hierarchical_binning algo{data, config};
     EXPECT_EQ(algo.execute(), 1);
