@@ -24,17 +24,6 @@ private:
     //!\brief The user configuration passed down from the command line.
     pack_config const config;
 
-    //!\brief The number of hash functions for the IBFs.
-    size_t const num_hash_functions;
-    //!\brief The desired false positive rate of the IBFs.
-    double const fp_rate;
-
-    /*\brief A scaling factor to influence the amount of merged bins produced by the algorithm.
-     *
-     * The higher alpha, the more weight is added artificially to the low level IBFs and thus the optimal
-     * solution will contain less merged bins in the end because it costs more to merge bins.
-     */
-    double const alpha;
     //!\brief The number of user bins, initialised with the length of user_bin_kmer_counts.
     size_t const num_user_bins;
     //!\brief The number of technical bins requested by the user.
@@ -45,18 +34,6 @@ private:
     size_t const kmer_count_sum;
     //!\brief The average count calculated from kmer_count_sum / num_technical_bins.
     size_t const kmer_count_average_per_bin;
-
-    //!\brief If given, the hll sketches are dumped to this directory and restored when they already exist.
-    std::filesystem::path const & hll_dir;
-
-    //!\brief Whether to estimate the union of kmer sets to possibly improve the binning or not.
-    bool const estimate_union;
-    //!\brief Whether to do a second sorting of the bins which takes into account similarity or not.
-    bool const rearrange_bins;
-    //!\brief The maximal cardinality ratio in the clustering intervals.
-    double const max_ratio;
-    //!\brief The number of threads to use to compute merged HLL sketches.
-    size_t const num_threads;
 
     //!\brief A reference to the output stream to cache the results to.
     std::stringstream & output_buff;
@@ -87,19 +64,11 @@ public:
         user_bin_kmer_counts{data.kmer_counts},
         previous{data.previous},
         config{config_},
-        num_hash_functions{config.num_hash_functions},
-        fp_rate{config.fp_rate},
-        alpha{config.alpha},
         num_user_bins{data.kmer_counts.size()},
-        num_technical_bins{(config.bins == 0) ? ((user_bin_kmer_counts.size() + 63) / 64 * 64) : config.bins},
+        num_technical_bins{(config.t_max == 0) ? ((user_bin_kmer_counts.size() + 63) / 64 * 64) : config.t_max},
         log_num_technical_bins{std::log(num_technical_bins)},
         kmer_count_sum{std::accumulate(user_bin_kmer_counts.begin(), user_bin_kmer_counts.end(), 0u)},
         kmer_count_average_per_bin{std::max<size_t>(1u, kmer_count_sum / num_technical_bins)},
-        hll_dir{config.hll_dir},
-        estimate_union{config.union_estimate},
-        rearrange_bins{config.rearrange_bins},
-        max_ratio{config.max_ratio},
-        num_threads{config.num_threads},
         output_buff{*data.output_buffer},
         header_buff{*data.header_buffer}
     {
@@ -115,12 +84,12 @@ public:
         size_t min_tb = ((num_technical_bins + 63) >> 6) << 6;
         fp_correction.resize(min_tb + 1, 0.0);
 
-        double const denominator = std::log(1 - std::exp(std::log(fp_rate) / num_hash_functions));
+        double const denominator = std::log(1 - std::exp(std::log(config.fp_rate) / config.num_hash_functions));
 
         for (size_t i = 1; i <= min_tb; ++i)
         {
-            double const tmp = 1.0 - std::pow(1 - fp_rate, static_cast<double>(i));
-            fp_correction[i] = std::log(1 - std::exp(std::log(tmp) / num_hash_functions)) / denominator;
+            double const tmp = 1.0 - std::pow(1 - config.fp_rate, static_cast<double>(i));
+            fp_correction[i] = std::log(1 - std::exp(std::log(tmp) / config.num_hash_functions)) / denominator;
             assert(fp_correction[i] >= 1.0);
         }
     }
@@ -135,14 +104,14 @@ public:
 
         std::vector<std::vector<uint64_t>> union_estimates;
         // Depending on cli flags given, use HyperLogLog estimates and/or rearrangement algorithms
-        if (estimate_union)
+        if (config.estimate_union)
         {
-            user_bin_sequence bin_sequence(names, user_bin_kmer_counts, hll_dir);
+            user_bin_sequence bin_sequence(names, user_bin_kmer_counts, config.hll_dir);
 
-            if (rearrange_bins)
-                bin_sequence.rearrange_bins(max_ratio, num_threads);
+            if (config.rearrange_bins)
+                bin_sequence.rearrange_bins(config.max_ratio, config.num_threads);
 
-            bin_sequence.estimate_interval_unions(union_estimates, num_threads);
+            bin_sequence.estimate_interval_unions(union_estimates, config.num_threads);
         }
         // technical bins (outer) = rows; user bins (inner) = columns
         std::vector<std::vector<size_t>> matrix(num_technical_bins,
@@ -228,7 +197,7 @@ private:
 
         // initialize first row
         size_t sum = 0;
-        if (estimate_union)
+        if (config.estimate_union)
         {
             for (size_t j = 1; j < num_user_bins; ++j)
             {
@@ -311,7 +280,7 @@ private:
                     // full_score: The score to minimize -> score * #TB-high_level + low_level_memory footprint
                     size_t const corrected_ub_cardinality = static_cast<size_t>(ub_cardinality * fp_correction[(i - i_prime)]);
                     size_t score = std::max<size_t>(corrected_ub_cardinality / (i - i_prime), matrix[i_prime][j-1]);
-                    size_t full_score = score * (i + 1) /*#TBs*/ + alpha * ll_matrix[i_prime][j-1];
+                    size_t full_score = score * (i + 1) /*#TBs*/ + config.alpha * ll_matrix[i_prime][j-1];
 
                     // std::cout << " ++ j:" << j << " i:" << i << " i':" << i_prime << " score:" << score << std::endl;
 
@@ -338,7 +307,7 @@ private:
                     // if we use the union estimate we plug in that value instead of the sum (weight)
                     // union_estimate[i][j] is the union of {j, ..., i}
                     // the + 1 is necessary because j_prime is decremented directly after weight is updated
-                    return estimate_union ? union_estimates[j][j_prime + 1] : weight;
+                    return config.estimate_union ? union_estimates[j][j_prime + 1] : weight;
                 };
 
                 // if the user bin j-1 was not split into multiple technical bins!
@@ -353,7 +322,7 @@ private:
                     // full_score: The score to minimize -> score * #TB-high_level + low_level_memory footprint
                     size_t const score = std::max<size_t>(get_weight(), matrix[i - 1][j_prime]);
                     size_t const ll_kmers = max_merge_levels(j - j_prime) * (ll_matrix[i - 1][j_prime] + weight);
-                    size_t const full_score = score * (i + 1) /*#TBs*/ + alpha * ll_kmers;
+                    size_t const full_score = score * (i + 1) /*#TBs*/ + config.alpha * ll_kmers;
 
                     // seqan3::debug_stream << " -- " << "j_prime:" << j_prime
                     //                      << " -> full_score:" << full_score << " (M_{i-1,j'}=" << score << ")"

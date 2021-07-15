@@ -11,7 +11,7 @@
 TEST(hierarchical_binning_test, small_example)
 {
     pack_config config;
-    config.bins = 4;
+    config.t_max = 4;
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
@@ -46,7 +46,7 @@ TEST(hierarchical_binning_test, small_example)
 TEST(hierarchical_binning_test, another_example)
 {
     pack_config config;
-    config.bins = 5;
+    config.t_max = 5;
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
@@ -81,7 +81,7 @@ TEST(hierarchical_binning_test, knuts_example)
 {
     pack_config config;
     config.alpha = 1;
-    config.bins = 5;
+    config.t_max = 5;
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
