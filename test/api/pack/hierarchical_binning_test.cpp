@@ -31,12 +31,12 @@ TEST(hierarchical_binning_test, small_example)
         "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\tEST_MAX_TB_SIZES\n"
         "seq7\t0\t1\t500\n"
         "seq6\t1\t1\t500\n"
-        "seq4\t2;0\t1;32\t1000;16\n"
-        "seq5\t2;32\t1;32\t1000;16\n"
-        "seq1\t3;0\t1;25\t2500;40\n"
-        "seq0\t3;25\t1;13\t2500;39\n"
-        "seq2\t3;38\t1;13\t2500;39\n"
-        "seq3\t3;51\t1;13\t2500;39\n"
+        "seq4\t2;0\t1;7\t1000;72\n"
+        "seq5\t2;7\t1;57\t1000;9\n"
+        "seq1\t3;0\t1;8\t2500;125\n"
+        "seq0\t3;8\t1;4\t2500;125\n"
+        "seq2\t3;12\t1;4\t2500;125\n"
+        "seq3\t3;16\t1;48\t2500;11\n"
     };
 
     EXPECT_EQ(header_buffer.str() + output_buffer.str(), expected_file);
@@ -60,12 +60,12 @@ TEST(hierarchical_binning_test, another_example)
 
     std::string expected_file
     {
-        "#MERGED_BIN_0 max_bin_id:0\n"
+        "#MERGED_BIN_0 max_bin_id:45\n"
         "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\tEST_MAX_TB_SIZES\n"
-        "seq5\t0;0\t1;41\t30;1\n"
-        "seq6\t0;41\t1;11\t30;1\n"
-        "seq4\t0;52\t1;6\t30;1\n"
-        "seq7\t0;58\t1;6\t30;1\n"
+        "seq5\t0;0\t1;45\t30;1\n"
+        "seq6\t0;45\t1;6\t30;2\n"
+        "seq4\t0;51\t1;3\t30;2\n"
+        "seq7\t0;54\t1;10\t30;1\n"
         "seq3\t1\t1\t50\n"
         "seq0\t2\t1\t50\n"
         "seq2\t3\t1\t1000\n"
@@ -96,8 +96,8 @@ TEST(hierarchical_binning_test, knuts_example)
     {
         "#MERGED_BIN_0 max_bin_id:0\n"
         "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\tEST_MAX_TB_SIZES\n"
-        "seq1\t0;0\t1;58\t660;11\n"
-        "seq0\t0;58\t1;6\t660;10\n"
+        "seq1\t0;0\t1;39\t660;16\n"
+        "seq0\t0;39\t1;25\t660;3\n"
         "seq4\t1\t1\t800\n"
         "seq3\t2\t1\t800\n"
         "seq2\t3\t2\t500\n"

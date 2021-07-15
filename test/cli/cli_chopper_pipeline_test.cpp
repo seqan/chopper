@@ -89,8 +89,8 @@ TEST_F(cli_test, chopper_pipeline)
         "#MERGED_BIN_1 max_bin_id:0\n"
         "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\tEST_MAX_TB_SIZES\n" +
         seq_filename + "\t0\t1\t95\n" +
-        seq_filename + "\t1;0\t1;32\t190;3\n" +
-        seq_filename + ";" + seq_filename + "\t1;32\t1;32\t190;3\n"
+        seq_filename + "\t1;0\t1;10\t190;10\n" +
+        seq_filename + ";" + seq_filename + "\t1;10\t1;54\t190;2\n"
     };
 
     ASSERT_TRUE(std::filesystem::exists(binning_filename.get_path()));

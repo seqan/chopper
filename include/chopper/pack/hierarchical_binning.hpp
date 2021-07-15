@@ -63,6 +63,9 @@ private:
     //!\brief A reference to the stream to cache the header to.
     std::stringstream & header_buff;
 
+    //!\brief FPR correction factors for splitting one bin into `i` many.
+    std::vector<double> fp_correction{};
+
 public:
     hierarchical_binning() = delete; //!< Deleted.
     hierarchical_binning(hierarchical_binning const &) = delete; //!< Deleted.
@@ -106,6 +109,20 @@ public:
 
         if (names.size() != user_bin_kmer_counts.size())
             throw std::runtime_error{"The filenames and kmer counts do not have the same length."};
+
+        // precompute f_h factors that adjust the split bin size
+        // to prevent FPR inflation due to multiple testing
+        size_t min_tb = ((num_technical_bins + 63) >> 6) << 6;
+        fp_correction.resize(min_tb + 1, 0.0);
+
+        double const denominator = std::log(1 - std::exp(std::log(fp_rate) / num_hash_functions));
+
+        for (size_t i = 1; i <= min_tb; ++i)
+        {
+            double const tmp = 1.0 - std::pow(1 - fp_rate, static_cast<double>(i));
+            fp_correction[i] = std::log(1 - std::exp(std::log(tmp) / num_hash_functions)) / denominator;
+            assert(fp_correction[i] >= 1.0);
+        }
     }
 
     //!\brief Executes the hierarchical binning algorithm and packs user bins into technical bins.
@@ -115,19 +132,6 @@ public:
 
         sort_by_distribution(names, user_bin_kmer_counts);
         // seqan3::debug_stream << std::endl << "Sorted list: " << user_bin_kmer_counts << std::endl << std::endl;
-
-        // precompute f_h factors that adjust the split bin size
-        // to prevent FPR inflation due to multiple testing
-        std::vector<double> fp_correction(num_technical_bins + 1, 0.0);
-
-        double const denominator = std::log(1 - std::exp(std::log(fp_rate) / num_hash_functions));
-
-        for (size_t i = 1; i <= num_technical_bins; ++i)
-        {
-            double const tmp = 1.0 - std::pow(1 - fp_rate, static_cast<double>(i));
-            fp_correction[i] = std::log(1 - std::exp(std::log(tmp) / num_hash_functions)) / denominator;
-            assert(fp_correction[i] >= 1.0);
-        }
 
         std::vector<std::vector<uint64_t>> union_estimates;
         // Depending on cli flags given, use HyperLogLog estimates and/or rearrangement algorithms
@@ -153,9 +157,9 @@ public:
                                                                   std::vector<std::pair<size_t, size_t>>(
                                                                       num_user_bins, {max_size_t, max_size_t}));
 
-        initialization(matrix, ll_matrix, trace, fp_correction, union_estimates);
+        initialization(matrix, ll_matrix, trace, union_estimates);
 
-        recursion(matrix, ll_matrix, trace, fp_correction, union_estimates);
+        recursion(matrix, ll_matrix, trace, union_estimates);
 
         // print_matrix(matrix, num_technical_bins, num_user_bins, max_size_t);
         // print_matrix(ll_matrix, num_technical_bins, num_user_bins, max_size_t);
@@ -211,7 +215,6 @@ private:
     void initialization(std::vector<std::vector<size_t>> & matrix,
                         std::vector<std::vector<size_t>> & ll_matrix,
                         std::vector<std::vector<std::pair<size_t, size_t>>> & trace,
-                        std::vector<double> const & fp_correction,
                         std::vector<std::vector<uint64_t>> const & union_estimates)
     {
         // initialize first column
@@ -288,7 +291,6 @@ private:
     void recursion(std::vector<std::vector<size_t>> & matrix,
                    std::vector<std::vector<size_t>> & ll_matrix,
                    std::vector<std::vector<std::pair<size_t, size_t>>> & trace,
-                   std::vector<double> const & fp_correction,
                    std::vector<std::vector<uint64_t>> const & union_estimates)
     {
         // we must iterate column wise
@@ -429,6 +431,7 @@ private:
                 pack_data libf_data{};
                 libf_data.output_buffer = &output_buff;
                 libf_data.header_buffer = &header_buff;
+                libf_data.fp_correction = fp_correction;
 
                 libf_data.kmer_counts = {kmer_count};
                 libf_data.filenames = {names[trace_j]};
@@ -485,6 +488,7 @@ private:
                 pack_data libf_data{};
                 libf_data.output_buffer = &output_buff;
                 libf_data.header_buffer = &header_buff;
+                libf_data.fp_correction = fp_correction;
 
                 libf_data.kmer_counts = {kmer_count};
                 libf_data.filenames = {names[trace_j]};

@@ -106,6 +106,9 @@ private:
     //!\brief The average count calculated from kmer_count_sum / num_technical_bins.
     size_t const kmer_count_average_per_bin;
 
+    //!\brief FPR correction factors for splitting one bin into `i` many.
+    std::vector<double> fp_correction{};
+
 public:
     /*!\brief The constructor from user bin names, their kmer counts and a configuration.
      * \param[in] data The filenames and kmer counts associated with the user bin, as well as the ostream buffer.
@@ -125,7 +128,8 @@ public:
         num_user_bins{data.kmer_counts.size()},
         num_technical_bins{(num_bins == 0) ? ((user_bin_kmer_counts.size() + 63) / 64 * 64) : num_bins},
         kmer_count_sum{std::accumulate(user_bin_kmer_counts.begin(), user_bin_kmer_counts.end(), 0u)},
-        kmer_count_average_per_bin{std::max<size_t>(1u, kmer_count_sum / num_technical_bins)}
+        kmer_count_average_per_bin{std::max<size_t>(1u, kmer_count_sum / num_technical_bins)},
+        fp_correction{data.fp_correction}
     {
         // std::cout << "#Techincal bins: " << num_technical_bins << std::endl;
         // std::cout << "#User bins: " << data.kmer_counts.size() << std::endl;
@@ -152,9 +156,11 @@ public:
         size_t const extra_bins = num_technical_bins - num_user_bins + 1;
 
         // initialize first column (first row is initialized with inf)
+        double const ub_cardinality = static_cast<double>(user_bin_kmer_counts[0]);
         for (size_t i = 0; i < extra_bins; ++i)
         {
-            matrix[i][0] = user_bin_kmer_counts[0] / (i + 1);
+            size_t const corrected_ub_cardinality = static_cast<size_t>(ub_cardinality * fp_correction[i + 1]);
+            matrix[i][0] = corrected_ub_cardinality / (i + 1);
         }
 
         // we must iterate column wise
