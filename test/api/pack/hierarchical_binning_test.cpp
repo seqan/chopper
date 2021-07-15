@@ -26,17 +26,18 @@ TEST(hierarchical_binning_test, small_example)
 
     std::string expected_file
     {
+        "#MERGED_BIN_1 max_bin_id:0\n"
         "#MERGED_BIN_2 max_bin_id:0\n"
         "#MERGED_BIN_3 max_bin_id:0\n"
         "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\tEST_MAX_TB_SIZES\n"
         "seq7\t0\t1\t500\n"
-        "seq6\t1\t1\t500\n"
-        "seq4\t2;0\t1;7\t1000;72\n"
-        "seq5\t2;7\t1;57\t1000;9\n"
-        "seq1\t3;0\t1;8\t2500;125\n"
-        "seq0\t3;8\t1;4\t2500;125\n"
-        "seq2\t3;12\t1;4\t2500;125\n"
-        "seq3\t3;16\t1;48\t2500;11\n"
+        "seq5\t1;0\t1;7\t1000;72\n"
+        "seq6\t1;7\t1;57\t1000;9\n"
+        "seq3\t2;0\t1;7\t1000;72\n"
+        "seq4\t2;7\t1;57\t1000;9\n"
+        "seq1\t3;0\t1;8\t2000;125\n"
+        "seq0\t3;8\t1;4\t2000;125\n"
+        "seq2\t3;12\t1;52\t2000;10\n"
     };
 
     EXPECT_EQ(header_buffer.str() + output_buffer.str(), expected_file);
@@ -56,20 +57,21 @@ TEST(hierarchical_binning_test, another_example)
     data.kmer_counts = {50, 1000, 1000, 50, 5, 10, 10, 5};
 
     hierarchical_binning algo{data, config};
-    EXPECT_EQ(algo.execute(), 3); // #HIGH_LEVEL_IBF max_bin_id:3
+    EXPECT_EQ(algo.execute(), 1); // #HIGH_LEVEL_IBF max_bin_id:1
 
     std::string expected_file
     {
-        "#MERGED_BIN_0 max_bin_id:45\n"
+        "#MERGED_BIN_0;0 max_bin_id:45\n"
+        "#MERGED_BIN_0 max_bin_id:0\n"
         "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\tEST_MAX_TB_SIZES\n"
-        "seq5\t0;0\t1;45\t30;1\n"
-        "seq6\t0;45\t1;6\t30;2\n"
-        "seq4\t0;51\t1;3\t30;2\n"
-        "seq7\t0;54\t1;10\t30;1\n"
-        "seq3\t1\t1\t50\n"
-        "seq0\t2\t1\t50\n"
-        "seq2\t3\t1\t1000\n"
-        "seq1\t4\t1\t1000\n"
+        "seq6\t0;0;0\t1;1;45\t130;30;1\n"
+        "seq5\t0;0;45\t1;1;6\t130;30;2\n"
+        "seq7\t0;0;51\t1;1;3\t130;30;2\n"
+        "seq4\t0;0;54\t1;1;10\t130;30;1\n"
+        "seq0\t0;1\t1;2\t130;25\n"
+        "seq3\t0;3\t1;2\t130;25\n"
+        "seq2\t1\t2\t500\n"
+        "seq1\t3\t2\t500\n"
     };
 
     EXPECT_EQ(header_buffer.str() + output_buffer.str(), expected_file);
