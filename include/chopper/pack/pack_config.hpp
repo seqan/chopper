@@ -30,4 +30,6 @@ struct pack_config
     bool estimate_union{false};
     //!\brief Whether to do a second sorting of the bins which takes into account similarity or not.
     bool rearrange_bins{false};
+
+    bool debug{false};
 };

@@ -66,6 +66,10 @@ int set_up_and_parse_subparser_split(seqan3::argument_parser & parser, pack_conf
                     "[HLL] Do a rearrangement of the bins which takes into account similarity. Enabling this option "
                     "also enables -u.");
 
+    parser.add_flag(config.debug, '\0', "debug",
+                    "Enables debug output in packing file.",
+                    seqan3::option_spec::advanced);
+
     try
     {
         parser.parse();

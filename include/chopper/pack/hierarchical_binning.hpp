@@ -51,6 +51,12 @@ public:
         assert(data->output_buffer != nullptr);
         assert(data->header_buffer != nullptr);
 
+        if (config.debug)
+        {
+            *data->header_buffer << std::fixed << std::setprecision(2);
+            *data->output_buffer << std::fixed << std::setprecision(2);
+        }
+
         if (data->filenames.size() != data->kmer_counts.size())
             throw std::runtime_error{"The filenames and kmer counts do not have the same length."};
     }
@@ -329,12 +335,25 @@ private:
         // std::cout << std::endl;
 
         if (data->output_buffer->tellp() == 0) // beginning of the file
-            *data->output_buffer << "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\tEST_MAX_TB_SIZES" << std::endl;
+            if (config.debug)
+                *data->output_buffer << "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\tEST_MAX_TB_SIZES\tSCORE\tCORR\tT_MAX" << std::endl;
+            else
+                *data->output_buffer << "#FILES\tBIN_INDICES\tNUMBER_OF_BINS" << std::endl;
 
         size_t high_level_max_id{};
         size_t high_level_max_size{};
 
         size_t bin_id{};
+        size_t const optimal_score{matrix[trace_i][trace_j]};
+        double correction{};
+
+        // TODO std::to_chars
+        auto to_string_with_precision = [](double const value)
+        {
+            std::stringstream stream;
+            stream << std::fixed << std::setprecision(2) << value;
+            return stream.str();
+        };
 
         while (trace_j >= 0)
         {
@@ -344,6 +363,8 @@ private:
 
             size_t kmer_count = data->kmer_counts[trace_j];
             size_t number_of_bins = (trace_i - next_i);
+
+            correction = data->fp_correction[std::max<size_t>(1u, number_of_bins)];
 
             if (trace_j == 0)
             {
@@ -356,8 +377,18 @@ private:
 
                 *data->output_buffer << data->filenames[0] << '\t'
                                      << data->previous.bin_indices  << (high ? "" : ";") << bin_id << '\t'
-                                     << data->previous.num_of_bins  << (high ? "" : ";") << trace_i << '\t'
-                                     << data->previous.estimated_sizes << (high ? "" : ";") << average_bin_size << '\n';
+                                     << data->previous.num_of_bins  << (high ? "" : ";") << trace_i;
+
+                if (config.debug)
+                {
+                    *data->output_buffer << '\t'
+                                         << data->previous.estimated_sizes << (high ? "" : ";") << average_bin_size << '\t'
+                                         << data->previous.optimal_score << (high ? "" : ";") << optimal_score << '\t'
+                                         << data->previous.correction << (high ? "" : ";") << correction << '\t'
+                                         << data->previous.tmax << (high ? "" : ";") << num_technical_bins;
+                }
+
+                *data->output_buffer << '\n';
 
                 if (average_bin_size > high_level_max_size)
                 {
@@ -398,7 +429,13 @@ private:
                 libf_data.previous = data->previous;
                 libf_data.previous.bin_indices += (high ? "" : ";") + std::to_string(bin_id);
                 libf_data.previous.num_of_bins  += (high ? "" : ";") + std::string{"1"};
-                libf_data.previous.estimated_sizes += (high ? "" : ";") + std::to_string(kmer_count);
+                if (config.debug)
+                {
+                    libf_data.previous.estimated_sizes += (high ? "" : ";") + std::to_string(kmer_count);
+                    libf_data.previous.optimal_score += (high ? "" : ";") + std::to_string(optimal_score);
+                    libf_data.previous.correction += (high ? "" : ";") + to_string_with_precision(correction);
+                    libf_data.previous.tmax += (high ? "" : ";") + std::to_string(num_technical_bins);
+                }
 
                 std::string const merged_ibf_name{std::string{merged_bin_prefix} + "_" + libf_data.previous.bin_indices};
 
@@ -411,7 +448,7 @@ private:
                 }
                 else
                 {
-                    simple_binning algo{libf_data};
+                    simple_binning algo{libf_data, 0, config.debug};
                     merged_max_bin_id = algo.execute();
                 }
                 *data->header_buffer << "#" << merged_ibf_name << " max_bin_id:" << merged_max_bin_id << '\n';
@@ -450,8 +487,13 @@ private:
                 libf_data.previous = data->previous;
                 libf_data.previous.bin_indices += (high ? "" : ";") + std::to_string(bin_id);
                 libf_data.previous.num_of_bins  += (high ? "" : ";") + std::string{"1"};
-                libf_data.previous.estimated_sizes += (high ? "" : ";") + std::to_string(kmer_count);
-
+                if (config.debug)
+                {
+                    libf_data.previous.estimated_sizes += (high ? "" : ";") + std::to_string(kmer_count);
+                    libf_data.previous.optimal_score += (high ? "" : ";") + std::to_string(optimal_score);
+                    libf_data.previous.correction += (high ? "" : ";") + to_string_with_precision(correction);
+                    libf_data.previous.tmax += (high ? "" : ";") + std::to_string(num_technical_bins);
+                }
                 std::string const merged_ibf_name{std::string{merged_bin_prefix} + "_" + libf_data.previous.bin_indices};
 
                 size_t merged_max_bin_id;
@@ -463,7 +505,7 @@ private:
                 }
                 else
                 {
-                    simple_binning algo{libf_data};
+                    simple_binning algo{libf_data, 0, config.debug};
                     merged_max_bin_id = algo.execute();
                 }
                 *data->header_buffer << "#" << merged_ibf_name << " max_bin_id:" << merged_max_bin_id << '\n';
@@ -481,8 +523,18 @@ private:
 
                 *data->output_buffer << data->filenames[trace_j] << '\t'
                                      << data->previous.bin_indices  << (high ? "" : ";") << bin_id << '\t'
-                                     << data->previous.num_of_bins  << (high ? "" : ";") << number_of_bins << '\t'
-                                     << data->previous.estimated_sizes << (high ? "" : ";") << kmer_count_per_bin << '\n';
+                                     << data->previous.num_of_bins  << (high ? "" : ";") << number_of_bins;
+
+                if (config.debug)
+                {
+                    *data->output_buffer << '\t'
+                                         << data->previous.estimated_sizes << (high ? "" : ";") << kmer_count_per_bin << '\t'
+                                         << data->previous.optimal_score << (high ? "" : ";") << optimal_score << '\t'
+                                         << data->previous.correction << (high ? "" : ";") << correction << '\t'
+                                         << data->previous.tmax << (high ? "" : ";") << num_technical_bins;
+                }
+
+                *data->output_buffer << '\n';
 
                 // std::cout << "split " << trace_j << " into " << number_of_bins << ": " << kmer_count_per_bin << std::endl;
 
