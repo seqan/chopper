@@ -24,7 +24,7 @@ int set_up_and_parse_subparser_split(seqan3::argument_parser & parser, pack_conf
                       "All other columns are optional and can be used to aggregate your data (e.g. taxonmic ids).",
                       seqan3::option_spec::required);
 
-    parser.add_option(config.bins, 'b', "technical-bins",
+    parser.add_option(config.t_max, 'b', "technical-bins",
                       "Into how many technical bins do you want your sequence data to be packed?");
 
     parser.add_option(config.num_hash_functions, 's', "num-hash-functions",
@@ -32,7 +32,7 @@ int set_up_and_parse_subparser_split(seqan3::argument_parser & parser, pack_conf
 
     parser.add_option(config.fp_rate, 'p', "false-positive-rate",
                       "The desired false positive rate of the IBFs.");
-        
+
     parser.add_option(config.alpha, 'a', "alpha",
                       "The scaling factor to influence the number of merged bins.");
 
@@ -54,7 +54,7 @@ int set_up_and_parse_subparser_split(seqan3::argument_parser & parser, pack_conf
                       seqan3::option_spec::standard,
                       seqan3::arithmetic_range_validator{3, std::numeric_limits<int>::max()});
 
-    parser.add_flag(config.union_estimate, 'u', "union-estimate",
+    parser.add_flag(config.estimate_union, 'u', "estimate-union",
                     "[HLL] Estimate the union of kmer sets to possibly improve the binning.");
 
     parser.add_option(config.hll_dir, 'd', "hll-dir",
@@ -70,8 +70,8 @@ int set_up_and_parse_subparser_split(seqan3::argument_parser & parser, pack_conf
     {
         parser.parse();
         if (config.rearrange_bins)
-            config.union_estimate = true;
-        if (config.union_estimate && !parser.is_option_set("hll-dir") && !parser.is_option_set('d'))
+            config.estimate_union = true;
+        if (config.estimate_union && !parser.is_option_set("hll-dir") && !parser.is_option_set('d'))
             throw seqan3::argument_parser_error{"An hll dir needs to be provided when enabling -u or -r."};
     }
     catch (seqan3::argument_parser_error const & ext) // the user did something wrong
