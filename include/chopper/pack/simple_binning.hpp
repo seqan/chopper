@@ -97,6 +97,9 @@ private:
      */
     size_t const num_technical_bins;
 
+    //!\brief Debug output in packing file.
+    bool const debug;
+
 public:
     simple_binning() = default; //!< Defaulted.
     simple_binning(simple_binning const &) = default; //!< Defaulted.
@@ -108,6 +111,7 @@ public:
     /*!\brief The constructor from user bin names, their kmer counts and a configuration.
      * \param[in] data_ The filenames and kmer counts associated with the user bin, as well as the ostream buffer.
      * \param[in] num_bins (optional) The number of technical bins.
+     * \param[in] debug_ (optional) Enables debug output in packing file.
      *
      * If the `num_bins` parameter is omitted or set to 0, then number of technical bins used in this algorithm
      * is automatically set to the next multiple of 64 given the number of user bins (e.g. \#UB = 88 -> \#TB = 124).
@@ -115,14 +119,21 @@ public:
      * \attention The number of technical bins must be greater or equal to the number of user bins!
      *            If you want to use less technical bins than user bins, see the hierarchical_binning algorithm.
      */
-    simple_binning(pack_data const & data_, size_t const num_bins = 0) :
+    simple_binning(pack_data const & data_, size_t const num_bins = 0, bool const debug_ = false) :
         data{std::addressof(data_)},
         num_user_bins{data->kmer_counts.size()},
-        num_technical_bins{(num_bins == 0) ? ((num_user_bins + 63) >> 6) << 6 : num_bins} // TODO min(tmax, ((num_user_bins + 63) >> 6))
+        num_technical_bins{(num_bins == 0) ? ((num_user_bins + 63) >> 6) << 6 : num_bins}, // TODO min(tmax, ((num_user_bins + 63) >> 6))
+        debug{debug_}
     {
         assert(data != nullptr);
         assert(data->output_buffer != nullptr);
         assert(data->header_buffer != nullptr);
+
+        if (debug)
+        {
+            *data->header_buffer << std::fixed << std::setprecision(2);
+            *data->output_buffer << std::fixed << std::setprecision(2);
+        }
 
         if (num_user_bins > num_technical_bins)
         {
@@ -190,6 +201,8 @@ public:
         size_t max_size{};
 
         size_t bin_id{};
+        size_t const optimal_score{matrix[trace_i][trace_j]};
+
         while (trace_j > 0)
         {
             size_t next_i = trace[trace_i][trace_j];
@@ -200,8 +213,18 @@ public:
             // columns: IBF_ID,NAME,NUM_TECHNICAL_BINS,ESTIMATED_TB_SIZE
             *data->output_buffer << data->filenames[trace_j] << '\t'
                                  << data->previous.bin_indices  << ';' << bin_id << '\t'
-                                 << data->previous.num_of_bins  << ';' << number_of_bins << '\t'
-                                 << data->previous.estimated_sizes << ';' << kmer_count_per_bin << '\n';
+                                 << data->previous.num_of_bins  << ';' << number_of_bins;
+
+            if (debug)
+            {
+                *data->output_buffer << '\t'
+                                     << data->previous.estimated_sizes << ';' << kmer_count_per_bin << '\t'
+                                     << data->previous.optimal_score << ';'  << optimal_score << '\t'
+                                     << data->previous.correction << ';'  << data->fp_correction[number_of_bins] << '\t'
+                                     << data->previous.tmax << ';'  << num_technical_bins;
+            }
+
+            *data->output_buffer << '\n';
 
             if (kmer_count_per_bin > max_size)
             {
@@ -227,8 +250,18 @@ public:
         // columns: IBF_ID,NAME,NUM_TECHNICAL_BINS,ESTIMATED_TB_SIZE
         *data->output_buffer << data->filenames[0] << '\t'
                              << data->previous.bin_indices  << ';' << bin_id << '\t'
-                             << data->previous.num_of_bins  << ';' << trace_i << '\t'
-                             << data->previous.estimated_sizes << ';' << kmer_count_per_bin << '\n';
+                             << data->previous.num_of_bins  << ';' << trace_i;
+
+        if (debug)
+        {
+            *data->output_buffer << '\t'
+                                 << data->previous.estimated_sizes << ';' << kmer_count_per_bin << '\t'
+                                 << data->previous.optimal_score << ';'  << optimal_score << '\t'
+                                 << data->previous.correction << ';'  << data->fp_correction[trace_i] << '\t'
+                                 << data->previous.tmax << ';'  << num_technical_bins;
+        }
+
+        *data->output_buffer << '\n';
 
         return max_id;
     }

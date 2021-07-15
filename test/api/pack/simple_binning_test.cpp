@@ -20,10 +20,10 @@ TEST(simple_binning_test, small_example)
 
     std::string expected
     {
-        "seq4\t;0\t;1\t;20\n"
-        "seq3\t;1\t;1\t;20\n"
-        "seq2\t;2\t;2\t;20\n"
-        "seq1\t;4\t;5\t;20\n"
+        "seq4\t;0\t;1\n"
+        "seq3\t;1\t;1\n"
+        "seq2\t;2\t;2\n"
+        "seq1\t;4\t;5\n"
     };
 
     EXPECT_EQ(output_buffer.str(), expected);
@@ -45,10 +45,10 @@ TEST(simple_binning_test, uniform_distribution)
 
     std::string expected
     {
-        "seq4\t;0\t;1\t;20\n"
-        "seq3\t;1\t;1\t;20\n"
-        "seq2\t;2\t;1\t;20\n"
-        "seq1\t;3\t;1\t;20\n"
+        "seq4\t;0\t;1\n"
+        "seq3\t;1\t;1\n"
+        "seq2\t;2\t;1\n"
+        "seq1\t;3\t;1\n"
     };
 
     EXPECT_EQ(output_buffer.str(), expected);
