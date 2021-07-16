@@ -347,7 +347,7 @@ private:
         size_t const optimal_score{matrix[trace_i][trace_j]};
         double correction{};
 
-        // TODO std::to_chars
+        // TODO std::to_chars after https://github.com/seqan/product_backlog/issues/396
         auto to_string_with_precision = [](double const value)
         {
             std::stringstream stream;
