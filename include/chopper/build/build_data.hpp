@@ -40,5 +40,5 @@ struct build_data
     lemon::ListDigraph ibf_graph{};
     lemon::ListDigraph::NodeMap<node_data<record_type>> node_map{ibf_graph};
 
-    hierarchical_interleaved_bloom_filter<> hibf{};
+    hibf::hierarchical_interleaved_bloom_filter<> hibf{};
 };
