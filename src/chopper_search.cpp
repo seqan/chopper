@@ -58,7 +58,7 @@ int chopper_search(seqan3::argument_parser & parser)
         return -1;
     }
 
-    hierarchical_interleaved_bloom_filter<> hibf;
+    hibf::hierarchical_interleaved_bloom_filter<> hibf;
     sync_out sync_file{config.output_filename};
 
     auto cereal_worker = [&] ()
@@ -88,17 +88,19 @@ int chopper_search(seqan3::argument_parser & parser)
     auto worker = [&] (auto && chunked_view, auto &&)
     {
         std::vector<size_t> read_kmers;
-        std::vector<std::pair<int32_t, uint32_t>> result{};
         std::string buffer{};
+        auto agent = hibf.membership_agent();
 
         for (auto && [id, seq] : chunked_view)
         {
             clear_and_compute_kmers(read_kmers, seq, config);
-            result.clear();
+            size_t const kmer_lemma = (read_kmers.size() > (config.errors + 1) * config.k)
+                            ? read_kmers.size() - (config.errors + 1) * config.k
+                            : 0;
 
-            search(result, read_kmers, hibf, config, 0); // start at top level ibf
+            auto & result = agent.bulk_contains(read_kmers, kmer_lemma);
 
-            write_result(buffer, result, id, hibf, sync_file);
+            write_result(buffer, result, id, sync_file);
         }
     };
 

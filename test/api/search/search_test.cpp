@@ -83,7 +83,7 @@ TEST_F(chopper_search_test, first_example)
     create_ibfs_from_chopper_pack(bdata, bconfig);
 
     // move built hibf out of build_data
-    hierarchical_interleaved_bloom_filter hibf{std::move(bdata.hibf)};
+    hibf::hierarchical_interleaved_bloom_filter hibf{std::move(bdata.hibf)};
 
     search_config config{};
     config.k = bconfig.k;
@@ -175,7 +175,7 @@ TEST_F(chopper_search_test, multi_level_example)
     create_ibfs_from_chopper_pack(bdata, bconfig);
 
     // move built hibf out of build_data
-    hierarchical_interleaved_bloom_filter hibf{std::move(bdata.hibf)};
+    hibf::hierarchical_interleaved_bloom_filter hibf{std::move(bdata.hibf)};
 
     search_config config{};
     config.k = bconfig.k;
