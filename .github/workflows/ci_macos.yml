@@ -25,19 +25,16 @@ jobs:
       matrix:
         include:
           - name: "gcc11"
-            os: macos-10.15
             cxx: "g++-11"
             cc: "gcc-11"
             build_type: Release
 
           - name: "gcc10"
-            os: macos-10.15
             cxx: "g++-10"
             cc: "gcc-10"
             build_type: Release
 
           - name: "gcc9 (c++2a)"
-            os: macos-10.15
             cxx: "g++-9"
             cc: "gcc-9"
             build_type: Release
@@ -110,4 +107,4 @@ jobs:
           CCACHE_MAXSIZE: 500M
         run: |
           cd build
-          ctest . -j3 --output-on-failure
+          ctest . -j3 --output-on-failure || ctest . -j3 --output-on-failure --rerun-failed
