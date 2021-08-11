@@ -12,14 +12,14 @@ TEST(hibf_user_bins_test, access_vector)
 {
     hibf_user_bins user_bins{};
 
-    user_bins.resize_bins(2);
-    user_bins.resize_filename(2);
+    user_bins.set_ibf_count(2);
+    user_bins.set_user_bin_count(2);
 
-    user_bins.filename_at(0) = "foo;bar";
-    user_bins.filename_at(1) = "bar";
+    user_bins.filename_of_user_bin(0) = "foo;bar";
+    user_bins.filename_of_user_bin(1) = "bar";
 
-    user_bins.bin_at(0) = std::vector<int64_t>{0, 0, 1};
-    user_bins.bin_at(1) = std::vector<int64_t>{-1, 0, 1};
+    user_bins.bin_indices_of_ibf(0) = std::vector<int64_t>{0, 0, 1};
+    user_bins.bin_indices_of_ibf(1) = std::vector<int64_t>{-1, 0, 1};
 
     EXPECT_RANGE_EQ(user_bins[0], (std::vector<std::string>{"foo;bar", "foo;bar", "bar"}));
     EXPECT_RANGE_EQ(user_bins[1], (std::vector<std::string>{"", "foo;bar", "bar"}));
@@ -29,14 +29,14 @@ TEST(hibf_user_bins_test, cerealize)
 {
     hibf_user_bins user_bins{};
 
-    user_bins.resize_bins(2);
-    user_bins.resize_filename(2);
+    user_bins.set_ibf_count(2);
+    user_bins.set_user_bin_count(2);
 
-    user_bins.filename_at(0) = "foo;bar";
-    user_bins.filename_at(1) = "bar";
+    user_bins.filename_of_user_bin(0) = "foo;bar";
+    user_bins.filename_of_user_bin(1) = "bar";
 
-    user_bins.bin_at(0) = std::vector<int64_t>{0, 0, 1};
-    user_bins.bin_at(1) = std::vector<int64_t>{-1, 0, 1};
+    user_bins.bin_indices_of_ibf(0) = std::vector<int64_t>{0, 0, 1};
+    user_bins.bin_indices_of_ibf(1) = std::vector<int64_t>{-1, 0, 1};
 
     seqan3::test::tmp_filename filename{"user_bins.out"};
 

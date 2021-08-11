@@ -32,8 +32,8 @@ struct build_data
     void resize()
     {
         hibf.ibf_vector.resize(number_of_ibfs);
-        hibf.user_bins.resize_bins(number_of_ibfs);
-        hibf.user_bins.resize_filename(number_of_user_bins);
+        hibf.user_bins.set_ibf_count(number_of_ibfs);
+        hibf.user_bins.set_user_bin_count(number_of_user_bins);
         hibf.next_ibf_id.resize(number_of_ibfs);
     }
 
