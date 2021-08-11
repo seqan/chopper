@@ -7,6 +7,61 @@
 namespace hibf
 {
 
+/*!\brief The HIBF binning directory. A data structure that efficiently answers set-membership queries for multiple
+ *        bins.
+ * \tparam data_layout_mode_ Indicates whether the underlying data type is compressed. See
+ *                           [seqan3::data_layout](https://docs.seqan.de/seqan/3.0.3/group__submodule__dream__index.html#gae9cb143481c46a1774b3cdf5d9fdb518).
+ * \see [seqan3::interleaved_bloom_filter][1]
+ * \details
+ *
+ * This class improves the [seqan3::interleaved_bloom_filter][1] by adding additional bookkeeping that allows
+ * to establish a hierarchical structure. This structure can then be used to split or merge user bins and distribute
+ * them over a variable number of technical bins. In the [seqan3::interleaved_bloom_filter][1], the number of user bins
+ * and technical bins is always the same. This causes performance degradation when there are many user bins or the user
+ * bins are unevenly distributed.
+ *
+ * # Terminology
+ *
+ * ## Technical Bin
+ * A Technical Bin represents an actual bin in the binning directory. In the IBF, it stores its kmers in a single Bloom
+ * Filter (which is interleaved with all the other BFs).
+ *
+ * ## User Bin
+ * The user may impose a structure on his sequence data in the form of logical groups (e.g. species). When querying the
+ * IBF, the user is interested in an answer that differentiates between these groups.
+ *
+ * # Hierarchical Interleaved Bloom Filter (HIBF)
+ *
+ * In constrast to the [seqan3::interleaved_bloom_filter][1], the user bins may be split across multiple technical bins
+ * , or multiple user bins may be merged into one technical bin. When merging multiple user bins, the HIBF stores
+ * another IBF that is built over the user bins constituting the merged bin. This lower-level IBF can then be used
+ * to further distinguish between merged bins.
+ *
+ * In this example, user bin 1 was split into two technical bins. Bins 3, 4, and 5 were merged into a single technical
+ * bin, and another IBF was added for the merged bin.
+ * \image html hibf.svg
+ *
+ * The individual IBFs may have a different number of technical bins and differ in their sizes, allowing an efficient
+ * distribution of the user bins.
+ *
+ * ## Querying
+ * To query the Hierarchical Interleaved Bloom Filter for values, call
+ * hibf::hierarchical_interleaved_bloom_filter::membership_agent() and use the returned
+ * hibf::hierarchical_interleaved_bloom_filter::membership_agent.
+ * In contrast to the [seqan3::interleaved_bloom_filter][1], the result will consist of indices of user bins.
+ *
+ * To count the occurrences in each user bin of a range of values in the Hierarchical Interleaved Bloom Filter, call
+ * hibf::hierarchical_interleaved_bloom_filter::counting_agent() and use
+ * the returned hibf::hierarchical_interleaved_bloom_filter::counting_agent_type.
+ *
+ * ## Thread safety
+ *
+ * The Interleaved Bloom Filter promises the basic thread-safety by the STL that all
+ * calls to `const` member functions are safe from multiple threads (as long as no thread calls
+ * a non-`const` member function at the same time).
+ *
+ * [1]: https://docs.seqan.de/seqan/3.0.3/classseqan3_1_1interleaved__bloom__filter.html
+ */
 template <seqan3::data_layout data_layout_mode_ = seqan3::data_layout::uncompressed>
 class hierarchical_interleaved_bloom_filter
 {
@@ -24,7 +79,7 @@ public:
     //!\brief Indicates whether the Interleaved Bloom Filter is compressed.
     static constexpr seqan3::data_layout data_layout_mode = data_layout_mode_;
 
-    //!\brief The type of a individual Bloom filter.
+    //!\brief The type of an individual Bloom filter.
     using ibf_t = seqan3::interleaved_bloom_filter<data_layout_mode_>;
 
     /*!\name Constructors, destructor and assignment
@@ -46,22 +101,22 @@ public:
      * \details
      * Assume we look up a bin `b` in IBF `i`, i.e. `next_ibf_id[i][b]`.
      * If `i` is returned, there is no lower level IBF, bin `b` is hence not a merged bin.
-     * If `j != i` is returned, there is a lower level IBF, bin `b` is a merged bin, and `j` is the id of the lower
+     * If `j != i` is returned, there is a lower level IBF, bin `b` is a merged bin, and `j` is the ID of the lower
      * level IBF in ibf_vector.
      */
     std::vector<std::vector<int64_t>> next_ibf_id;
 
-    //!\brief Stores the user bins.
+    //!\brief The underlying user bins.
     user_bins user_bins;
 
-    /*!\brief Returns a membership_agent to be used for counting.
-     */
+    //!\brief Returns a membership_agent to be used for counting.
     membership_agent membership_agent() const
     {
         return typename hierarchical_interleaved_bloom_filter<data_layout_mode>::membership_agent{*this};
     }
 
     /*!\brief Returns a counting_agent_type to be used for counting.
+     * \tparam value_t The type to use for the counters; must model std::integral.
      */
     template <std::integral value_t = uint16_t>
     counting_agent_type<value_t> counting_agent() const
@@ -86,79 +141,79 @@ public:
     //!\endcond
 };
 
-
+/*!\brief Bookkeeping for user and technical bins.
+ */
 template <seqan3::data_layout data_layout_mode>
 class hierarchical_interleaved_bloom_filter<data_layout_mode>::user_bins
 {
 private:
-    //!\brief Containes all filenames.
-    std::vector<std::string> filenames;
+    //!\brief Contains filenames of all user bins.
+    std::vector<std::string> user_bin_filenames;
 
     /*!\brief Stores for each bin in each IBF of the HIBF the ID of the filename.
      * \details
-     * Assume we look up a bin `b` in IBF `i`, i.e. `bin_to_filename_position[i][b]`.
+     * Assume we look up a bin `b` in IBF `i`, i.e. `ibf_bin_to_filename_position[i][b]`.
      * If `-1` is returned, bin `b` is a merged bin, and there is no filename, we need to look into the lower level IBF.
-     * Otherwise, the returned value `j` can be used to access the corresponding filename `filenames[j]`.
+     * Otherwise, the returned value `j` can be used to access the corresponding filename `user_bin_filenames[j]`.
      */
-    std::vector<std::vector<int64_t>> bin_to_filename_position{};
+    std::vector<std::vector<int64_t>> ibf_bin_to_filename_position{};
 
 public:
-
     //!\brief Returns the number of managed user bins.
     size_t num_user_bins() const noexcept
     {
-        return filenames.size();
+        return user_bin_filenames.size();
     }
 
     //!\brief Changes the number of managed IBFs.
-    void resize_bins(size_t const size)
+    void set_ibf_count(size_t const size)
     {
-        bin_to_filename_position.resize(size);
+        ibf_bin_to_filename_position.resize(size);
     }
 
     //!\brief Changes the number of managed user bins.
-    void resize_filename(size_t const size)
+    void set_user_bin_count(size_t const size)
     {
-        filenames.resize(size);
+        user_bin_filenames.resize(size);
     }
 
     //!\brief Returns a vector containing user bin indices for each bin in the `idx`th IBF.
-    std::vector<int64_t> & bin_at(size_t const idx)
+    std::vector<int64_t> & bin_indices_of_ibf(size_t const idx)
     {
-        return bin_to_filename_position[idx];
+        return ibf_bin_to_filename_position[idx];
     }
 
     //!\brief Returns the filename of the `idx`th user bin.
-    std::string & filename_at(size_t const idx)
+    std::string & filename_of_user_bin(size_t const idx)
     {
-        return filenames[idx];
+        return user_bin_filenames[idx];
     }
 
     //!\brief For a pair `(a,b)`, returns a const reference to the filename of the user bin at IBF `a`, bin `b`.
     std::string const & operator[](std::pair<size_t, size_t> const & index_pair) const
     {
-        return filenames[bin_to_filename_position[index_pair.first][index_pair.second]];
+        return user_bin_filenames[ibf_bin_to_filename_position[index_pair.first][index_pair.second]];
     }
 
-    /*!\brief Returns a view over the user bin filenames for the `ibf_idx`the IBF.
-              An empty string is returned for merged bins.
+    /*!\brief Returns a view over the user bin filenames for the `ibf_idx`th IBF.
+     *        An empty string is returned for merged bins.
      */
     auto operator[](size_t const ibf_idx) const
     {
-        return bin_to_filename_position[ibf_idx]
+        return ibf_bin_to_filename_position[ibf_idx]
                | std::views::transform([this] (int64_t i)
                  {
                     if (i == -1)
                         return std::string{};
                     else
-                        return filenames[i];
+                        return user_bin_filenames[i];
                  });
     }
 
     //!\brief Returns the filename index of the `ibf_idx`th IBF for bin `bin_idx`.
     int64_t filename_index(size_t const ibf_idx, size_t const bin_idx) const
     {
-        return bin_to_filename_position[ibf_idx][bin_idx];
+        return ibf_bin_to_filename_position[ibf_idx][bin_idx];
     }
 
     /*!\brief Writes all filenames to a stream. Index and filename are tab-separated.
@@ -171,7 +226,7 @@ public:
     {
         size_t position{};
         std::string line{};
-        for (auto const & filename : filenames)
+        for (auto const & filename : user_bin_filenames)
         {
             line.clear();
             line = '#';
@@ -194,12 +249,17 @@ public:
     template <typename archive_t>
     void serialize(archive_t & archive)
     {
-        archive(filenames);
-        archive(bin_to_filename_position);
+        archive(user_bin_filenames);
+        archive(ibf_bin_to_filename_position);
     }
     //!\endcond
 };
 
+/*!\brief Manages membership queries for the hibf::hierarchical_interleaved_bloom_filter.
+ * \see hibf::hierarchical_interleaved_bloom_filter::user_bins::filename_of_user_bin
+ * \details
+ * In contrast to the [seqan3::interleaved_bloom_filter][1], the result will consist of indices of user bins.
+ */
 template <seqan3::data_layout data_layout_mode> // TODO: value_t as template?
 class hierarchical_interleaved_bloom_filter<data_layout_mode>::membership_agent
 {
@@ -264,10 +324,22 @@ public:
     //!\brief Stores the result of bulk_contains().
     std::vector<int64_t> result_buffer;
 
-    /*!\name Counting
+    /*!\name Lookup
      * \{
      */
-    /*!\brief Counts the occurrences in each user bin for all values in a range.
+    /*!\brief Determines set membership of given values, and returns the user bin indices of occurrences.
+     * \param[in] values The values to process; must model std::ranges::forward_range.
+     * \param[in] threshold Report a user bin if there are at least this many hits.
+     *
+     * \attention The result of this function must always be bound via reference, e.g. `auto &`, to prevent copying.
+     * \attention Sequential calls to this function invalidate the previously returned reference.
+     *
+     * \details
+     *
+     * ### Thread safety
+     *
+     * Concurrent invocations of this function are not thread safe, please create a
+     * hibf::hierarchical_interleaved_bloom_filter::membership_agent for each thread.
      */
     template <std::ranges::forward_range value_range_t>
     [[nodiscard]] std::vector<int64_t> const & bulk_contains(value_range_t && values, size_t const threshold) & noexcept
@@ -294,6 +366,8 @@ public:
     //!\}
 };
 
+/*!\brief Manages counting ranges of values for the hibf::hierarchical_interleaved_bloom_filter.
+ */
 template <seqan3::data_layout data_layout_mode>
 template <std::integral value_t>
 class hierarchical_interleaved_bloom_filter<data_layout_mode>::counting_agent_type
@@ -361,8 +435,21 @@ public:
     /*!\name Counting
      * \{
      */
-
-    /*!\brief Counts the occurrences in each user bin for all values in a range.
+    /*!\brief Counts the occurrences in each bin for all values in a range.
+     * \tparam value_range_t The type of the range of values. Must model std::ranges::forward_range. The reference type
+     *                       must model std::unsigned_integral.
+     * \param[in] values The range of values to process.
+     * \param[in] threshold Do not recurse into merged bins with less than this many hits. Default: 1.
+     *
+     * \attention The result of this function must always be bound via reference, e.g. `auto &`, to prevent copying.
+     * \attention Sequential calls to this function invalidate the previously returned reference.
+     *
+     * \details
+     *
+     * ### Thread safety
+     *
+     * Concurrent invocations of this function are not thread safe, please create a
+     * hibf::hierarchical_interleaved_bloom_filter::counting_agent_type for each thread.
      */
     template <std::ranges::forward_range value_range_t>
     [[nodiscard]] seqan3::counting_vector<value_t> const & bulk_count(value_range_t && values, size_t const threshold = 1u) & noexcept
@@ -390,14 +477,3 @@ public:
 };
 
 } // namespace hibf
-
-// TODO
-// membership agent that returns vector of user bin ids and uses a threshold
-// count agent that just counts and returns count for each user bin: !! do not recurse if count is 0 !!
-// Maybe an interface with optional threshold for counting?
-// It is apparently no efficient to store the counting agents of the IBFs
-// Maybe just store the counting agent of the top level ibf?
-
-// NEW
-// counting with just checking if 0 is very slow, offer to give a threshold
-// membership agent with threshold and without, returns bin indicies
