@@ -119,7 +119,7 @@ int chopper_pack(seqan3::argument_parser & parser)
     data.header_buffer = &header_buffer;
 
     // Execute the actual algorithm:
-    hierarchical_binning algo{data, config};
+    hierarchical_binning algo{data, config, config.t_max};
     size_t max_hibf_id = algo.execute();
 
     // brief Write the output to the result file.

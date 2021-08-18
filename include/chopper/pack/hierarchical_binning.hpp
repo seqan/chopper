@@ -18,12 +18,15 @@ private:
     //!\brief The data input: filenames associated with the user bin and a kmer count per user bin.
     pack_data * const data;
 
+    //!\brief Whether this is the binning on the highest level
+    bool const high;
+    //!\brief The maximum number of TBs for all IBFs on all levels
+    size_t const t_max;
+
     //!\brief The number of user bins, initialised with the length of user_bin_kmer_counts.
     size_t const num_user_bins;
     //!\brief The number of technical bins requested by the user.
     size_t const num_technical_bins;
-    //!\brief The natural logarithm of the number of technical bins.
-    double const log_num_technical_bins;
 
 public:
     hierarchical_binning() = default; //!< Defaulted.
@@ -36,16 +39,18 @@ public:
     /*!\brief The constructor from user bin names, their kmer counts and a configuration.
      * \param[in, out] data_ The data input: filenames associated with the user bin and a kmer count per user bin.
      * \param[in] config_ A configuration object that holds information from the user that influence the computation.
+     * \param[in] requested_t_max The requested t_max propagated from a higher level or the user input 
      *
      * Each entry in the names_ and input vector respectively is considered a user bin (both vectors must have the
      * same length).
      */
-    hierarchical_binning(pack_data & data_, pack_config const & config_) :
+    hierarchical_binning(pack_data & data_, pack_config const & config_, size_t const requested_t_max) :
         data{std::addressof(data_)},
         config{config_},
+        high{data->previous.empty()},
+        t_max{next_64_multiplicative(requested_t_max)},
         num_user_bins{data->kmer_counts.size()},
-        num_technical_bins{(config.t_max == 0) ? ((num_user_bins + 63) >> 6) << 6 : config.t_max}, // TODO min(tmax, ((num_user_bins + 63) >> 6))
-        log_num_technical_bins{std::log(num_technical_bins)}
+        num_technical_bins{high ? config.t_max : low_level_num_tbs(num_user_bins)}
     {
         assert(data != nullptr);
         assert(data->output_buffer != nullptr);
@@ -109,12 +114,30 @@ public:
     }
 
 private:
+    /*!\brief Returns the smallest natural number that is greater or equal to `x` and a multiplicative of 64.
+     * \param[in] x The Input value that is smaller or equal to the return value.
+     */
+    [[nodiscard]] size_t next_64_multiplicative(size_t const x) const 
+    {
+        return ((x + 63) >> 6) << 6;
+    }
+
+    /*!\brief Returns the number of technical bins of the lower level IBF for a merged bin 
+     *        with `num_ubs_in_merge` user bins.
+     * \param[in] num_ubs_in_merge The number of user bins in the merge.
+     */
+    [[nodiscard]] size_t low_level_num_tbs(size_t const num_ubs_in_merge) const 
+    {
+        return std::min(std::max(64ul, next_64_multiplicative(num_ubs_in_merge)), t_max);
+    }
+
     /*!\brief Returns the maximum number of needed levels when merging `num_ubs_in_merge` many user bins.
      * \param[in] num_ubs_in_merge The number of user bins in the merge.
      */
     [[nodiscard]] size_t max_merge_levels(size_t const num_ubs_in_merge) const
     {
-        double const levels = std::log(num_ubs_in_merge) / log_num_technical_bins;
+        size_t const lower_lvl_tbs = low_level_num_tbs(num_ubs_in_merge);
+        double const levels = std::log(num_ubs_in_merge) / std::log(lower_lvl_tbs);
         return static_cast<size_t>(std::ceil(levels));
     }
 
@@ -295,8 +318,8 @@ private:
                     // score: The current maximum technical bin size for the high-level IBF (score for the matrix M)
                     // ll_kmers: estimate for the number of k-mers that have to be resolved on lower levels
                     // full_score: The score to minimize -> score * #TB-high_level + low_level_memory footprint
-                    size_t const score = std::max<size_t>(get_weight(), matrix[i - 1][j_prime]);
-                    size_t const ll_kmers = max_merge_levels(j - j_prime) * (ll_matrix[i - 1][j_prime] + weight);
+                    size_t const score = std::max<size_t>(matrix[i - 1][j_prime], get_weight());
+                    size_t const ll_kmers = ll_matrix[i - 1][j_prime] + max_merge_levels(j - j_prime) * weight;
                     size_t const full_score = score * (i + 1) /*#TBs*/ + config.alpha * ll_kmers;
 
                     // seqan3::debug_stream << " -- " << "j_prime:" << j_prime
@@ -325,8 +348,6 @@ private:
         assert(data != nullptr);
         assert(data->output_buffer != nullptr);
         assert(data->header_buffer != nullptr);
-
-        bool const high = data->previous.empty();
 
         // backtracking
         size_t trace_i = num_technical_bins - 1;
@@ -439,16 +460,17 @@ private:
 
                 std::string const merged_ibf_name{std::string{merged_bin_prefix} + "_" + libf_data.previous.bin_indices};
 
-                // now do the binning for the low-level IBF:
                 size_t merged_max_bin_id;
-                if (libf_data.kmer_counts.size() > num_technical_bins)
+                // now do the binning for the low-level IBF:
+                size_t const num_ubs = libf_data.kmer_counts.size();
+                if (num_ubs > t_max)
                 {
-                    hierarchical_binning algo{libf_data, config};
+                    hierarchical_binning algo{libf_data, config, t_max};
                     merged_max_bin_id = algo.execute();
                 }
                 else
                 {
-                    simple_binning algo{libf_data, 0, config.debug};
+                    simple_binning algo{libf_data, low_level_num_tbs(num_ubs), config.debug};
                     merged_max_bin_id = algo.execute();
                 }
                 *data->header_buffer << "#" << merged_ibf_name << " max_bin_id:" << merged_max_bin_id << '\n';
@@ -498,14 +520,15 @@ private:
 
                 size_t merged_max_bin_id;
                 // now do the binning for the low-level IBF:
-                if (libf_data.kmer_counts.size() > num_technical_bins)
+                size_t const num_ubs = libf_data.kmer_counts.size();
+                if (num_ubs > t_max)
                 {
-                    hierarchical_binning algo{libf_data, config};
+                    hierarchical_binning algo{libf_data, config, t_max};
                     merged_max_bin_id = algo.execute();
                 }
                 else
                 {
-                    simple_binning algo{libf_data, 0, config.debug};
+                    simple_binning algo{libf_data, low_level_num_tbs(num_ubs), config.debug};
                     merged_max_bin_id = algo.execute();
                 }
                 *data->header_buffer << "#" << merged_ibf_name << " max_bin_id:" << merged_max_bin_id << '\n';

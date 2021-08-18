@@ -119,10 +119,10 @@ public:
      * \attention The number of technical bins must be greater or equal to the number of user bins!
      *            If you want to use less technical bins than user bins, see the hierarchical_binning algorithm.
      */
-    simple_binning(pack_data const & data_, size_t const num_bins = 0, bool const debug_ = false) :
+    simple_binning(pack_data const & data_, size_t const num_bins, bool const debug_ = false) :
         data{std::addressof(data_)},
         num_user_bins{data->kmer_counts.size()},
-        num_technical_bins{(num_bins == 0) ? ((num_user_bins + 63) >> 6) << 6 : num_bins}, // TODO min(tmax, ((num_user_bins + 63) >> 6))
+        num_technical_bins{num_bins},
         debug{debug_}
     {
         assert(data != nullptr);
