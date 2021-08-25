@@ -62,7 +62,9 @@ inline void count_kmers(robin_hood::unordered_map<std::string, std::vector<std::
     if (!config.hll_dir.empty())
         std::filesystem::create_directory(config.hll_dir);
 
-    auto compute_minimiser = seqan3::views::minimiser_hash(seqan3::ungapped{config.k}, seqan3::window_size{config.w});
+    auto compute_minimiser = seqan3::views::minimiser_hash(seqan3::ungapped{config.k},
+                                                           seqan3::window_size{config.w},
+                                                           seqan3::seed{0x8F3F73B5CF1C9ADE >> (64u - 2u * config.k)});
     auto compute_kmers = seqan3::views::kmer_hash(seqan3::ungapped{config.k});
 
     // copy filename clusters to vector

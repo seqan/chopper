@@ -25,7 +25,8 @@ int set_up_and_parse_subparser_split(seqan3::argument_parser & parser, pack_conf
                       seqan3::option_spec::required);
 
     parser.add_option(config.t_max, 'b', "technical-bins",
-                      "Into how many technical bins do you want your sequence data to be packed?");
+                      "Into how many technical bins do you want your sequence data to be packed? "
+                      "Will be ceiled to the next multiple of 64.");
 
     parser.add_option(config.num_hash_functions, 's', "num-hash-functions",
                       "The number of hash functions for the IBFs.");
@@ -91,12 +92,13 @@ int chopper_pack(seqan3::argument_parser & parser)
 {
     pack_config config;
 
-    if (auto r = set_up_and_parse_subparser_split(parser, config); r != 0)
-        return r;
+    set_up_and_parse_subparser_split(parser, config);
 
     // Read in the data file containing file paths, kmer counts and additional information.
     pack_data data;
     read_filename_data_file(data, config);
+
+    config.t_max = next_multiple_of_64(config.t_max);
 
     // Some sanity checks on the input file and user options.
     if (data.filenames.empty())
@@ -119,14 +121,13 @@ int chopper_pack(seqan3::argument_parser & parser)
     data.header_buffer = &header_buffer;
 
     // Execute the actual algorithm:
-    hierarchical_binning algo{data, config};
-    size_t max_hibf_id = algo.execute();
+    size_t const max_hibf_id = hierarchical_binning{data, config}.execute();
 
     // brief Write the output to the result file.
     std::ofstream fout{config.output_filename};
     fout << "#" << hibf_prefix << " max_bin_id:" << max_hibf_id << '\n';
-    fout << header_buffer.rdbuf();
-    fout << output_buffer.rdbuf();
+    fout << header_buffer.str();
+    fout << output_buffer.str();
 
     print_peak_memory_usage();
 

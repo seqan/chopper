@@ -7,6 +7,7 @@
 #include <numeric>
 #include <vector>
 
+#include <chopper/helper.hpp>
 #include <chopper/pack/pack_data.hpp>
 #include <chopper/pack/print_matrix.hpp>
 #include <chopper/pack/previous_level.hpp>
@@ -81,24 +82,24 @@ class simple_binning
 {
 private:
     //!\brief The data input: filenames associated with the user bin and a kmer count per user bin.
-    pack_data const * const data;
+    pack_data const * const data{nullptr};
 
     /*!\brief The number of User bins.
      *
      * The user may impose a structure on his sequence data in the form of *logical groups* (e.g. species).
      * When querying the IBF, the user is interested in an answer that differentiates between these groups.
      */
-    size_t const num_user_bins;
+    size_t const num_user_bins{};
 
     /*!\brief The number of Technical bins.
      *
      * A *Technical Bin* represents an actual bin in the binning directory.
      * In the IBF, it stores its kmers in a **single Bloom Filter** (which is interleaved with all the other BFs).
      */
-    size_t const num_technical_bins;
+    size_t const num_technical_bins{};
 
     //!\brief Debug output in packing file.
-    bool const debug;
+    bool const debug{false};
 
 public:
     simple_binning() = default; //!< Defaulted.
@@ -122,7 +123,7 @@ public:
     simple_binning(pack_data const & data_, size_t const num_bins = 0, bool const debug_ = false) :
         data{std::addressof(data_)},
         num_user_bins{data->kmer_counts.size()},
-        num_technical_bins{(num_bins == 0) ? ((num_user_bins + 63) >> 6) << 6 : num_bins}, // TODO min(tmax, ((num_user_bins + 63) >> 6))
+        num_technical_bins{num_bins ? num_bins : next_multiple_of_64(num_user_bins)},
         debug{debug_}
     {
         assert(data != nullptr);

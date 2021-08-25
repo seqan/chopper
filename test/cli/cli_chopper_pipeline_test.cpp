@@ -47,9 +47,9 @@ TEST_F(cli_test, chopper_pipeline)
 
     std::vector<std::string> expected_components
     {
-        seq_filename + "\t95\tTAX3",
-        seq_filename + ";" + seq_filename + "\t95\tTAX2",
-        seq_filename + "\t95\tTAX1"
+        seq_filename + "\t88\tTAX3",
+        seq_filename + ";" + seq_filename + "\t88\tTAX2",
+        seq_filename + "\t88\tTAX1"
     };
 
     std::ifstream count_file{count_filename.get_path()};
@@ -85,12 +85,11 @@ TEST_F(cli_test, chopper_pipeline)
 
     std::string expected_file
     {
-        "#HIGH_LEVEL_IBF max_bin_id:1\n"
-        "#MERGED_BIN_1 max_bin_id:0\n"
+        "#HIGH_LEVEL_IBF max_bin_id:0\n"
         "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\n" +
-        seq_filename + "\t0\t1\n" +
-        seq_filename + "\t1;0\t1;10\n" +
-        seq_filename + ";" + seq_filename + "\t1;10\t1;54\n"
+        seq_filename + "\t0\t22\n" +
+        seq_filename + ";" + seq_filename + "\t22\t21\n" +
+        seq_filename + "\t43\t21\n"
     };
 
     ASSERT_TRUE(std::filesystem::exists(binning_filename.get_path()));
@@ -190,9 +189,8 @@ TEST_F(cli_test, chopper_pipeline)
             archive(hibf);
         }
 
-        ASSERT_EQ(hibf.size(), 2);
-        EXPECT_EQ(hibf[0].bin_count(), 2);
-        EXPECT_EQ(hibf[1].bin_count(), 64);
+        ASSERT_EQ(hibf.size(), 1);
+        EXPECT_EQ(hibf[0].bin_count(), 64);
     }
 }
 
@@ -297,13 +295,11 @@ TEST_F(cli_test, chopper_hll_pipeline)
     std::string expected_file
     {
         "#HIGH_LEVEL_IBF max_bin_id:0\n"
-        "#MERGED_BIN_0 max_bin_id:0\n"
-        "#MERGED_BIN_1 max_bin_id:0\n"
         "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\n" +
-        seq4_filename + "\t0;0\t1;62\n" +
-        seq3_filename + "\t0;62\t1;2\n" +
-        seq1_filename + "\t1;0\t1;62\n" +
-        seq2_filename + "\t1;62\t1;2\n"
+        seq3_filename + "\t0\t54\n" +
+        seq4_filename + "\t54\t6\n" +
+        seq2_filename + "\t60\t2\n" +
+        seq1_filename + "\t62\t2\n"
     };
 
     ASSERT_TRUE(std::filesystem::exists(binning_filename.get_path()));
@@ -339,9 +335,7 @@ TEST_F(cli_test, chopper_hll_pipeline)
             archive(hibf);
         }
 
-        ASSERT_EQ(hibf.size(), 3);
-        EXPECT_EQ(hibf[0].bin_count(), 2);
-        EXPECT_EQ(hibf[1].bin_count(), 64);
-        EXPECT_EQ(hibf[2].bin_count(), 64);
+        ASSERT_EQ(hibf.size(), 1);
+        EXPECT_EQ(hibf[0].bin_count(), 64);
     }
 }

@@ -25,8 +25,8 @@ TEST(count_kmers_test, small_example_serial)
 
     std::string expected
     {
-        input_file + "\t95\tTAX1\n" +
-        input_file + ";" + input_file + "\t95\tTAX2\n"
+        input_file + "\t88\tTAX1\n" +
+        input_file + ";" + input_file + "\t88\tTAX2\n"
     };
 
     count_kmers(filename_clusters, config);
@@ -59,7 +59,7 @@ TEST(count_kmers_test, small_example_hll)
 
     std::string expected
     {
-        input_file + "\t96\tTAX1\n"
+        input_file + "\t86\tTAX1\n"
     };
 
     count_kmers(filename_clusters, config);
@@ -92,8 +92,8 @@ TEST(count_kmers_test, small_example_parallel_2_threads)
 
     std::vector<std::string> expected_components
     {
-        input_file + "\t95\tTAX1",
-        input_file + ";" + input_file + "\t95\tTAX2"
+        input_file + "\t88\tTAX1",
+        input_file + ";" + input_file + "\t88\tTAX2"
     };
 
     std::ifstream output_file{output_filename.get_path()};

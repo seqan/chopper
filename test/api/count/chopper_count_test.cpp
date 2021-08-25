@@ -32,8 +32,8 @@ TEST(chopper_count_test, small_example_parallel_2_threads)
 
     std::vector<std::string> expected_components
     {
-        input_filename + "\t95\tTAX1",
-        input_filename + ";" + input_filename + "\t95\tTAX2"
+        input_filename + "\t88\tTAX1",
+        input_filename + ";" + input_filename + "\t88\tTAX2"
     };
 
     chopper_count(count_parser);
