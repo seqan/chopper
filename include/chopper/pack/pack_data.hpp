@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include <chopper/helper.hpp>
 #include <chopper/pack/previous_level.hpp>
 
 struct pack_data
@@ -25,12 +26,12 @@ struct pack_data
     //!\brief Precompute f_h factors that adjust the split bin size to prevent FPR inflation due to multiple testing.
     void compute_fp_correction(double const fp_rate, size_t const num_hash_functions)
     {
-        size_t min_tb = ((kmer_counts.size() + 63) >> 6) << 6; // #UB ceiled to next multiple of 64
-        fp_correction.resize(min_tb + 1, 0.0);
+        size_t const max_tb = next_multiple_of_64(kmer_counts.size());
+        fp_correction.resize(max_tb + 1, 0.0);
 
         double const denominator = std::log(1 - std::exp(std::log(fp_rate) / num_hash_functions));
 
-        for (size_t i = 1; i <= min_tb; ++i)
+        for (size_t i = 1; i <= max_tb; ++i)
         {
             double const tmp = 1.0 - std::pow(1 - fp_rate, static_cast<double>(i));
             fp_correction[i] = std::log(1 - std::exp(std::log(tmp) / num_hash_functions)) / denominator;
