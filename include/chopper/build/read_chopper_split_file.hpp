@@ -11,8 +11,8 @@
 
 #include <chopper/build/batch.hpp>
 #include <chopper/build/build_data.hpp>
-#include <chopper/build/region.hpp>
 #include <chopper/build/chopper_split_record.hpp>
+#include <chopper/build/region.hpp>
 #include <chopper/detail_bin_prefixes.hpp>
 #include <chopper/detail_parse_chopper_pack_header_line.hpp>
 #include <chopper/detail_starts_with.hpp>

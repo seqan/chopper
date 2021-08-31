@@ -5,8 +5,8 @@
 
 #include <chopper/build/chopper_build.hpp>
 #include <chopper/build/create_ibfs_from_chopper_pack.hpp>
-#include <chopper/search/pair_hash.hpp>
 #include <chopper/search/chopper_search.hpp>
+#include <chopper/search/pair_hash.hpp>
 #include <chopper/search/search.hpp>
 #include <chopper/search/sync_out.hpp>
 

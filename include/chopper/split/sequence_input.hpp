@@ -2,9 +2,9 @@
 
 #include <seqan/seq_io.h>
 
+#include <chopper/split/minimizer.hpp>
 #include <chopper/split/split_config.hpp>
 #include <chopper/split/split_data.hpp>
-#include <chopper/split/minimizer.hpp>
 
 inline bool load_minimizer_sequences(split_data & data,
                                      batch_config const & config,

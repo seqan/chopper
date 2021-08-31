@@ -2,9 +2,9 @@
 
 #include <seqan3/std/filesystem>
 
-#include <chopper/pack/pack_data.hpp>
-#include <chopper/pack/pack_config.hpp>
 #include <chopper/pack/filenames_data_input.hpp>
+#include <chopper/pack/pack_config.hpp>
+#include <chopper/pack/pack_data.hpp>
 
 #include "../api_test.hpp"
 

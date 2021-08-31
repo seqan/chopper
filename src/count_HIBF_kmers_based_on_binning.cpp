@@ -1,8 +1,8 @@
-#include <thread>
-#include <mutex>
 #include <future>
+#include <mutex>
 #include <sstream>
 #include <string>
+#include <thread>
 
 #include <seqan3/argument_parser/all.hpp>
 #include <seqan3/core/debug_stream.hpp>
@@ -10,12 +10,11 @@
 #include <seqan3/io/views/async_input_buffer.hpp>
 #include <seqan3/search/views/kmer_hash.hpp>
 
-// #include <chopper/build/read_data_file_and_set_high_level_bins.hpp>
 #include <chopper/build/build_config.hpp>
 #include <chopper/build/read_chopper_pack_file.hpp>
+#include <chopper/pack/filenames_data_input.hpp>
 #include <chopper/pack/pack_config.hpp>
 #include <chopper/pack/pack_data.hpp>
-#include <chopper/pack/filenames_data_input.hpp>
 #include <chopper/print_peak_memory_usage.hpp>
 
 #include <robin_hood.h>

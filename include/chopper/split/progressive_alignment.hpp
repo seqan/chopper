@@ -1,7 +1,7 @@
 #pragma once
 
-#include <seqan3/std/ranges>
 #include <map>
+#include <seqan3/std/ranges>
 
 #include <seqan/graph_msa.h>
 

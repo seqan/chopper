@@ -2,11 +2,11 @@
 
 #include <cstdlib>
 #include <fstream>
+#include <seqan3/std/ranges>
 #include <set>
 #include <string>
 #include <tuple>
 #include <vector>
-#include <seqan3/std/ranges>
 
 #include <chopper/build/build_data.hpp>
 #include <chopper/detail_parse_chopper_pack_header_line.hpp>

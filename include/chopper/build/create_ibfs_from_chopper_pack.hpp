@@ -11,8 +11,8 @@
 #include <seqan3/core/algorithm/detail/execution_handler_parallel.hpp>
 #include <seqan3/core/debug_stream.hpp>
 #include <seqan3/io/sequence_file/all.hpp>
-#include <seqan3/search/views/kmer_hash.hpp>
 #include <seqan3/search/dream_index/interleaved_bloom_filter.hpp>
+#include <seqan3/search/views/kmer_hash.hpp>
 
 #include <chopper/build/build_config.hpp>
 #include <chopper/build/compute_bin_size.hpp>

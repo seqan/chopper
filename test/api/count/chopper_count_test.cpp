@@ -4,9 +4,10 @@
 #include <unordered_map>
 #include <vector>
 
-#include <chopper/count/count_config.hpp>
-#include <chopper/count/chopper_count.hpp>
 #include <seqan3/utility/views/to.hpp>
+
+#include <chopper/count/chopper_count.hpp>
+#include <chopper/count/count_config.hpp>
 
 #include "../api_test.hpp"
 

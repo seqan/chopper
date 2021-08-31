@@ -3,8 +3,8 @@
 #include <sstream>
 #include <vector>
 
-#include <chopper/pack/pack_data.hpp>
 #include <chopper/pack/aggregate_by.hpp>
+#include <chopper/pack/pack_data.hpp>
 
 #include "../api_test.hpp"
 

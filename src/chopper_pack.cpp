@@ -1,8 +1,8 @@
 #include <seqan3/argument_parser/all.hpp>
 
 #include <chopper/pack/aggregate_by.hpp>
-#include <chopper/pack/hierarchical_binning.hpp>
 #include <chopper/pack/filenames_data_input.hpp>
+#include <chopper/pack/hierarchical_binning.hpp>
 #include <chopper/pack/pack_config.hpp>
 #include <chopper/print_peak_memory_usage.hpp>
 

@@ -6,8 +6,8 @@
 #include <cereal/archives/binary.hpp>
 
 #include <seqan3/search/dream_index/interleaved_bloom_filter.hpp>
-#include <seqan3/test/tmp_filename.hpp>
 #include <seqan3/test/tmp_directory.hpp>
+#include <seqan3/test/tmp_filename.hpp>
 #include <seqan3/utility/views/join_with.hpp>
 #include <seqan3/utility/views/to.hpp>
 
