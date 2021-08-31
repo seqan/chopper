@@ -1,6 +1,6 @@
-#include <iostream>
 #include <seqan3/std/filesystem>
 #include <fstream>
+#include <iostream>
 #include <queue>
 #include <seqan3/std/ranges>
 #include <set>

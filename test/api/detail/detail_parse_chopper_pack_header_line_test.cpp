@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
 #include <seqan3/std/filesystem>
-#include <sstream>
 #include <fstream>
+#include <sstream>
 
 #include <lemon/graph_to_eps.h>
 

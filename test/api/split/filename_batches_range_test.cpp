@@ -2,8 +2,8 @@
 
 #include <fstream>
 
-#include <chopper/split/split_config.hpp>
 #include <chopper/split/filename_batches_range.hpp>
+#include <chopper/split/split_config.hpp>
 
 #include "../api_test.hpp"
 

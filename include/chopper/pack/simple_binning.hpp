@@ -9,8 +9,8 @@
 
 #include <chopper/helper.hpp>
 #include <chopper/pack/pack_data.hpp>
-#include <chopper/pack/print_matrix.hpp>
 #include <chopper/pack/previous_level.hpp>
+#include <chopper/pack/print_matrix.hpp>
 
 /*!\brief Distributes x Technical Bins across y User Bins while minimizing the maximal Technical Bin size
  *

@@ -1,6 +1,6 @@
 #include <seqan3/std/filesystem>
-#include <future>
 #include <fstream>
+#include <future>
 #include <thread>
 
 #include <robin_hood.h>

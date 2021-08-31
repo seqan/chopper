@@ -4,8 +4,8 @@
 #include <chopper/build/chopper_build.hpp>
 #include <chopper/count/chopper_count.hpp>
 #include <chopper/pack/chopper_pack.hpp>
-#include <chopper/split/chopper_split.hpp>
 #include <chopper/search/chopper_search.hpp>
+#include <chopper/split/chopper_split.hpp>
 
 int main(int argc, const char *argv [])
 {

@@ -1,13 +1,13 @@
 #include <gtest/gtest.h>
 
+#include <seqan3/std/filesystem>
 #include <fstream>
 
 #include <seqan3/argument_parser/all.hpp>
-#include <seqan3/std/filesystem>
 
-#include <chopper/split/split_data.hpp>
-#include <chopper/split/sequence_input.hpp>
 #include <chopper/split/chopper_split.hpp>
+#include <chopper/split/sequence_input.hpp>
+#include <chopper/split/split_data.hpp>
 
 #include "../api_test.hpp"
 

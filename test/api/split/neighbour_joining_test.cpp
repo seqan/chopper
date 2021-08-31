@@ -1,8 +1,9 @@
 #include <gtest/gtest.h>
 
-#include <seqan/graph_types.h>
-#include <seqan/graph_algorithms.h>
 #include <fstream>
+
+#include <seqan/graph_algorithms.h>
+#include <seqan/graph_types.h>
 
 #include <chopper/split/map_distance_matrix.hpp>
 #include <chopper/split/neighbour_joining.hpp>

@@ -1,18 +1,18 @@
-#include <unordered_set>
-#include <vector>
+#include <cmath>
+#include <seqan3/std/filesystem>
 #include <fstream>
 #include <string>
-#include <cmath>
+#include <unordered_set>
+#include <vector>
 
-#include <seqan3/std/filesystem>
+#include <seqan3/alphabet/nucleotide/dna4.hpp>
 #include <seqan3/argument_parser/all.hpp>
 #include <seqan3/io/sequence_file/input.hpp>
 #include <seqan3/search/kmer_index/shape.hpp>
 #include <seqan3/search/views/kmer_hash.hpp>
-#include <seqan3/alphabet/nucleotide/dna4.hpp>
 
-#include <chopper/union/hyperloglog.hpp>
 #include <chopper/print_peak_memory_usage.hpp>
+#include <chopper/union/hyperloglog.hpp>
 
 struct cli_args
 {

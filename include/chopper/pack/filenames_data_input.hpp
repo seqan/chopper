@@ -1,13 +1,12 @@
 #pragma once
 
+#include <seqan3/std/charconv>
+#include <seqan3/std/filesystem>
 #include <fstream>
 #include <iostream>
 
-#include <seqan3/std/filesystem>
-#include <seqan3/std/charconv>
-
-#include <chopper/pack/pack_data.hpp>
 #include <chopper/pack/pack_config.hpp>
+#include <chopper/pack/pack_data.hpp>
 
 inline auto read_filename_data_file(pack_data & data, pack_config const & config)
 {
