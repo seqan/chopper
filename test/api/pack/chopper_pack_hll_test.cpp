@@ -41,6 +41,15 @@ TEST(chopper_pack_hll_test, few_ubs)
         count_kmers(filename_clusters, config);
     }
 
+    {
+        std::ofstream fout{count_file.get_path()};
+        fout << seq2_filename << "\t1\t" << seq2_filename << '\n'
+             << small_filename << "\t2\t" << small_filename << '\n'
+             << small2_filename << "\t2\t" << small2_filename << '\n'
+             << seq3_filename << "\t1\t" << seq3_filename << '\n'
+             << seq1_filename << "\t1\t" << seq1_filename << '\n';
+    }
+
     char const * const argv[] = {"./chopper-pack",
                                  "-b", "4",
                                  "-f", count_file.get_path().c_str(),
@@ -54,19 +63,11 @@ TEST(chopper_pack_hll_test, few_ubs)
     {
         {"#HIGH_LEVEL_IBF max_bin_id:0"},
         {"#FILES\tBIN_INDICES\tNUMBER_OF_BINS"},
-#if defined(__APPLE__)
-        {seq1_filename + "\t48\t2"},
-        {seq2_filename + "\t0\t48"},
-        {seq3_filename + "\t50\t2"},
-        {small_filename + "\t52\t6"},
-        {small2_filename + "\t58\t6"}
-#else
         {seq1_filename + "\t0\t48"},
         {seq2_filename + "\t50\t2"},
         {seq3_filename + "\t48\t2"},
         {small_filename + "\t58\t6"},
         {small2_filename + "\t52\t6"}
-#endif
     };
     std::string const actual_file{string_from_file(pack_file.get_path())};
 
@@ -112,6 +113,106 @@ TEST(chopper_pack_hll_test, many_ubs)
         }
 
         count_kmers(filename_clusters, config);
+    }
+
+    {
+        std::ofstream fout{count_file.get_path()};
+        fout << small_filename << "\t2\tcluster18\n"
+             << seq1_filename << "\t1\tcluster45\n"
+             << small2_filename << "\t2\tcluster44\n"
+             << small_filename << "\t2\tcluster23\n"
+             << small_filename << "\t2\tcluster8\n"
+             << small_filename << "\t2\tcluster63\n"
+             << seq2_filename << "\t1\tcluster61\n"
+             << seq1_filename << "\t1\tcluster15\n"
+             << small_filename << "\t2\tcluster13\n"
+             << small2_filename << "\t2\tcluster19\n"
+             << seq3_filename << "\t1\tcluster92\n"
+             << seq2_filename << "\t1\tcluster1\n"
+             << seq2_filename << "\t1\tcluster31\n"
+             << seq1_filename << "\t1\tcluster75\n"
+             << seq1_filename << "\t1\tcluster60\n"
+             << small2_filename << "\t2\tcluster59\n"
+             << seq1_filename << "\t1\tcluster10\n"
+             << seq3_filename << "\t1\tcluster42\n"
+             << seq3_filename << "\t1\tcluster62\n"
+             << small2_filename << "\t2\tcluster89\n"
+             << seq3_filename << "\t1\tcluster47\n"
+             << small_filename << "\t2\tcluster43\n"
+             << small2_filename << "\t2\tcluster64\n"
+             << seq2_filename << "\t1\tcluster76\n"
+             << seq2_filename << "\t1\tcluster26\n"
+             << seq1_filename << "\t1\tcluster25\n"
+             << seq1_filename << "\t1\tcluster65\n"
+             << seq2_filename << "\t1\tcluster16\n"
+             << seq1_filename << "\t1\tcluster35\n"
+             << seq2_filename << "\t1\tcluster36\n"
+             << small_filename << "\t2\tcluster53\n"
+             << small2_filename << "\t2\tcluster4\n"
+             << seq3_filename << "\t1\tcluster7\n"
+             << seq1_filename << "\t1\tcluster80\n"
+             << small_filename << "\t2\tcluster88\n"
+             << small_filename << "\t2\tcluster73\n"
+             << small2_filename << "\t2\tcluster39\n"
+             << small2_filename << "\t2\tcluster79\n"
+             << small2_filename << "\t2\tcluster74\n"
+             << seq1_filename << "\t1\tcluster90\n"
+             << seq3_filename << "\t1\tcluster12\n"
+             << seq2_filename << "\t1\tcluster91\n"
+             << seq2_filename << "\t1\tcluster86\n"
+             << seq1_filename << "\t1\tcluster55\n"
+             << seq2_filename << "\t1\tcluster41\n"
+             << seq3_filename << "\t1\tcluster37\n"
+             << seq3_filename << "\t1\tcluster22\n"
+             << seq3_filename << "\t1\tcluster82\n"
+             << seq1_filename << "\t1\tcluster30\n"
+             << small_filename << "\t2\tcluster93\n"
+             << small_filename << "\t2\tcluster33\n"
+             << seq2_filename << "\t1\tcluster66\n"
+             << seq2_filename << "\t1\tcluster81\n"
+             << seq1_filename << "\t1\tcluster40\n"
+             << seq1_filename << "\t1\tcluster70\n"
+             << small2_filename << "\t2\tcluster54\n"
+             << seq3_filename << "\t1\tcluster87\n"
+             << seq2_filename << "\t1\tcluster11\n"
+             << small2_filename << "\t2\tcluster49\n"
+             << small2_filename << "\t2\tcluster24\n"
+             << small2_filename << "\t2\tcluster69\n"
+             << small_filename << "\t2\tcluster83\n"
+             << seq1_filename << "\t1\tcluster0\n"
+             << seq1_filename << "\t1\tcluster50\n"
+             << small_filename << "\t2\tcluster38\n"
+             << small2_filename << "\t2\tcluster9\n"
+             << seq2_filename << "\t1\tcluster6\n"
+             << seq3_filename << "\t1\tcluster17\n"
+             << seq3_filename << "\t1\tcluster72\n"
+             << seq3_filename << "\t1\tcluster2\n"
+             << seq1_filename << "\t1\tcluster20\n"
+             << seq2_filename << "\t1\tcluster21\n"
+             << seq2_filename << "\t1\tcluster46\n"
+             << seq3_filename << "\t1\tcluster32\n"
+             << seq3_filename << "\t1\tcluster77\n"
+             << seq2_filename << "\t1\tcluster51\n"
+             << seq3_filename << "\t1\tcluster27\n"
+             << small_filename << "\t2\tcluster48\n"
+             << seq3_filename << "\t1\tcluster57\n"
+             << seq3_filename << "\t1\tcluster67\n"
+             << small_filename << "\t2\tcluster68\n"
+             << seq3_filename << "\t1\tcluster52\n"
+             << small2_filename << "\t2\tcluster94\n"
+             << small_filename << "\t2\tcluster58\n"
+             << small2_filename << "\t2\tcluster84\n"
+             << seq2_filename << "\t1\tcluster71\n"
+             << seq1_filename << "\t1\tcluster5\n"
+             << small2_filename << "\t2\tcluster14\n"
+             << small_filename << "\t2\tcluster78\n"
+             << seq1_filename << "\t1\tcluster85\n"
+             << seq2_filename << "\t1\tcluster56\n"
+             << small2_filename << "\t2\tcluster34\n"
+             << seq1_filename << "\t1\tcluster95\n"
+             << small_filename << "\t2\tcluster28\n"
+             << small_filename << "\t2\tcluster3\n"
+             << small2_filename << "\t2\tcluster29\n";
     }
 
     char const * const argv[] = {"./chopper-pack",
