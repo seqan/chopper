@@ -30,6 +30,8 @@ struct pack_config
     bool estimate_union{false};
     //!\brief Whether to do a second sorting of the bins which takes into account similarity or not.
     bool rearrange_bins{false};
+    //!\brief Whether the programm should determine the best number of IBF bins by doing multiple binning runs
+    bool determine_num_bins{false};
 
     bool debug{false};
 };

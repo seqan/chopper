@@ -1,10 +1,17 @@
+#include <algorithm>
+#include <limits>
+
 #include <seqan3/argument_parser/all.hpp>
 
 #include <chopper/pack/aggregate_by.hpp>
 #include <chopper/pack/filenames_data_input.hpp>
 #include <chopper/pack/hierarchical_binning.hpp>
 #include <chopper/pack/pack_config.hpp>
+#include <chopper/pack/previous_level.hpp>
+#include <chopper/union/user_bin_sequence.hpp>
 #include <chopper/print_peak_memory_usage.hpp>
+
+#include <robin_hood.h>
 
 int set_up_and_parse_subparser_split(seqan3::argument_parser & parser, pack_config & config)
 {
@@ -26,7 +33,8 @@ int set_up_and_parse_subparser_split(seqan3::argument_parser & parser, pack_conf
 
     parser.add_option(config.t_max, 'b', "technical-bins",
                       "Into how many technical bins do you want your sequence data to be packed? "
-                      "Will be ceiled to the next multiple of 64.");
+                      "Will be ceiled to the next multiple of 64. Will be an upper bound for the number of bins "
+                      "when -determine-num-bins is given.");
 
     parser.add_option(config.num_hash_functions, 's', "num-hash-functions",
                       "The number of hash functions for the IBFs.");
@@ -66,6 +74,10 @@ int set_up_and_parse_subparser_split(seqan3::argument_parser & parser, pack_conf
     parser.add_flag(config.rearrange_bins, 'r', "rearrange-bins",
                     "[HLL] Do a rearrangement of the bins which takes into account similarity. Enabling this option "
                     "also enables -u.");
+
+    parser.add_flag(config.determine_num_bins, '\0', "determine-num-bins",
+                    "If given, the programm will determine the best number of technical bins by "
+                    "doing multiple binning runs. The -b option will then be an upper bound.");
 
     parser.add_flag(config.debug, '\0', "debug",
                     "Enables debug output in packing file.",
@@ -117,11 +129,74 @@ int chopper_pack(seqan3::argument_parser & parser)
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
-    data.output_buffer = &output_buffer;
-    data.header_buffer = &header_buffer;
+    size_t max_hibf_id;
 
-    // Execute the actual algorithm:
-    size_t const max_hibf_id = hierarchical_binning{data, config}.execute();
+    if (config.determine_num_bins)
+    {
+        // with -determine-num-bins the algorithm is executed multiple times and result with the minimum
+        // expected query costs is written to the output
+
+        // (19,19) mean c_{T_max} (see paper)
+        const robin_hood::unordered_map<uint32_t, double> IBF_query_costs = 
+        {
+            {64, 1.0}, {128, 1.1}, {256, 1.32}, {512, 1.61},
+            {1024, 2.69}, {2048, 4.48}, {4096, 7.53}, {8192, 13.65},
+            {16384, 23.86}, {32768, 45.66}, {65536, 90.42}
+        };
+
+        size_t const total_t_max = config.t_max;
+        double best_expected_HIBF_query_cost = std::numeric_limits<double>::max();
+
+        for (size_t t_max = 64; t_max <= total_t_max; t_max *= 2) 
+        {
+            // reset state for the binning algorithm and save output buffer
+            std::stringstream output_buffer_tmp;
+            std::stringstream header_buffer_tmp;
+
+            data.output_buffer = &output_buffer_tmp;
+            data.header_buffer = &header_buffer_tmp;
+
+            data.previous = previous_level{};
+            config.t_max = t_max;
+
+            // A map to keep track of how many k-mers are in split bins per level
+            robin_hood::unordered_map<size_t, size_t> kmers_in_split_bins;
+            // execute the actual algorithm
+            size_t const max_hibf_id_tmp = hierarchical_binning{data, config, kmers_in_split_bins}.execute();
+
+            // calculate the expected number of queries
+            size_t weighted_query_nums{};
+            size_t total_sum{};
+            for (auto && item : kmers_in_split_bins)
+            {
+                total_sum += item.second;
+                weighted_query_nums += (item.first + 1) * item.second;
+            }
+            
+            double const expected_num_queries = static_cast<double>(weighted_query_nums) / total_sum;
+            double const expected_HIBF_query_cost = expected_num_queries * IBF_query_costs.at(t_max);
+
+            std::cout << "T_max: " << t_max << " l_{T_max} " << expected_num_queries 
+                      << " total " << expected_HIBF_query_cost << '\n';
+            
+            // check if this is the current best t_max
+            if (expected_HIBF_query_cost < best_expected_HIBF_query_cost)
+            {
+                output_buffer = std::move(output_buffer_tmp);
+                header_buffer = std::move(header_buffer_tmp);
+                max_hibf_id = max_hibf_id_tmp;
+            }
+        }
+    }
+    else 
+    {
+        // without -determine-num-bins, the binning algorithm is executed just once
+        data.output_buffer = &output_buffer;
+        data.header_buffer = &header_buffer;
+
+        robin_hood::unordered_map<size_t, size_t> kmers_in_split_bins;
+        max_hibf_id = hierarchical_binning{data, config, kmers_in_split_bins}.execute();
+    }
 
     // brief Write the output to the result file.
     std::ofstream fout{config.output_filename};

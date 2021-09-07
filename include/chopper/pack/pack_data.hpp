@@ -6,6 +6,8 @@
 
 #include <chopper/helper.hpp>
 #include <chopper/pack/previous_level.hpp>
+#include <chopper/pack/pack_config.hpp>
+#include <chopper/union/user_bin_sequence.hpp>
 
 struct pack_data
 {
@@ -15,6 +17,10 @@ struct pack_data
     std::vector<size_t> kmer_counts;
     std::vector<std::vector<std::string>> extra_information;
     std::vector<double> fp_correction{};
+
+    //!\brief Matrix of estimates of merged bin cardinalites
+    std::vector<std::vector<uint64_t>> union_estimates{};
+    bool user_bins_arranged{false};
 
     //!\brief A reference to the output stream to cache the results to.
     std::stringstream * output_buffer{nullptr};
@@ -36,6 +42,27 @@ struct pack_data
             double const tmp = 1.0 - std::pow(1 - fp_rate, static_cast<double>(i));
             fp_correction[i] = std::log(1 - std::exp(std::log(tmp) / num_hash_functions)) / denominator;
             assert(fp_correction[i] >= 1.0);
+        }
+    }
+
+    //!\brief Depending on cli flags given, use HyperLogLog estimates and/or rearrangement algorithms
+    void arrange_user_bins(pack_config const & config) 
+    {
+        if (!user_bins_arranged)
+        {
+            user_bin_sequence bin_sequence(filenames, kmer_counts);
+            bin_sequence.sort_by_cardinalities();
+
+            if (config.estimate_union)
+            {
+                bin_sequence.read_hll_files(config.hll_dir);
+                if (config.rearrange_bins)
+                    bin_sequence.rearrange_bins(config.max_ratio, config.num_threads);
+
+                bin_sequence.estimate_interval_unions(union_estimates, config.num_threads);
+            }
+        
+            user_bins_arranged = true;
         }
     }
 };

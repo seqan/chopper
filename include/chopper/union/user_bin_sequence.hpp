@@ -1,6 +1,9 @@
 #pragma once
 
 #include <seqan3/std/filesystem>
+#include <seqan3/utility/views/to.hpp>
+#include <seqan3/std/ranges>
+
 #include <fstream>
 #include <queue>
 #include <random>
@@ -66,17 +69,33 @@ public:
     user_bin_sequence & operator=(user_bin_sequence &&) = default; //!< Defaulted.
     ~user_bin_sequence() = default; //!< Defaulted.
 
-    /*!\brief A sequence of user bins for which filenames and counts are given. This constructor reads
-              the HyperLogLog sketches from the hll_dir
+    /*!\brief A sequence of user bins for which filenames and counts are given.
      * \param[in] filenames_ filenames of the sequence files for the user bins
      * \param[in] user_bin_kmer_counts_ counts of the k-mer sets of the bins corresponding to filenames
-     * \param[in] hll_dir path to the directory where hll caches will be found
      */
     user_bin_sequence(std::vector<std::string> & filenames_,
-                      std::vector<size_t> & user_bin_kmer_counts_,
-                      std::filesystem::path const & hll_dir) :
+                      std::vector<size_t> & user_bin_kmer_counts_) :
         filenames{filenames_},
         user_bin_kmer_counts{user_bin_kmer_counts_}
+    {}
+
+    //!\brief Sorts filenames and cardinalities by looking only at the cardinalities.
+    void sort_by_cardinalities()
+    {
+        // generate permutation of indices sorted in descinding order by cardinalities
+        auto permutation = std::views::iota(0ul, user_bin_kmer_counts.size()) | seqan3::views::to<std::vector>;
+        assert(permutation.size() == user_bin_kmer_counts.size());
+        auto cardinality_compare = [this] (auto const i1, auto const i2)
+                                        { return user_bin_kmer_counts[i2] < user_bin_kmer_counts[i1]; };
+        std::sort(permutation.begin(), permutation.end(), cardinality_compare);
+
+        apply_permutation(permutation);
+    }
+
+    /*!\brief Restore the HLL sketches from the files in hll_dir
+    * \param[in] hll_dir path to the directory where hll caches will be found 
+    */
+    void read_hll_files(std::filesystem::path const & hll_dir)
     {
         if (hll_dir.empty())
         {
@@ -546,7 +565,7 @@ private:
                 size_t next = permutation[current];
                 std::swap(filenames[current], filenames[next]);
                 std::swap(user_bin_kmer_counts[current], user_bin_kmer_counts[next]);
-                std::swap(sketches[current], sketches[next]);
+                if (!sketches.empty()) std::swap(sketches[current], sketches[next]);
                 permutation[current] = current;
                 current = next;
             }
