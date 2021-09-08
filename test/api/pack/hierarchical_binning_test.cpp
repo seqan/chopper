@@ -23,7 +23,8 @@ TEST(hierarchical_binning_test, small_example)
     data.kmer_counts = {500, 1000, 500, 500, 500, 500, 500, 500};
     data.compute_fp_correction(0.05, 2);
     robin_hood::unordered_map<size_t, size_t> kmers_in_split_bins;
-    hierarchical_binning algo{data, config, kmers_in_split_bins};
+    double total_query_cost = 0.0;
+    hierarchical_binning algo{data, config, kmers_in_split_bins, total_query_cost};
     EXPECT_EQ(algo.execute(), 3); // #HIGH_LEVEL_IBF max_bin_id:3
 
     std::string expected_file
@@ -60,7 +61,8 @@ TEST(hierarchical_binning_test, another_example)
     data.compute_fp_correction(0.05, 2);
 
     robin_hood::unordered_map<size_t, size_t> kmers_in_split_bins;
-    hierarchical_binning algo{data, config, kmers_in_split_bins};
+    double total_query_cost = 0.0;
+    hierarchical_binning algo{data, config, kmers_in_split_bins, total_query_cost};
     EXPECT_EQ(algo.execute(), 1); // #HIGH_LEVEL_IBF max_bin_id:1
 
     std::string expected_file
@@ -97,7 +99,8 @@ TEST(hierarchical_binning_test, knuts_example)
     data.compute_fp_correction(0.05, 2);
 
     robin_hood::unordered_map<size_t, size_t> kmers_in_split_bins;
-    hierarchical_binning algo{data, config, kmers_in_split_bins};
+    double total_query_cost = 0.0;
+    hierarchical_binning algo{data, config, kmers_in_split_bins, total_query_cost};
     EXPECT_EQ(algo.execute(), 1);
 
     std::string expected_file

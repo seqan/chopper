@@ -10,6 +10,7 @@
 #include <chopper/pack/previous_level.hpp>
 #include <chopper/union/user_bin_sequence.hpp>
 #include <chopper/print_peak_memory_usage.hpp>
+#include <chopper/pack/IBF_query_costs.hpp>
 
 #include <robin_hood.h>
 
@@ -135,17 +136,13 @@ int chopper_pack(seqan3::argument_parser & parser)
     {
         // with -determine-num-bins the algorithm is executed multiple times and result with the minimum
         // expected query costs is written to the output
-
-        // (19,19) mean c_{T_max} (see paper)
-        const robin_hood::unordered_map<uint32_t, double> IBF_query_costs = 
-        {
-            {64, 1.0}, {128, 1.1}, {256, 1.32}, {512, 1.61},
-            {1024, 2.69}, {2048, 4.48}, {4096, 7.53}, {8192, 13.65},
-            {16384, 23.86}, {32768, 45.66}, {65536, 90.42}
-        };
-
+        std::cout << std::fixed << std::setprecision(2);
+        std::cout << "T_Max\tC_{T_Max}\tl_{T_max}\ttotal\ttotal_alt\n";
         size_t const total_t_max = config.t_max;
         double best_expected_HIBF_query_cost = std::numeric_limits<double>::max();
+        size_t best_t_max;
+
+        size_t const total_kmer_count = std::accumulate(data.kmer_counts.begin(), data.kmer_counts.end(), 0);
 
         for (size_t t_max = 64; t_max <= total_t_max; t_max *= 2) 
         {
@@ -161,8 +158,9 @@ int chopper_pack(seqan3::argument_parser & parser)
 
             // A map to keep track of how many k-mers are in split bins per level
             robin_hood::unordered_map<size_t, size_t> kmers_in_split_bins;
+            double total_query_cost = 0.0;
             // execute the actual algorithm
-            size_t const max_hibf_id_tmp = hierarchical_binning{data, config, kmers_in_split_bins}.execute();
+            size_t const max_hibf_id_tmp = hierarchical_binning{data, config, kmers_in_split_bins, total_query_cost}.execute();
 
             // calculate the expected number of queries
             size_t weighted_query_nums{};
@@ -174,10 +172,15 @@ int chopper_pack(seqan3::argument_parser & parser)
             }
             
             double const expected_num_queries = static_cast<double>(weighted_query_nums) / total_sum;
-            double const expected_HIBF_query_cost = expected_num_queries * IBF_query_costs.at(t_max);
+            double const expected_HIBF_query_cost = expected_num_queries * IBF_query_costs::get_exact(t_max);
 
-            std::cout << "T_max: " << t_max << " l_{T_max} " << expected_num_queries 
-                      << " total " << expected_HIBF_query_cost << '\n';
+            double const expected_HIBF_query_cost_alt = total_query_cost / total_kmer_count;
+
+            std::cout << t_max << '\t' 
+                      << IBF_query_costs::get_exact(t_max)<< '\t'
+                      << expected_num_queries << '\t'
+                      << expected_HIBF_query_cost << '\t'
+                      << expected_HIBF_query_cost_alt << '\n';
             
             // check if this is the current best t_max
             if (expected_HIBF_query_cost < best_expected_HIBF_query_cost)
@@ -185,8 +188,10 @@ int chopper_pack(seqan3::argument_parser & parser)
                 output_buffer = std::move(output_buffer_tmp);
                 header_buffer = std::move(header_buffer_tmp);
                 max_hibf_id = max_hibf_id_tmp;
+                best_t_max = t_max;
             }
         }
+        std::cout << "Best t_max (total): " << best_t_max << '\n';
     }
     else 
     {
@@ -195,7 +200,8 @@ int chopper_pack(seqan3::argument_parser & parser)
         data.header_buffer = &header_buffer;
 
         robin_hood::unordered_map<size_t, size_t> kmers_in_split_bins;
-        max_hibf_id = hierarchical_binning{data, config, kmers_in_split_bins}.execute();
+        double total_query_cost = 0.0;
+        max_hibf_id = hierarchical_binning{data, config, kmers_in_split_bins, total_query_cost}.execute();
     }
 
     // brief Write the output to the result file.

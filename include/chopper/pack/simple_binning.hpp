@@ -144,6 +144,11 @@ public:
         }
     }
 
+    size_t get_num_technical_bins()
+    {
+        return num_technical_bins;
+    }
+
     //!\brief Executes the simple binning algorithm and packs user bins into technical bins.
     size_t execute()
     {

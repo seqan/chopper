@@ -9,6 +9,7 @@
 #include <chopper/helper.hpp>
 #include <chopper/pack/pack_config.hpp>
 #include <chopper/pack/simple_binning.hpp>
+#include <chopper/pack/IBF_query_costs.hpp>
 
 #include <robin_hood.h>
 
@@ -30,6 +31,11 @@ private:
     //!\brief The current recursive level
     size_t const curr_level{};
 
+    //!\brief The relative cost of IBF queries above this IBF
+    double const above_query_cost{};
+    //!\brief Reference to the total query cost of all k-mers
+    double & total_query_cost;
+
 public:
     hierarchical_binning() = default; //!< Defaulted.
     hierarchical_binning(hierarchical_binning const &) = delete; //!< Deleted. Would modify same data.
@@ -48,13 +54,17 @@ public:
     hierarchical_binning(pack_data & data_, 
                          pack_config const & config_,
                          robin_hood::unordered_map<size_t, size_t> & kmers_in_split_bins_,
-                         size_t const curr_level_ = 0) :
+                         double & total_query_cost_,
+                         size_t const curr_level_ = 0,
+                         double const above_query_cost_ = 0.0) :
         data{std::addressof(data_)},
         config{config_},
         num_user_bins{data->kmer_counts.size()},
         num_technical_bins{data->previous.empty() ? config.t_max : needed_technical_bins(num_user_bins)},
         kmers_in_split_bins{kmers_in_split_bins_},
-        curr_level{curr_level_}
+        total_query_cost{total_query_cost_},
+        curr_level{curr_level_},
+        above_query_cost{above_query_cost_}
     {
         assert(data != nullptr);
         assert(data->output_buffer != nullptr);
@@ -349,7 +359,10 @@ private:
                 int const kmer_count = data->kmer_counts[0];
                 int const average_bin_size = kmer_count / trace_i;
 
+                // keep track of kmers for determination of best t_max
                 kmers_in_split_bins[curr_level] += kmer_count;
+                total_query_cost += (above_query_cost + IBF_query_costs::get_interpolated(num_technical_bins)) 
+                                    * kmer_count;
 
                 *data->output_buffer << data->filenames[0] << '\t'
                                      << data->previous.bin_indices  << (high ? "" : ";") << bin_id << '\t'
@@ -419,7 +432,14 @@ private:
                 size_t merged_max_bin_id;
                 if (libf_data.kmer_counts.size() > config.t_max)
                 {
-                    hierarchical_binning algo{libf_data, config, kmers_in_split_bins, curr_level + 1};
+                    hierarchical_binning algo{
+                        libf_data, 
+                        config, 
+                        kmers_in_split_bins, 
+                        total_query_cost,
+                        curr_level + 1,
+                        above_query_cost + IBF_query_costs::get_interpolated(num_technical_bins)
+                    };
                     merged_max_bin_id = algo.execute();
                 }
                 else
@@ -427,6 +447,9 @@ private:
                     simple_binning algo{libf_data, 0, config.debug};
                     merged_max_bin_id = algo.execute();
                     kmers_in_split_bins[curr_level + 1] += kmer_count;
+                    total_query_cost += (above_query_cost + IBF_query_costs::get_interpolated(num_technical_bins)
+                                        + IBF_query_costs::get_interpolated(algo.get_num_technical_bins())) 
+                                        * kmer_count;
                 }
                 *data->header_buffer << "#" << merged_ibf_name << " max_bin_id:" << merged_max_bin_id << '\n';
 
@@ -477,7 +500,14 @@ private:
                 // now do the binning for the low-level IBF:
                 if (libf_data.kmer_counts.size() > config.t_max)
                 {
-                    hierarchical_binning algo{libf_data, config, kmers_in_split_bins, curr_level + 1};
+                    hierarchical_binning algo{
+                        libf_data, 
+                        config, 
+                        kmers_in_split_bins, 
+                        total_query_cost,
+                        curr_level + 1,
+                        above_query_cost + IBF_query_costs::get_interpolated(num_technical_bins)
+                    };
                     merged_max_bin_id = algo.execute();
                 }
                 else
@@ -485,6 +515,9 @@ private:
                     simple_binning algo{libf_data, 0, config.debug};
                     merged_max_bin_id = algo.execute();
                     kmers_in_split_bins[curr_level + 1] += kmer_count;
+                    total_query_cost += (above_query_cost + IBF_query_costs::get_interpolated(num_technical_bins)
+                                        + IBF_query_costs::get_interpolated(algo.get_num_technical_bins())) 
+                                        * kmer_count;
                 }
                 *data->header_buffer << "#" << merged_ibf_name << " max_bin_id:" << merged_max_bin_id << '\n';
 
@@ -504,7 +537,9 @@ private:
                                      << data->previous.num_of_bins  << (high ? "" : ";") << number_of_bins;
                 
                 kmers_in_split_bins[curr_level] += kmer_count;
-
+                total_query_cost += (above_query_cost + IBF_query_costs::get_interpolated(num_technical_bins)) 
+                                    * kmer_count;
+                
                 if (config.debug)
                 {
                     *data->output_buffer << '\t'
