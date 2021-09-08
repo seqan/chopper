@@ -1,8 +1,7 @@
 #pragma once
 
-#include <cassert>
 #include <stdexcept>
-
+#include <cassert>
 #include <robin_hood.h>
 
 struct IBF_query_costs 
@@ -51,7 +50,9 @@ struct IBF_query_costs
                 double const y0 = costs.at(x/2);
                 double const y1 = costs.at(x);
 
-                return y0 + (y1 - y0) * (t_max - x/2) / (x/2);
+                double const value = y0 + (y1 - y0) * (t_max - x/2) / (x/2);
+                assert(value <= y1);
+                return value;
             }
         }
 
