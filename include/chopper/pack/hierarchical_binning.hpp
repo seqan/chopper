@@ -361,8 +361,8 @@ private:
 
                 // keep track of kmers for determination of best t_max
                 kmers_in_split_bins[curr_level] += kmer_count;
-                total_query_cost += /*(above_query_cost + IBF_query_costs::get_interpolated(num_technical_bins)) 
-                                    **/ kmer_count;
+                total_query_cost += (above_query_cost + IBF_query_costs::get_interpolated(num_technical_bins)) 
+                                    * kmer_count;
 
                 *data->output_buffer << data->filenames[0] << '\t'
                                      << data->previous.bin_indices  << (high ? "" : ";") << bin_id << '\t'
@@ -447,9 +447,9 @@ private:
                     simple_binning algo{libf_data, 0, config.debug};
                     merged_max_bin_id = algo.execute();
                     kmers_in_split_bins[curr_level + 1] += kmer_count;
-                    total_query_cost += /*(above_query_cost + IBF_query_costs::get_interpolated(num_technical_bins)
+                    total_query_cost += (above_query_cost + IBF_query_costs::get_interpolated(num_technical_bins)
                                         + IBF_query_costs::get_interpolated(algo.get_num_technical_bins())) 
-                                        **/ kmer_count;
+                                        * kmer_count;
                 }
                 *data->header_buffer << "#" << merged_ibf_name << " max_bin_id:" << merged_max_bin_id << '\n';
 
@@ -515,9 +515,9 @@ private:
                     simple_binning algo{libf_data, 0, config.debug};
                     merged_max_bin_id = algo.execute();
                     kmers_in_split_bins[curr_level + 1] += kmer_count;
-                    total_query_cost += /*(above_query_cost + IBF_query_costs::get_interpolated(num_technical_bins)
+                    total_query_cost += (above_query_cost + IBF_query_costs::get_interpolated(num_technical_bins)
                                         + IBF_query_costs::get_interpolated(algo.get_num_technical_bins())) 
-                                        **/ kmer_count;
+                                        * kmer_count;
                 }
                 *data->header_buffer << "#" << merged_ibf_name << " max_bin_id:" << merged_max_bin_id << '\n';
 
@@ -537,8 +537,8 @@ private:
                                      << data->previous.num_of_bins  << (high ? "" : ";") << number_of_bins;
                 
                 kmers_in_split_bins[curr_level] += kmer_count;
-                total_query_cost += /*(above_query_cost + IBF_query_costs::get_interpolated(num_technical_bins)) 
-                                    **/ kmer_count;
+                total_query_cost += (above_query_cost + IBF_query_costs::get_interpolated(num_technical_bins)) 
+                                    * kmer_count;
                 
                 if (config.debug)
                 {

@@ -142,7 +142,7 @@ int chopper_pack(seqan3::argument_parser & parser)
         double best_expected_HIBF_query_cost = std::numeric_limits<double>::max();
         size_t best_t_max;
 
-        size_t const total_kmer_count = std::accumulate(data.kmer_counts.begin(), data.kmer_counts.end(), 0);
+        size_t const total_kmer_count = std::accumulate(data.kmer_counts.begin(), data.kmer_counts.end(), 0ull);
 
         for (size_t t_max = 64; t_max <= total_t_max; t_max *= 2) 
         {
@@ -160,7 +160,8 @@ int chopper_pack(seqan3::argument_parser & parser)
             robin_hood::unordered_map<size_t, size_t> kmers_in_split_bins;
             double total_query_cost = 0.0;
             // execute the actual algorithm
-            size_t const max_hibf_id_tmp = hierarchical_binning{data, config, kmers_in_split_bins, total_query_cost}.execute();
+            size_t const max_hibf_id_tmp = hierarchical_binning{data, config, kmers_in_split_bins, total_query_cost}
+                                            .execute();
 
             // calculate the expected number of queries
             size_t weighted_query_nums{};
@@ -174,13 +175,15 @@ int chopper_pack(seqan3::argument_parser & parser)
             double const expected_num_queries = static_cast<double>(weighted_query_nums) / total_sum;
             double const expected_HIBF_query_cost = expected_num_queries * IBF_query_costs::get_exact(t_max);
 
-            double const expected_HIBF_query_cost_alt = total_query_cost / total_kmer_count;
+            double const expected_HIBF_query_cost_alt = total_query_cost / total_sum;
+            double const expected_HIBF_query_cost_alt2 = total_query_cost / total_kmer_count;
 
             std::cout << t_max << '\t' 
                       << IBF_query_costs::get_exact(t_max)<< '\t'
                       << expected_num_queries << '\t'
                       << expected_HIBF_query_cost << '\t'
-                      << expected_HIBF_query_cost_alt << '\n';
+                      << expected_HIBF_query_cost_alt << '\t'
+                      << expected_HIBF_query_cost_alt2 << '\n';
             
             // check if this is the current best t_max
             if (expected_HIBF_query_cost < best_expected_HIBF_query_cost)
