@@ -175,15 +175,13 @@ int chopper_pack(seqan3::argument_parser & parser)
             double const expected_num_queries = static_cast<double>(weighted_query_nums) / total_sum;
             double const expected_HIBF_query_cost = expected_num_queries * IBF_query_costs::get_exact(t_max);
 
-            double const expected_HIBF_query_cost_alt = total_query_cost / total_sum;
-            double const expected_HIBF_query_cost_alt2 = total_query_cost / total_kmer_count;
+            double const expected_HIBF_query_cost_alt = total_query_cost / total_kmer_count;
 
             std::cout << t_max << '\t' 
                       << IBF_query_costs::get_exact(t_max)<< '\t'
                       << expected_num_queries << '\t'
                       << expected_HIBF_query_cost << '\t'
-                      << expected_HIBF_query_cost_alt << '\t'
-                      << expected_HIBF_query_cost_alt2 << '\n';
+                      << expected_HIBF_query_cost_alt << '\n';
             
             // check if this is the current best t_max
             if (expected_HIBF_query_cost < best_expected_HIBF_query_cost)
