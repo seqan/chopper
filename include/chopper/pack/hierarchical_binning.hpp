@@ -26,15 +26,10 @@ private:
     //!\brief The number of technical bins requested by the user.
     size_t const num_technical_bins{};
 
-    //!\brief A map to keep track of how many k-mers are in split bins per level
-    robin_hood::unordered_map<size_t, size_t> & kmers_in_split_bins;
-    //!\brief The current recursive level
-    size_t const curr_level{};
-
-    //!\brief The relative cost of IBF queries above this IBF
-    double const above_query_cost{};
     //!\brief Reference to the total query cost of all k-mers
     double & total_query_cost;
+    //!\brief The relative cost of IBF queries above this IBF
+    double const above_query_cost{};
 
 public:
     hierarchical_binning() = default; //!< Defaulted.
@@ -53,17 +48,13 @@ public:
      */
     hierarchical_binning(pack_data & data_, 
                          pack_config const & config_,
-                         robin_hood::unordered_map<size_t, size_t> & kmers_in_split_bins_,
                          double & total_query_cost_,
-                         size_t const curr_level_ = 0,
                          double const above_query_cost_ = 0.0) :
         data{std::addressof(data_)},
         config{config_},
         num_user_bins{data->kmer_counts.size()},
         num_technical_bins{data->previous.empty() ? config.t_max : needed_technical_bins(num_user_bins)},
-        kmers_in_split_bins{kmers_in_split_bins_},
         total_query_cost{total_query_cost_},
-        curr_level{curr_level_},
         above_query_cost{above_query_cost_}
     {
         assert(data != nullptr);
@@ -359,8 +350,7 @@ private:
                 int const kmer_count = data->kmer_counts[0];
                 int const average_bin_size = kmer_count / trace_i;
 
-                // keep track of kmers for determination of best t_max
-                kmers_in_split_bins[curr_level] += kmer_count;
+                // add query cost for determination of best t_max
                 total_query_cost += (above_query_cost + IBF_query_costs::get_interpolated(num_technical_bins)) 
                                     * kmer_count;
 
@@ -435,9 +425,7 @@ private:
                     hierarchical_binning algo{
                         libf_data, 
                         config, 
-                        kmers_in_split_bins, 
                         total_query_cost,
-                        curr_level + 1,
                         above_query_cost + IBF_query_costs::get_interpolated(num_technical_bins)
                     };
                     merged_max_bin_id = algo.execute();
@@ -446,7 +434,6 @@ private:
                 {
                     simple_binning algo{libf_data, 0, config.debug};
                     merged_max_bin_id = algo.execute();
-                    kmers_in_split_bins[curr_level + 1] += kmer_count;
                     total_query_cost += (above_query_cost + IBF_query_costs::get_interpolated(num_technical_bins)
                                         + IBF_query_costs::get_interpolated(algo.get_num_technical_bins())) 
                                         * kmer_count;
@@ -502,10 +489,8 @@ private:
                 {
                     hierarchical_binning algo{
                         libf_data, 
-                        config, 
-                        kmers_in_split_bins, 
+                        config,
                         total_query_cost,
-                        curr_level + 1,
                         above_query_cost + IBF_query_costs::get_interpolated(num_technical_bins)
                     };
                     merged_max_bin_id = algo.execute();
@@ -514,7 +499,6 @@ private:
                 {
                     simple_binning algo{libf_data, 0, config.debug};
                     merged_max_bin_id = algo.execute();
-                    kmers_in_split_bins[curr_level + 1] += kmer_count;
                     total_query_cost += (above_query_cost + IBF_query_costs::get_interpolated(num_technical_bins)
                                         + IBF_query_costs::get_interpolated(algo.get_num_technical_bins())) 
                                         * kmer_count;
@@ -536,7 +520,6 @@ private:
                                      << data->previous.bin_indices  << (high ? "" : ";") << bin_id << '\t'
                                      << data->previous.num_of_bins  << (high ? "" : ";") << number_of_bins;
                 
-                kmers_in_split_bins[curr_level] += kmer_count;
                 total_query_cost += (above_query_cost + IBF_query_costs::get_interpolated(num_technical_bins)) 
                                     * kmer_count;
                 
