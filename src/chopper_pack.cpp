@@ -136,7 +136,7 @@ int chopper_pack(seqan3::argument_parser & parser)
     {
         // with -determine-num-bins the algorithm is executed multiple times and result with the minimum
         // expected query costs is written to the output
-        std::cout << std::fixed << std::setprecision(2);
+        std::cout << std::fixed << std::setprecision(4);
         std::cout << "T_Max\tC_{T_Max}\trelative expected HIBF query cost\n";
         size_t const total_t_max = config.t_max;
         double best_expected_HIBF_query_cost = std::numeric_limits<double>::max();
@@ -167,8 +167,9 @@ int chopper_pack(seqan3::argument_parser & parser)
                       << IBF_query_costs::get_exact(t_max)<< '\t'
                       << expected_HIBF_query_cost << '\n';
             
-            // check if this is the current best t_max
-            if (expected_HIBF_query_cost < best_expected_HIBF_query_cost)
+            // check if this the first iteration or better query cost
+            if (best_expected_HIBF_query_cost == std::numeric_limits<double>::max() || 
+                expected_HIBF_query_cost < best_expected_HIBF_query_cost)
             {
                 output_buffer = std::move(output_buffer_tmp);
                 header_buffer = std::move(header_buffer_tmp);
@@ -176,6 +177,7 @@ int chopper_pack(seqan3::argument_parser & parser)
                 best_t_max = t_max;
                 best_expected_HIBF_query_cost = expected_HIBF_query_cost;
             }
+            else break;
         }
         std::cout << "Best t_max (total): " << best_t_max << '\n';
     }
