@@ -80,6 +80,10 @@ int set_up_and_parse_subparser_split(seqan3::argument_parser & parser, pack_conf
                     "If given, the programm will determine the best number of technical bins by "
                     "doing multiple binning runs. The -b option will then be an upper bound.");
 
+    parser.add_flag(config.force_all_binnings, '\0', "force-all-binnings",
+                    "If given together with --determine-num-bins, all binnings up to the chosen t_max are computed "
+                    "instead of stopping when the expected query costs become worse.");
+
     parser.add_flag(config.debug, '\0', "debug",
                     "Enables debug output in packing file.",
                     seqan3::option_spec::advanced);
@@ -177,7 +181,7 @@ int chopper_pack(seqan3::argument_parser & parser)
                 best_t_max = t_max;
                 best_expected_HIBF_query_cost = expected_HIBF_query_cost;
             }
-            else break;
+            else if (!config.force_all_binnings) break;
         }
         std::cout << "Best t_max (total): " << best_t_max << '\n';
     }
