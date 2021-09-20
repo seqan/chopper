@@ -91,7 +91,7 @@ public:
     }
 
     /*!\brief Restore the HLL sketches from the files in hll_dir
-    * \param[in] hll_dir path to the directory where hll caches will be found 
+    * \param[in] hll_dir path to the directory where hll caches will be found
     */
     void read_hll_files(std::filesystem::path const & hll_dir)
     {

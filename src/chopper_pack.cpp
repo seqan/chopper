@@ -148,7 +148,7 @@ int chopper_pack(seqan3::argument_parser & parser)
 
         size_t const total_kmer_count = std::accumulate(data.kmer_counts.begin(), data.kmer_counts.end(), 0ull);
 
-        for (size_t t_max = 64; t_max <= total_t_max; t_max *= 2) 
+        for (size_t t_max = 64; t_max <= total_t_max; t_max *= 2)
         {
             // reset state for the binning algorithm and save output buffer
             std::stringstream output_buffer_tmp;
@@ -167,12 +167,12 @@ int chopper_pack(seqan3::argument_parser & parser)
 
             double const expected_HIBF_query_cost = total_query_cost / total_kmer_count;
 
-            std::cout << t_max << '\t' 
+            std::cout << t_max << '\t'
                       << ibf_query_cost::get_exact(t_max)<< '\t'
                       << expected_HIBF_query_cost << '\n';
-            
+
             // check if this the first iteration or better query cost
-            if (best_expected_HIBF_query_cost == std::numeric_limits<double>::max() || 
+            if (best_expected_HIBF_query_cost == std::numeric_limits<double>::max() ||
                 expected_HIBF_query_cost < best_expected_HIBF_query_cost)
             {
                 output_buffer = std::move(output_buffer_tmp);
@@ -185,7 +185,7 @@ int chopper_pack(seqan3::argument_parser & parser)
         }
         std::cout << "Best t_max (total): " << best_t_max << '\n';
     }
-    else 
+    else
     {
         // without -determine-num-bins, the binning algorithm is executed just once
         data.output_buffer = &output_buffer;

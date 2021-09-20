@@ -46,7 +46,7 @@ public:
      * Each entry in the names_ and input vector respectively is considered a user bin (both vectors must have the
      * same length).
      */
-    hierarchical_binning(pack_data & data_, 
+    hierarchical_binning(pack_data & data_,
                          pack_config const & config_,
                          double & total_query_cost_,
                          double const above_query_cost_ = 0.0) :
@@ -423,8 +423,8 @@ private:
                 if (libf_data.kmer_counts.size() > config.t_max)
                 {
                     hierarchical_binning algo{
-                        libf_data, 
-                        config, 
+                        libf_data,
+                        config,
                         total_query_cost,
                         above_query_cost + ibf_query_cost::get_interpolated(num_technical_bins)
                     };
@@ -488,7 +488,7 @@ private:
                 if (libf_data.kmer_counts.size() > config.t_max)
                 {
                     hierarchical_binning algo{
-                        libf_data, 
+                        libf_data,
                         config,
                         total_query_cost,
                         above_query_cost + ibf_query_cost::get_interpolated(num_technical_bins)
@@ -519,10 +519,10 @@ private:
                 *data->output_buffer << data->filenames[trace_j] << '\t'
                                      << data->previous.bin_indices  << (high ? "" : ";") << bin_id << '\t'
                                      << data->previous.num_of_bins  << (high ? "" : ";") << number_of_bins;
-                
+
                 total_query_cost += (above_query_cost + ibf_query_cost::get_interpolated(num_technical_bins))
                                     * kmer_count;
-                
+
                 if (config.debug)
                 {
                     *data->output_buffer << '\t'
