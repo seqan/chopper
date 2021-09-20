@@ -10,7 +10,7 @@
 #include <chopper/pack/previous_level.hpp>
 #include <chopper/union/user_bin_sequence.hpp>
 #include <chopper/print_peak_memory_usage.hpp>
-#include <chopper/pack/IBF_query_costs.hpp>
+#include <chopper/pack/ibf_query_cost.hpp>
 
 #include <robin_hood.h>
 
@@ -168,7 +168,7 @@ int chopper_pack(seqan3::argument_parser & parser)
             double const expected_HIBF_query_cost = total_query_cost / total_kmer_count;
 
             std::cout << t_max << '\t' 
-                      << IBF_query_costs::get_exact(t_max)<< '\t'
+                      << ibf_query_cost::get_exact(t_max)<< '\t'
                       << expected_HIBF_query_cost << '\n';
             
             // check if this the first iteration or better query cost
