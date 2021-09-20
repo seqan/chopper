@@ -1,9 +1,6 @@
 #pragma once
 
 #include <seqan3/std/filesystem>
-#include <seqan3/utility/views/to.hpp>
-#include <seqan3/std/ranges>
-
 #include <fstream>
 #include <queue>
 #include <random>
@@ -82,8 +79,9 @@ public:
     //!\brief Sorts filenames and cardinalities by looking only at the cardinalities.
     void sort_by_cardinalities()
     {
-        // generate permutation of indices sorted in descinding order by cardinalities
-        auto permutation = std::views::iota(0ul, user_bin_kmer_counts.size()) | seqan3::views::to<std::vector>;
+        // generate permutation of indices sorted in descending order by cardinalities
+        std::vector<size_t> permutation(user_bin_kmer_counts.size());
+        std::iota(permutation.begin(), permutation.end(), size_t{0});
         assert(permutation.size() == user_bin_kmer_counts.size());
         auto cardinality_compare = [this] (auto const i1, auto const i2)
                                         { return user_bin_kmer_counts[i2] < user_bin_kmer_counts[i1]; };
