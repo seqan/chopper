@@ -144,7 +144,7 @@ public:
         }
     }
 
-    size_t get_num_technical_bins()
+    size_t get_num_technical_bins() const
     {
         return num_technical_bins;
     }
