@@ -8,6 +8,8 @@
 class ibf_query_cost
 {
 public:
+    constexpr static inline const size_t maximum_t_max{65536};
+
     ibf_query_cost() = default;
     ibf_query_cost(ibf_query_cost const &) = default;
     ibf_query_cost & operator=(ibf_query_cost const &) = default;
@@ -52,7 +54,6 @@ public:
     }
 
 private:
-    constexpr static inline const size_t maximum_t_max{65536};
 
     // (19,19) mean c_{T_max} (see paper)
     constexpr static inline const std::array<double, 11> cost_factor
@@ -64,8 +65,8 @@ private:
     constexpr static bool contains(size_t const value)
     {
         bool const is_power_of_two{std::has_single_bit(value)};
-        int const set_bit_index{std::countr_zero(value) + 1};
-        return is_power_of_two && set_bit_index >= 6 && set_bit_index <= 16;
+        int const trailing_zeros{std::countr_zero(value)};
+        return is_power_of_two && trailing_zeros >= 6 && trailing_zeros <= 16;
     }
 
     constexpr static size_t position(size_t const value)
