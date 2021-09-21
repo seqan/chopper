@@ -414,7 +414,9 @@ private:
                 size_t merged_max_bin_id;
                 if (libf_data.kmer_counts.size() > config.t_max)
                 {
-                    merged_max_bin_id = std::get<0>(hierarchical_binning{libf_data, config, total_query_cost}.execute());
+                    auto const && [bin_id, cost] = hierarchical_binning{libf_data, config, total_query_cost}.execute();
+                    merged_max_bin_id = bin_id;
+                    total_query_cost += cost;
                 }
                 else
                 {
@@ -474,7 +476,9 @@ private:
                 // now do the binning for the low-level IBF:
                 if (libf_data.kmer_counts.size() > config.t_max)
                 {
-                    merged_max_bin_id = std::get<0>(hierarchical_binning{libf_data, config, total_query_cost}.execute());
+                    auto const && [bin_id, cost] = hierarchical_binning{libf_data, config, total_query_cost}.execute();
+                    merged_max_bin_id = bin_id;
+                    total_query_cost += cost;
                 }
                 else
                 {
