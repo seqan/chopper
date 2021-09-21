@@ -5,8 +5,8 @@
 #include <vector>
 
 #include <chopper/helper.hpp>
-#include <chopper/pack/previous_level.hpp>
 #include <chopper/pack/pack_config.hpp>
+#include <chopper/pack/previous_level.hpp>
 #include <chopper/union/user_bin_sequence.hpp>
 
 struct pack_data

@@ -6,7 +6,6 @@
 
 TEST(ibf_query_cost_test, exact)
 {
-
     double value{};
     for (size_t i{64}; i <= ibf_query_cost::maximum_t_max; i *= 2)
     {
@@ -22,7 +21,6 @@ TEST(ibf_query_cost_test, exact)
 
 TEST(ibf_query_cost_test, interpolated)
 {
-
     for (size_t i{64}; i <= ibf_query_cost::maximum_t_max; i *= 2)
         EXPECT_EQ(ibf_query_cost::interpolated(i), ibf_query_cost::exact(i));
 

@@ -3,11 +3,11 @@
 #include <chopper/pack/aggregate_by.hpp>
 #include <chopper/pack/filenames_data_input.hpp>
 #include <chopper/pack/hierarchical_binning.hpp>
+#include <chopper/pack/ibf_query_cost.hpp>
 #include <chopper/pack/pack_config.hpp>
 #include <chopper/pack/previous_level.hpp>
-#include <chopper/union/user_bin_sequence.hpp>
 #include <chopper/print_peak_memory_usage.hpp>
-#include <chopper/pack/ibf_query_cost.hpp>
+#include <chopper/union/user_bin_sequence.hpp>
 
 int set_up_and_parse_subparser_split(seqan3::argument_parser & parser, pack_config & config)
 {
