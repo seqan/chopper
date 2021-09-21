@@ -49,17 +49,17 @@ private:
     //!\brief type of the distance matrix for the clustering for the rearrangement
     using distance_matrix = std::vector<entry>;
 
-    //!\brief A reference to the filenames of the user input sequences.
-    std::vector<std::string> & filenames;
+    //!\brief A pointer to the filenames of the user input sequences.
+    std::vector<std::string> * filenames{nullptr};
 
-    //!\brief A referece to kmer counts associated with the above files used to pack user bin into technical bins.
-    std::vector<size_t> & user_bin_kmer_counts;
+    //!\brief A pointer to kmer counts associated with the above files used to pack user bin into technical bins.
+    std::vector<size_t> * user_bin_kmer_counts{nullptr};
 
     //!\brief HyperLogLog sketches on the k-mer sets of the sequences from the files of filenames.
     std::vector<hyperloglog> sketches;
 
 public:
-    user_bin_sequence() = delete; //!< Deleted.
+    user_bin_sequence() = default; //!< Defaulted.
     user_bin_sequence(user_bin_sequence const &) = default; //!< Defaulted.
     user_bin_sequence & operator=(user_bin_sequence const &) = default; //!< Defaulted.
     user_bin_sequence(user_bin_sequence &&) = default; //!< Defaulted.
@@ -72,19 +72,26 @@ public:
      */
     user_bin_sequence(std::vector<std::string> & filenames_,
                       std::vector<size_t> & user_bin_kmer_counts_) :
-        filenames{filenames_},
-        user_bin_kmer_counts{user_bin_kmer_counts_}
+        filenames{std::addressof(filenames_)},
+        user_bin_kmer_counts{std::addressof(user_bin_kmer_counts_)}
     {}
 
     //!\brief Sorts filenames and cardinalities by looking only at the cardinalities.
     void sort_by_cardinalities()
     {
         // generate permutation of indices sorted in descending order by cardinalities
-        std::vector<size_t> permutation(user_bin_kmer_counts.size());
+        std::vector<size_t> permutation(user_bin_kmer_counts->size());
         std::iota(permutation.begin(), permutation.end(), size_t{0});
-        assert(permutation.size() == user_bin_kmer_counts.size());
-        auto cardinality_compare = [this] (auto const i1, auto const i2)
-                                        { return user_bin_kmer_counts[i2] < user_bin_kmer_counts[i1]; };
+
+        assert(user_bin_kmer_counts != nullptr);
+        assert(filenames != nullptr);
+        assert(permutation.size() == user_bin_kmer_counts->size());
+
+        auto cardinality_compare = [this] (size_t const index1, size_t const index2)
+        {
+            return (*user_bin_kmer_counts)[index1] > (*user_bin_kmer_counts)[index2];
+        };
+
         std::sort(permutation.begin(), permutation.end(), cardinality_compare);
 
         apply_permutation(permutation);
@@ -101,11 +108,12 @@ public:
                                      "when union estimates are enabled");
         }
 
-        sketches.reserve(filenames.size());
+        assert(filenames != nullptr);
+        sketches.reserve(filenames->size());
 
         try
         {
-            for (auto & filename : filenames)
+            for (auto const & filename : *filenames)
             {
                 std::filesystem::path path = hll_dir / std::filesystem::path(filename).stem();
                 path += ".hll";
@@ -127,18 +135,21 @@ public:
      * of k-mer sets of all sequences in the files of the interval.
      * estimates[i][j] will be the union cardinality estimate of the interval j, ..., i.
      * This unintuitive convention is chosen for cache efficiency in the hierarchical binning.
-     * \param[in] num_threads_ the number of threads to use
+     * \param[in] num_threads the number of threads to use
      * \param[out] estimates output table
      */
-    void estimate_interval_unions(std::vector<std::vector<uint64_t>> & estimates, size_t const num_threads_) const
+    void estimate_interval_unions(std::vector<std::vector<uint64_t>> & estimates, size_t const num_threads) const
     {
+        assert(user_bin_kmer_counts != nullptr);
+        assert(filenames != nullptr);
+
         estimates.clear();
-        size_t const n = filenames.size();
+        size_t const n = filenames->size();
         estimates.resize(n);
 
-        size_t const chunk_size_ = std::floor(std::sqrt(n));
+        size_t const chunk_size = std::floor(std::sqrt(n));
 
-        #pragma omp parallel num_threads(num_threads_)
+        #pragma omp parallel num_threads(num_threads)
         {
             // initialize estimates
             #pragma omp for
@@ -148,11 +159,11 @@ public:
             }
 
             // fill estimates
-            #pragma omp for schedule(nonmonotonic: dynamic, chunk_size_)
+            #pragma omp for schedule(nonmonotonic: dynamic, chunk_size)
             for (size_t i = 0; i < n; ++i)
             {
                 hyperloglog temp_hll = sketches[i];
-                estimates[i][i] = user_bin_kmer_counts[i];
+                estimates[i][i] = (*user_bin_kmer_counts)[i];
 
                 for (size_t j = i + 1; j < n; ++j)
                 {
@@ -168,15 +179,18 @@ public:
      */
     void rearrange_bins(double const max_ratio, size_t const num_threads)
     {
+        assert(user_bin_kmer_counts != nullptr);
+        assert(filenames != nullptr);
+
         std::vector<size_t> permutation;
 
         size_t first = 0;
         size_t last = 1;
 
-        while (first < filenames.size())
+        while (first < filenames->size())
         {
             // size difference is too large or sequence is over -> do the clustering
-            if (last == filenames.size() || user_bin_kmer_counts[first] * max_ratio > user_bin_kmer_counts[last])
+            if (last == filenames->size() || (*user_bin_kmer_counts)[first] * max_ratio > (*user_bin_kmer_counts)[last])
             {
                 // if this is not the first group, we want one bin overlap
                 cluster_bins(permutation, first, last, num_threads);
@@ -192,20 +206,21 @@ private:
     /*!\brief Perform an agglomerative clustering variant on the index range [first:last)
      * \param[in] first id of the first cluster of the interval
      * \param[in] last id of the last cluster of the interval plus one
-     * \param[in] num_threads_ the number of threads to use
+     * \param[in] num_threads the number of threads to use
      * \param[out] permutation append the new order to this
      */
     void cluster_bins(std::vector<size_t> & permutation,
                       size_t const first,
                       size_t const last,
-                      size_t const num_threads_)
+                      size_t const num_threads)
     {
-        assert(num_threads_ >= 1);
+        assert(num_threads >= 1);
+        assert(filenames != nullptr);
 
-        size_t const n = filenames.size();
-        size_t const chunk_size_ = std::floor(std::sqrt(n));
+        size_t const n = filenames->size();
+        size_t const chunk_size = std::floor(std::sqrt(n));
 
-        size_t const prune_steps = chunk_size_;
+        size_t const prune_steps = chunk_size;
         size_t steps_without_prune = 0;
 
         size_t const none = std::numeric_limits<size_t>::max();
@@ -234,7 +249,7 @@ private:
 
         // every thread will write its observed id with minimal distance to some other here
         // id == none means that the thread observed only empty or no priority queues
-        std::vector<size_t> min_ids(num_threads_, none);
+        std::vector<size_t> min_ids(num_threads, none);
 
         // these will be the new ids for new clusters
         // the first one is invalid, but it will be incremented before it is used for the first time
@@ -275,14 +290,14 @@ private:
             remaining_ids[id] = id - first;
         }
 
-        #pragma omp parallel num_threads(num_threads_)
+        #pragma omp parallel num_threads(num_threads)
         {
             double min_dist = std::numeric_limits<double>::max();
             // minimum distance exclusively for this thread
 
             // initialize all the priority queues of the distance matrix
             // while doing that, compute the first min_id
-            #pragma omp for schedule(nonmonotonic: dynamic, chunk_size_)
+            #pragma omp for schedule(nonmonotonic: dynamic, chunk_size)
             for (size_t i = 0; i < clustering.size(); ++i)
             {
                 for (size_t j = 0; j < clustering.size(); ++j)
@@ -420,7 +435,7 @@ private:
         trace(clustering, permutation, previous_rightmost, first, final_root_id);
     }
 
-    /*!\brief Randomly entries in dist while keeping track of the changes of indices
+    /*!\brief Randomly swap entries in dist while keeping track of the changes of indices.
      * \param[in] dist the distance matrix (vector of priority queues) to shuffle
      * \param[in] remaining_ids the map with information about which ids remain at which index
      */
@@ -428,9 +443,7 @@ private:
     {
         size_t const n = dist.size();
 
-        std::random_device rd;
-        // random generator seeded with device's random bit source
-        std::mt19937 gen(rd());
+        std::mt19937_64 gen(0x7E1E5665D46800E5ULL);
 
         for (size_t i = 0; i < n - 1; ++i)
         {
@@ -553,21 +566,23 @@ private:
     /*!\brief Apply a given permutation to filenames, user_bin_kmer_counts and sketches
      * \param[in] permutation the permutation to apply
      */
-    void apply_permutation(std::vector<size_t> & permutation)
+    void apply_permutation(std::vector<size_t> const & permutation)
     {
-        for (size_t i = 0; i < permutation.size(); ++i)
+        assert(user_bin_kmer_counts != nullptr);
+        assert(filenames != nullptr);
+
+        bool const swap_sketches{!sketches.empty()};
+
+        for (size_t i{0}; i < permutation.size(); ++i)
         {
-            size_t current = i;
-            while (i != permutation[current])
-            {
-                size_t next = permutation[current];
-                std::swap(filenames[current], filenames[next]);
-                std::swap(user_bin_kmer_counts[current], user_bin_kmer_counts[next]);
-                if (!sketches.empty()) std::swap(sketches[current], sketches[next]);
-                permutation[current] = current;
-                current = next;
-            }
-            permutation[current] = current;
+            size_t swap_index = permutation[i];
+            while (swap_index < i)
+                swap_index = permutation[swap_index];
+
+            std::swap((*filenames)[i], (*filenames)[swap_index]);
+            std::swap((*user_bin_kmer_counts)[i], (*user_bin_kmer_counts)[swap_index]);
+            if (swap_sketches)
+                    std::swap(sketches[i], sketches[swap_index]);
         }
     }
 };
