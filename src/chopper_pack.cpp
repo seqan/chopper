@@ -137,13 +137,12 @@ int chopper_pack(seqan3::argument_parser & parser)
         // expected query costs is written to the output
         std::cout << std::fixed << std::setprecision(4);
         std::cout << "T_Max\tC_{T_Max}\trelative expected HIBF query cost\n";
-        size_t const total_t_max = config.t_max;
         double best_expected_HIBF_query_cost = std::numeric_limits<double>::max();
-        size_t best_t_max;
+        size_t best_t_max{};
 
-        size_t const total_kmer_count = std::accumulate(data.kmer_counts.begin(), data.kmer_counts.end(), 0ull);
+        size_t const total_kmer_count = std::accumulate(data.kmer_counts.begin(), data.kmer_counts.end(), size_t{0});
 
-        for (size_t t_max = 64; t_max <= total_t_max; t_max *= 2)
+        for (size_t t_max = 64, total_t_max = config.t_max; t_max <= total_t_max; t_max *= 2)
         {
             // reset state for the binning algorithm and save output buffer
             std::stringstream output_buffer_tmp;
@@ -155,10 +154,8 @@ int chopper_pack(seqan3::argument_parser & parser)
             data.previous = previous_level{};
             config.t_max = t_max;
 
-            double total_query_cost = 0.0;
             // execute the actual algorithm
-            size_t const max_hibf_id_tmp = hierarchical_binning{data, config, total_query_cost}
-                                            .execute();
+            auto const && [max_hibf_id_tmp, total_query_cost] = hierarchical_binning{data, config}.execute();
 
             double const expected_HIBF_query_cost = total_query_cost / total_kmer_count;
 
@@ -186,8 +183,7 @@ int chopper_pack(seqan3::argument_parser & parser)
         data.output_buffer = &output_buffer;
         data.header_buffer = &header_buffer;
 
-        double total_query_cost = 0.0;
-        max_hibf_id = hierarchical_binning{data, config, total_query_cost}.execute();
+        max_hibf_id = std::get<0>(hierarchical_binning{data, config}.execute());
     }
 
     // brief Write the output to the result file.
