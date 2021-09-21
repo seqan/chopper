@@ -1,6 +1,3 @@
-#include <algorithm>
-#include <limits>
-
 #include <seqan3/argument_parser/all.hpp>
 
 #include <chopper/pack/aggregate_by.hpp>
@@ -11,8 +8,6 @@
 #include <chopper/union/user_bin_sequence.hpp>
 #include <chopper/print_peak_memory_usage.hpp>
 #include <chopper/pack/ibf_query_cost.hpp>
-
-#include <robin_hood.h>
 
 int set_up_and_parse_subparser_split(seqan3::argument_parser & parser, pack_config & config)
 {

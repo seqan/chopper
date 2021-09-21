@@ -3,15 +3,11 @@
 #include <cassert>
 #include <cmath>
 
-#include <seqan3/utility/views/to.hpp>
-
 #include <chopper/detail_bin_prefixes.hpp>
 #include <chopper/helper.hpp>
+#include <chopper/pack/ibf_query_cost.hpp>
 #include <chopper/pack/pack_config.hpp>
 #include <chopper/pack/simple_binning.hpp>
-#include <chopper/pack/ibf_query_cost.hpp>
-
-#include <robin_hood.h>
 
 class hierarchical_binning
 {
