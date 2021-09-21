@@ -31,7 +31,7 @@ TEST(ibf_query_cost_test, interpolated)
     {
         double result = ibf_query_cost::interpolated(i);
         EXPECT_GT(result, value);
-        EXPECT_GT(result, ibf_query_cost::exact(std::bit_floor(i)));
+        EXPECT_GT(result, ibf_query_cost::exact(1ULL << (std::bit_width(i) - 1))); // std::bit_floor not in seqan3
         EXPECT_LT(result, ibf_query_cost::exact(std::bit_ceil(i)));
         value = result;
     }
