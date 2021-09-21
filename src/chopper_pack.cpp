@@ -160,7 +160,7 @@ int chopper_pack(seqan3::argument_parser & parser)
             double const expected_HIBF_query_cost = total_query_cost / total_kmer_count;
 
             std::cout << t_max << '\t'
-                      << ibf_query_cost::get_exact(t_max)<< '\t'
+                      << ibf_query_cost::exact(t_max)<< '\t'
                       << expected_HIBF_query_cost << '\n';
 
             // check if this the first iteration or better query cost

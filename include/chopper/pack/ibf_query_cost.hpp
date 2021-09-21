@@ -15,7 +15,7 @@ public:
     ibf_query_cost & operator=(ibf_query_cost &&) = default;
     ~ibf_query_cost() = default;
 
-    constexpr static double get_exact(size_t const t_max)
+    constexpr static double exact(size_t const t_max)
     {
         if (contains(t_max))
             return cost_factor[position(t_max)];
@@ -23,7 +23,7 @@ public:
             throw std::invalid_argument("No exact data available for this t_max.");
     }
 
-    constexpr static double get_interpolated(size_t const t_max)
+    constexpr static double interpolated(size_t const t_max)
     {
         if (t_max <= 64u)
         {

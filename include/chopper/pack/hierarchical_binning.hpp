@@ -21,6 +21,8 @@ private:
     size_t const num_user_bins{};
     //!\brief The number of technical bins requested by the user.
     size_t const num_technical_bins{};
+    //!\brief The cost for querying `num_technical_bins` bins.
+    double const interpolated_cost{};
 
     //!\brief The total query cost of all k-mers.
     double total_query_cost{};
@@ -46,7 +48,8 @@ public:
         config{config_},
         total_query_cost{query_cost},
         num_user_bins{data->kmer_counts.size()},
-        num_technical_bins{data->previous.empty() ? config.t_max : needed_technical_bins(num_user_bins)}
+        num_technical_bins{data->previous.empty() ? config.t_max : needed_technical_bins(num_user_bins)},
+        interpolated_cost{ibf_query_cost::interpolated(num_technical_bins)}
     {
         assert(data != nullptr);
         assert(data->output_buffer != nullptr);
@@ -342,8 +345,7 @@ private:
                 int const average_bin_size = kmer_count / trace_i;
 
                 // add query cost for determination of best t_max
-                total_query_cost += (data->previous.cost + ibf_query_cost::get_interpolated(num_technical_bins))
-                                    * kmer_count;
+                total_query_cost += (data->previous.cost + interpolated_cost) * kmer_count;
 
                 *data->output_buffer << data->filenames[0] << '\t'
                                      << data->previous.bin_indices  << (high ? "" : ";") << bin_id << '\t'
@@ -399,7 +401,7 @@ private:
                 libf_data.previous = data->previous;
                 libf_data.previous.bin_indices += (high ? "" : ";") + std::to_string(bin_id);
                 libf_data.previous.num_of_bins  += (high ? "" : ";") + std::string{"1"};
-                libf_data.previous.cost += ibf_query_cost::get_interpolated(num_technical_bins);
+                libf_data.previous.cost += interpolated_cost;
                 if (config.debug)
                 {
                     libf_data.previous.estimated_sizes += (high ? "" : ";") + std::to_string(kmer_count);
@@ -422,8 +424,8 @@ private:
                 {
                     simple_binning algo{libf_data, 0, config.debug};
                     merged_max_bin_id = algo.execute();
-                    total_query_cost += (data->previous.cost + ibf_query_cost::get_interpolated(num_technical_bins)
-                                        + ibf_query_cost::get_interpolated(algo.get_num_technical_bins()))
+                    total_query_cost += (data->previous.cost + interpolated_cost
+                                        + ibf_query_cost::interpolated(algo.get_num_technical_bins()))
                                         * kmer_count;
                 }
                 *data->header_buffer << "#" << merged_ibf_name << " max_bin_id:" << merged_max_bin_id << '\n';
@@ -462,7 +464,7 @@ private:
                 libf_data.previous = data->previous;
                 libf_data.previous.bin_indices += (high ? "" : ";") + std::to_string(bin_id);
                 libf_data.previous.num_of_bins  += (high ? "" : ";") + std::string{"1"};
-                libf_data.previous.cost += ibf_query_cost::get_interpolated(num_technical_bins);
+                libf_data.previous.cost += interpolated_cost;
                 if (config.debug)
                 {
                     libf_data.previous.estimated_sizes += (high ? "" : ";") + std::to_string(kmer_count);
@@ -484,8 +486,8 @@ private:
                 {
                     simple_binning algo{libf_data, 0, config.debug};
                     merged_max_bin_id = algo.execute();
-                    total_query_cost += (data->previous.cost + ibf_query_cost::get_interpolated(num_technical_bins)
-                                        + ibf_query_cost::get_interpolated(algo.get_num_technical_bins()))
+                    total_query_cost += (data->previous.cost + interpolated_cost
+                                        + ibf_query_cost::interpolated(algo.get_num_technical_bins()))
                                         * kmer_count;
                 }
                 *data->header_buffer << "#" << merged_ibf_name << " max_bin_id:" << merged_max_bin_id << '\n';
@@ -505,8 +507,7 @@ private:
                                      << data->previous.bin_indices  << (high ? "" : ";") << bin_id << '\t'
                                      << data->previous.num_of_bins  << (high ? "" : ";") << number_of_bins;
 
-                total_query_cost += (data->previous.cost + ibf_query_cost::get_interpolated(num_technical_bins))
-                                    * kmer_count;
+                total_query_cost += (data->previous.cost + interpolated_cost) * kmer_count;
 
                 if (config.debug)
                 {
