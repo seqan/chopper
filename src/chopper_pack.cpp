@@ -137,7 +137,7 @@ int chopper_pack(seqan3::argument_parser & parser)
         // expected query costs is written to the output
         std::cout << std::fixed << std::setprecision(4);
         std::cout << "T_Max\tC_{T_Max}\trelative expected HIBF query cost\n";
-        double best_expected_HIBF_query_cost = std::numeric_limits<double>::max();
+        double best_expected_HIBF_query_cost{std::numeric_limits<double>::infinity()};
         size_t best_t_max{};
 
         size_t const total_kmer_count = std::accumulate(data.kmer_counts.begin(), data.kmer_counts.end(), size_t{0});
@@ -163,9 +163,8 @@ int chopper_pack(seqan3::argument_parser & parser)
                       << ibf_query_cost::exact(t_max)<< '\t'
                       << expected_HIBF_query_cost << '\n';
 
-            // check if this the first iteration or better query cost
-            if (best_expected_HIBF_query_cost == std::numeric_limits<double>::max() ||
-                expected_HIBF_query_cost < best_expected_HIBF_query_cost)
+            // Use result if better than previous one.
+            if (expected_HIBF_query_cost < best_expected_HIBF_query_cost)
             {
                 output_buffer = std::move(output_buffer_tmp);
                 header_buffer = std::move(header_buffer_tmp);
@@ -173,7 +172,8 @@ int chopper_pack(seqan3::argument_parser & parser)
                 best_t_max = t_max;
                 best_expected_HIBF_query_cost = expected_HIBF_query_cost;
             }
-            else if (!config.force_all_binnings) break;
+            else if (!config.force_all_binnings)
+                break;
         }
         std::cout << "Best t_max (total): " << best_t_max << '\n';
     }
