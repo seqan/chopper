@@ -12,10 +12,10 @@
 struct pack_data
 {
     //!\brief The file names of the user input. Since the input might be sorted, we need to keep track of the names.
-    std::vector<std::string> filenames;
+    std::vector<std::string> filenames{};
     //!\brief The kmer counts associated with the above files used to pack user bin into technical bins.
-    std::vector<size_t> kmer_counts;
-    std::vector<std::vector<std::string>> extra_information;
+    std::vector<size_t> kmer_counts{};
+    std::vector<std::vector<std::string>> extra_information{};
     std::vector<double> fp_correction{};
 
     //!\brief Matrix of estimates of merged bin cardinalites
@@ -46,11 +46,11 @@ struct pack_data
     }
 
     //!\brief Depending on cli flags given, use HyperLogLog estimates and/or rearrangement algorithms
-    void arrange_user_bins(pack_config const & config) 
+    void arrange_user_bins(pack_config const & config)
     {
         if (!user_bins_arranged)
         {
-            user_bin_sequence bin_sequence(filenames, kmer_counts);
+            user_bin_sequence bin_sequence{filenames, kmer_counts};
             bin_sequence.sort_by_cardinalities();
 
             if (config.estimate_union)
@@ -61,7 +61,7 @@ struct pack_data
 
                 bin_sequence.estimate_interval_unions(union_estimates, config.num_threads);
             }
-        
+
             user_bins_arranged = true;
         }
     }
