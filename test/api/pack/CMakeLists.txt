@@ -7,8 +7,10 @@ target_use_datasources (filenames_data_input_test FILES filenames_counts_and_ext
 
 add_api_test (simple_binning_test.cpp)
 add_api_test (hierarchical_binning_test.cpp)
+add_api_test (ibf_query_cost_test.cpp)
 add_api_test (aggregate_by_test.cpp)
 add_api_test (chopper_pack_test.cpp)
+add_api_test (chopper_pack_estimation_test.cpp)
 add_api_test (chopper_pack_hll_test.cpp)
 target_use_datasources (chopper_pack_hll_test FILES seq1.fa)
 target_use_datasources (chopper_pack_hll_test FILES seq2.fa)

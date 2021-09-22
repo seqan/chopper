@@ -3,13 +3,11 @@
 #include <cassert>
 #include <cmath>
 
-#include <seqan3/utility/views/to.hpp>
-
 #include <chopper/detail_bin_prefixes.hpp>
 #include <chopper/helper.hpp>
+#include <chopper/pack/ibf_query_cost.hpp>
 #include <chopper/pack/pack_config.hpp>
 #include <chopper/pack/simple_binning.hpp>
-#include <chopper/union/user_bin_sequence.hpp>
 
 class hierarchical_binning
 {
@@ -23,6 +21,11 @@ private:
     size_t const num_user_bins{};
     //!\brief The number of technical bins requested by the user.
     size_t const num_technical_bins{};
+    //!\brief The cost for querying `num_technical_bins` bins.
+    double const interpolated_cost{};
+
+    //!\brief The total query cost of all k-mers.
+    double total_query_cost{};
 
 public:
     hierarchical_binning() = default; //!< Defaulted.
@@ -35,15 +38,18 @@ public:
     /*!\brief The constructor from user bin names, their kmer counts and a configuration.
      * \param[in, out] data_ The data input: filenames associated with the user bin and a kmer count per user bin.
      * \param[in] config_ A configuration object that holds information from the user that influence the computation.
+     * \param[in] query_cost The current cost to query all k-mers. Default: 0.0
      *
      * Each entry in the names_ and input vector respectively is considered a user bin (both vectors must have the
      * same length).
      */
-    hierarchical_binning(pack_data & data_, pack_config const & config_) :
+    hierarchical_binning(pack_data & data_, pack_config const & config_, double const query_cost = 0.0) :
         data{std::addressof(data_)},
         config{config_},
+        total_query_cost{query_cost},
         num_user_bins{data->kmer_counts.size()},
-        num_technical_bins{data->previous.empty() ? config.t_max : needed_technical_bins(num_user_bins)}
+        num_technical_bins{data->previous.empty() ? config.t_max : needed_technical_bins(num_user_bins)},
+        interpolated_cost{ibf_query_cost::interpolated(num_technical_bins)}
     {
         assert(data != nullptr);
         assert(data->output_buffer != nullptr);
@@ -60,7 +66,7 @@ public:
     }
 
     //!\brief Executes the hierarchical binning algorithm and packs user bins into technical bins.
-    size_t execute()
+    std::tuple<size_t, double> execute()
     {
         assert(data != nullptr);
         assert(data->output_buffer != nullptr);
@@ -68,20 +74,8 @@ public:
 
         static constexpr size_t max_size_t{std::numeric_limits<size_t>::max()};
 
-        sort_by_distribution(data->filenames, data->kmer_counts);
-        // seqan3::debug_stream << std::endl << "Sorted list: " << data->kmer_counts << std::endl << std::endl;
+        data->arrange_user_bins(config);
 
-        std::vector<std::vector<uint64_t>> union_estimates;
-        // Depending on cli flags given, use HyperLogLog estimates and/or rearrangement algorithms
-        if (config.estimate_union)
-        {
-            user_bin_sequence bin_sequence(data->filenames, data->kmer_counts, config.hll_dir);
-
-            if (config.rearrange_bins)
-                bin_sequence.rearrange_bins(config.max_ratio, config.num_threads);
-
-            bin_sequence.estimate_interval_unions(union_estimates, config.num_threads);
-        }
         // technical bins (outer) = rows; user bins (inner) = columns
         std::vector<std::vector<size_t>> matrix(num_technical_bins,
                                                 std::vector<size_t>(num_user_bins, max_size_t));
@@ -95,15 +89,15 @@ public:
                                                                   std::vector<std::pair<size_t, size_t>>(
                                                                       num_user_bins, {max_size_t, max_size_t}));
 
-        initialization(matrix, ll_matrix, trace, union_estimates);
+        initialization(matrix, ll_matrix, trace);
 
-        recursion(matrix, ll_matrix, trace, union_estimates);
+        recursion(matrix, ll_matrix, trace);
 
         // print_matrix(matrix, num_technical_bins, num_user_bins, max_size_t);
         // print_matrix(ll_matrix, num_technical_bins, num_user_bins, max_size_t);
         // print_matrix(trace, num_technical_bins, num_user_bins, std::make_pair(max_size_t, max_size_t));
 
-        return backtracking(matrix, ll_matrix, trace);
+        return std::make_tuple(backtracking(matrix, ll_matrix, trace), total_query_cost);
     }
 
 private:
@@ -125,44 +119,13 @@ private:
         return static_cast<size_t>(std::ceil(levels));
     }
 
-    /*!\brief Sorts both input vectors (names and distribution) only by looking at the values in `distribution`.
-     * \param[in, out] names The names to be sorted in parallel to the `distribution` vector.
-     * \param[in, out] distribution The vector to be used to sort both input vectors by.
-     */
-    template <typename names_type, typename distribution_type>
-    void sort_by_distribution(names_type & names, distribution_type & distribution)
-    {
-        // generate permutation of indices sorted in descinding order by the sequence lengths
-        auto permutation = std::views::iota(0u, distribution.size()) | seqan3::views::to<std::vector>;
-        assert(permutation.size() == distribution.size());
-        auto distribution_compare = [&distribution] (auto const i1, auto const i2)
-                                        { return distribution[i2] < distribution[i1]; };
-        std::sort(permutation.begin(), permutation.end(), distribution_compare);
-
-        // apply permutation on names and distribution
-        for (size_t i = 0; i < permutation.size(); i++)
-        {
-            auto current = i;
-            while (i != permutation[current])
-            {
-                auto next = permutation[current];
-                std::swap(names[current], names[next]);
-                std::swap(distribution[current], distribution[next]);
-                permutation[current] = current;
-                current = next;
-            }
-            permutation[current] = current;
-        }
-    }
-
     /*!\brief Initialize the matrices M (hig_level_ibf), L (low_level_ibfs) and T (trace)
      *
      * \image html hierarchical_dp_init.png
      */
     void initialization(std::vector<std::vector<size_t>> & matrix,
                         std::vector<std::vector<size_t>> & ll_matrix,
-                        std::vector<std::vector<std::pair<size_t, size_t>>> & trace,
-                        std::vector<std::vector<uint64_t>> const & union_estimates)
+                        std::vector<std::vector<std::pair<size_t, size_t>>> & trace)
     {
         assert(data != nullptr);
 
@@ -182,7 +145,7 @@ private:
             for (size_t j = 1; j < num_user_bins; ++j)
             {
                 sum += data->kmer_counts[j];
-                matrix[0][j] = union_estimates[j][0];
+                matrix[0][j] = data->union_estimates[j][0];
                 ll_matrix[0][j] = max_merge_levels(j + 1) * sum;
                 trace[0][j] = {0u, j - 1}; // unnecessary?
             }
@@ -239,8 +202,7 @@ private:
      */
     void recursion(std::vector<std::vector<size_t>> & matrix,
                    std::vector<std::vector<size_t>> & ll_matrix,
-                   std::vector<std::vector<std::pair<size_t, size_t>>> & trace,
-                   std::vector<std::vector<uint64_t>> const & union_estimates)
+                   std::vector<std::vector<std::pair<size_t, size_t>>> & trace)
     {
         assert(data != nullptr);
 
@@ -287,9 +249,9 @@ private:
                 auto get_weight = [&] ()
                 {
                     // if we use the union estimate we plug in that value instead of the sum (weight)
-                    // union_estimate[i][j] is the union of {j, ..., i}
+                    // union_estimates[i][j] is the union of {j, ..., i}
                     // the + 1 is necessary because j_prime is decremented directly after weight is updated
-                    return config.estimate_union ? union_estimates[j][j_prime + 1] : weight;
+                    return config.estimate_union ? data->union_estimates[j][j_prime + 1] : weight;
                 };
 
                 // if the user bin j-1 was not split into multiple technical bins!
@@ -382,6 +344,9 @@ private:
                 int const kmer_count = data->kmer_counts[0];
                 int const average_bin_size = kmer_count / trace_i;
 
+                // add query cost for determination of best t_max
+                total_query_cost += (data->previous.cost + interpolated_cost) * kmer_count;
+
                 *data->output_buffer << data->filenames[0] << '\t'
                                      << data->previous.bin_indices  << (high ? "" : ";") << bin_id << '\t'
                                      << data->previous.num_of_bins  << (high ? "" : ";") << trace_i;
@@ -436,6 +401,7 @@ private:
                 libf_data.previous = data->previous;
                 libf_data.previous.bin_indices += (high ? "" : ";") + std::to_string(bin_id);
                 libf_data.previous.num_of_bins  += (high ? "" : ";") + std::string{"1"};
+                libf_data.previous.cost += interpolated_cost;
                 if (config.debug)
                 {
                     libf_data.previous.estimated_sizes += (high ? "" : ";") + std::to_string(kmer_count);
@@ -450,13 +416,17 @@ private:
                 size_t merged_max_bin_id;
                 if (libf_data.kmer_counts.size() > config.t_max)
                 {
-                    hierarchical_binning algo{libf_data, config};
-                    merged_max_bin_id = algo.execute();
+                    auto const && [bin_id, cost] = hierarchical_binning{libf_data, config, total_query_cost}.execute();
+                    merged_max_bin_id = bin_id;
+                    total_query_cost += cost;
                 }
                 else
                 {
                     simple_binning algo{libf_data, 0, config.debug};
                     merged_max_bin_id = algo.execute();
+                    total_query_cost += (data->previous.cost + interpolated_cost
+                                        + ibf_query_cost::interpolated(algo.get_num_technical_bins()))
+                                        * kmer_count;
                 }
                 *data->header_buffer << "#" << merged_ibf_name << " max_bin_id:" << merged_max_bin_id << '\n';
 
@@ -494,6 +464,7 @@ private:
                 libf_data.previous = data->previous;
                 libf_data.previous.bin_indices += (high ? "" : ";") + std::to_string(bin_id);
                 libf_data.previous.num_of_bins  += (high ? "" : ";") + std::string{"1"};
+                libf_data.previous.cost += interpolated_cost;
                 if (config.debug)
                 {
                     libf_data.previous.estimated_sizes += (high ? "" : ";") + std::to_string(kmer_count);
@@ -507,13 +478,17 @@ private:
                 // now do the binning for the low-level IBF:
                 if (libf_data.kmer_counts.size() > config.t_max)
                 {
-                    hierarchical_binning algo{libf_data, config};
-                    merged_max_bin_id = algo.execute();
+                    auto const && [bin_id, cost] = hierarchical_binning{libf_data, config, total_query_cost}.execute();
+                    merged_max_bin_id = bin_id;
+                    total_query_cost += cost;
                 }
                 else
                 {
                     simple_binning algo{libf_data, 0, config.debug};
                     merged_max_bin_id = algo.execute();
+                    total_query_cost += (data->previous.cost + interpolated_cost
+                                        + ibf_query_cost::interpolated(algo.get_num_technical_bins()))
+                                        * kmer_count;
                 }
                 *data->header_buffer << "#" << merged_ibf_name << " max_bin_id:" << merged_max_bin_id << '\n';
 
@@ -531,6 +506,8 @@ private:
                 *data->output_buffer << data->filenames[trace_j] << '\t'
                                      << data->previous.bin_indices  << (high ? "" : ";") << bin_id << '\t'
                                      << data->previous.num_of_bins  << (high ? "" : ";") << number_of_bins;
+
+                total_query_cost += (data->previous.cost + interpolated_cost) * kmer_count;
 
                 if (config.debug)
                 {

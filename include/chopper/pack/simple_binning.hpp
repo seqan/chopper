@@ -144,6 +144,11 @@ public:
         }
     }
 
+    size_t get_num_technical_bins() const
+    {
+        return num_technical_bins;
+    }
+
     //!\brief Executes the simple binning algorithm and packs user bins into technical bins.
     size_t execute()
     {
@@ -172,7 +177,7 @@ public:
         // we must iterate column wise
         for (size_t j = 1; j < num_user_bins; ++j)
         {
-            int current_weight = data->kmer_counts[j];
+            double const ub_cardinality = static_cast<double>(data->kmer_counts[j]);
 
             for (size_t i = j; i < j + extra_bins; ++i)
             {
@@ -180,7 +185,8 @@ public:
 
                 for (size_t i_prime = j - 1; i_prime < i; ++i_prime)
                 {
-                    size_t score = std::max<int>(current_weight / (i - i_prime), matrix[i_prime][j-1]);
+                    size_t const corrected_ub_cardinality = static_cast<size_t>(ub_cardinality * data->fp_correction[(i - i_prime)]);
+                    size_t score = std::max<size_t>(corrected_ub_cardinality / (i - i_prime), matrix[i_prime][j-1]);
 
                     // std::cout << "j:" << j << " i:" << i << " i':" << i_prime << " score:" << score << std::endl;
 
