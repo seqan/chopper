@@ -36,27 +36,30 @@ jobs:
             skip_run_tests: false
 
     steps:
+      - name: Set repository name
+        run: echo "REPOSITORY_NAME=$(echo '${{ github.repository }}' | awk -F '/' '{print $2}')" >> $GITHUB_ENV
+
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          path: src
+          path: ${{ env.REPOSITORY_NAME }}
           fetch-depth: 2
           submodules: recursive
 
       - name: Add package source
-        run: bash ./src/lib/seqan3/.github/workflows/scripts/configure_apt.sh
+        run: bash ./${{ env.REPOSITORY_NAME }}/lib/seqan3/.github/workflows/scripts/configure_apt.sh
 
       - name: Install CMake
         env:
           BUILD: ${{ matrix.build }}
           CMAKE_VERSION: ${{ matrix.cmake }}
-        run: bash ./src/lib/seqan3/.github/workflows/scripts/install_cmake.sh
+        run: bash ./${{ env.REPOSITORY_NAME }}/lib/seqan3/.github/workflows/scripts/install_cmake.sh
 
       - name: Install Doxygen
         if: matrix.build == 'documentation'
         env:
           DOXYGEN_VERSION: ${{ matrix.doxygen }}
-        run: bash ./src/lib/seqan3/.github/workflows/scripts/install_doxygen.sh
+        run: bash ./${{ env.REPOSITORY_NAME }}/lib/seqan3/.github/workflows/scripts/install_doxygen.sh
 
       - name: Install ccache
         if: matrix.requires_ccache
@@ -91,7 +94,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake ../src -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_FLAGS="${{ matrix.cxx_flags }}"
+          cmake ../${{ env.REPOSITORY_NAME }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_FLAGS="${{ matrix.cxx_flags }}"
 
       - name: Build tests
         if: ${{!matrix.skip_build_tests}}
