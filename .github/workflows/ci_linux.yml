@@ -48,18 +48,21 @@ jobs:
             cxx_flags: "-std=c++2a"
 
     steps:
+      - name: Set repository name
+        run: echo "REPOSITORY_NAME=$(echo '${{ github.repository }}' | awk -F '/' '{print $2}')" >> $GITHUB_ENV
+
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          path: src
+          path: ${{ env.REPOSITORY_NAME }}
           fetch-depth: 2
           submodules: recursive
 
       - name: Add package source
-        run: bash ./src/lib/seqan3/.github/workflows/scripts/configure_apt.sh
+        run: bash ./${{ env.REPOSITORY_NAME }}/lib/seqan3/.github/workflows/scripts/configure_apt.sh
 
       - name: Install CMake
-        run: bash ./src/lib/seqan3/.github/workflows/scripts/install_cmake.sh
+        run: bash ./${{ env.REPOSITORY_NAME }}/lib/seqan3/.github/workflows/scripts/install_cmake.sh
 
       - name: Install ccache
         run: sudo apt-get install --yes ccache
@@ -69,9 +72,11 @@ jobs:
 
       - name: Install lcov
         if: matrix.build == 'coverage'
+        env:
+          CC: ${{ matrix.cc }}
         run: |
           sudo apt-get install --yes lcov
-          sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-11 100
+          sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/${CC/gcc/gcov} 100
 
       - name: Load ccache
         uses: actions/cache@v2
@@ -96,7 +101,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake ../src -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_FLAGS="${{ matrix.cxx_flags }}"
+          cmake ../${{ env.REPOSITORY_NAME }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_FLAGS="${{ matrix.cxx_flags }}"
 
       - name: Build tests
         env:
@@ -127,11 +132,11 @@ jobs:
         run: |
           lcov --directory ./build/ --capture --output-file ./build/coverage_report.captured
           lcov -a ./build/coverage_report.baseline -a ./build/coverage_report.captured --output-file ./build/coverage_report.total
-          lcov --remove ./build/coverage_report.total '/usr/*' '${{ github.workspace }}/src/lib/*' '${{ github.workspace }}/src/test/*' '${{ github.workspace }}/build/vendor/*' --output-file ./build/coverage_report
+          lcov --remove ./build/coverage_report.total '/usr/*' '${{ github.workspace }}/${{ env.REPOSITORY_NAME }}/lib/*' '${{ github.workspace }}/${{ env.REPOSITORY_NAME }}/test/*' '${{ github.workspace }}/build/vendor/*' --output-file ./build/coverage_report
 
       - name: Submit coverage report
         if: matrix.build == 'coverage'
         uses: codecov/codecov-action@v1
         with:
           files: ${{ github.workspace }}/build/coverage_report
-          root_dir: ${{ github.workspace }}/src
+          root_dir: ${{ github.workspace }}/${{ env.REPOSITORY_NAME }}
