@@ -1,6 +1,9 @@
-# Chopper - partition your sequences
+# Chopper - partition your sequences [![build status][1]][2] [![codecov][3]][4]
 
-[![Build Status](https://img.shields.io/github/workflow/status/seqan/chopper/CI%20on%20Linux/master?style=flat&logo=github&label=Chopper%20CI)](https://github.com/seqan/chopper/actions?query=branch%3Amaster)
+[1]: https://github.com/seqan/chopper/actions/workflows/ci_linux.yml/badge.svg?branch=master
+[2]: https://github.com/seqan/chopper/actions?query=branch%3Amaster
+[3]: https://codecov.io/gh/seqan/chopper/branch/master/graph/badge.svg?token=SJVMYRUKW2
+[4]: https://codecov.io/gh/seqan/chopper
 
 ## System requirements
 
