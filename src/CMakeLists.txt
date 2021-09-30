@@ -12,23 +12,17 @@ target_compile_options (chopper_interface INTERFACE ${SEQAN_CXX_FLAGS_LIST})
 target_link_libraries (chopper_interface INTERFACE "${SEQAN_LIBRARIES}")
 target_link_libraries (chopper_interface INTERFACE xxhash)
 
-add_library (chopper_build_lib STATIC chopper_build.cpp)
-target_link_libraries (chopper_build_lib "chopper_interface")
-
 add_library (chopper_count_lib STATIC chopper_count.cpp)
 target_link_libraries (chopper_count_lib "chopper_interface")
 
 add_library (chopper_pack_lib STATIC chopper_pack.cpp)
 target_link_libraries (chopper_pack_lib "chopper_interface")
 
-add_library (chopper_search_lib STATIC chopper_search.cpp)
-target_link_libraries (chopper_search_lib "chopper_interface")
-
 add_library (chopper_split_lib STATIC chopper_split.cpp)
 target_link_libraries (chopper_split_lib "chopper_interface")
 
 add_library (chopper_lib INTERFACE)
-target_link_libraries (chopper_lib INTERFACE "chopper_interface" "chopper_build_lib" "chopper_count_lib" "chopper_pack_lib" "chopper_search_lib" "chopper_split_lib")
+target_link_libraries (chopper_lib INTERFACE "chopper_interface" "chopper_count_lib" "chopper_pack_lib" "chopper_split_lib")
 
 add_executable (chopper chopper.cpp)
 target_link_libraries (chopper "chopper_lib")

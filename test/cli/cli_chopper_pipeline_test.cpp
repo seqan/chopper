@@ -132,66 +132,6 @@ TEST_F(cli_test, chopper_pipeline)
         std::string full_expected_line{(expected_line[0] == '#') ? expected_line : directory + expected_line};
         ASSERT_EQ(output_line, full_expected_line);
     }
-
-    // CHOPPER BUILD from split
-    // =========================================================================
-    // {
-    //     seqan3::test::tmp_filename output_path{"chopper.test.index"};
-
-    //     cli_test_result build_result = execute_app("chopper", "build",
-    //                                                "--kmer-size", "15",
-    //                                                "--false-positive-rate", "0.01",
-    //                                                "--overlap", "20",
-    //                                                "-s", chopper_split_filename.get_path().c_str(),
-    //                                                "-o", output_path.get_path().c_str());
-
-    // EXPECT_EQ(build_result.exit_code, 0);
-    // EXPECT_EQ(build_result.out, std::string{});
-    // EXPECT_EQ(build_result.err, std::string{});
-
-    //     ASSERT_TRUE(std::filesystem::exists(output_path.get_path()));
-
-    //     std::vector<seqan3::interleaved_bloom_filter<>> hibf;
-
-    //     {
-    //         std::ifstream is(output_path.get_path(), std::ios::binary);
-    //         cereal::BinaryInputArchive archive(is);
-    //         archive(hibf);
-    //     }
-
-    //     ASSERT_EQ(hibf.size(), 2);
-    //     EXPECT_EQ(hibf[0].bin_count(), 2);
-    //     EXPECT_EQ(hibf[1].bin_count(), 64);
-    // }
-
-    // CHOPPER BUILD from pack
-    // =========================================================================
-    {
-        seqan3::test::tmp_filename output_path{"chopper.test.index"};
-
-        cli_test_result build_result = execute_app("chopper", "build",
-                                                   "--kmer-size", "15",
-                                                   "--false-positive-rate", "0.01",
-                                                   "-p", binning_filename.get_path().c_str(),
-                                                   "-o", output_path.get_path().c_str());
-
-        EXPECT_EQ(build_result.exit_code, 0);
-        EXPECT_EQ(build_result.out, std::string{});
-        EXPECT_EQ(build_result.err, std::string{});
-
-        ASSERT_TRUE(std::filesystem::exists(output_path.get_path()));
-
-        std::vector<seqan3::interleaved_bloom_filter<>> hibf;
-
-        {
-            std::ifstream is(output_path.get_path(), std::ios::binary);
-            cereal::BinaryInputArchive archive(is);
-            archive(hibf);
-        }
-
-        ASSERT_EQ(hibf.size(), 1);
-        EXPECT_EQ(hibf[0].bin_count(), 64);
-    }
 }
 
 class clear_directory
@@ -308,34 +248,5 @@ TEST_F(cli_test, chopper_hll_pipeline)
         std::ifstream output_file{binning_filename.get_path()};
         std::string const output_file_str((std::istreambuf_iterator<char>(output_file)), std::istreambuf_iterator<char>());
         ASSERT_EQ(output_file_str, expected_file);
-    }
-
-    // CHOPPER BUILD from pack
-    // =========================================================================
-    {
-        seqan3::test::tmp_filename output_path{"chopper.test.index"};
-
-        cli_test_result build_result = execute_app("chopper", "build",
-                                                   "--kmer-size", "15",
-                                                   "--false-positive-rate", "0.01",
-                                                   "-p", binning_filename.get_path().c_str(),
-                                                   "-o", output_path.get_path().c_str());
-
-        EXPECT_EQ(build_result.exit_code, 0);
-        EXPECT_EQ(build_result.out, std::string{});
-        EXPECT_EQ(build_result.err, std::string{});
-
-        ASSERT_TRUE(std::filesystem::exists(output_path.get_path()));
-
-        std::vector<seqan3::interleaved_bloom_filter<>> hibf;
-
-        {
-            std::ifstream is(output_path.get_path(), std::ios::binary);
-            cereal::BinaryInputArchive archive(is);
-            archive(hibf);
-        }
-
-        ASSERT_EQ(hibf.size(), 1);
-        EXPECT_EQ(hibf[0].bin_count(), 64);
     }
 }
