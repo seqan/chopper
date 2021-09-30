@@ -139,7 +139,7 @@ private:
         }
 
         // initialize first row
-        size_t sum = 0;
+        size_t sum = data->kmer_counts[0];
         if (config.estimate_union)
         {
             for (size_t j = 1; j < num_user_bins; ++j)
@@ -416,12 +416,14 @@ private:
                 size_t merged_max_bin_id;
                 if (libf_data.kmer_counts.size() > config.t_max)
                 {
+                    // recursively call hierarchical binning if there are still too many UBs
                     auto const && [bin_id, cost] = hierarchical_binning{libf_data, config, total_query_cost}.execute();
                     merged_max_bin_id = bin_id;
                     total_query_cost += cost;
                 }
                 else
                 {
+                    // use simple binning to distribute remaining UBs
                     simple_binning algo{libf_data, 0, config.debug};
                     merged_max_bin_id = algo.execute();
                     total_query_cost += (data->previous.cost + interpolated_cost

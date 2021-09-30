@@ -64,7 +64,7 @@ TEST(chopper_pack_estimation_test, many_ubs)
     chopper_pack(pack_parser);
 
     EXPECT_EQ(testing::internal::GetCapturedStdout(), "T_Max\tC_{T_Max}\trelative expected HIBF query cost\n64\t1.0000"
-                                                      "\t1.2714\n128\t1.1000\t1.1214\n256\t1.3200\t1.3200\nBest t_max "
+                                                      "\t1.2571\n128\t1.1000\t1.1214\n256\t1.3200\t1.3200\nBest t_max "
                                                       "(total): 128\n");
 }
 
@@ -93,6 +93,6 @@ TEST(chopper_pack_estimation_test, many_ubs_force_all)
     chopper_pack(pack_parser);
 
     EXPECT_EQ(testing::internal::GetCapturedStdout(), "T_Max\tC_{T_Max}\trelative expected HIBF query cost\n64\t1.0000"
-                                                      "\t1.2714\n128\t1.1000\t1.1214\n256\t1.3200\t1.3200\nBest t_max "
+                                                      "\t1.2571\n128\t1.1000\t1.1214\n256\t1.3200\t1.3200\nBest t_max "
                                                       "(total): 128\n");
 }

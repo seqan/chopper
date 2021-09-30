@@ -23,25 +23,24 @@ TEST(hierarchical_binning_test, small_example)
     data.kmer_counts = {500, 1000, 500, 500, 500, 500, 500, 500};
     data.compute_fp_correction(0.05, 2);
     hierarchical_binning algo{data, config};
-    EXPECT_EQ(std::get<0>(algo.execute()), 3); // #HIGH_LEVEL_IBF max_bin_id:3
+    EXPECT_EQ(std::get<0>(algo.execute()), 1); // #HIGH_LEVEL_IBF max_bin_id:3
 
     std::string expected_file
     {
-        "#MERGED_BIN_1 max_bin_id:0\n"
-        "#MERGED_BIN_2 max_bin_id:0\n"
-        "#MERGED_BIN_3 max_bin_id:52\n"
+        "#MERGED_BIN_1 max_bin_id:22\n"
+        "#MERGED_BIN_2 max_bin_id:22\n"
         "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\n"
         "seq7\t0\t1\n"
-        "seq5\t1;0\t1;32\n"
-        "seq6\t1;32\t1;32\n"
-        "seq3\t2;0\t1;32\n"
-        "seq4\t2;32\t1;32\n"
-        "seq1\t3;0\t1;52\n"
-        "seq0\t3;52\t1;6\n"
-        "seq2\t3;58\t1;6\n"
+        "seq4\t1;0\t1;22\n"
+        "seq5\t1;22\t1;21\n"
+        "seq6\t1;43\t1;21\n"
+        "seq0\t2;0\t1;22\n"
+        "seq2\t2;22\t1;21\n"
+        "seq3\t2;43\t1;21\n"
+        "seq1\t3\t1\n"
     };
 
-    EXPECT_EQ(header_buffer.str() + output_buffer.str(), expected_file);
+    EXPECT_EQ(header_buffer.str() + output_buffer.str(), expected_file) << output_buffer.str() << std::endl << expected_file << std::endl;
 }
 
 TEST(hierarchical_binning_test, another_example)
