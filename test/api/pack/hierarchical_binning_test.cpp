@@ -79,6 +79,35 @@ TEST(hierarchical_binning_test, another_example)
     EXPECT_EQ(header_buffer.str() + output_buffer.str(), expected_file);
 }
 
+TEST(hierarchical_binning_test, high_level_max_bin_id_is_0)
+{
+    pack_config config;
+    config.t_max = 4;
+
+    std::stringstream output_buffer;
+    std::stringstream header_buffer;
+    pack_data data;
+    data.output_buffer = &output_buffer;
+    data.header_buffer = &header_buffer;
+    data.filenames = {"seq0", "seq1", "seq2", "seq3"};
+    data.kmer_counts = {500, 500, 500, 500};
+    data.compute_fp_correction(0.05, 2);
+
+    hierarchical_binning algo{data, config};
+    EXPECT_EQ(std::get<0>(algo.execute()), 0); // #HIGH_LEVEL_IBF max_bin_id:1
+
+    std::string expected_file
+    {
+        "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\n"
+        "seq3\t0\t1\n"
+        "seq2\t1\t1\n"
+        "seq1\t2\t1\n"
+        "seq0\t3\t1\n"
+    };
+
+    EXPECT_EQ(header_buffer.str() + output_buffer.str(), expected_file);
+}
+
 TEST(hierarchical_binning_test, knuts_example)
 {
     pack_config config;
