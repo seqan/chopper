@@ -8,6 +8,15 @@
 
 #include "../api_test.hpp"
 
+TEST(read_filename_data_file_test, file_open_error)
+{
+    pack_config config;
+    pack_data data;
+    config.data_file = "non_existing.file";
+
+    EXPECT_THROW(read_filename_data_file(data, config), std::runtime_error);
+}
+
 TEST(read_filename_data_file_test, only_filenames)
 {
     pack_config config;
