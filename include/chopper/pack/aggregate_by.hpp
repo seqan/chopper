@@ -39,13 +39,13 @@ inline void sort_by(pack_data & data, size_t column_to_sort_by)
 
 inline void aggregate_by(pack_data & data, size_t column_to_aggregate_by)
 {
+    if (data.filenames.empty())
+        return;
+
     // Note: We may only aggregate by extra information
     assert(data.filenames.size() == data.kmer_counts.size());
     assert(data.filenames.size() == data.extra_information.size());
     assert(column_to_aggregate_by < data.extra_information[0].size());
-
-    if (data.filenames.size() == 0)
-        return;
 
     sort_by(data, column_to_aggregate_by);
 

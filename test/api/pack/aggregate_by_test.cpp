@@ -36,6 +36,19 @@ TEST(sort_by_test, small_example)
     }
 }
 
+TEST(aggregate_by_test, filenames_are_emprty)
+{
+    pack_data data{};
+    char original_binary[sizeof(data)];
+    std::memcpy(original_binary, &data, sizeof(data));
+
+    aggregate_by(data, 0);
+
+    char new_binary[sizeof(data)];
+    std::memcpy(new_binary, &data, sizeof(data));
+    EXPECT_TRUE(std::strcmp(original_binary, new_binary) == 0);
+}
+
 TEST(aggregate_by_test, small_example)
 {
     pack_data data;
