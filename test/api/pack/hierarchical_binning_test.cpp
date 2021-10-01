@@ -9,6 +9,24 @@
 
 #include "../api_test.hpp"
 
+TEST(hierarchical_binning_test, filenames_and_kmer_counts_size_differs)
+{
+    pack_config config;
+    config.t_max = 4;
+
+    std::stringstream output_buffer;
+    std::stringstream header_buffer;
+    pack_data data;
+    data.output_buffer = &output_buffer;
+    data.header_buffer = &header_buffer;
+    data.compute_fp_correction(0.05, 2);
+
+    data.filenames = {"seq0", "seq1"};   // 2 filenames
+    data.kmer_counts = {500, 1000, 500}; // 3 kmer_counts :(
+
+    EXPECT_THROW((hierarchical_binning{data, config}), std::runtime_error);
+}
+
 TEST(hierarchical_binning_test, small_example)
 {
     pack_config config;

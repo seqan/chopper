@@ -32,7 +32,7 @@ declare_datasource (FILE only_filenames.tsv
 
 declare_datasource (FILE filenames_and_counts.tsv
                     URL ${CMAKE_SOURCE_DIR}/test/data/filenames_and_counts.tsv
-                    URL_HASH SHA256=4eedd49f5fa13fc981d8dab8c72a859c1814c3d283f030b0a81913f4916b611c)
+                    URL_HASH SHA256=5ac6fbe4c30f9e7e4748e1af7aac45ceabba443561099e382edefdc4d4af5692)
 
 declare_datasource (FILE filenames_counts_and_extra_information.tsv
                     URL ${CMAKE_SOURCE_DIR}/test/data/filenames_counts_and_extra_information.tsv

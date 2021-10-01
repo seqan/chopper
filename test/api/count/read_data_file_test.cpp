@@ -8,6 +8,13 @@
 
 #include "../api_test.hpp"
 
+TEST(read_data_file_test, file_open_error)
+{
+    count_config config;
+    config.data_file = data("non_existing.file");
+    EXPECT_THROW(read_data_file(config), std::runtime_error);
+}
+
 TEST(read_data_file_test, small_example)
 {
     count_config config;
