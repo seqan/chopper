@@ -1,3 +1,5 @@
+#pragma once
+
 #include <seqan3/std/filesystem>
 #include <fstream>
 #include <iostream>
@@ -22,23 +24,23 @@
 
 namespace lemon {
 
-const Color WHITE(1,1,1);
+inline const Color WHITE(1,1,1);
 
-const Color BLACK(0,0,0);
-const Color RED(1,0,0);
-const Color GREEN(0,1,0);
-const Color BLUE(0,0,1);
-const Color YELLOW(1,1,0);
-const Color MAGENTA(1,0,1);
-const Color CYAN(0,1,1);
+inline const Color BLACK(0,0,0);
+inline const Color RED(1,0,0);
+inline const Color GREEN(0,1,0);
+inline const Color BLUE(0,0,1);
+inline const Color YELLOW(1,1,0);
+inline const Color MAGENTA(1,0,1);
+inline const Color CYAN(0,1,1);
 
-const Color GREY(0,0,0);
-const Color DARK_RED(.5,0,0);
-const Color DARK_GREEN(0,.5,0);
-const Color DARK_BLUE(0,0,.5);
-const Color DARK_YELLOW(.5,.5,0);
-const Color DARK_MAGENTA(.5,0,.5);
-const Color DARK_CYAN(0,.5,.5);
+inline const Color GREY(0,0,0);
+inline const Color DARK_RED(.5,0,0);
+inline const Color DARK_GREEN(0,.5,0);
+inline const Color DARK_BLUE(0,0,.5);
+inline const Color DARK_YELLOW(.5,.5,0);
+inline const Color DARK_MAGENTA(.5,0,.5);
+inline const Color DARK_CYAN(0,.5,.5);
 
 } //namespace lemon
 

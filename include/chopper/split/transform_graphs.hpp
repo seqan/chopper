@@ -7,7 +7,12 @@
 #include <lemon/list_graph.h>
 #include <lemon/static_graph.h>
 
+#include <seqan/graph_msa.h>
+
 #include <seqan3/core/debug_stream.hpp>
+
+#include <chopper/split/split_config.hpp>
+#include <chopper/split/split_data.hpp>
 
 /* [source] --> [target]            [target]
  *  (2,10)       (10,15)     =>      (2,15)

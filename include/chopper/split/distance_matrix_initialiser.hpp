@@ -2,6 +2,8 @@
 
 #include <seqan3/std/concepts>
 
+#include <seqan3/core/debug_stream.hpp>
+
 #include <chopper/split/map_distance_matrix.hpp>
 #include <chopper/split/minimizer.hpp>
 #include <chopper/split/split_config.hpp>
