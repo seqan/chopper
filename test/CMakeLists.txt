@@ -13,9 +13,9 @@ seqan3_require_test ()
 # Build tests just before their execution, because they have not been built with "all" target.
 # The trick is here to provide a cmake file as a directory property that executes the build command.
 file (WRITE "${CMAKE_CURRENT_BINARY_DIR}/build_test_targets.cmake"
-            "execute_process(COMMAND ${CMAKE_COMMAND} --build . --target api_test)\n"
-            "execute_process(COMMAND ${CMAKE_COMMAND} --build . --target cli_test)\n"
-            "execute_process(COMMAND ${CMAKE_COMMAND} --build ./header --target header_test)\n")
+            "execute_process (COMMAND ${CMAKE_COMMAND} --build . --target api_test)\n"
+            "execute_process (COMMAND ${CMAKE_COMMAND} --build . --target cli_test)\n"
+            "execute_process (COMMAND ${CMAKE_COMMAND} --build ./header --target header_test)\n")
 set_directory_properties (PROPERTIES TEST_INCLUDE_FILE "${CMAKE_CURRENT_BINARY_DIR}/build_test_targets.cmake")
 
 # Define the test targets. All depending targets are built just before the test execution.
@@ -38,8 +38,8 @@ macro (add_app_test test_filename test_alternative)
     target_link_libraries (${target} "${PROJECT_NAME}_lib" seqan3::seqan3 gtest gtest_main)
 
     # Make seqan3::test available for both cli and api tests.
-    target_include_directories(${target} PUBLIC "${SEQAN3_CLONE_DIR}/test/include")
-    target_include_directories(${target} PUBLIC "${SEQAN3_TEST_CLONE_DIR}/googletest/include/")
+    target_include_directories (${target} PUBLIC "${SEQAN3_CLONE_DIR}/test/include")
+    target_include_directories (${target} PUBLIC "${SEQAN3_TEST_CLONE_DIR}/googletest/include/")
 
     # Add the test to its general target (cli or api).
     if (${test_alternative} STREQUAL "CLI_TEST")

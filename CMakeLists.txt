@@ -72,7 +72,7 @@ include (${CMAKE_SOURCE_DIR}/lib/seqan/util/cmake/seqan-config.cmake)
 set (CHOPPER_XXHASH_PATH "${PROJECT_BINARY_DIR}/lib/libxxhash.a")
 
 if (EXISTS "${CHOPPER_XXHASH_PATH}")
-    add_custom_target(xxhash_project)
+    add_custom_target (xxhash_project)
 else ()
     set (CHOPPER_XXHASH_ARGS "${SEQAN3_EXTERNAL_PROJECT_CMAKE_ARGS}")
     list (APPEND CHOPPER_XXHASH_ARGS "-DXXHASH_BUILD_XXHSUM=OFF")
@@ -96,7 +96,7 @@ endif ()
 add_library (xxhash STATIC IMPORTED)
 add_dependencies (xxhash xxhash_project)
 set_target_properties (xxhash PROPERTIES IMPORTED_LOCATION "${CHOPPER_XXHASH_PATH}")
-target_include_directories(xxhash INTERFACE "${PROJECT_BINARY_DIR}/include")
+target_include_directories (xxhash INTERFACE "${PROJECT_BINARY_DIR}/include")
 
 # Use ccache.
 set (CHOPPER_USE_CCACHE ON CACHE BOOL "Use ccache if available.")

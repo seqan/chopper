@@ -1,3 +1,3 @@
-include(${CMAKE_SOURCE_DIR}/lib/seqan3/test/cmake/add_subdirectories.cmake)
+include (add_subdirectories)
 
 add_subdirectories ()
