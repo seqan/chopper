@@ -90,7 +90,7 @@ jobs:
           mkdir build
           cd build
           cmake ../${{ env.REPOSITORY_NAME }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-                                              -DCMAKE_CXX_FLAGS="${{ matrix.cxx_flags }}"
+                                              -DCMAKE_CXX_FLAGS="-Werror ${{ matrix.cxx_flags }}"
 
       - name: Build application
         env:
@@ -112,6 +112,7 @@ jobs:
           CCACHE_COMPRESS: true
           CCACHE_COMPRESSLEVEL: 6
           CCACHE_MAXSIZE: 500M
+          CMAKE_BUILD_PARALLEL_LEVEL: 3
         run: |
           cd build
-          ctest . -j3 --output-on-failure || ctest . -j3 --output-on-failure --rerun-failed
+           ctest . -j3 --output-on-failure

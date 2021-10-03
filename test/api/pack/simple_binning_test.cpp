@@ -27,7 +27,7 @@ TEST(simple_binning_test, small_example)
     };
 
     EXPECT_EQ(output_buffer.str(), expected);
-    EXPECT_EQ(max_bin, 0);
+    EXPECT_EQ(max_bin, 0u);
 }
 
 TEST(simple_binning_test, uniform_distribution)
@@ -40,7 +40,7 @@ TEST(simple_binning_test, uniform_distribution)
     data.filenames = {"seq1", "seq2", "seq3", "seq4"};
     data.fp_correction = std::vector<double>(65, 1.0);
 
-    simple_binning algo{data, 4};
+    simple_binning algo{data, 4u};
     size_t max_bin = algo.execute();
 
     std::string expected
@@ -52,7 +52,7 @@ TEST(simple_binning_test, uniform_distribution)
     };
 
     EXPECT_EQ(output_buffer.str(), expected);
-    EXPECT_EQ(max_bin, 0);
+    EXPECT_EQ(max_bin, 0u);
 }
 
 TEST(simple_binning_test, user_bins_must_be_smaller_than_technical_bins)

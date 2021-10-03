@@ -41,9 +41,8 @@ TEST(hyperloglog, initialization)
 TEST(hyperloglog, add_and_estimate_small)
 {
     size_t const b = 4;
-    size_t const m = 1 << b;
 
-    hyperloglog sketch(b);
+    hyperloglog sketch(b); // m = 1 << b
 
     // XXH3_64bits hash -> first 4 bits: 0000, rank: 3
     sketch.add("bla", 3);
@@ -76,8 +75,7 @@ TEST(hyperloglog, add_and_estimate_large)
     std::string input_file = DATADIR"small.fa";
     size_t const k = 16;
 
-    size_t const b = 4;
-    size_t const m = 1 << b;
+    size_t const b = 4; // m = 1 << b
     hyperloglog sketch(b);
 
     std::unordered_set<std::string> control;
@@ -106,8 +104,7 @@ TEST(hyperloglog, add_and_estimate_large)
 
 TEST(hyperloglog, add_and_estimate_small_SIMD)
 {
-    size_t const b = 5;
-    size_t const m = 1 << b;
+    size_t const b = 5; // m = 1 << b
 
     hyperloglog sketch(b);
 
@@ -138,8 +135,7 @@ TEST(hyperloglog, merge_and_merge_SIMD)
     std::string input_file = DATADIR"small.fa";
     size_t const k = 16;
 
-    size_t const b = 5;
-    size_t const m = 1 << b;
+    size_t const b = 5; // m = 1 << b
     hyperloglog full_sketch(b);
     hyperloglog merge_sketch(b);
     hyperloglog merge_SIMD_sketch(b);
@@ -166,12 +162,11 @@ TEST(hyperloglog, merge_and_merge_SIMD)
         }
     }
 
-    double merge_SIMD_estimate;
     // merge all partial sketches into merge_sketch
     for (auto & partial_sketch : partial_sketches)
     {
         merge_sketch.merge(partial_sketch);
-        merge_SIMD_estimate = merge_SIMD_sketch.merge_and_estimate_SIMD(partial_sketch);
+        merge_SIMD_sketch.merge_and_estimate_SIMD(partial_sketch);
     }
 
     // now full_sketch and merged_sketch should be equal
@@ -218,8 +213,7 @@ TEST(hyperloglog, dump_and_restore)
     std::string input_file = DATADIR"small.fa";
     size_t const k = 16;
 
-    size_t const b = 4;
-    size_t const m = 1 << b;
+    size_t const b = 4; // m = 1 << b
     hyperloglog dump_sketch(b);
     hyperloglog restore_sketch(b);
 

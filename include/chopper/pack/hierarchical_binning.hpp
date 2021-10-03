@@ -44,12 +44,12 @@ public:
      * same length).
      */
     hierarchical_binning(pack_data & data_, pack_config const & config_, double const query_cost = 0.0) :
-        data{std::addressof(data_)},
         config{config_},
-        total_query_cost{query_cost},
+        data{std::addressof(data_)},
         num_user_bins{data->kmer_counts.size()},
         num_technical_bins{data->previous.empty() ? config.t_max : needed_technical_bins(num_user_bins)},
-        interpolated_cost{ibf_query_cost::interpolated(num_technical_bins)}
+        interpolated_cost{ibf_query_cost::interpolated(num_technical_bins)},
+        total_query_cost{query_cost}
     {
         assert(data != nullptr);
         assert(data->output_buffer != nullptr);
@@ -97,7 +97,7 @@ public:
         // print_matrix(ll_matrix, num_technical_bins, num_user_bins, max_size_t);
         // print_matrix(trace, num_technical_bins, num_user_bins, std::make_pair(max_size_t, max_size_t));
 
-        return std::make_tuple(backtracking(matrix, ll_matrix, trace), total_query_cost);
+        return std::make_tuple(backtracking(matrix, trace), total_query_cost);
     }
 
 private:
@@ -106,7 +106,7 @@ private:
      */
     [[nodiscard]] size_t needed_technical_bins(size_t const requested_num_ub) const
     {
-        return std::min<size_t>(next_multiple_of_64(num_user_bins), config.t_max);
+        return std::min<size_t>(next_multiple_of_64(requested_num_ub), config.t_max);
     }
 
     /*!\brief Returns the maximum number of needed levels when merging `num_ubs_in_merge` many user bins.
@@ -288,7 +288,6 @@ private:
 
     //!\brief Backtracks the trace matrix and writes the resulting binning into the output file.
     size_t backtracking(std::vector<std::vector<size_t>> const & matrix,
-                        std::vector<std::vector<size_t>> const & ll_matrix,
                         std::vector<std::vector<std::pair<size_t, size_t>>> const & trace)
     {
         assert(data != nullptr);
@@ -304,10 +303,12 @@ private:
         // std::cout << std::endl;
 
         if (data->output_buffer->tellp() == 0) // beginning of the file
+        {
             if (config.debug)
                 *data->output_buffer << "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\tEST_MAX_TB_SIZES\tSCORE\tCORR\tT_MAX" << std::endl;
             else
                 *data->output_buffer << "#FILES\tBIN_INDICES\tNUMBER_OF_BINS" << std::endl;
+        }
 
         size_t high_level_max_id{};
         size_t high_level_max_size{};
@@ -341,8 +342,8 @@ private:
                 // that the bin was split (even if only into 1 bin).
 
                 ++trace_i; // because we want the length not the index
-                int const kmer_count = data->kmer_counts[0];
-                int const average_bin_size = kmer_count / trace_i;
+                size_t const kmer_count = data->kmer_counts[0];
+                size_t const average_bin_size = kmer_count / trace_i;
 
                 // add query cost for determination of best t_max
                 total_query_cost += (data->previous.cost + interpolated_cost) * kmer_count;

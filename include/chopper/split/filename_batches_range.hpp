@@ -96,7 +96,7 @@ private:
          * \{
          */
         //!\brief Compares for equality with sentinel.
-        bool operator==(std::default_sentinel_t const & s) const noexcept
+        bool operator==(std::default_sentinel_t const &) const noexcept
         {
             return at_end;
         }

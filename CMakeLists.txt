@@ -43,8 +43,7 @@ set (FontBold "${Esc}[1m")
 set (FontReset "${Esc}[m")
 
 # Dependency: SeqAn3.
-set (SEQAN3_CEREAL ON CACHE BOOL "Require cereal to be present.")
-find_package (SeqAn3 QUIET REQUIRED HINTS lib/seqan3/build_system)
+find_package (SeqAn3 REQUIRED QUIET HINTS lib/seqan3/build_system)
 
 # Allow to include CMake scripts from seqan3.
 list (APPEND CMAKE_MODULE_PATH "${SEQAN3_CLONE_DIR}/test/cmake/")

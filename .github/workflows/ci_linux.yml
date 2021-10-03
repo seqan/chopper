@@ -102,7 +102,7 @@ jobs:
           mkdir build
           cd build
           cmake ../${{ env.REPOSITORY_NAME }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-                                              -DCMAKE_CXX_FLAGS="${{ matrix.cxx_flags }}"
+                                              -DCMAKE_CXX_FLAGS="-Werror ${{ matrix.cxx_flags }}"
 
       - name: Build tests
         env:
