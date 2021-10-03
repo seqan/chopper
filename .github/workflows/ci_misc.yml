@@ -34,6 +34,30 @@ jobs:
             requires_ccache: false
             skip_build_tests: true
             skip_run_tests: false
+          - name: "Header gcc11"
+            cxx: "g++-11"
+            cc: "gcc-11"
+            build_type: Release
+            build: header
+            build_threads: 2
+            test_threads: 2
+            cmake: 3.11.4
+            requires_toolchain: true
+            requires_ccache: true
+            skip_build_tests: false
+            skip_run_tests: true
+          - name: "Header gcc9"
+            cxx: "g++-9"
+            cc: "gcc-9"
+            build_type: Release
+            build: header
+            build_threads: 2
+            test_threads: 2
+            cmake: 3.11.4
+            requires_toolchain: true
+            requires_ccache: true
+            skip_build_tests: false
+            skip_run_tests: true
 
     steps:
       - name: Set repository name
@@ -94,7 +118,9 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake ../${{ env.REPOSITORY_NAME }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_FLAGS="${{ matrix.cxx_flags }}"
+          cmake ../${{ env.REPOSITORY_NAME }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+                                              -DCMAKE_CXX_FLAGS="${{ matrix.cxx_flags }}" \
+                                              -DCHOPPER_HEADER_TEST_ONLY=${{ matrix.build == 'header' && 'ON' || 'OFF'}}
 
       - name: Build tests
         if: ${{!matrix.skip_build_tests}}
@@ -107,7 +133,7 @@ jobs:
         run: |
           ccache -p || true
           cd build
-          make -k -j${{ matrix.build_threads }}
+          CMAKE_BUILD_PARALLEL_LEVEL=${{ matrix.build_threads }} make -k test
           ccache -s || true
 
       - name: Run tests

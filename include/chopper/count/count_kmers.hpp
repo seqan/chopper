@@ -1,3 +1,5 @@
+#pragma once
+
 #include <seqan3/std/filesystem>
 #include <fstream>
 #include <future>
@@ -11,6 +13,7 @@
 #include <seqan3/search/views/minimiser_hash.hpp>
 #include <seqan3/utility/views/to.hpp>
 
+#include <chopper/count/count_config.hpp>
 #include <chopper/union/hyperloglog.hpp>
 
 inline void write_cluster_data(std::pair<std::string, std::vector<std::string>> const & cluster,

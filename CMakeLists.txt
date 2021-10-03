@@ -42,6 +42,13 @@ string (ASCII 27 Esc)
 set (FontBold "${Esc}[1m")
 set (FontReset "${Esc}[m")
 
+# Dependency: SeqAn3.
+set (SEQAN3_CEREAL ON CACHE BOOL "Require cereal to be present.")
+find_package (SeqAn3 QUIET REQUIRED HINTS lib/seqan3/build_system)
+
+# Allow to include CMake scripts from seqan3.
+list (APPEND CMAKE_MODULE_PATH "${SEQAN3_CLONE_DIR}/test/cmake/")
+
 # Define cmake configuration flags to configure and build external projects with the same flags as specified for
 # this project.
 set (SEQAN3_EXTERNAL_PROJECT_CMAKE_ARGS "")
@@ -53,15 +60,12 @@ list (APPEND SEQAN3_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_BUILD_TYPE=${CMAKE_BUIL
 list (APPEND SEQAN3_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}")
 list (APPEND SEQAN3_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_VERBOSE_MAKEFILE=${CMAKE_VERBOSE_MAKEFILE}")
 
-# Dependency: SeqAn3.
-find_package (SeqAn3 QUIET REQUIRED HINTS lib/seqan3/build_system)
-
 # Dependency: SeqAn
 # Note: includes seqan-config.cmake manually to have
 # SEQAN_DEFINITIONS, SEQAN_CXX_FLAGS_LIST, SEQAN_LIBRARIES, SEQAN_INCLUDE_DIRS
 # defined. We don't want any seqan version but the submodule one!
-set (CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/lib/seqan/util/cmake")
-set (CMAKE_INCLUDE_PATH "${CMAKE_SOURCE_DIR}/lib/seqan/include/")
+list (APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/lib/seqan/util/cmake")
+list (APPEND CMAKE_INCLUDE_PATH "${CMAKE_SOURCE_DIR}/lib/seqan/include/")
 include (${CMAKE_SOURCE_DIR}/lib/seqan/util/cmake/seqan-config.cmake)
 
 # Dependency: xxHash
@@ -95,8 +99,11 @@ set_target_properties (xxhash PROPERTIES IMPORTED_LOCATION "${CHOPPER_XXHASH_PAT
 target_include_directories(xxhash INTERFACE "${PROJECT_BINARY_DIR}/include")
 
 # Use ccache.
-include ("${SEQAN3_CLONE_DIR}/test/cmake/seqan3_require_ccache.cmake")
-seqan3_require_ccache ()
+set (CHOPPER_USE_CCACHE ON CACHE BOOL "Use ccache if available.")
+if (CHOPPER_USE_CCACHE)
+     include (seqan3_require_ccache)
+     seqan3_require_ccache ()
+endif ()
 
 # Add the application.
 add_subdirectory (src)

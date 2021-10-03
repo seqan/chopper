@@ -1,6 +1,7 @@
 #pragma once
 
 #include <seqan3/std/filesystem>
+#include <vector>
 
 struct split_config
 {

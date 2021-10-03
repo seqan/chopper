@@ -1,5 +1,7 @@
 #pragma once
 
+#include <fstream>
+
 #include <chopper/detail_bin_prefixes.hpp>
 #include <chopper/detail_starts_with.hpp>
 #include <chopper/split/detail_parse_chopper_pack_line.hpp>

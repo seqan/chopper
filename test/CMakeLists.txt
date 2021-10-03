@@ -6,24 +6,16 @@ add_definitions (-DOUTPUTDIR=\"${CMAKE_CURRENT_BINARY_DIR}/output/\")
 add_definitions (-DDATADIR=\"${CMAKE_CURRENT_BINARY_DIR}/data/\")
 add_definitions (-DBINDIR=\"${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/\")
 
-# Define cmake configuration flags to configure and build external projects with the same flags as specified for
-# this project.
-set (SEQAN3_EXTERNAL_PROJECT_CMAKE_ARGS "")
-list (APPEND SEQAN3_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}")
-list (APPEND SEQAN3_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
-list (APPEND SEQAN3_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}")
-list (APPEND SEQAN3_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_VERBOSE_MAKEFILE=${CMAKE_VERBOSE_MAKEFILE}")
 set (SEQAN3_TEST_CLONE_DIR "${PROJECT_BINARY_DIR}/vendor/googletest")
-
-include ("${SEQAN3_CLONE_DIR}/test/cmake/seqan3_require_test.cmake")
-
+include (seqan3_require_test)
 seqan3_require_test ()
 
 # Build tests just before their execution, because they have not been built with "all" target.
 # The trick is here to provide a cmake file as a directory property that executes the build command.
 file (WRITE "${CMAKE_CURRENT_BINARY_DIR}/build_test_targets.cmake"
             "execute_process(COMMAND ${CMAKE_COMMAND} --build . --target api_test)\n"
-            "execute_process(COMMAND ${CMAKE_COMMAND} --build . --target cli_test)")
+            "execute_process(COMMAND ${CMAKE_COMMAND} --build . --target cli_test)\n"
+            "execute_process(COMMAND ${CMAKE_COMMAND} --build ./header --target header_test)\n")
 set_directory_properties (PROPERTIES TEST_INCLUDE_FILE "${CMAKE_CURRENT_BINARY_DIR}/build_test_targets.cmake")
 
 # Define the test targets. All depending targets are built just before the test execution.
@@ -81,10 +73,16 @@ macro (add_cli_test test_filename)
     add_app_test (${test_filename} CLI_TEST)
 endmacro ()
 
-# Fetch data and add the tests.
-include (data/datasources.cmake)
-add_subdirectory (api)
-add_subdirectory (cli)
-add_subdirectory (coverage)
+set (CHOPPER_HEADER_TEST_ONLY OFF CACHE BOOL "Only build header test.")
+
+if (CHOPPER_HEADER_TEST_ONLY)
+    add_subdirectory (header)
+else ()
+    # Fetch data and add the tests.
+    include (data/datasources.cmake)
+    add_subdirectory (api)
+    add_subdirectory (cli)
+    add_subdirectory (coverage)
+endif ()
 
 message (STATUS "${FontBold}You can run `make test` to build and run tests.${FontReset}")
