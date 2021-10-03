@@ -103,11 +103,11 @@ inline void traverse_graph(lemon::ListDigraph & g,
     // sanity check for graph:
     if (lemon::countInArcs(g, nodes[0]) != 0)
         throw std::logic_error{"The source node cannot have any incoming arcs."};
-    if (lemon::countOutArcs(g, nodes[0]) != node_map[nodes[0]].size())
+    if (static_cast<size_t>(lemon::countOutArcs(g, nodes[0])) != node_map[nodes[0]].size())
         throw std::logic_error{"The source node must have as many outgoing arcs as there are sequences."};
     if (lemon::countOutArcs(g, nodes[1]) != 0)
         throw std::logic_error{"The sink node cannot have any outgoing arcs."};
-    if (lemon::countInArcs(g, nodes[1]) != node_map[nodes[1]].size())
+    if (static_cast<size_t>(lemon::countInArcs(g, nodes[1])) != node_map[nodes[1]].size())
         throw std::logic_error{"The sink node must have as many incoming arcs as there are sequences."};
 
     // When assigning a node to the bin, we want to approximate the kmer_content it adds.

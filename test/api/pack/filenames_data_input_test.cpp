@@ -40,9 +40,9 @@ TEST(read_filename_data_file_test, filenames_and_counts)
     EXPECT_EQ(data.filenames[2], "file3");
 
     ASSERT_EQ(data.kmer_counts.size(), 3u);
-    EXPECT_EQ(data.kmer_counts[0], 1000);
-    EXPECT_EQ(data.kmer_counts[1], 2000);
-    EXPECT_EQ(data.kmer_counts[2], 3000);
+    EXPECT_EQ(data.kmer_counts[0], 1000u);
+    EXPECT_EQ(data.kmer_counts[1], 2000u);
+    EXPECT_EQ(data.kmer_counts[2], 3000u);
 
     EXPECT_EQ(data.extra_information.size(), 3u);
     for (auto const & info : data.extra_information)
@@ -63,9 +63,9 @@ TEST(read_filename_data_file_test, filenames_counts_and_extra_information)
     EXPECT_EQ(data.filenames[2], "file3");
 
     ASSERT_EQ(data.kmer_counts.size(), 3u);
-    EXPECT_EQ(data.kmer_counts[0], 1000);
-    EXPECT_EQ(data.kmer_counts[1], 2000);
-    EXPECT_EQ(data.kmer_counts[2], 3000);
+    EXPECT_EQ(data.kmer_counts[0], 1000u);
+    EXPECT_EQ(data.kmer_counts[1], 2000u);
+    EXPECT_EQ(data.kmer_counts[2], 3000u);
 
     ASSERT_EQ(data.extra_information.size(), 3u);
     EXPECT_EQ(data.extra_information[0], (std::vector<std::string>{"info_a", "info_b"}));

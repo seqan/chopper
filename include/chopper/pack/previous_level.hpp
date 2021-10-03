@@ -16,7 +16,11 @@ struct previous_level
 
     bool empty() const
     {
-        assert(bin_indices.empty() == num_of_bins.empty() == estimated_sizes.empty() == optimal_score.empty() == correction.empty() == tmax.empty());
+        assert(((((bin_indices.empty() == num_of_bins.empty())
+                                       == estimated_sizes.empty())
+                                       == optimal_score.empty())
+                                       == correction.empty())
+                                       == tmax.empty());
         return bin_indices.empty();
     }
 };

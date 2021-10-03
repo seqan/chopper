@@ -20,7 +20,7 @@ TEST(map_distance_matrix_test, length)
 {
     map_distance_matrix m{num_seq{8}, dummy_value{1.0}, upper_distance_threshold{0.9}};
 
-    EXPECT_EQ(length(m), 64);
+    EXPECT_EQ(length(m), 64u);
 }
 
 TEST(map_distance_matrix_test, empty_matrix_has_default_values)

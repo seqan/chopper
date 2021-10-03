@@ -26,7 +26,7 @@ TEST(neighbour_joining_test, small_example_seqan_string)
     auto guideTreeOut = neighbour_joining(mat);
     //std::cout << guideTreeOut << std::endl;
 
-    EXPECT_EQ(seqan::numVertices(guideTreeOut), 15);
+    EXPECT_EQ(seqan::numVertices(guideTreeOut), 15u);
     EXPECT_TRUE(seqan::findEdge(guideTreeOut, 8, 1) != 0);
     EXPECT_TRUE(seqan::findEdge(guideTreeOut, 8, 0) != 0);
     EXPECT_TRUE(seqan::findEdge(guideTreeOut, 9, 5) != 0);
@@ -63,7 +63,7 @@ TEST(neighbour_joining_test, small_example_map_distance_matrix)
     auto guideTreeOut = neighbour_joining(mat);
     //std::cout << guideTreeOut << std::endl;
 
-    EXPECT_EQ(seqan::numVertices(guideTreeOut), 15);
+    EXPECT_EQ(seqan::numVertices(guideTreeOut), 15u);
     EXPECT_TRUE(seqan::findEdge(guideTreeOut, 8, 1) != 0);
     EXPECT_TRUE(seqan::findEdge(guideTreeOut, 8, 0) != 0);
     EXPECT_TRUE(seqan::findEdge(guideTreeOut, 9, 5) != 0);
@@ -99,7 +99,7 @@ TEST(neighbour_joining_test, wikipedia_example)
     std::ofstream dotFile("/tmp/nj.dot");
     writeRecords(dotFile, guideTreeOut, seqan::DotDrawing());
 
-    EXPECT_EQ(seqan::numVertices(guideTreeOut), 7);
+    EXPECT_EQ(seqan::numVertices(guideTreeOut), 7u);
     //EXPECT_TRUE(seqan::findEdge(guideTreeOut, 8, 1) != 0);
     //EXPECT_TRUE(seqan::findEdge(guideTreeOut, 8, 0) != 0);
     //EXPECT_TRUE(seqan::findEdge(guideTreeOut, 9, 5) != 0);

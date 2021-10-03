@@ -314,9 +314,9 @@ auto get_slots_and_weights_and_seq(Graph<Alignment<TStringSet, TCargo, TSpec>> c
     typedef Graph<Alignment<TStringSet, TCargo, TSpec> > TGraph;
     typedef typename Size<TGraph>::Type TSize;
     typedef typename Iterator<TGraph, OutEdgeIterator>::Type TOutEdgeIterator;
-    typedef typename Iterator<TString const, Standard>::Type TStringIterConst;
-    typedef typename Value<TString>::Type TVertexSet;
-    typedef typename Iterator<TVertexSet const, Standard>::Type TVertexSetIterConst;
+    // typedef typename Iterator<TString const, Standard>::Type TStringIterConst;
+    // typedef typename Value<TString>::Type TVertexSet;
+    // typedef typename Iterator<TVertexSet const, Standard>::Type TVertexSetIterConst;
     typedef String<TSize> TSlotToPos;
     typedef String<TCargo> TWeights;
     typedef String<TSize> TSequenceString;

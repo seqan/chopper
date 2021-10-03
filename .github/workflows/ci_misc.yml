@@ -130,10 +130,11 @@ jobs:
           CCACHE_COMPRESS: true
           CCACHE_COMPRESSLEVEL: 6
           CCACHE_MAXSIZE: 500M
+          CMAKE_BUILD_PARALLEL_LEVEL: ${{ matrix.build_threads }}
         run: |
           ccache -p || true
           cd build
-          CMAKE_BUILD_PARALLEL_LEVEL=${{ matrix.build_threads }} make -k test
+          make -k -j${{ matrix.build_threads }} test
           ccache -s || true
 
       - name: Run tests
