@@ -224,3 +224,76 @@ TEST(hierarchical_binning_test, tb0_is_a_merged_bin)
 
     EXPECT_EQ(header_buffer.str() + output_buffer.str(), expected_file) << output_buffer.str();
 }
+
+TEST(hierarchical_binning_test, tb0_is_a_merged_bin_with_debug)
+{
+    pack_config config;
+    config.alpha = 1;
+    config.t_max = 2;
+    config.debug = true;
+
+    std::stringstream output_buffer;
+    std::stringstream header_buffer;
+    pack_data data;
+    data.output_buffer = &output_buffer;
+    data.header_buffer = &header_buffer;
+    data.filenames = {"seq0", "seq1", "seq2", "seq3"};
+    data.kmer_counts = {500, 500, 500, 500};
+    data.compute_fp_correction(0.05, 2);
+
+    hierarchical_binning algo{data, config};
+    EXPECT_EQ(std::get<0>(algo.execute()), 0);
+
+    std::string expected_file
+    {
+        "#MERGED_BIN_0 max_bin_id:0\n"
+        "#MERGED_BIN_1 max_bin_id:0\n"
+        "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\tEST_MAX_TB_SIZES\tSCORE\tCORR\tT_MAX\n"
+        "seq2\t0;0\t1;32\t1000;16\t1000;140\t1.00;9.02\t2;64\n"
+        "seq3\t0;32\t1;32\t1000;16\t1000;140\t1.00;9.02\t2;64\n"
+        "seq0\t1;0\t1;32\t1000;16\t1000;140\t1.00;9.02\t2;64\n"
+        "seq1\t1;32\t1;32\t1000;16\t1000;140\t1.00;9.02\t2;64\n"
+    };
+
+    EXPECT_EQ(header_buffer.str() + output_buffer.str(), expected_file) << output_buffer.str();
+}
+
+TEST(hierarchical_binning_test, tb0_is_a_merged_bin_and_leads_to_recursive_call)
+{
+    pack_config config;
+    config.alpha = 1;
+    config.t_max = 2;
+
+    std::stringstream output_buffer;
+    std::stringstream header_buffer;
+    pack_data data;
+    data.output_buffer = &output_buffer;
+    data.header_buffer = &header_buffer;
+    data.filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7"};
+    data.kmer_counts = {500, 500, 500, 500, 500, 500, 500, 500};
+    data.compute_fp_correction(0.05, 2);
+
+    hierarchical_binning algo{data, config};
+    EXPECT_EQ(std::get<0>(algo.execute()), 0);
+
+    std::string expected_file
+    {
+        "#MERGED_BIN_0;0 max_bin_id:0\n"
+        "#MERGED_BIN_0;1 max_bin_id:0\n"
+        "#MERGED_BIN_0 max_bin_id:0\n"
+        "#MERGED_BIN_1;0 max_bin_id:0\n"
+        "#MERGED_BIN_1;1 max_bin_id:0\n"
+        "#MERGED_BIN_1 max_bin_id:0\n"
+        "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\n"
+        "seq5\t0;0;0\t1;1;32\n"
+        "seq4\t0;0;32\t1;1;32\n"
+        "seq7\t0;1;0\t1;1;32\n"
+        "seq6\t0;1;32\t1;1;32\n"
+        "seq1\t1;0;0\t1;1;32\n"
+        "seq0\t1;0;32\t1;1;32\n"
+        "seq3\t1;1;0\t1;1;32\n"
+        "seq2\t1;1;32\t1;1;32\n"
+    };
+
+    EXPECT_EQ(header_buffer.str() + output_buffer.str(), expected_file) << output_buffer.str();
+}
