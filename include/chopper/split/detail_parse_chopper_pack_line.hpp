@@ -9,6 +9,7 @@
 
 #include <chopper/detail_bin_prefixes.hpp>
 #include <chopper/detail_starts_with.hpp>
+#include <chopper/detail_string_view.hpp>
 
 struct chopper_pack_record
 {
@@ -50,47 +51,39 @@ inline std::ostream & operator<<(std::ostream & s, chopper_pack_record const & r
       return s;
 }
 
-inline auto parse_chopper_pack_line(std::string const & current_line)
+inline chopper_pack_record parse_chopper_pack_line(std::string const & current_line)
 {
     chopper_pack_record result{};
 
     // initialize parsing
-    char const * buffer = current_line.c_str();
-    auto field_start = &buffer[0];
-    auto field_end = &buffer[0];
-    auto const buffer_end = field_start + current_line.size();
+    std::string_view const buffer{current_line};
+    auto const buffer_end{buffer.end()};
+    auto field_end = buffer.begin();
     while (field_end != buffer_end && *field_end != '\t') ++field_end;
 
     // parse filenames
-    std::string filenames_str = std::string(field_start, field_end);
-    for (auto && filename : filenames_str | std::views::split(';'))
-        result.filenames.push_back((filename | seqan3::views::to<std::string>));
+    std::string_view const filenames{chopper::detail::string_view(buffer.begin(), field_end)};
+    for (auto && filename : filenames | std::views::split(';'))
+    {
+        auto const common_view = filename | std::views::common;
+        result.filenames.emplace_back(common_view.begin(), common_view.end());
+    }
 
-    size_t tmp; // temporary size_t
+    size_t tmp{};
 
     do // read bin_indices
     {
         ++field_end; // skip tab or ;
-        auto res = std::from_chars(field_end, buffer_end, tmp);
-        field_end = res.ptr;
+        field_end = std::from_chars(field_end, buffer_end, tmp).ptr;
         result.bin_indices.push_back(tmp);
     } while (field_end != buffer_end && *field_end != '\t');
 
     do // read number of technical bins
     {
         ++field_end; // skip tab or ;
-        auto res = std::from_chars(field_end, buffer_end, tmp);
-        field_end = res.ptr;
+        field_end = std::from_chars(field_end, buffer_end, tmp).ptr;
         result.number_of_bins.push_back(tmp);
     } while (field_end != buffer_end && *field_end != '\t');
-
-    do // read estimated maximum technical bin size
-    {
-        ++field_end; // skip tab or ;
-        auto res = std::from_chars(field_end, buffer_end, tmp);
-        field_end = res.ptr;
-        result.estimated_sizes.push_back(tmp);
-    } while (field_end != buffer_end && *field_end != '\n');
 
     return result;
 }
