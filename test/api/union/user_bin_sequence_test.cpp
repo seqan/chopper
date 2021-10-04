@@ -1,7 +1,5 @@
 #include <gtest/gtest.h>
 
-#include <unordered_set>
-
 #include <chopper/union/user_bin_sequence.hpp>
 
 #include "../api_test.hpp"
