@@ -111,7 +111,8 @@ int chopper_pack(seqan3::argument_parser & parser)
     read_filename_data_file(data, config);
 
     config.t_max = next_multiple_of_64(config.t_max);
-
+    data.compute_fp_correction(config.fp_rate, config.num_hash_functions, config.t_max);
+    
     // Some sanity checks on the input file and user options.
     if (data.filenames.empty())
         throw std::runtime_error{"[CHOPPER PACK ERROR] File Error: you passed an empty file."};
