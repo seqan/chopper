@@ -13,7 +13,7 @@
 
 class user_bin_sequence
 {
-private:
+protected:
     //!\brief type for a node in the clustering tree when for the rearrangement
     struct clustering_node
     {
@@ -202,7 +202,7 @@ public:
         apply_permutation(permutation);
     }
 
-private:
+protected:
     /*!\brief Perform an agglomerative clustering variant on the index range [first:last)
      * \param[in] first id of the first cluster of the interval
      * \param[in] last id of the last cluster of the interval plus one
