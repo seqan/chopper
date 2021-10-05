@@ -125,9 +125,9 @@ public:
         }
         catch (std::runtime_error const & err)
         {
-            std::cerr << "[CHOPPER PACK ERROR] Something went wrong trying to read the HyperLogLog sketches from files:\n"
-                      << err.what() << '\n';
-            exit(1);
+            std::string const chopper_msg{"[CHOPPER PACK ERROR] Something went wrong trying to read the HyperLogLog"
+                                          " sketches from files:\n"};
+            throw std::runtime_error{chopper_msg + err.what()};
         }
     }
 
