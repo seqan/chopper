@@ -102,7 +102,7 @@ public:
     */
     void read_hll_files(std::filesystem::path const & hll_dir)
     {
-        if (hll_dir.empty())
+        if (std::filesystem::is_empty(hll_dir))
         {
             throw std::runtime_error("A directory where the HyperLogLog sketches are stored must be given "
                                      "when union estimates are enabled");
