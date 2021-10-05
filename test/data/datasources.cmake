@@ -48,8 +48,8 @@ declare_datasource (FILE small.split
 
 declare_datasource (FILE small.hll
                     URL ${CMAKE_SOURCE_DIR}/test/data/small.hll
-                    URL_HASH SHA256=5f235295fe7ae7ae3af3db680a7a12afe859874e37015725e1a0ff068c143901)
+                    URL_HASH SHA256=0f0791fb26fb87b854108e43e5350ff49b483082aca2b6afe5b7b63ff727c15a)
 
 declare_datasource (FILE small2.hll
                     URL ${CMAKE_SOURCE_DIR}/test/data/small2.hll
-                    URL_HASH SHA256=5f235295fe7ae7ae3af3db680a7a12afe859874e37015725e1a0ff068c143901)
+                    URL_HASH SHA256=0f0791fb26fb87b854108e43e5350ff49b483082aca2b6afe5b7b63ff727c15a)
