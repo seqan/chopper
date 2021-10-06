@@ -30,6 +30,8 @@ public:
     {}
 
     using user_bin_sequence::apply_permutation;
+    using user_bin_sequence::distance_matrix;
+    using user_bin_sequence::prio_queue;
 };
 
 TEST_F(user_bin_sequence_test, construction)
@@ -113,4 +115,28 @@ TEST_F(user_bin_sequence_test, read_hll_files_faulty_file)
     }
 
     EXPECT_THROW(this->read_hll_files(tmp_file.get_path().parent_path()), std::runtime_error);
+}
+
+TEST_F(user_bin_sequence_test, random_shuffle)
+{
+    prio_queue default_pq{};
+    distance_matrix dist{{0, default_pq},{1, default_pq},{2, default_pq},{3, default_pq},{4, default_pq}};
+    robin_hood::unordered_flat_map<size_t, size_t> ids{{0,0},{1,1},{2,2},{3,3},{4,4}};
+
+    this->random_shuffle(dist, ids);
+
+    // since randomness is seeded, the output is deterministic
+    auto [new_pos_0, new_pos_1, new_pos_2, new_pos_3, new_pos_4] = std::make_tuple(3u, 2u, 1u, 0u, 4u);
+
+    EXPECT_EQ(ids[0], new_pos_0);
+    EXPECT_EQ(ids[1], new_pos_1);
+    EXPECT_EQ(ids[2], new_pos_2);
+    EXPECT_EQ(ids[3], new_pos_3);
+    EXPECT_EQ(ids[4], new_pos_4);
+
+    EXPECT_EQ(dist[new_pos_0].id, 0u);
+    EXPECT_EQ(dist[new_pos_1].id, 1u);
+    EXPECT_EQ(dist[new_pos_2].id, 2u);
+    EXPECT_EQ(dist[new_pos_3].id, 3u);
+    EXPECT_EQ(dist[new_pos_4].id, 4u);
 }
