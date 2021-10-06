@@ -550,6 +550,9 @@ protected:
      * \param[in] previous_rightmost the id of the node on the left which should be ignored
      * \param[in] first the id of the first node in the interval to shift the index
      * \param[in] id the id of the current node
+     *
+     * This function traverses the tree in depth-first-search accessing the leaves from left to right.
+     * 'Left to right' refers to the order of nodes in `clustering`.
      */
     void trace(std::vector<clustering_node> const & clustering,
                std::vector<size_t> & permutation,
@@ -559,9 +562,10 @@ protected:
     {
         clustering_node const & curr = clustering[id - first];
 
-        if (curr.left == std::numeric_limits<size_t>::max())
+        if (curr.left == std::numeric_limits<size_t>::max()) // I am at a leaf
         {
-            if (id != previous_rightmost) permutation.push_back(id);
+            if (id != previous_rightmost)
+                permutation.push_back(id);
             return;
         }
 

@@ -219,3 +219,26 @@ TEST_F(user_bin_sequence_test, rotate)
     EXPECT_EQ(std::tie(clustering[5].left, clustering[5].right), std::make_tuple(0u, 1u));
     EXPECT_EQ(std::tie(clustering[6].left, clustering[6].right), std::make_tuple(2u, 3u));
 }
+
+TEST_F(user_bin_sequence_test, trace)
+{
+    hyperloglog s{5}; // default sketch for every entry in the tree as it is not important for rotate
+    auto f = std::numeric_limits<size_t>::max();
+
+    /* test clustering tree
+     * The root is at position 0. 'f' means infinity.
+     *             (5,6)
+     *            /     \
+     *        (1,3)     (2,0)
+     *       /    \     /    \
+     *   (f,f)  (f,f) (f,f) (f,f) the leaves are the UBs to be clustered
+     */
+    std::vector<clustering_node> clustering{{f,f,s}, {f,f,s}, {f,f,s}, {f,f,s}, // the leaves come first
+                                            {5,6,s}, {1,3,s}, {2,0,s}};
+
+    std::vector<size_t> permutation{};
+
+    this->trace(clustering, permutation, 2/*previous_rightmost*/, 0/*interval_start*/, 4/*root_id*/);
+
+    EXPECT_RANGE_EQ(permutation, (std::vector<size_t>{1, 3, 0}));
+}
