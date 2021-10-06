@@ -509,6 +509,9 @@ protected:
      * \param[in] first the id of the first node in the interval to shift the index
      * \param[in] id the id of the current node
      *
+     * If called with the root of the tree, this function recursively calls itself while rotating
+     * several subtrees until previous_rightmost is at the very left end of the whole clustering tree.
+     *
      * \return whether previous rightmost was in the subtree rooted at id
      */
     bool rotate(std::vector<clustering_node> & clustering,
@@ -516,25 +519,28 @@ protected:
                 size_t const first,
                 size_t const id)
     {
-        if (id == previous_rightmost) return true;
+        if (id == previous_rightmost) // we are at the leaf that is previous_rightmost (Anchor of the recursion)
+            return true;
 
         clustering_node & curr = clustering[id - first];
-        if (curr.left == std::numeric_limits<size_t>::max())
+
+        if (curr.left == std::numeric_limits<size_t>::max()) // we are at a leaf that is not previous_rightmost
         {
             return false;
         }
-
         // nothing to do if previous_rightmost is in the left subtree
-        if(rotate(clustering, previous_rightmost, first, curr.left)) return true;
-
+        else if(rotate(clustering, previous_rightmost, first, curr.left))
+        {
+            return true;
+        }
         // rotate if previous_rightmost is in the right subtree
-        if(rotate(clustering, previous_rightmost, first, curr.right))
+        else if(rotate(clustering, previous_rightmost, first, curr.right))
         {
             std::swap(curr.left, curr.right);
             return true;
         }
 
-        // previous_rightmost is not in this subtree
+        // else: previous_rightmost is not in this subtree
         return false;
     }
 
@@ -544,6 +550,9 @@ protected:
      * \param[in] previous_rightmost the id of the node on the left which should be ignored
      * \param[in] first the id of the first node in the interval to shift the index
      * \param[in] id the id of the current node
+     *
+     * This function traverses the tree in depth-first-search accessing the leaves from left to right.
+     * 'Left to right' refers to the order of nodes in `clustering`.
      */
     void trace(std::vector<clustering_node> const & clustering,
                std::vector<size_t> & permutation,
@@ -553,9 +562,10 @@ protected:
     {
         clustering_node const & curr = clustering[id - first];
 
-        if (curr.left == std::numeric_limits<size_t>::max())
+        if (curr.left == std::numeric_limits<size_t>::max()) // I am at a leaf
         {
-            if (id != previous_rightmost) permutation.push_back(id);
+            if (id != previous_rightmost)
+                permutation.push_back(id);
             return;
         }
 
