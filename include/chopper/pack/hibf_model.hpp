@@ -7,7 +7,7 @@
 #include <numeric>
 #include <vector>
 
-#include <chopper/byte_size_to_formatted_str.hpp>
+#include <chopper/pack/byte_size_to_formatted_str.hpp>
 #include <chopper/pack/compute_bin_size.hpp>
 #include <chopper/pack/pack_config.hpp>
 
