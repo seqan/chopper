@@ -13,7 +13,7 @@
 
 class user_bin_sequence
 {
-private:
+protected:
     //!\brief type for a node in the clustering tree when for the rearrangement
     struct clustering_node
     {
@@ -102,7 +102,7 @@ public:
     */
     void read_hll_files(std::filesystem::path const & hll_dir)
     {
-        if (hll_dir.empty())
+        if (std::filesystem::is_empty(hll_dir))
         {
             throw std::runtime_error("A directory where the HyperLogLog sketches are stored must be given "
                                      "when union estimates are enabled");
@@ -125,9 +125,9 @@ public:
         }
         catch (std::runtime_error const & err)
         {
-            std::cerr << "[CHOPPER PACK ERROR] Something went wrong trying to read the HyperLogLog sketches from files:\n"
-                      << err.what() << '\n';
-            exit(1);
+            std::string const chopper_msg{"[CHOPPER PACK ERROR] Something went wrong trying to read the HyperLogLog"
+                                          " sketches from files:\n"};
+            throw std::runtime_error{chopper_msg + err.what()};
         }
     }
 
@@ -202,7 +202,7 @@ public:
         apply_permutation(permutation);
     }
 
-private:
+protected:
     /*!\brief Perform an agglomerative clustering variant on the index range [first:last)
      * \param[in] first id of the first cluster of the interval
      * \param[in] last id of the last cluster of the interval plus one
