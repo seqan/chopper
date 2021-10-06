@@ -23,12 +23,14 @@ int main(int argc, const char *argv [])
 
     seqan3::argument_parser & sub_parser = top_level_parser.get_sub_parser(); // hold a reference to the sub_parser
 
-    if (sub_parser.info.app_name == std::string_view{"chopper-split"})
-        return chopper_split(sub_parser);
-    else if (sub_parser.info.app_name == std::string_view{"chopper-pack"})
-        return chopper_pack(sub_parser);
-    else if (sub_parser.info.app_name == std::string_view{"chopper-count"})
-        return chopper_count(sub_parser);
+    int error_code{};
 
-    return 0;
+    if (sub_parser.info.app_name == std::string_view{"chopper-split"})
+        error_code = chopper_split(sub_parser);
+    else if (sub_parser.info.app_name == std::string_view{"chopper-pack"})
+        error_code = chopper_pack(sub_parser);
+    else if (sub_parser.info.app_name == std::string_view{"chopper-count"})
+        error_code = chopper_count(sub_parser);
+
+    return error_code;
 }
