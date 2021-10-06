@@ -32,6 +32,7 @@ public:
     using user_bin_sequence::apply_permutation;
     using user_bin_sequence::distance_matrix;
     using user_bin_sequence::prio_queue;
+    using user_bin_sequence::clustering_node;
 };
 
 TEST_F(user_bin_sequence_test, construction)
@@ -178,4 +179,43 @@ TEST_F(user_bin_sequence_test, prune)
     EXPECT_EQ(dist[0].id, 0u);
     EXPECT_EQ(dist[1].id, 4u);
     EXPECT_EQ(dist[2].id, 2u);
+}
+
+TEST_F(user_bin_sequence_test, rotate)
+{
+    hyperloglog s{5}; // default sketch for every entry in the tree as it is not important for rotate
+    auto f = std::numeric_limits<size_t>::max();
+
+    /* test clustering tree
+     * The root is at position 0. 'f' means infinity.
+     *             (5,6)
+     *            /     \
+     *        (0,1)     (2,3)
+     *       /    \     /    \
+     *   (f,f)  (f,f) (f,f) (f,f) the leaves are the UBs to be clustered
+     */
+    std::vector<clustering_node> clustering{{f,f,s}, {f,f,s}, {f,f,s}, {f,f,s}, // the leaves come first
+                                            {5,6,s}, {0,1,s}, {2,3,s}};
+
+    // previous_rightmost is already at the very left. Nothing has to be rotated.
+    rotate(clustering, 0/*previous_rightmost*/, 0/*interval_start*/, 4/*root_id*/);
+
+    EXPECT_EQ(std::tie(clustering[0].left, clustering[0].right), std::tie(f, f));
+    EXPECT_EQ(std::tie(clustering[1].left, clustering[1].right), std::tie(f, f));
+    EXPECT_EQ(std::tie(clustering[2].left, clustering[2].right), std::tie(f, f));
+    EXPECT_EQ(std::tie(clustering[3].left, clustering[3].right), std::tie(f, f));
+    EXPECT_EQ(std::tie(clustering[4].left, clustering[4].right), std::make_tuple(5u, 6u));
+    EXPECT_EQ(std::tie(clustering[5].left, clustering[5].right), std::make_tuple(0u, 1u));
+    EXPECT_EQ(std::tie(clustering[6].left, clustering[6].right), std::make_tuple(2u, 3u));
+
+    // now the previous_rightmost is within the tree. Rotation should take place
+    rotate(clustering, 2/*previous_rightmost*/, 0/*interval_start*/, 4/*root_id*/);
+
+    EXPECT_EQ(std::tie(clustering[0].left, clustering[0].right), std::tie(f, f));
+    EXPECT_EQ(std::tie(clustering[1].left, clustering[1].right), std::tie(f, f));
+    EXPECT_EQ(std::tie(clustering[2].left, clustering[2].right), std::tie(f, f));
+    EXPECT_EQ(std::tie(clustering[3].left, clustering[3].right), std::tie(f, f));
+    EXPECT_EQ(std::tie(clustering[4].left, clustering[4].right), std::make_tuple(6u, 5u));
+    EXPECT_EQ(std::tie(clustering[5].left, clustering[5].right), std::make_tuple(0u, 1u));
+    EXPECT_EQ(std::tie(clustering[6].left, clustering[6].right), std::make_tuple(2u, 3u));
 }
