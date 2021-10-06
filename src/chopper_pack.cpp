@@ -2,6 +2,7 @@
 
 #include <chopper/pack/aggregate_by.hpp>
 #include <chopper/pack/filenames_data_input.hpp>
+#include <chopper/pack/hibf_model.hpp>
 #include <chopper/pack/hierarchical_binning.hpp>
 #include <chopper/pack/ibf_query_cost.hpp>
 #include <chopper/pack/pack_config.hpp>
@@ -79,6 +80,9 @@ int set_up_and_parse_subparser_split(seqan3::argument_parser & parser, pack_conf
                     "If given together with --determine-num-bins, all binnings up to the chosen t_max are computed "
                     "instead of stopping when the expected query costs become worse.");
 
+    parser.add_flag(config.verbose, 'v', "verbose", "Print additional statistics and information to the "
+                    "command line.");
+
     parser.add_flag(config.debug, '\0', "debug",
                     "Enables debug output in packing file.",
                     seqan3::option_spec::advanced);
@@ -112,7 +116,7 @@ int chopper_pack(seqan3::argument_parser & parser)
 
     config.t_max = next_multiple_of_64(config.t_max);
     data.compute_fp_correction(config.fp_rate, config.num_hash_functions, config.t_max);
-    
+
     // Some sanity checks on the input file and user options.
     if (data.filenames.empty())
         throw std::runtime_error{"[CHOPPER PACK ERROR] File Error: you passed an empty file."};
@@ -137,7 +141,9 @@ int chopper_pack(seqan3::argument_parser & parser)
         // with -determine-num-bins the algorithm is executed multiple times and result with the minimum
         // expected query costs is written to the output
         std::cout << std::fixed << std::setprecision(4);
-        std::cout << "T_Max\tC_{T_Max}\trelative expected HIBF query cost\n";
+        if (!config.verbose) 
+            std::cout << "T_Max\tC_{T_Max}\trelative expected HIBF query cost\n";
+        
         double best_expected_HIBF_query_cost{std::numeric_limits<double>::infinity()};
         size_t best_t_max{};
 
@@ -155,15 +161,23 @@ int chopper_pack(seqan3::argument_parser & parser)
             data.previous = previous_level{};
             config.t_max = t_max;
 
+            hibf_model hibf(config, data.fp_correction);
             // execute the actual algorithm
-            auto const && [max_hibf_id_tmp, total_query_cost] = hierarchical_binning{data, config}.execute();
+            auto const && [max_hibf_id_tmp, total_query_cost] = hierarchical_binning{data, config, hibf.get_top_level_ibf()}
+                                                                .execute();
 
             double const expected_HIBF_query_cost = total_query_cost / total_kmer_count;
+
+            if (config.verbose) 
+                std::cout << "T_Max\tC_{T_Max}\trelative expected HIBF query cost\n";
 
             std::cout << t_max << '\t'
                       << ibf_query_cost::exact(t_max)<< '\t'
                       << expected_HIBF_query_cost << '\n';
 
+            if (config.verbose)
+                hibf.print_summary();
+            
             // Use result if better than previous one.
             if (expected_HIBF_query_cost < best_expected_HIBF_query_cost)
             {
@@ -176,7 +190,7 @@ int chopper_pack(seqan3::argument_parser & parser)
             else if (!config.force_all_binnings)
                 break;
         }
-        std::cout << "Best t_max (total): " << best_t_max << '\n';
+        std::cout << "Best t_max (regarding expected query runtime): " << best_t_max << '\n';
     }
     else
     {
@@ -184,7 +198,11 @@ int chopper_pack(seqan3::argument_parser & parser)
         data.output_buffer = &output_buffer;
         data.header_buffer = &header_buffer;
 
-        max_hibf_id = std::get<0>(hierarchical_binning{data, config}.execute());
+        hibf_model hibf(config, data.fp_correction);
+        max_hibf_id = std::get<0>(hierarchical_binning{data, config, hibf.get_top_level_ibf()}.execute());
+
+        if (config.verbose) 
+            hibf.print_summary();
     }
 
     // brief Write the output to the result file.

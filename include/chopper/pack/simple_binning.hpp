@@ -8,6 +8,7 @@
 #include <vector>
 
 #include <chopper/helper.hpp>
+#include <chopper/pack/hibf_model.hpp>
 #include <chopper/pack/pack_data.hpp>
 #include <chopper/pack/previous_level.hpp>
 #include <chopper/pack/print_matrix.hpp>
@@ -84,6 +85,9 @@ private:
     //!\brief The data input: filenames associated with the user bin and a kmer count per user bin.
     pack_data const * const data{nullptr};
 
+    //!\brief The model of the current level IBF for statistics generation
+    hibf_model::ibf * const ibf_model{nullptr};
+
     /*!\brief The number of User bins.
      *
      * The user may impose a structure on his sequence data in the form of *logical groups* (e.g. species).
@@ -120,8 +124,12 @@ public:
      * \attention The number of technical bins must be greater or equal to the number of user bins!
      *            If you want to use less technical bins than user bins, see the hierarchical_binning algorithm.
      */
-    simple_binning(pack_data const & data_, size_t const num_bins = 0, bool const debug_ = false) :
+    simple_binning(pack_data const & data_, 
+                   hibf_model::ibf & ibf_model_,
+                   size_t const num_bins = 0, 
+                   bool const debug_ = false) :
         data{std::addressof(data_)},
+        ibf_model{std::addressof(ibf_model_)},
         num_user_bins{data->kmer_counts.size()},
         num_technical_bins{num_bins ? num_bins : next_multiple_of_64(num_user_bins)},
         debug{debug_}
@@ -129,6 +137,7 @@ public:
         assert(data != nullptr);
         assert(data->output_buffer != nullptr);
         assert(data->header_buffer != nullptr);
+        assert(ibf_model != nullptr);
 
         if (debug)
         {
@@ -217,6 +226,9 @@ public:
             size_t const number_of_bins = (trace_i - next_i);
             size_t const kmer_count_per_bin = (kmer_count + number_of_bins - 1) / number_of_bins; // round up
 
+            // add split bin to ibf model for statistics generation
+            ibf_model->emplace_back(hibf_model::bin_kind::split, kmer_count_per_bin, 1ul, number_of_bins);
+
             // columns: IBF_ID,NAME,NUM_TECHNICAL_BINS,ESTIMATED_TB_SIZE
             *data->output_buffer << data->filenames[trace_j] << '\t'
                                  << data->previous.bin_indices  << ';' << bin_id << '\t'
@@ -248,6 +260,9 @@ public:
         size_t const kmer_count = data->kmer_counts[0];
         size_t const kmer_count_per_bin =  (kmer_count + trace_i - 1) / trace_i;
 
+        // add split bin to ibf model for statistics generation
+        ibf_model->emplace_back(hibf_model::bin_kind::split, kmer_count_per_bin, 1ul, trace_i);
+        
         if (kmer_count_per_bin > max_size)
         {
             max_id = bin_id;
