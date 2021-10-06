@@ -140,3 +140,42 @@ TEST_F(user_bin_sequence_test, random_shuffle)
     EXPECT_EQ(dist[new_pos_3].id, 3u);
     EXPECT_EQ(dist[new_pos_4].id, 4u);
 }
+
+TEST_F(user_bin_sequence_test, prune)
+{
+    prio_queue default_pq{};
+    distance_matrix dist{{0, default_pq},{1, default_pq},{2, default_pq},{3, default_pq},{4, default_pq}};
+    robin_hood::unordered_flat_map<size_t, size_t> remaining_ids{{0,0},{1,1},{2,2},{3,3},{4,4}};
+
+    // since remaining_ids contains all_ids, prune shouldn't do anything. All ids are valid.
+    this->prune(dist, remaining_ids);
+
+    EXPECT_EQ(remaining_ids[0], 0u);
+    EXPECT_EQ(remaining_ids[1], 1u);
+    EXPECT_EQ(remaining_ids[2], 2u);
+    EXPECT_EQ(remaining_ids[3], 3u);
+    EXPECT_EQ(remaining_ids[4], 4u);
+
+    EXPECT_EQ(dist.size(), 5u);
+    EXPECT_EQ(dist[0].id, 0u);
+    EXPECT_EQ(dist[1].id, 1u);
+    EXPECT_EQ(dist[2].id, 2u);
+    EXPECT_EQ(dist[3].id, 3u);
+    EXPECT_EQ(dist[4].id, 4u);
+
+    remaining_ids.erase(1);
+    remaining_ids.erase(3);
+
+    // distance entry 1 and 3 are now invalid, since they do not occur in remaining_ids
+    // prune() should therefore remove them from dist.
+    this->prune(dist, remaining_ids);
+
+    EXPECT_EQ(remaining_ids[0], 0u);
+    EXPECT_EQ(remaining_ids[2], 2u);
+    EXPECT_EQ(remaining_ids[4], 1u);
+
+    EXPECT_EQ(dist.size(), 3u);
+    EXPECT_EQ(dist[0].id, 0u);
+    EXPECT_EQ(dist[1].id, 4u);
+    EXPECT_EQ(dist[2].id, 2u);
+}
