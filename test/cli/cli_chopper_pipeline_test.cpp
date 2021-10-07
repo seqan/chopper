@@ -75,7 +75,7 @@ TEST_F(cli_test, chopper_pipeline)
     seqan3::test::tmp_filename const binning_filename{"output.binning"};
 
     cli_test_result pack_result = execute_app("chopper", "pack",
-                                              "-b", "2",
+                                              "-b", "64",
                                               "-f", count_filename.get_path().c_str(),
                                               "-o", binning_filename.get_path().c_str());
 
@@ -221,7 +221,7 @@ TEST_F(cli_test, chopper_hll_pipeline)
     seqan3::test::tmp_filename const binning_filename{"output.binning"};
 
     cli_test_result pack_result = execute_app("chopper", "pack",
-                                              "-b", "2",
+                                              "-b", "64",
                                               "-t", "2",
                                               "-r",
                                               "-d", hll_dir.path().c_str(),

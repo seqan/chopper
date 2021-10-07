@@ -27,7 +27,7 @@ TEST(chopper_pack_test, few_ubs)
     }
 
     char const * const argv[] = {"./chopper-pack",
-                                 "-b", "4",
+                                 "-b", "64",
                                  "-f", count_file.get_path().c_str(),
                                  "-o", pack_file.get_path().c_str()};
     int const argc = sizeof(argv) / sizeof(*argv);
@@ -71,7 +71,7 @@ TEST(chopper_pack_test, few_ubs_debug)
     }
 
     char const * const argv[] = {"./chopper-pack",
-                                 "-b", "4",
+                                 "-b", "64",
                                  "-f", count_file.get_path().c_str(),
                                  "-o", pack_file.get_path().c_str(),
                                  "--debug"};
@@ -112,7 +112,7 @@ TEST(chopper_pack_test, many_ubs_debug)
     }
 
     char const * const argv[] = {"./chopper-pack",
-                                 "-b", "4",
+                                 "-b", "64",
                                  "-f", count_file.get_path().c_str(),
                                  "-o", pack_file.get_path().c_str(),
                                  "--debug"};
