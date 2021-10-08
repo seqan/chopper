@@ -143,6 +143,9 @@ public:
         assert(user_bin_kmer_counts != nullptr);
         assert(filenames != nullptr);
 
+        if (filenames->size() > sketches.size())
+            throw std::runtime_error{"You need to compute or load sketches before you can estimate intervals."};
+
         estimates.clear();
         size_t const n = filenames->size();
         estimates.resize(n);
