@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <string>
+#include <cmath>
 
 #include <chopper/pack/pack_config.hpp>
 
