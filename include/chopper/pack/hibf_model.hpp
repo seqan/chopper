@@ -7,8 +7,7 @@
 #include <numeric>
 #include <vector>
 
-#include <chopper/pack/byte_size_to_formatted_str.hpp>
-#include <chopper/pack/compute_bin_size.hpp>
+#include <chopper/helper.hpp>
 #include <chopper/pack/pack_config.hpp>
 
 #include <robin_hood.h>
