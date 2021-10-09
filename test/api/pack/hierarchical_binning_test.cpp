@@ -4,6 +4,8 @@
 #include <sstream>
 #include <vector>
 
+#include <chopper/helper.hpp>
+#include <chopper/pack/hibf_model.hpp>
 #include <chopper/pack/hierarchical_binning.hpp>
 #include <robin_hood.h>
 
@@ -19,12 +21,13 @@ TEST(hierarchical_binning_test, filenames_and_kmer_counts_size_differs)
     pack_data data;
     data.output_buffer = &output_buffer;
     data.header_buffer = &header_buffer;
-    data.compute_fp_correction(0.05, 2);
+    data.compute_fp_correction(0.05, 2, next_multiple_of_64(config.t_max));
 
     data.filenames = {"seq0", "seq1"};   // 2 filenames
     data.kmer_counts = {500, 1000, 500}; // 3 kmer_counts :(
-
-    EXPECT_THROW((hierarchical_binning{data, config}), std::runtime_error);
+    
+    hibf_model hibf(config, data.fp_correction);
+    EXPECT_THROW((hierarchical_binning{data, config, hibf.get_top_level_ibf()}), std::runtime_error);
 }
 
 TEST(hierarchical_binning_test, small_example)
@@ -39,8 +42,9 @@ TEST(hierarchical_binning_test, small_example)
     data.header_buffer = &header_buffer;
     data.filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6",  "seq7"};
     data.kmer_counts = {500, 1000, 500, 500, 500, 500, 500, 500};
-    data.compute_fp_correction(0.05, 2);
-    hierarchical_binning algo{data, config};
+    data.compute_fp_correction(0.05, 2, next_multiple_of_64(config.t_max));
+    hibf_model hibf(config, data.fp_correction);
+    hierarchical_binning algo{data, config, hibf.get_top_level_ibf()};
     EXPECT_EQ(std::get<0>(algo.execute()), 1u); // #HIGH_LEVEL_IBF max_bin_id:3
 
     std::string expected_file
@@ -73,9 +77,10 @@ TEST(hierarchical_binning_test, another_example)
     data.header_buffer = &header_buffer;
     data.filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6",  "seq7"};
     data.kmer_counts = {50, 1000, 1000, 50, 5, 10, 10, 5};
-    data.compute_fp_correction(0.05, 2);
+    data.compute_fp_correction(0.05, 2, next_multiple_of_64(config.t_max));
 
-    hierarchical_binning algo{data, config};
+    hibf_model hibf(config, data.fp_correction);
+    hierarchical_binning algo{data, config, hibf.get_top_level_ibf()};
     EXPECT_EQ(std::get<0>(algo.execute()), 1u); // #HIGH_LEVEL_IBF max_bin_id:1
 
     std::string expected_file
@@ -108,9 +113,10 @@ TEST(hierarchical_binning_test, high_level_max_bin_id_is_0)
     data.header_buffer = &header_buffer;
     data.filenames = {"seq0", "seq1", "seq2", "seq3"};
     data.kmer_counts = {500, 500, 500, 500};
-    data.compute_fp_correction(0.05, 2);
+    data.compute_fp_correction(0.05, 2, next_multiple_of_64(config.t_max));
 
-    hierarchical_binning algo{data, config};
+    hibf_model hibf(config, data.fp_correction);
+    hierarchical_binning algo{data, config, hibf.get_top_level_ibf()};
     EXPECT_EQ(std::get<0>(algo.execute()), 0u); // #HIGH_LEVEL_IBF max_bin_id:1
 
     std::string expected_file
@@ -138,9 +144,10 @@ TEST(hierarchical_binning_test, knuts_example)
     data.header_buffer = &header_buffer;
     data.filenames = {"seq0", "seq1", "seq2", "seq3", "seq4"};
     data.kmer_counts = {60, 600, 1000, 800, 800};
-    data.compute_fp_correction(0.05, 2);
+    data.compute_fp_correction(0.05, 2, next_multiple_of_64(config.t_max));
 
-    hierarchical_binning algo{data, config};
+    hibf_model hibf(config, data.fp_correction);
+    hierarchical_binning algo{data, config, hibf.get_top_level_ibf()};
     EXPECT_EQ(std::get<0>(algo.execute()), 1u);
 
     std::string expected_file
@@ -170,9 +177,10 @@ TEST(hierarchical_binning_test, four_level_hibf)
     data.header_buffer = &header_buffer;
     data.filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5"};
     data.kmer_counts = {11090, 5080, 3040, 1020, 510, 500};
-    data.compute_fp_correction(0.05, 2);
+    data.compute_fp_correction(0.05, 2, next_multiple_of_64(config.t_max));
 
-    hierarchical_binning algo{data, config};
+    hibf_model hibf(config, data.fp_correction);
+    hierarchical_binning algo{data, config, hibf.get_top_level_ibf()};
     EXPECT_EQ(std::get<0>(algo.execute()), 1u); // #HIGH_LEVEL_IBF max_bin_id:1
 
     std::string expected_file
@@ -206,9 +214,10 @@ TEST(hierarchical_binning_test, tb0_is_a_merged_bin)
     data.header_buffer = &header_buffer;
     data.filenames = {"seq0", "seq1", "seq2", "seq3"};
     data.kmer_counts = {500, 500, 500, 500};
-    data.compute_fp_correction(0.05, 2);
+    data.compute_fp_correction(0.05, 2, next_multiple_of_64(config.t_max));
 
-    hierarchical_binning algo{data, config};
+    hibf_model hibf(config, data.fp_correction);
+    hierarchical_binning algo{data, config, hibf.get_top_level_ibf()};
     EXPECT_EQ(std::get<0>(algo.execute()), 0u);
 
     std::string expected_file
@@ -239,9 +248,10 @@ TEST(hierarchical_binning_test, tb0_is_a_merged_bin_with_debug)
     data.header_buffer = &header_buffer;
     data.filenames = {"seq0", "seq1", "seq2", "seq3"};
     data.kmer_counts = {500, 500, 500, 500};
-    data.compute_fp_correction(0.05, 2);
+    data.compute_fp_correction(0.05, 2, next_multiple_of_64(config.t_max));
 
-    hierarchical_binning algo{data, config};
+    hibf_model hibf(config, data.fp_correction);
+    hierarchical_binning algo{data, config, hibf.get_top_level_ibf()};
     EXPECT_EQ(std::get<0>(algo.execute()), 0u);
 
     std::string expected_file
@@ -271,9 +281,10 @@ TEST(hierarchical_binning_test, tb0_is_a_merged_bin_and_leads_to_recursive_call)
     data.header_buffer = &header_buffer;
     data.filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7"};
     data.kmer_counts = {500, 500, 500, 500, 500, 500, 500, 500};
-    data.compute_fp_correction(0.05, 2);
+    data.compute_fp_correction(0.05, 2, next_multiple_of_64(config.t_max));
 
-    hierarchical_binning algo{data, config};
+    hibf_model hibf(config, data.fp_correction);
+    hierarchical_binning algo{data, config, hibf.get_top_level_ibf()};
     EXPECT_EQ(std::get<0>(algo.execute()), 0u);
 
     std::string expected_file

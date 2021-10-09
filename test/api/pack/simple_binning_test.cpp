@@ -3,6 +3,8 @@
 #include <sstream>
 #include <vector>
 
+#include <chopper/pack/hibf_model.hpp>
+#include <chopper/pack/pack_config.hpp>
 #include <chopper/pack/simple_binning.hpp>
 
 TEST(simple_binning_test, small_example)
@@ -15,7 +17,8 @@ TEST(simple_binning_test, small_example)
     data.filenames = {"seq1", "seq2", "seq3", "seq4"};
     data.fp_correction = std::vector<double>(65, 1.0);
 
-    simple_binning algo{data, 9};
+    hibf_model hibf(pack_config{}, data.fp_correction);
+    simple_binning algo{data,hibf.get_top_level_ibf(), 9};
     size_t max_bin = algo.execute();
 
     std::string expected
@@ -40,7 +43,8 @@ TEST(simple_binning_test, uniform_distribution)
     data.filenames = {"seq1", "seq2", "seq3", "seq4"};
     data.fp_correction = std::vector<double>(65, 1.0);
 
-    simple_binning algo{data, 4u};
+    hibf_model hibf(pack_config{}, data.fp_correction);
+    simple_binning algo{data, hibf.get_top_level_ibf(),  4u};
     size_t max_bin = algo.execute();
 
     std::string expected
@@ -65,5 +69,6 @@ TEST(simple_binning_test, user_bins_must_be_smaller_than_technical_bins)
     data.filenames = {"seq1", "seq2", "seq3", "seq4"};
     data.fp_correction = std::vector<double>(65, 1.0);
 
-    EXPECT_THROW((simple_binning{data, 2}), std::runtime_error);
+    hibf_model hibf(pack_config{}, data.fp_correction);
+    EXPECT_THROW((simple_binning{data, hibf.get_top_level_ibf(), 2}), std::runtime_error);
 }
