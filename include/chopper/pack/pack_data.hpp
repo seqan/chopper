@@ -30,8 +30,10 @@ struct pack_data
     previous_level previous{};
 
     //!\brief Precompute f_h factors that adjust the split bin size to prevent FPR inflation due to multiple testing.
-    void compute_fp_correction(double const fp_rate, size_t const num_hash_functions, size_t const max_tb)
+    void compute_fp_correction(double const fp_rate, size_t const num_hash_functions, size_t const requested_max_tb)
     {
+        size_t const max_tb = next_multiple_of_64(requested_max_tb);
+        
         fp_correction.resize(max_tb + 1, 0.0);
 
         double const denominator = std::log(1 - std::exp(std::log(fp_rate) / num_hash_functions));
