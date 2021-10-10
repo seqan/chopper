@@ -15,7 +15,7 @@
 }
 
 //!\brief Round bytes to the appropriate unit and convert to string with unit
-[[nodiscard]] std::string byte_size_to_formatted_str(size_t bytes)
+[[nodiscard]] inline std::string byte_size_to_formatted_str(size_t bytes)
 {
     size_t iterations{};
     while (bytes >> 10 && iterations < 3)
