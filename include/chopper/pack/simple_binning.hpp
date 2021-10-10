@@ -115,6 +115,7 @@ public:
 
     /*!\brief The constructor from user bin names, their kmer counts and a configuration.
      * \param[in] data_ The filenames and kmer counts associated with the user bin, as well as the ostream buffer.
+     * \param[in] ibf_model_ The model of the current level IBF for statistics generation
      * \param[in] num_bins (optional) The number of technical bins.
      * \param[in] debug_ (optional) Enables debug output in packing file.
      *
