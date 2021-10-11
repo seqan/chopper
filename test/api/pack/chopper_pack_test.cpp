@@ -99,6 +99,55 @@ TEST(chopper_pack_test, few_ubs_debug)
     // print_debug_file(pack_file.get_path()); // Formatted output
 }
 
+TEST(chopper_pack_test, few_ubs_with_aggregatation)
+{
+    seqan3::test::tmp_filename const count_file{"kmer_counts.tsv"};
+    seqan3::test::tmp_filename const pack_file{"pack.tsv"};
+
+    {
+        std::ofstream fout{count_file.get_path()};
+        fout << "seq0\t500\tspecification-A\n"
+             << "seq1.1\t250\tspecification-B\n"
+             << "seq1.2\t250\tspecification-B\n"
+             << "seq1.3\t250\tspecification-B\n"
+             << "seq1.4\t250\tspecification-B\n"
+             << "seq2\t500\tspecification-C\n"
+             << "seq3\t500\tspecification-D\n"
+             << "seq4.1\t250\tspecification-E\n"
+             << "seq4.2\t250\tspecification-E\n"
+             << "seq5\t500\tspecification-F\n"
+             << "seq6\t500\tspecification-G\n"
+             << "seq7\t500\tspecification-H\n";
+    }
+
+    char const * const argv[] = {"./chopper-pack",
+                                 "-b", "64",
+                                 "--aggregate-by", "2", /* specification column */
+                                 "-f", count_file.get_path().c_str(),
+                                 "-o", pack_file.get_path().c_str()};
+    int const argc = sizeof(argv) / sizeof(*argv);
+
+    seqan3::argument_parser pack_parser{"chopper-pack", argc, argv, seqan3::update_notifications::off};
+    chopper_pack(pack_parser);
+
+    std::string const expected_file
+    {
+        "#HIGH_LEVEL_IBF max_bin_id:6\n"
+        "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\n"
+        "seq7\t0\t6\n"
+        "seq6\t6\t4\n"
+        "seq5\t10\t4\n"
+        "seq4.1;seq4.2\t14\t4\n"
+        "seq3\t18\t4\n"
+        "seq2\t22\t4\n"
+        "seq0\t26\t4\n"
+        "seq1.1;seq1.2;seq1.3;seq1.4\t30\t34\n"
+    };
+    std::string const actual_file{string_from_file(pack_file.get_path())};
+
+    EXPECT_EQ(actual_file, expected_file);
+}
+
 TEST(chopper_pack_test, many_ubs_debug)
 {
     seqan3::test::tmp_filename const count_file{"kmer_counts.tsv"};

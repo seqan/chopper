@@ -7,7 +7,7 @@
 
 #include <chopper/pack/pack_data.hpp>
 
-inline void sort_by(pack_data & data, size_t column_to_sort_by)
+inline void sort_by(pack_data & data, int8_t column_to_sort_by)
 {
     // Note: We may only sort by extra information
 
@@ -37,7 +37,15 @@ inline void sort_by(pack_data & data, size_t column_to_sort_by)
     }
 }
 
-inline void aggregate_by(pack_data & data, size_t column_to_aggregate_by)
+/*!\brief Aggregates data.filenames, dara.kmer_counts and data.extra_information by the specified column index.
+ * \param data The data to aggregate.
+ * \param column_to_aggregate_by column index referring to the index in data.extra_information (!).
+ *
+ * \attention The column index to aggregate by should be given relative to the position in data.extra_information.
+ *            This differs from the column index the user specifies via the command line because the user input
+ *            is a file containing filenames and kmer counts at the first and second column.
+ */
+inline void aggregate_by(pack_data & data, int8_t column_to_aggregate_by)
 {
     if (data.filenames.empty())
         return;
@@ -45,7 +53,8 @@ inline void aggregate_by(pack_data & data, size_t column_to_aggregate_by)
     // Note: We may only aggregate by extra information
     assert(data.filenames.size() == data.kmer_counts.size());
     assert(data.filenames.size() == data.extra_information.size());
-    assert(column_to_aggregate_by < data.extra_information[0].size());
+    assert(column_to_aggregate_by >= 0);
+    assert(column_to_aggregate_by < static_cast<int8_t>(data.extra_information[0].size()));
 
     sort_by(data, column_to_aggregate_by);
 
