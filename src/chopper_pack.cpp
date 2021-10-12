@@ -202,6 +202,8 @@ int chopper_pack(seqan3::argument_parser & parser)
                   << "so we increased your number of technical bins to " << config.t_max << '\n';
     }
 
+    data.compute_fp_correction(config.fp_rate, config.num_hash_functions, config.t_max);
+
     // If requested, aggregate the data before packing them
     if (config.aggregate_by_column != -1)
         aggregate_by(data, config.aggregate_by_column);
