@@ -52,6 +52,4 @@ inline auto read_filename_data_file(pack_data & data, pack_config const & config
         }
     }
     while (std::getline(file_in, line));
-
-    data.compute_fp_correction(config.fp_rate, config.num_hash_functions);
 }
