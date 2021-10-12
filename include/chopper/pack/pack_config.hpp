@@ -9,6 +9,7 @@ struct pack_config
     std::filesystem::path data_file;
     std::filesystem::path output_filename{"binning.out"};
     uint16_t t_max{64};
+    uint16_t t_min{64};
     int8_t aggregate_by_column{-1};
     //!\brief If given, the hll sketches are dumped to this directory and restored when they already exist.
     std::filesystem::path hll_dir{};

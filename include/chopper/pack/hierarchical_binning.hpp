@@ -112,6 +112,25 @@ private:
         return static_cast<size_t>(std::ceil(levels));
     }
 
+    /*!\brief Returns the expected scaling factor for the kmer count of a technical bin 
+     * when merging `num_ubs_in_merge` many user bins into it.
+     * \param[in] num_ubs_in_merge The number of user bins.
+     */
+    [[nodiscard]] double expected_lower_level_scaling(size_t const num_ubs_in_merge) const
+    {
+        size_t const l = max_merge_levels(num_ubs_in_merge);
+
+        size_t const average_ubs_per_lowest_lvl_ibf = static_cast<double>(num_ubs_in_merge) / 
+                                                      static_cast<double>(std::pow(config.t_max, l - 1));
+
+        double const average_split_bin_size = static_cast<double>(config.t_min) /
+                                              static_cast<double>(std::ceil(average_ubs_per_lowest_lvl_ibf));
+
+        double const lowest_level_scaling = data->fp_correction[std::ceil(average_split_bin_size)];
+
+        return l - 1 + lowest_level_scaling;
+    }
+
     /*!\brief Initialize the matrices M (hig_level_ibf), L (low_level_ibfs) and T (trace)
      *
      * \image html hierarchical_dp_init.png
@@ -139,7 +158,7 @@ private:
             {
                 sum += data->kmer_counts[j];
                 matrix[0][j] = data->union_estimates[j][0];
-                ll_matrix[0][j] = max_merge_levels(j + 1) * sum;
+                ll_matrix[0][j] = expected_lower_level_scaling(j + 1) * sum;
                 trace[0][j] = {0u, j - 1}; // unnecessary?
             }
         }
@@ -149,7 +168,7 @@ private:
             {
                 sum += data->kmer_counts[j];
                 matrix[0][j] = sum;
-                ll_matrix[0][j] = max_merge_levels(j + 1) * sum;
+                ll_matrix[0][j] = expected_lower_level_scaling(j + 1) * sum;
                 trace[0][j] = {0u, j - 1}; // unnecessary?
             }
         }
@@ -258,7 +277,7 @@ private:
                     // ll_kmers: estimate for the number of k-mers that have to be resolved on lower levels
                     // full_score: The score to minimize -> score * #TB-high_level + low_level_memory footprint
                     size_t const score = std::max<size_t>(matrix[i - 1][j_prime], get_weight());
-                    size_t const ll_kmers = ll_matrix[i - 1][j_prime] + max_merge_levels(j - j_prime) * weight;
+                    size_t const ll_kmers = ll_matrix[i - 1][j_prime] + expected_lower_level_scaling(j - j_prime) * weight;
                     size_t const full_score = score * (i + 1) /*#TBs*/ + config.alpha * ll_kmers;
 
                     // seqan3::debug_stream << " -- " << "j_prime:" << j_prime
