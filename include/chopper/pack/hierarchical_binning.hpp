@@ -346,6 +346,9 @@ private:
                 // add query cost for determination of best t_max
                 total_query_cost += (data->previous.cost + interpolated_cost) * kmer_count;
 
+                // add split bin to ibf statistics
+                data->stats->emplace_back(hibf_statistics::bin_kind::split, average_bin_size, 1ul, trace_i);
+
                 *data->output_buffer << data->filenames[0] << '\t'
                                      << data->previous.bin_indices  << (high ? "" : ";") << bin_id << '\t'
                                      << data->previous.num_of_bins  << (high ? "" : ";") << trace_i;
@@ -379,6 +382,9 @@ private:
 
                 libf_data.kmer_counts = {kmer_count};
                 libf_data.filenames = {data->filenames[trace_j]};
+                size_t num_contained_ubs = 1;
+                size_t const j = trace_j;
+
                 // std::cout << "merged [" << trace_j;
                 while (trace_j > 0 && next_i == trace_i)
                 {
@@ -387,6 +393,7 @@ private:
                     kmer_count += data->kmer_counts[trace_j];
                     libf_data.kmer_counts.push_back(data->kmer_counts[trace_j]);
                     libf_data.filenames.push_back(data->filenames[trace_j]);
+                    ++num_contained_ubs;
                     next_i = trace[trace_i][trace_j].first;
                     // std::cout << "," << trace_j;
                 }
@@ -411,11 +418,17 @@ private:
 
                 std::string const merged_ibf_name{std::string{merged_bin_prefix} + "_" + libf_data.previous.bin_indices};
 
+                // add merged bin to ibf statistics
+                uint64_t const cardinality = config.estimate_union ? data->union_estimates[j][trace_j + 1] : kmer_count;
+                hibf_statistics::bin & bin_stats = data->stats->emplace_back(hibf_statistics::bin_kind::merged,
+                                                   cardinality, num_contained_ubs, 1ul);
+
                 // now do the binning for the low-level IBF:
                 size_t merged_max_bin_id;
                 if (libf_data.kmer_counts.size() > config.t_max)
                 {
                     // recursively call hierarchical binning if there are still too many UBs
+                    libf_data.stats = &bin_stats.child_ibf;
                     auto const && [bin_id, cost] = hierarchical_binning{libf_data, config}.execute();
                     merged_max_bin_id = bin_id;
                     total_query_cost += cost;
@@ -423,6 +436,7 @@ private:
                 else
                 {
                     // use simple binning to distribute remaining UBs
+                    libf_data.stats = &bin_stats.child_ibf;
                     simple_binning algo{libf_data, 0, config.debug};
                     merged_max_bin_id = algo.execute();
                     total_query_cost += (data->previous.cost + interpolated_cost
@@ -449,6 +463,9 @@ private:
 
                 libf_data.kmer_counts = {kmer_count};
                 libf_data.filenames = {data->filenames[trace_j]};
+                size_t num_contained_ubs = 1;
+                size_t const j = trace_j;
+
                 // std::cout << "merged [" << trace_j;
                 --trace_j;
                 while (static_cast<size_t>(trace_j) != next_j)
@@ -456,6 +473,7 @@ private:
                     kmer_count += data->kmer_counts[trace_j];
                     libf_data.kmer_counts.push_back(data->kmer_counts[trace_j]);
                     libf_data.filenames.push_back(data->filenames[trace_j]);
+                    ++num_contained_ubs;
                     // std::cout << "," << trace_j;
                     --trace_j;
                 }
@@ -475,16 +493,23 @@ private:
                 }
                 std::string const merged_ibf_name{std::string{merged_bin_prefix} + "_" + libf_data.previous.bin_indices};
 
+                // add merged bin to ibf statistics
+                uint64_t const cardinality = config.estimate_union ? data->union_estimates[j][trace_j + 1] : kmer_count;
+                hibf_statistics::bin & bin_stats = data->stats->emplace_back(hibf_statistics::bin_kind::merged,
+                                                cardinality, num_contained_ubs, 1ul);
+
                 size_t merged_max_bin_id;
                 // now do the binning for the low-level IBF:
                 if (libf_data.kmer_counts.size() > config.t_max)
                 {
+                    libf_data.stats = &bin_stats.child_ibf;
                     auto const && [bin_id, cost] = hierarchical_binning{libf_data, config}.execute();
                     merged_max_bin_id = bin_id;
                     total_query_cost += cost;
                 }
                 else
                 {
+                    libf_data.stats = &bin_stats.child_ibf;
                     simple_binning algo{libf_data, 0, config.debug};
                     merged_max_bin_id = algo.execute();
                     total_query_cost += (data->previous.cost + interpolated_cost
@@ -509,6 +534,9 @@ private:
                                      << data->previous.num_of_bins  << (high ? "" : ";") << number_of_bins;
 
                 total_query_cost += (data->previous.cost + interpolated_cost) * kmer_count;
+
+                // add split bin to ibf statistics
+                data->stats->emplace_back(hibf_statistics::bin_kind::split, kmer_count_per_bin, 1ul, number_of_bins);
 
                 if (config.debug)
                 {

@@ -82,7 +82,7 @@ class simple_binning
 {
 private:
     //!\brief The data input: filenames associated with the user bin and a kmer count per user bin.
-    pack_data const * const data{nullptr};
+    pack_data * data{nullptr};
 
     /*!\brief The number of User bins.
      *
@@ -120,7 +120,7 @@ public:
      * \attention The number of technical bins must be greater or equal to the number of user bins!
      *            If you want to use less technical bins than user bins, see the hierarchical_binning algorithm.
      */
-    simple_binning(pack_data const & data_, size_t const num_bins = 0, bool const debug_ = false) :
+    simple_binning(pack_data & data_, size_t const num_bins = 0, bool const debug_ = false) :
         data{std::addressof(data_)},
         num_user_bins{data->kmer_counts.size()},
         num_technical_bins{num_bins ? num_bins : next_multiple_of_64(num_user_bins)},
@@ -217,6 +217,9 @@ public:
             size_t const number_of_bins = (trace_i - next_i);
             size_t const kmer_count_per_bin = (kmer_count + number_of_bins - 1) / number_of_bins; // round up
 
+            // add split bin to ibf statistics
+            data->stats->emplace_back(hibf_statistics::bin_kind::split, kmer_count_per_bin, 1ul, number_of_bins);
+
             // columns: IBF_ID,NAME,NUM_TECHNICAL_BINS,ESTIMATED_TB_SIZE
             *data->output_buffer << data->filenames[trace_j] << '\t'
                                  << data->previous.bin_indices  << ';' << bin_id << '\t'
@@ -247,6 +250,9 @@ public:
         ++trace_i; // because we want the length not the index. Now trace_i == number_of_bins
         size_t const kmer_count = data->kmer_counts[0];
         size_t const kmer_count_per_bin =  (kmer_count + trace_i - 1) / trace_i;
+
+        // add split bin to ibf statistics
+        data->stats->emplace_back(hibf_statistics::bin_kind::split, kmer_count_per_bin, 1ul, trace_i);
 
         if (kmer_count_per_bin > max_size)
         {

@@ -34,5 +34,6 @@ struct pack_config
     bool determine_num_bins{false};
     //!\brief Whether the programm should compute all binnings up to the given t_max
     bool force_all_binnings{false};
+    bool output_statistics{false};
     bool debug{false};
 };

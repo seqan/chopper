@@ -87,6 +87,10 @@ void set_up_subparser_pack(seqan3::argument_parser & parser, pack_config & confi
                     "If given together with --determine-num-bins, all binnings up to the chosen t_max are computed "
                     "instead of stopping when the expected query costs become worse.");
 
+    parser.add_flag(config.output_statistics, '\0', "output-statistics",
+                    "Print additional statistics and information to the command line (std::cout).",
+                    seqan3::option_spec::advanced);
+
     parser.add_flag(config.debug, '\0', "debug",
                     "Enables debug output in packing file.",
                     seqan3::option_spec::advanced);
@@ -128,7 +132,9 @@ size_t determine_best_number_of_technical_bins(pack_data & data, pack_config & c
     // with -determine-num-bins the algorithm is executed multiple times and result with the minimum
     // expected query costs is written to the output
     std::cout << std::fixed << std::setprecision(4);
-    std::cout << "T_Max\tC_{T_Max}\trelative expected HIBF query cost\n";
+    if (!config.output_statistics)
+        std::cout << "T_Max\tC_{T_Max}\trelative expected HIBF query cost\n";
+
     double best_expected_HIBF_query_cost{std::numeric_limits<double>::infinity()};
     size_t best_t_max{};
 
@@ -146,14 +152,23 @@ size_t determine_best_number_of_technical_bins(pack_data & data, pack_config & c
         data.previous = previous_level{};
         config.t_max = t_max;
 
+        hibf_statistics global_stats{config, data.fp_correction};
+        data.stats = &global_stats.top_level_ibf;
+
         // execute the actual algorithm
         auto const && [max_hibf_id_tmp, total_query_cost] = hierarchical_binning{data, config}.execute();
 
         double const expected_HIBF_query_cost = total_query_cost / total_kmer_count;
 
+        if (config.output_statistics)
+            std::cout << "T_Max\tC_{T_Max}\trelative expected HIBF query cost\n";
+
         std::cout << t_max << '\t'
                     << ibf_query_cost::exact(t_max)<< '\t'
                     << expected_HIBF_query_cost << '\n';
+
+        if (config.output_statistics)
+            global_stats.print_summary();
 
         // Use result if better than previous one.
         if (expected_HIBF_query_cost < best_expected_HIBF_query_cost)
@@ -170,7 +185,7 @@ size_t determine_best_number_of_technical_bins(pack_data & data, pack_config & c
         }
     }
 
-    std::cout << "Best t_max (total): " << best_t_max << '\n';
+    std::cout << "Best t_max (regarding expected query runtime): " << best_t_max << '\n';
     return max_hibf_id;
 }
 
@@ -219,9 +234,19 @@ int chopper_pack(seqan3::argument_parser & parser)
     size_t max_hibf_id;
 
     if (config.determine_num_bins)
+    {
         max_hibf_id = determine_best_number_of_technical_bins(data, config);
+    }
     else
+    {
+        hibf_statistics global_stats{config, data.fp_correction};
+        data.stats = &global_stats.top_level_ibf;
+
         max_hibf_id = std::get<0>(hierarchical_binning{data, config}.execute()); // just execute once
+
+        if (config.output_statistics)
+            global_stats.print_summary();
+    }
 
     // brief Write the output to the result file.
     std::ofstream fout{config.output_filename};
