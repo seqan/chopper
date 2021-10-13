@@ -61,7 +61,7 @@ TEST(chopper_split_test, no_s_or_f_option)
     int argc = 3;
     seqan3::argument_parser split_parser{"chopper-split", argc, argv, seqan3::update_notifications::off};
 
-    EXPECT_THROW(chopper_split(split_parser), std::runtime_error);
+    EXPECT_EQ(chopper_split(split_parser), -1);
 }
 
 TEST(chopper_split_test, data_file_as_input)

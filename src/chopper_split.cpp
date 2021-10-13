@@ -13,7 +13,7 @@
 #include <chopper/split/transform_graphs.hpp>
 #include <chopper/split/traverse_graph.hpp>
 
-int set_up_and_parse_subparser_split(seqan3::argument_parser & parser, split_config & config)
+void set_up_subparser_split(seqan3::argument_parser & parser, split_config & config)
 {
     parser.info.version = "1.0.0";
     parser.add_flag(config.verbose, 'v', "verbose", "Ooutput verbose logging information.");
@@ -23,18 +23,6 @@ int set_up_and_parse_subparser_split(seqan3::argument_parser & parser, split_con
     parser.add_option(config.kmer_size, 'k', "kmer-size", "The kmer size to compute minimizer.");
     parser.add_option(config.window_size, 'w', "window-size", "The window size to compute minimizer.");
     parser.add_option(config.bins, 'b', "technical-bins", "How many technical bins do you want you sequences to be split?.");
-
-    try
-    {
-        parser.parse();
-    }
-    catch (seqan3::argument_parser_error const & ext) // the user did something wrong
-    {
-        std::cerr << "[CHOPPER SPLIT ERROR] " << ext.what() << '\n'; // customize your error message
-        return -2;
-    }
-
-    return 0;
 }
 
 // runs splitting of sequences into technical bins
@@ -42,17 +30,24 @@ int chopper_split(seqan3::argument_parser & parser)
 {
     split_config config;
 
-    if (auto r = set_up_and_parse_subparser_split(parser, config); r != 0)
-        return r;
+    set_up_subparser_split(parser, config);
 
-    // Check config
-    // -------------------------------------------------------------------------
-    if (!config.data_filename.empty() && !config.seqfiles.empty())
-        throw std::runtime_error{"[CHOPPER SPLIT ERROR] You may EITHER specify files with -s OR give a data file "
-                                 "with -f!"};
-    if (config.data_filename.empty() && config.seqfiles.empty())
-        throw std::runtime_error{"[CHOPPER SPLIT ERROR] You must specify EITHER files with -s OR give a data file "
-                                 "with -f!"};
+    try
+    {
+        parser.parse();
+
+        // Check config
+        if (!config.data_filename.empty() && !config.seqfiles.empty())
+            throw seqan3::argument_parser_error{"You may EITHER specify files with -s OR give a data file with -f!"};
+
+        if (config.data_filename.empty() && config.seqfiles.empty())
+            throw seqan3::argument_parser_error{"You must specify EITHER files with -s OR give a data file with -f!"};
+    }
+    catch (seqan3::argument_parser_error const & ext) // the user did something wrong
+    {
+        std::cerr << "[CHOPPER SPLIT ERROR] " << ext.what() << '\n'; // customize your error message
+        return -1;
+    }
 
     std::ofstream fout{config.out_path};
 
@@ -122,12 +117,14 @@ int chopper_split(seqan3::argument_parser & parser)
         {
             seqan2_msa_alignment(seqan2_graph, data.sequences, distance_matrix, config);
         }
+        //LCOV_EXCL_START
         catch (const std::bad_alloc & exception)
         {
             std::cerr << "Allocation for globalAlignment failed. Use smaller data or try a seeded alignment. \n"
                       << exception.what() << std::endl;
             std::exit(EXIT_FAILURE);
         }
+        //LCOV_EXCL_STOP
 
         // Transform seqan2 graph to lemon graph
         // -------------------------------------------------------------------------
