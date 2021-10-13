@@ -38,7 +38,6 @@ public:
     /*!\brief The constructor from user bin names, their kmer counts and a configuration.
      * \param[in, out] data_ The data input: filenames associated with the user bin and a kmer count per user bin.
      * \param[in] config_ A configuration object that holds information from the user that influence the computation.
-     * \param[in] query_cost The current cost to query all k-mers. Default: 0.0
      *
      * Each entry in the names_ and input vector respectively is considered a user bin (both vectors must have the
      * same length).
