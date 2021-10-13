@@ -43,13 +43,12 @@ public:
      * Each entry in the names_ and input vector respectively is considered a user bin (both vectors must have the
      * same length).
      */
-    hierarchical_binning(pack_data & data_, pack_config const & config_, double const query_cost = 0.0) :
+    hierarchical_binning(pack_data & data_, pack_config const & config_) :
         config{config_},
         data{std::addressof(data_)},
         num_user_bins{data->kmer_counts.size()},
         num_technical_bins{data->previous.empty() ? config.t_max : needed_technical_bins(num_user_bins)},
-        interpolated_cost{ibf_query_cost::interpolated(num_technical_bins)},
-        total_query_cost{query_cost}
+        interpolated_cost{ibf_query_cost::interpolated(num_technical_bins)}
     {
         assert(data != nullptr);
         assert(data->output_buffer != nullptr);
@@ -418,7 +417,7 @@ private:
                 if (libf_data.kmer_counts.size() > config.t_max)
                 {
                     // recursively call hierarchical binning if there are still too many UBs
-                    auto const && [bin_id, cost] = hierarchical_binning{libf_data, config, total_query_cost}.execute();
+                    auto const && [bin_id, cost] = hierarchical_binning{libf_data, config}.execute();
                     merged_max_bin_id = bin_id;
                     total_query_cost += cost;
                 }
@@ -481,7 +480,7 @@ private:
                 // now do the binning for the low-level IBF:
                 if (libf_data.kmer_counts.size() > config.t_max)
                 {
-                    auto const && [bin_id, cost] = hierarchical_binning{libf_data, config, total_query_cost}.execute();
+                    auto const && [bin_id, cost] = hierarchical_binning{libf_data, config}.execute();
                     merged_max_bin_id = bin_id;
                     total_query_cost += cost;
                 }
