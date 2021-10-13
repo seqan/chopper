@@ -45,9 +45,9 @@ void set_up_subparser_pack(seqan3::argument_parser & parser, pack_config & confi
 
     using aggregate_by_type = std::remove_cvref_t<decltype(config.aggregate_by_column)>;
     parser.add_option(config.aggregate_by_column, 'y', "aggregate-by",
-                      "Which column do you want to aggregate your files by? Start counting your columns from 1!",
+                      "Which column do you want to aggregate your files by? Start counting your columns from 0!",
                       seqan3::option_spec::standard,
-                      seqan3::arithmetic_range_validator{aggregate_by_type{3},
+                      seqan3::arithmetic_range_validator{aggregate_by_type{2},
                                                          std::numeric_limits<aggregate_by_type>::max()});
 
     parser.add_section("HyperLogLog Sketches");
@@ -110,7 +110,9 @@ void sanity_checks(seqan3::argument_parser const & parser, pack_data const & dat
                                             "file does not contain any extra information columns."};
     }
 
-    if (config.aggregate_by_column > static_cast<int>(data.extra_information[0].size()))
+    // note that config.aggregate_by_column cannot be 0 or 1 because the parser check the valid range [2, max]
+    assert(config.aggregate_by_column == -1 || config.aggregate_by_column > 1);
+    if ((config.aggregate_by_column - 2/*extrainfo starts at 2*/) > static_cast<int>(data.extra_information[0].size()))
     {
         throw seqan3::argument_parser_error{"Aggregate Error: You want to aggregate by a column index that "
                                             "is larger than the number of extra information columns."};
@@ -206,7 +208,7 @@ int chopper_pack(seqan3::argument_parser & parser)
 
     // If requested, aggregate the data before packing them
     if (config.aggregate_by_column != -1)
-        aggregate_by(data, config.aggregate_by_column);
+        aggregate_by(data, config.aggregate_by_column - 2/*user index includes first two columns (filename, count)*/);
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
