@@ -4,7 +4,41 @@
 
 #include "cli_test.hpp"
 
-TEST_F(cli_test, chopper_pack_summary)
+TEST_F(cli_test, chopper_pack_statistics)
+{
+    seqan3::test::tmp_filename const count_file{"kmer_counts.tsv"};
+    seqan3::test::tmp_filename const pack_file{"pack.tsv"};
+
+    {
+        // There are 20 files with a count of {100,200,300,400} each. There are 16 files with count 500.
+        std::ofstream fout{count_file.get_path()};
+        for (size_t i{0}; i < 96u; ++i)
+            fout << seqan3::detail::to_string("seq", i, '\t', 100 * ((i + 20) / 20), '\n');
+    }
+
+    cli_test_result pack_result = execute_app("chopper", "pack",
+                                              "-b", "64",
+                                              "-f", count_file.get_path().c_str(),
+                                              "-o", pack_file.get_path().c_str(),
+                                              "--output-statistics");
+
+    std::string expected_cout =
+R"expected_cout(
+	Statistics summary:
+	level	num_ibfs	level_size	level_size_no_corr	total_num_tbs	avg_num_tbs	split_tb_percentage	max_split_tb	avg_split_tb	max_factor	avg_factor
+	0	1	37 KiB	37 KiB	64	64	81.25	1	1	1	1.0025
+	1	12	48 KiB	8 KiB	768	64	100	32	17.4545	9.01694	6.49597
+	Total HIBF size: 85 KiB
+	Total HIBF size no correction: 45 KiB
+
+)expected_cout";
+
+    EXPECT_EQ(pack_result.exit_code, 0);
+    EXPECT_EQ(pack_result.out, expected_cout) << pack_result.out;
+    EXPECT_EQ(pack_result.err, std::string{});
+}
+
+TEST_F(cli_test, chopper_pack_statistics_determine_best_bins)
 {
     seqan3::test::tmp_filename const count_filename{"kmer_counts.txt"};
     seqan3::test::tmp_filename const binning_filename{"output.binning"};
@@ -34,29 +68,28 @@ TEST_F(cli_test, chopper_pack_summary)
 
 
     std::string expected_cout =
-        "T_Max\tC_{T_Max}\trelative expected HIBF query cost\n"
-        "64\t1.0000\t1.0000\n"
-        "\n"
-            "\tStatistics summary:\n"
-            "\tlevel\tnum_ibfs\tlevel_size\tlevel_size_no_corr\ttotal_num_tbs\tavg_num_tbs\t"
-                "split_tb_percentage\tmax_split_tb\tavg_split_tb\tmax_factor\tavg_factor\n"
-            "\t0\t1\t1 MiB\t1 MiB\t64\t64\t100.0000\t20\t6.4000\t6.3777\t3.6157\n"
-            "\tTotal HIBF size: 1 MiB\n"
-            "\tTotal HIBF size no correction: 1 MiB\n"
-        "\n"
-        "T_Max\tC_{T_Max}\trelative expected HIBF query cost\n"
-        "128\t1.1000\t1.1000\n"
-        "\n"
-            "\tStatistics summary:\n"
-            "\tlevel\tnum_ibfs\tlevel_size\tlevel_size_no_corr\ttotal_num_tbs\tavg_num_tbs\t"
-            "split_tb_percentage\tmax_split_tb\tavg_split_tb\tmax_factor\tavg_factor\n"
-            "\t0\t1\t3 MiB\t2 MiB\t128\t128\t100.0000\t47\t12.8000\t12.1721\t5.9559\n"
-            "\tTotal HIBF size: 3 MiB\n"
-            "\tTotal HIBF size no correction: 2 MiB\n"
-        "\n"
-        "Best t_max (regarding expected query runtime): 64\n";
+R"expected_cout(T_Max	C_{T_Max}	relative expected HIBF query cost
+64	1.0000	1.0000
+
+	Statistics summary:
+	level	num_ibfs	level_size	level_size_no_corr	total_num_tbs	avg_num_tbs	split_tb_percentage	max_split_tb	avg_split_tb	max_factor	avg_factor
+	0	1	1 MiB	1 MiB	64	64	100.0000	20	6.4000	6.3777	3.6157
+	Total HIBF size: 1 MiB
+	Total HIBF size no correction: 1 MiB
+
+T_Max	C_{T_Max}	relative expected HIBF query cost
+128	1.1000	1.1000
+
+	Statistics summary:
+	level	num_ibfs	level_size	level_size_no_corr	total_num_tbs	avg_num_tbs	split_tb_percentage	max_split_tb	avg_split_tb	max_factor	avg_factor
+	0	1	3 MiB	2 MiB	128	128	100.0000	47	12.8000	12.1721	5.9559
+	Total HIBF size: 3 MiB
+	Total HIBF size no correction: 2 MiB
+
+Best t_max (regarding expected query runtime): 64
+)expected_cout";
 
     EXPECT_EQ(pack_result.exit_code, 0);
-    EXPECT_EQ(pack_result.out, expected_cout);
+    EXPECT_EQ(pack_result.out, expected_cout) << pack_result.out;
     EXPECT_EQ(pack_result.err, std::string{});
 }

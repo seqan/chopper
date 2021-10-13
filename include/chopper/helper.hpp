@@ -12,7 +12,7 @@
     return ((value + 63) >> 6) << 6;
 }
 
-//!\brief Round bytes to the appropriate unit and convert to string with unit
+//!\brief Round bytes to the appropriate unit and convert to string with unit.
 [[nodiscard]] inline std::string byte_size_to_formatted_str(size_t bytes)
 {
     size_t iterations{};
