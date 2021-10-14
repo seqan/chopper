@@ -1,5 +1,3 @@
-#include <fstream>
-
 #include <seqan3/test/tmp_filename.hpp>
 
 #include "cli_test.hpp"

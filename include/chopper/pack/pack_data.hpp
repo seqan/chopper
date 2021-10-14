@@ -31,7 +31,7 @@ struct pack_data
     previous_level previous{};
 
     //!\brief An object collecting statistics on the way.
-    hibf_statistics::ibf * stats{};
+    hibf_statistics::ibf * stats{nullptr};
 
     //!\brief Precompute f_h factors that adjust the split bin size to prevent FPR inflation due to multiple testing.
     void compute_fp_correction(double const fp_rate, size_t const num_hash_functions, size_t const requested_max_tb)

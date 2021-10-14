@@ -4,17 +4,17 @@
 #include <cassert>
 #include <cmath>
 #include <iostream>
+#include <map>
 #include <numeric>
 #include <vector>
-#include <map>
+
 #include <chopper/helper.hpp>
 #include <chopper/pack/pack_config.hpp>
-
 
 class hibf_statistics
 {
 public:
-    hibf_statistics() = default; //!< Defaultd. Would be malformed.
+    hibf_statistics() = default; //!< Defaulted.
     hibf_statistics(hibf_statistics const & b) = default; //!< Defaulted.
     hibf_statistics & operator=(hibf_statistics const &) = default; //!< Defaulted.
     hibf_statistics(hibf_statistics && b) = default; //!< Defaulted.
@@ -25,20 +25,20 @@ public:
      * \param[in] config_ User configuration for the HIBF.
      * \param[in] fp_correction_ The false positive correction factors to use for the statistics.
      */
-    hibf_statistics(pack_config const & config_, std::vector<double> & fp_correction_) :
+    hibf_statistics(pack_config const & config_, std::vector<double> const & fp_correction_) :
         config{config_},
         fp_correction{&fp_correction_}
     {}
 
-    struct bin; // forward decalration
+    struct bin; // forward declaration
 
-    //!\brief A represetnation of an IBF that gathers information of each bin in an ibf.
+    //!\brief A representation of an IBF that gathers information of each bin in an IBF.
     using ibf = std::vector<bin>;
 
     //!\brief The kind of bin that is stored.
     enum class bin_kind
     {
-        split, //!< A single user bin, split into 1 or more bins (even though 1 is not technically splitted).
+        split, //!< A single user bin, split into 1 or more bins (even though 1 is not technically split).
         merged //!< Multiple user bins are merged into a single technical bin.
     };
 
@@ -68,12 +68,12 @@ public:
             num_contained_ubs{num_contained_ubs_},
             num_spanning_tbs{num_spanning_tbs_}
         {
-            assert((kind == bin_kind::split  && num_contained_ubs == 1ul) ||
-                   (kind == bin_kind::merged && num_spanning_tbs  == 1ul));
+            assert((kind == bin_kind::split  && num_contained_ubs == 1u) ||
+                   (kind == bin_kind::merged && num_spanning_tbs  == 1u));
         }
     };
 
-    //!\brief Prints a tab-indented summary of the statistics of this HIBF to the command line
+    //!\brief Prints a tab-separated summary of the statistics of this HIBF to the command line.
     void print_summary()
     {
         if (summary.empty())
@@ -139,7 +139,7 @@ public:
     ibf top_level_ibf;
 
 private:
-    //!\brief Copy of the cser configuration for this HIBF.
+    //!\brief Copy of the user configuration for this HIBF.
     pack_config const config{};
 
     //!\brief The false positive correction factors to use for the statistics.
@@ -172,7 +172,7 @@ private:
     //!\brief The gathered summary of statistics for each level of this HIBF.
     std::map<size_t, level_summary> summary;
 
-    /*!\brief Computes the bin size.
+    /*!\brief Computes the bin size in bits.
     *
     * -NUM_ELEM*HASHES
     * ----------------------  = SIZE
@@ -189,13 +189,13 @@ private:
     }
 
     /*!\brief Compute the Bloom Filter size from `number_of_kmers_to_be_stored` and
-     * return it as a formatted string with the appropriate unit.
+     *        return it as a formatted string with the appropriate unit.
      * \param[in] number_of_kmers_to_be_stored
      */
     std::string to_formatted_BF_size(size_t const number_of_kmers_to_be_stored) const
     {
-        size_t const size = compute_bin_size(number_of_kmers_to_be_stored) / 8;
-        return byte_size_to_formatted_str(size);
+        size_t const size_in_bytes = compute_bin_size(number_of_kmers_to_be_stored) / 8;
+        return byte_size_to_formatted_str(size_in_bytes);
     }
 
     /*!\brief Recursively gather all the statistics from the bins.
@@ -204,14 +204,14 @@ private:
      */
     void gather_statistics(ibf const & curr_ibf, size_t const level)
     {
-        level_summary & s = summary[level];
+        level_summary & summary = summaries[level];
         s.num_ibfs += 1;
 
         size_t max_cardinality{}, max_cardinality_no_corr{}, num_tbs{}, num_ubs{}, num_split_tbs{},
                num_merged_tbs{}, num_split_ubs{}, num_merged_ubs{}, max_split_tb_span{},
                split_tb_kmers{}, max_ubs_in_merged{}, split_tb_corr_kmers{};
 
-        for (bin const & b : curr_ibf)
+        for (bin const & current_bin : curr_ibf)
         {
             size_t const corrected_cardinality = std::ceil(b.cardinality * (*fp_correction)[b.num_spanning_tbs]);
             max_cardinality = std::max(max_cardinality, corrected_cardinality);
