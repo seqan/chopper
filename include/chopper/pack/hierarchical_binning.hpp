@@ -483,8 +483,12 @@ private:
 
         libf_data.previous = data.previous;
         libf_data.previous.bin_indices += (is_top_level ? "" : ";") + std::to_string(bin_id);
-        libf_data.previous.num_of_bins  += (is_top_level ? "" : ";") + std::string{"1"};
+        libf_data.previous.num_of_bins += (is_top_level ? "" : ";") + std::string{"1"};
         libf_data.previous.cost += cost;
+
+        // for lower levels the FP correction is set to 1.0
+        for (auto & entry : libf_data.fp_correction)
+            entry = 1.0;
     }
 
     void update_debug_libf_data(pack_data & libf_data,
