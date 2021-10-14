@@ -99,39 +99,6 @@ TEST_F(cli_test, chopper_pipeline)
         std::string const output_file_str((std::istreambuf_iterator<char>(output_file)), std::istreambuf_iterator<char>());
         ASSERT_EQ(output_file_str, expected_file);
     }
-
-    // CHOPPER SPLIT
-    // =========================================================================
-    seqan3::test::tmp_filename const chopper_split_filename{"small.split"};
-
-    cli_test_result split_result = execute_app("chopper", "split",
-                                               "-k", "15",
-                                               "-w", "25",
-                                               "-f", binning_filename.get_path().c_str(),
-                                               "-o", chopper_split_filename.get_path().c_str());
-
-    EXPECT_EQ(split_result.exit_code, 0);
-    EXPECT_EQ(split_result.out, std::string{});
-    EXPECT_EQ(split_result.err, std::string{});
-
-    // compare results
-    ASSERT_TRUE(std::filesystem::exists(chopper_split_filename.get_path()));
-    ASSERT_TRUE(std::filesystem::exists(data("small.split")));
-
-    std::ifstream output_file{chopper_split_filename.get_path()};
-    std::filesystem::path expected_output_filename{data("small.split")};
-    std::ifstream expected_chopper_split_file{expected_output_filename};
-
-    // note that file small.split does not contain the full filename (with directory)
-    // since the directory changes on every system
-    std::string const directory{expected_output_filename.parent_path().string() + "/"};
-    std::string output_line;
-    std::string expected_line;
-    while (std::getline(output_file, output_line) && std::getline(expected_chopper_split_file, expected_line))
-    {
-        std::string full_expected_line{(expected_line[0] == '#') ? expected_line : directory + expected_line};
-        ASSERT_EQ(output_line, full_expected_line);
-    }
 }
 
 class clear_directory

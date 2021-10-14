@@ -134,7 +134,7 @@ jobs:
         run: |
           ccache -p || true
           cd build
-          make -k -j${{ matrix.build_threads }} test
+          make -k test
           ccache -s || true
 
       - name: Run tests
