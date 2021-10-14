@@ -339,7 +339,7 @@ private:
             size_t kmer_count = data->kmer_counts[trace_j];
             size_t number_of_bins = (trace_i - next_i);
 
-            correction = data->previous.empty() ? data->fp_correction[std::max<size_t>(1u, number_of_bins)] : 1u;
+            correction = data->previous.empty() ? data->fp_correction[std::max<size_t>(1u, number_of_bins)] : 1.0;
 
             if (trace_j == 0)
             {

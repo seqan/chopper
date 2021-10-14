@@ -167,17 +167,15 @@ public:
         size_t const extra_bins = num_technical_bins - num_user_bins + 1;
 
         // initialize first column (first row is initialized with inf)
-        double const ub_cardinality = static_cast<double>(data->kmer_counts[0]);
         for (size_t i = 0; i < extra_bins; ++i)
         {
-            size_t const corrected_ub_cardinality = static_cast<size_t>(ub_cardinality * data->fp_correction[i + 1]);
-            matrix[i][0] = corrected_ub_cardinality / (i + 1);
+            matrix[i][0] = data->kmer_counts[0] / (i + 1);
         }
 
         // we must iterate column wise
         for (size_t j = 1; j < num_user_bins; ++j)
         {
-            double const ub_cardinality = static_cast<double>(data->kmer_counts[j]);
+            size_t const cardinality = data->kmer_counts[j];
 
             for (size_t i = j; i < j + extra_bins; ++i)
             {
@@ -185,8 +183,7 @@ public:
 
                 for (size_t i_prime = j - 1; i_prime < i; ++i_prime)
                 {
-                    size_t const corrected_ub_cardinality = static_cast<size_t>(ub_cardinality * data->fp_correction[(i - i_prime)]);
-                    size_t score = std::max<size_t>(corrected_ub_cardinality / (i - i_prime), matrix[i_prime][j-1]);
+                    size_t score = std::max<size_t>(cardinality / (i - i_prime), matrix[i_prime][j-1]);
 
                     // std::cout << "j:" << j << " i:" << i << " i':" << i_prime << " score:" << score << std::endl;
 
@@ -230,7 +227,7 @@ public:
                 *data->output_buffer << '\t'
                                      << data->previous.estimated_sizes << ';' << kmer_count_per_bin << '\t'
                                      << data->previous.optimal_score << ';'  << optimal_score << '\t'
-                                     << data->previous.correction << ';'  << data->fp_correction[number_of_bins] << '\t'
+                                     << data->previous.correction << ';'  << 1.0 << '\t'
                                      << data->previous.tmax << ';'  << num_technical_bins;
             }
 
@@ -270,7 +267,7 @@ public:
             *data->output_buffer << '\t'
                                  << data->previous.estimated_sizes << ';' << kmer_count_per_bin << '\t'
                                  << data->previous.optimal_score << ';'  << optimal_score << '\t'
-                                 << data->previous.correction << ';'  << data->fp_correction[trace_i] << '\t'
+                                 << data->previous.correction << ';'  << 1.0 << '\t'
                                  << data->previous.tmax << ';'  << num_technical_bins;
         }
 
