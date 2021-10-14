@@ -6,11 +6,10 @@
 #include <iostream>
 #include <numeric>
 #include <vector>
-
+#include <map>
 #include <chopper/helper.hpp>
 #include <chopper/pack/pack_config.hpp>
 
-#include <robin_hood.h>
 
 class hibf_statistics
 {
@@ -171,7 +170,7 @@ private:
     };
 
     //!\brief The gathered summary of statistics for each level of this HIBF.
-    robin_hood::unordered_map<size_t, level_summary> summary;
+    std::map<size_t, level_summary> summary;
 
     /*!\brief Computes the bin size.
     *
