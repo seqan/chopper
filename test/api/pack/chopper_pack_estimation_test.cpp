@@ -36,8 +36,8 @@ TEST(chopper_pack_estimation_test, few_ubs)
     testing::internal::CaptureStdout();
     chopper_pack(pack_parser);
 
-    EXPECT_EQ(testing::internal::GetCapturedStdout(), "T_Max\tC_{T_Max}\trelative expected HIBF query cost\n64\t1.0000"
-                                                      "\t1.0000\nBest t_max (total): 64\n");
+    EXPECT_EQ(testing::internal::GetCapturedStdout(), "T_Max\tC_{T_Max}\trelative expected HIBF query cost\n64\t1.00"
+                                                      "\t1.00\n#Best t_max (regarding expected query runtime):64\n");
 }
 
 TEST(chopper_pack_estimation_test, many_ubs)
@@ -63,9 +63,9 @@ TEST(chopper_pack_estimation_test, many_ubs)
     testing::internal::CaptureStdout();
     chopper_pack(pack_parser);
 
-    EXPECT_EQ(testing::internal::GetCapturedStdout(), "T_Max\tC_{T_Max}\trelative expected HIBF query cost\n64\t1.0000"
-                                                      "\t1.2571\n128\t1.1000\t1.1214\n256\t1.3200\t1.3200\nBest t_max "
-                                                      "(total): 128\n");
+    EXPECT_EQ(testing::internal::GetCapturedStdout(), "T_Max\tC_{T_Max}\trelative expected HIBF query cost\n64\t1.00"
+                                                      "\t1.26\n128\t1.10\t1.12\n256\t1.32\t1.32\n#Best t_max "
+                                                      "(regarding expected query runtime):128\n");
 }
 
 TEST(chopper_pack_estimation_test, many_ubs_force_all)
@@ -92,7 +92,7 @@ TEST(chopper_pack_estimation_test, many_ubs_force_all)
     testing::internal::CaptureStdout();
     chopper_pack(pack_parser);
 
-    EXPECT_EQ(testing::internal::GetCapturedStdout(), "T_Max\tC_{T_Max}\trelative expected HIBF query cost\n64\t1.0000"
-                                                      "\t1.2571\n128\t1.1000\t1.1214\n256\t1.3200\t1.3200\nBest t_max "
-                                                      "(total): 128\n");
+    EXPECT_EQ(testing::internal::GetCapturedStdout(), "T_Max\tC_{T_Max}\trelative expected HIBF query cost\n64\t1.00"
+                                                      "\t1.26\n128\t1.10\t1.12\n256\t1.32\t1.32\n#Best t_max "
+                                                      "(regarding expected query runtime):128\n");
 }

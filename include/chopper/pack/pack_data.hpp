@@ -6,6 +6,7 @@
 
 #include <chopper/helper.hpp>
 #include <chopper/pack/pack_config.hpp>
+#include <chopper/pack/hibf_statistics.hpp>
 #include <chopper/pack/previous_level.hpp>
 #include <chopper/union/user_bin_sequence.hpp>
 
@@ -29,11 +30,14 @@ struct pack_data
     //!\brief Information about previous levels of the IBF if the algorithm is called recursively.
     previous_level previous{};
 
+    //!\brief An object starting at the top level IBF to collecting statistics about the HIBF on the way.
+    hibf_statistics::level * stats{nullptr};
+
     //!\brief Precompute f_h factors that adjust the split bin size to prevent FPR inflation due to multiple testing.
     void compute_fp_correction(double const fp_rate, size_t const num_hash_functions, size_t const requested_max_tb)
     {
         size_t const max_tb = next_multiple_of_64(requested_max_tb);
-        
+
         fp_correction.resize(max_tb + 1, 0.0);
 
         double const denominator = std::log(1 - std::exp(std::log(fp_rate) / num_hash_functions));

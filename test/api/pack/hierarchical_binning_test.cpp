@@ -4,8 +4,10 @@
 #include <sstream>
 #include <vector>
 
-#include <chopper/pack/hierarchical_binning.hpp>
 #include <robin_hood.h>
+
+#include <chopper/pack/hibf_statistics.hpp>
+#include <chopper/pack/hierarchical_binning.hpp>
 
 #include "../api_test.hpp"
 
@@ -20,6 +22,8 @@ TEST(hierarchical_binning_test, filenames_and_kmer_counts_size_differs)
     data.output_buffer = &output_buffer;
     data.header_buffer = &header_buffer;
     data.compute_fp_correction(0.05, 2, config.t_max);
+    hibf_statistics global_stats_dummy{};
+    data.stats = &global_stats_dummy.top_level_ibf;
 
     data.filenames = {"seq0", "seq1"};   // 2 filenames
     data.kmer_counts = {500, 1000, 500}; // 3 kmer_counts :(
@@ -40,6 +44,8 @@ TEST(hierarchical_binning_test, small_example)
     data.filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6",  "seq7"};
     data.kmer_counts = {500, 1000, 500, 500, 500, 500, 500, 500};
     data.compute_fp_correction(0.05, 2, config.t_max);
+    hibf_statistics global_stats_dummy{};
+    data.stats = &global_stats_dummy.top_level_ibf;
     hierarchical_binning algo{data, config};
     EXPECT_EQ(std::get<0>(algo.execute()), 1u); // #HIGH_LEVEL_IBF max_bin_id:3
 
@@ -74,6 +80,8 @@ TEST(hierarchical_binning_test, another_example)
     data.filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6",  "seq7"};
     data.kmer_counts = {50, 1000, 1000, 50, 5, 10, 10, 5};
     data.compute_fp_correction(0.05, 2, config.t_max);
+    hibf_statistics global_stats_dummy{};
+    data.stats = &global_stats_dummy.top_level_ibf;
 
     hierarchical_binning algo{data, config};
     EXPECT_EQ(std::get<0>(algo.execute()), 1u); // #HIGH_LEVEL_IBF max_bin_id:1
@@ -109,6 +117,8 @@ TEST(hierarchical_binning_test, high_level_max_bin_id_is_0)
     data.filenames = {"seq0", "seq1", "seq2", "seq3"};
     data.kmer_counts = {500, 500, 500, 500};
     data.compute_fp_correction(0.05, 2, config.t_max);
+    hibf_statistics global_stats_dummy{};
+    data.stats = &global_stats_dummy.top_level_ibf;
 
     hierarchical_binning algo{data, config};
     EXPECT_EQ(std::get<0>(algo.execute()), 0u); // #HIGH_LEVEL_IBF max_bin_id:1
@@ -139,6 +149,8 @@ TEST(hierarchical_binning_test, knuts_example)
     data.filenames = {"seq0", "seq1", "seq2", "seq3", "seq4"};
     data.kmer_counts = {60, 600, 1000, 800, 800};
     data.compute_fp_correction(0.05, 2, config.t_max);
+    hibf_statistics global_stats_dummy{};
+    data.stats = &global_stats_dummy.top_level_ibf;
 
     hierarchical_binning algo{data, config};
     EXPECT_EQ(std::get<0>(algo.execute()), 1u);
@@ -171,6 +183,8 @@ TEST(hierarchical_binning_test, four_level_hibf)
     data.filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5"};
     data.kmer_counts = {11090, 5080, 3040, 1020, 510, 500};
     data.compute_fp_correction(0.05, 2, config.t_max);
+    hibf_statistics global_stats_dummy{};
+    data.stats = &global_stats_dummy.top_level_ibf;
 
     hierarchical_binning algo{data, config};
     EXPECT_EQ(std::get<0>(algo.execute()), 1u); // #HIGH_LEVEL_IBF max_bin_id:1
@@ -207,6 +221,8 @@ TEST(hierarchical_binning_test, tb0_is_a_merged_bin)
     data.filenames = {"seq0", "seq1", "seq2", "seq3"};
     data.kmer_counts = {500, 500, 500, 500};
     data.compute_fp_correction(0.05, 2, config.t_max);
+    hibf_statistics global_stats_dummy{};
+    data.stats = &global_stats_dummy.top_level_ibf;
 
     hierarchical_binning algo{data, config};
     EXPECT_EQ(std::get<0>(algo.execute()), 0u);
@@ -240,6 +256,8 @@ TEST(hierarchical_binning_test, tb0_is_a_merged_bin_with_debug)
     data.filenames = {"seq0", "seq1", "seq2", "seq3"};
     data.kmer_counts = {500, 500, 500, 500};
     data.compute_fp_correction(0.05, 2, config.t_max);
+    hibf_statistics global_stats_dummy{};
+    data.stats = &global_stats_dummy.top_level_ibf;
 
     hierarchical_binning algo{data, config};
     EXPECT_EQ(std::get<0>(algo.execute()), 0u);
@@ -272,6 +290,8 @@ TEST(hierarchical_binning_test, tb0_is_a_merged_bin_and_leads_to_recursive_call)
     data.filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7"};
     data.kmer_counts = {500, 500, 500, 500, 500, 500, 500, 500};
     data.compute_fp_correction(0.05, 2, config.t_max);
+    hibf_statistics global_stats_dummy{};
+    data.stats = &global_stats_dummy.top_level_ibf;
 
     hierarchical_binning algo{data, config};
     EXPECT_EQ(std::get<0>(algo.execute()), 0u);
