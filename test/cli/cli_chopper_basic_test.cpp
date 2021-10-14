@@ -153,7 +153,19 @@ TEST_F(cli_test, chopper_split_cmd_error_unknown_option)
         "In case this is meant to be a non-option/argument/parameter, "
         "please specify the start of non-options with '--'. See -h/--help for program information.\n"
     };
-    EXPECT_EQ(result.exit_code, 65024);
+    EXPECT_EQ(result.exit_code, 65280);
+    EXPECT_EQ(result.out, std::string{});
+    EXPECT_EQ(result.err, expected);
+}
+
+TEST_F(cli_test, chopper_split_seq_files_and_data_file)
+{
+    cli_test_result result = execute_app("chopper", "split", "-s", "some_file", "-f", "data_file");
+    std::string expected
+    {
+        "[CHOPPER SPLIT ERROR] You may EITHER specify files with -s OR give a data file with -f!\n"
+    };
+    EXPECT_EQ(result.exit_code, 65280);
     EXPECT_EQ(result.out, std::string{});
     EXPECT_EQ(result.err, expected);
 }
