@@ -28,7 +28,7 @@ TEST_F(cli_test, chopper_cmd_error)
     std::string expected
     {
         "[CHOPPER ERROR] You either forgot or misspelled the subcommand! "
-        "Please specify which sub-program you want to use: one of [count,pack,split]. "
+        "Please specify which sub-program you want to use: one of [count,pack]. "
         "Use -h/--help for more information.\n"
     };
     EXPECT_EQ(result.exit_code, 65280);
@@ -138,32 +138,6 @@ TEST_F(cli_test, chopper_pack_cmd_error_no_hll_dir)
     std::string expected
     {
         "[CHOPPER PACK ERROR] An hll dir needs to be provided when enabling -u or -r.\n"
-    };
-    EXPECT_EQ(result.exit_code, 65280);
-    EXPECT_EQ(result.out, std::string{});
-    EXPECT_EQ(result.err, expected);
-}
-
-TEST_F(cli_test, chopper_split_cmd_error_unknown_option)
-{
-    cli_test_result result = execute_app("chopper", "split", "--unkown-option");
-    std::string expected
-    {
-        "[CHOPPER SPLIT ERROR] Unknown option --unkown-option. "
-        "In case this is meant to be a non-option/argument/parameter, "
-        "please specify the start of non-options with '--'. See -h/--help for program information.\n"
-    };
-    EXPECT_EQ(result.exit_code, 65280);
-    EXPECT_EQ(result.out, std::string{});
-    EXPECT_EQ(result.err, expected);
-}
-
-TEST_F(cli_test, chopper_split_seq_files_and_data_file)
-{
-    cli_test_result result = execute_app("chopper", "split", "-s", "some_file", "-f", "data_file");
-    std::string expected
-    {
-        "[CHOPPER SPLIT ERROR] You may EITHER specify files with -s OR give a data file with -f!\n"
     };
     EXPECT_EQ(result.exit_code, 65280);
     EXPECT_EQ(result.out, std::string{});

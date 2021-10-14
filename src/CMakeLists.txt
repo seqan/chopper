@@ -19,11 +19,8 @@ target_link_libraries (chopper_count_lib "chopper_interface")
 add_library (chopper_pack_lib STATIC chopper_pack.cpp)
 target_link_libraries (chopper_pack_lib "chopper_interface")
 
-add_library (chopper_split_lib STATIC chopper_split.cpp)
-target_link_libraries (chopper_split_lib "chopper_interface")
-
 add_library (chopper_lib INTERFACE)
-target_link_libraries (chopper_lib INTERFACE "chopper_interface" "chopper_count_lib" "chopper_pack_lib" "chopper_split_lib")
+target_link_libraries (chopper_lib INTERFACE "chopper_interface" "chopper_count_lib" "chopper_pack_lib")
 
 add_executable (chopper chopper.cpp)
 target_link_libraries (chopper "chopper_lib")
