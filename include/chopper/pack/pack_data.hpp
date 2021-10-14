@@ -30,8 +30,8 @@ struct pack_data
     //!\brief Information about previous levels of the IBF if the algorithm is called recursively.
     previous_level previous{};
 
-    //!\brief An object collecting statistics on the way.
-    hibf_statistics::ibf * stats{nullptr};
+    //!\brief An object starting at the top level IBF to collecting statistics about the HIBF on the way.
+    hibf_statistics::level * stats{nullptr};
 
     //!\brief Precompute f_h factors that adjust the split bin size to prevent FPR inflation due to multiple testing.
     void compute_fp_correction(double const fp_rate, size_t const num_hash_functions, size_t const requested_max_tb)

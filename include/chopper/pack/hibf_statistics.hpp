@@ -32,8 +32,8 @@ public:
 
     struct bin; // forward declaration
 
-    //!\brief A representation of an IBF that gathers information of each bin in an IBF.
-    using ibf = std::vector<bin>;
+    //!\brief A representation of an IBF level that gathers information about bins in an IBF.
+    using level = std::vector<bin>;
 
     //!\brief The kind of bin that is stored.
     enum class bin_kind
@@ -43,30 +43,25 @@ public:
     };
 
     //!\brief Represents a (set) of user bins (see ibf_statistics::bin_kind).
-    struct bin
+    class bin
     {
-        bin_kind const kind;
-        size_t const cardinality;
-        size_t const num_contained_ubs;
-        size_t const num_spanning_tbs;
+    public:
+        bin_kind const kind; //!< Either a split or merged bin.
+        size_t const cardinality; //!< The size/weight of the bin (either a kmer count or hll sketch estimation).
+        size_t const num_contained_ubs; //!< [MERGED] How many UBs are merged within this TB.
+        size_t const num_spanning_tbs; //!< [SPLIT] How many TBs are used for this sindle UB.
 
-        ibf child_ibf;
+        level child_level; //!< [MERGED] The lower level ibf statistics.
 
-        bin() = delete; //!< Deleted. Enforce user supplied values for member initialization.
+        bin() = default; //!< Defaulted.
         bin(bin const & b) = default; //!< Defaulted.
         bin & operator=(bin const &) = default; //!< Defaulted.
         bin(bin && b) = default; //!< Defaulted.
         bin & operator=(bin &&) = default; //!< Defaulted.
         ~bin() = default; //!< Defaulted.
 
-        bin(bin_kind const kind_,
-            size_t const cardinality_,
-            size_t const num_contained_ubs_,
-            size_t const num_spanning_tbs_) :
-            kind{kind_},
-            cardinality{cardinality_},
-            num_contained_ubs{num_contained_ubs_},
-            num_spanning_tbs{num_spanning_tbs_}
+        bin(bin_kind const kind_, size_t const card, size_t const contained_ubs, size_t const spanning_tbs) :
+            kind{kind_}, cardinality{card}, num_contained_ubs{contained_ubs}, num_spanning_tbs{spanning_tbs}
         {
             assert((kind == bin_kind::split  && num_contained_ubs == 1u) ||
                    (kind == bin_kind::merged && num_spanning_tbs  == 1u));
@@ -76,17 +71,20 @@ public:
     //!\brief Prints a tab-separated summary of the statistics of this HIBF to the command line.
     void print_summary()
     {
-        if (summary.empty())
+        if (summaries.empty())
             gather_statistics(top_level_ibf, 0);
 
-        std::cout << "\n\tStatistics summary:\n\tlevel\tnum_ibfs\tlevel_size\tlevel_size_no_corr\ttotal_num_tbs"
+        std::cout << std::fixed << std::setprecision(2);
+
+        // print column names
+        std::cout << "level\tnum_ibfs\tlevel_size\tlevel_size_no_corr\ttotal_num_tbs"
                      "\tavg_num_tbs\tsplit_tb_percentage\tmax_split_tb\tavg_split_tb\tmax_factor\tavg_factor\n";
 
         size_t total_size{};
         size_t total_size_no_corr{};
 
         // go through each level and collect and output the statistics
-        for (auto const & [level, s] : summary)
+        for (auto const & [level, s] : summaries)
         {
             size_t const level_size = std::reduce(s.ibf_mem_size.begin(), s.ibf_mem_size.end());
             size_t const level_size_no_corr = std::reduce(s.ibf_mem_size_no_corr.begin(), s.ibf_mem_size_no_corr.end());
@@ -97,11 +95,11 @@ public:
             size_t const total_num_tbs = std::reduce(s.num_tbs.begin(), s.num_tbs.end());
 
             size_t const total_num_split_tbs = std::reduce(s.num_split_tbs.begin(), s.num_split_tbs.end());
-            double const split_tb_percentage = 100 * (double)total_num_split_tbs / (double)total_num_tbs;
+            double const split_tb_percentage = 100.0 * static_cast<double>(total_num_split_tbs) / total_num_tbs;
 
             size_t const max_split_bin_span = *std::max_element(s.max_split_tb_span.begin(), s.max_split_tb_span.end());
 
-            std::cout << '\t' << level << '\t'
+            std::cout << level << '\t'
                       << s.num_ibfs << '\t'
                       << to_formatted_BF_size(level_size) << '\t'
                       << to_formatted_BF_size(level_size_no_corr) << '\t'
@@ -131,12 +129,12 @@ public:
             }
         }
 
-        std::cout << "\tTotal HIBF size: " << to_formatted_BF_size(total_size)
-                  << "\n\tTotal HIBF size no correction: " << to_formatted_BF_size(total_size_no_corr) << "\n\n";
+        std::cout << "#Total HIBF size:" << to_formatted_BF_size(total_size) << '\n'
+                  << "#Total HIBF size no correction:" << to_formatted_BF_size(total_size_no_corr) << "\n\n";
     }
 
     //!\brief The top level IBF of this HIBF, often starting point for recursions.
-    ibf top_level_ibf;
+    level top_level_ibf;
 
 private:
     //!\brief Copy of the user configuration for this HIBF.
@@ -170,7 +168,7 @@ private:
     };
 
     //!\brief The gathered summary of statistics for each level of this HIBF.
-    std::map<size_t, level_summary> summary;
+    std::map<size_t, level_summary> summaries;
 
     /*!\brief Computes the bin size in bits.
     *
@@ -199,61 +197,62 @@ private:
     }
 
     /*!\brief Recursively gather all the statistics from the bins.
-     * \param[in] curr_ibf The current IBF from which the statistics will be extracted.
-     * \param[in] level The level of `curr_ibf` in the HIBF.
+     * \param[in] curr_level The current IBF from which the statistics will be extracted.
+     * \param[in] level_summary_index The index of `curr_level` in `summeries`.
      */
-    void gather_statistics(ibf const & curr_ibf, size_t const level)
+    void gather_statistics(level const & curr_level, size_t const level_summary_index)
     {
-        level_summary & summary = summaries[level];
-        s.num_ibfs += 1;
+        level_summary & summary = summaries[level_summary_index];
+        summary.num_ibfs += 1;
 
         size_t max_cardinality{}, max_cardinality_no_corr{}, num_tbs{}, num_ubs{}, num_split_tbs{},
                num_merged_tbs{}, num_split_ubs{}, num_merged_ubs{}, max_split_tb_span{},
                split_tb_kmers{}, max_ubs_in_merged{}, split_tb_corr_kmers{};
 
-        for (bin const & current_bin : curr_ibf)
+        for (bin const & current_bin : curr_level)
         {
-            size_t const corrected_cardinality = std::ceil(b.cardinality * (*fp_correction)[b.num_spanning_tbs]);
+            size_t const corrected_cardinality = std::ceil(current_bin.cardinality *
+                                                           (*fp_correction)[current_bin.num_spanning_tbs]);
             max_cardinality = std::max(max_cardinality, corrected_cardinality);
-            max_cardinality_no_corr = std::max(max_cardinality_no_corr, b.cardinality);
+            max_cardinality_no_corr = std::max(max_cardinality_no_corr, current_bin.cardinality);
 
-            num_tbs += b.num_spanning_tbs;
-            num_ubs += b.num_contained_ubs;
+            num_tbs += current_bin.num_spanning_tbs;
+            num_ubs += current_bin.num_contained_ubs;
 
-            if (b.kind == bin_kind::split)
+            if (current_bin.kind == bin_kind::split)
             {
-                num_split_tbs += b.num_spanning_tbs;
+                num_split_tbs += current_bin.num_spanning_tbs;
                 num_split_ubs += 1;
-                split_tb_corr_kmers += corrected_cardinality * b.num_spanning_tbs;
-                split_tb_kmers += b.cardinality * b.num_spanning_tbs;
-                max_split_tb_span = std::max(max_split_tb_span, b.num_spanning_tbs);
+                split_tb_corr_kmers += corrected_cardinality * current_bin.num_spanning_tbs;
+                split_tb_kmers += current_bin.cardinality * current_bin.num_spanning_tbs;
+                max_split_tb_span = std::max(max_split_tb_span, current_bin.num_spanning_tbs);
             }
             else
             {
                 num_merged_tbs += 1;
-                num_merged_ubs += b.num_contained_ubs;
-                max_ubs_in_merged = std::max(max_ubs_in_merged, b.num_contained_ubs);
+                num_merged_ubs += current_bin.num_contained_ubs;
+                max_ubs_in_merged = std::max(max_ubs_in_merged, current_bin.num_contained_ubs);
 
-                gather_statistics(b.child_ibf, level + 1);
+                gather_statistics(current_bin.child_level, level_summary_index + 1);
             }
         }
 
-        s.num_tbs.push_back(num_tbs);
-        s.num_ubs.push_back(num_ubs);
+        summary.num_tbs.push_back(num_tbs);
+        summary.num_ubs.push_back(num_ubs);
 
-        s.num_split_tbs.push_back(num_split_tbs);
-        s.num_merged_tbs.push_back(num_merged_tbs);
+        summary.num_split_tbs.push_back(num_split_tbs);
+        summary.num_merged_tbs.push_back(num_merged_tbs);
 
-        s.num_split_ubs.push_back(num_split_ubs);
-        s.num_merged_ubs.push_back(num_merged_ubs);
+        summary.num_split_ubs.push_back(num_split_ubs);
+        summary.num_merged_ubs.push_back(num_merged_ubs);
 
-        s.max_split_tb_span.push_back(max_split_tb_span);
-        s.split_tb_corr_kmers.push_back(split_tb_corr_kmers);
-        s.split_tb_kmers.push_back(split_tb_kmers);
+        summary.max_split_tb_span.push_back(max_split_tb_span);
+        summary.split_tb_corr_kmers.push_back(split_tb_corr_kmers);
+        summary.split_tb_kmers.push_back(split_tb_kmers);
 
-        s.max_ubs_in_merged.push_back(max_ubs_in_merged);
+        summary.max_ubs_in_merged.push_back(max_ubs_in_merged);
 
-        s.ibf_mem_size.push_back(max_cardinality * num_tbs);
-        s.ibf_mem_size_no_corr.push_back(max_cardinality_no_corr * num_tbs);
+        summary.ibf_mem_size.push_back(max_cardinality * num_tbs);
+        summary.ibf_mem_size_no_corr.push_back(max_cardinality_no_corr * num_tbs);
     }
 };

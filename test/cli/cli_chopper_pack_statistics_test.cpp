@@ -1,3 +1,5 @@
+#include <fstream>
+
 #include <seqan3/test/tmp_filename.hpp>
 
 #include "cli_test.hpp"
@@ -21,13 +23,11 @@ TEST_F(cli_test, chopper_pack_statistics)
                                               "--output-statistics");
 
     std::string expected_cout =
-R"expected_cout(
-	Statistics summary:
-	level	num_ibfs	level_size	level_size_no_corr	total_num_tbs	avg_num_tbs	split_tb_percentage	max_split_tb	avg_split_tb	max_factor	avg_factor
-	0	1	37 KiB	37 KiB	64	64	81.25	1	1	1	1.0025
-	1	12	48 KiB	8 KiB	768	64	100	32	17.4545	9.01694	6.49597
-	Total HIBF size: 85 KiB
-	Total HIBF size no correction: 45 KiB
+R"expected_cout(level	num_ibfs	level_size	level_size_no_corr	total_num_tbs	avg_num_tbs	split_tb_percentage	max_split_tb	avg_split_tb	max_factor	avg_factor
+0	1	37 KiB	37 KiB	64	64	81.25	1	1.00	1.00	1.00
+1	12	48 KiB	8 KiB	768	64	100.00	32	17.45	9.02	6.50
+#Total HIBF size:85 KiB
+#Total HIBF size no correction:45 KiB
 
 )expected_cout";
 
@@ -66,25 +66,23 @@ TEST_F(cli_test, chopper_pack_statistics_determine_best_bins)
 
 
     std::string expected_cout =
-R"expected_cout(T_Max	C_{T_Max}	relative expected HIBF query cost
-64	1.0000	1.0000
+R"expected_cout(#T_Max:64
+#C_{T_Max}:1.00
+#relative expected HIBF query cost:1.00
+level	num_ibfs	level_size	level_size_no_corr	total_num_tbs	avg_num_tbs	split_tb_percentage	max_split_tb	avg_split_tb	max_factor	avg_factor
+0	1	1 MiB	1 MiB	64	64	100.00	20	6.40	6.38	3.62
+#Total HIBF size:1 MiB
+#Total HIBF size no correction:1 MiB
 
-	Statistics summary:
-	level	num_ibfs	level_size	level_size_no_corr	total_num_tbs	avg_num_tbs	split_tb_percentage	max_split_tb	avg_split_tb	max_factor	avg_factor
-	0	1	1 MiB	1 MiB	64	64	100.0000	20	6.4000	6.3777	3.6157
-	Total HIBF size: 1 MiB
-	Total HIBF size no correction: 1 MiB
+#T_Max:128
+#C_{T_Max}:1.10
+#relative expected HIBF query cost:1.10
+level	num_ibfs	level_size	level_size_no_corr	total_num_tbs	avg_num_tbs	split_tb_percentage	max_split_tb	avg_split_tb	max_factor	avg_factor
+0	1	3 MiB	2 MiB	128	128	100.00	47	12.80	12.17	5.96
+#Total HIBF size:3 MiB
+#Total HIBF size no correction:2 MiB
 
-T_Max	C_{T_Max}	relative expected HIBF query cost
-128	1.1000	1.1000
-
-	Statistics summary:
-	level	num_ibfs	level_size	level_size_no_corr	total_num_tbs	avg_num_tbs	split_tb_percentage	max_split_tb	avg_split_tb	max_factor	avg_factor
-	0	1	3 MiB	2 MiB	128	128	100.0000	47	12.8000	12.1721	5.9559
-	Total HIBF size: 3 MiB
-	Total HIBF size no correction: 2 MiB
-
-Best t_max (regarding expected query runtime): 64
+#Best t_max (regarding expected query runtime):64
 )expected_cout";
 
     EXPECT_EQ(pack_result.exit_code, 0);

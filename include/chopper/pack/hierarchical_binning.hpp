@@ -428,7 +428,7 @@ private:
                 if (libf_data.kmer_counts.size() > config.t_max)
                 {
                     // recursively call hierarchical binning if there are still too many UBs
-                    libf_data.stats = &bin_stats.child_ibf;
+                    libf_data.stats = &bin_stats.child_level;
                     auto const && [bin_id, cost] = hierarchical_binning{libf_data, config}.execute();
                     merged_max_bin_id = bin_id;
                     total_query_cost += cost;
@@ -436,7 +436,7 @@ private:
                 else
                 {
                     // use simple binning to distribute remaining UBs
-                    libf_data.stats = &bin_stats.child_ibf;
+                    libf_data.stats = &bin_stats.child_level;
                     simple_binning algo{libf_data, 0, config.debug};
                     merged_max_bin_id = algo.execute();
                     total_query_cost += (data->previous.cost + interpolated_cost
@@ -502,14 +502,14 @@ private:
                 // now do the binning for the low-level IBF:
                 if (libf_data.kmer_counts.size() > config.t_max)
                 {
-                    libf_data.stats = &bin_stats.child_ibf;
+                    libf_data.stats = &bin_stats.child_level;
                     auto const && [bin_id, cost] = hierarchical_binning{libf_data, config}.execute();
                     merged_max_bin_id = bin_id;
                     total_query_cost += cost;
                 }
                 else
                 {
-                    libf_data.stats = &bin_stats.child_ibf;
+                    libf_data.stats = &bin_stats.child_level;
                     simple_binning algo{libf_data, 0, config.debug};
                     merged_max_bin_id = algo.execute();
                     total_query_cost += (data->previous.cost + interpolated_cost

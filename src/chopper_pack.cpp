@@ -131,9 +131,9 @@ size_t determine_best_number_of_technical_bins(pack_data & data, pack_config & c
 
     // with -determine-num-bins the algorithm is executed multiple times and result with the minimum
     // expected query costs is written to the output
-    std::cout << std::fixed << std::setprecision(4);
+    std::cout << std::fixed << std::setprecision(2);
     if (!config.output_statistics)
-        std::cout << "T_Max\tC_{T_Max}\trelative expected HIBF query cost\n";
+        std::cout << "# T_Max\tC_{T_Max}\trelative expected HIBF query cost\n";
 
     double best_expected_HIBF_query_cost{std::numeric_limits<double>::infinity()};
     size_t best_t_max{};
@@ -161,11 +161,18 @@ size_t determine_best_number_of_technical_bins(pack_data & data, pack_config & c
         double const expected_HIBF_query_cost = total_query_cost / total_kmer_count;
 
         if (config.output_statistics)
-            std::cout << "T_Max\tC_{T_Max}\trelative expected HIBF query cost\n";
+        {
+            std::cout << "#T_Max:" << t_max << '\n'
+                      << "#C_{T_Max}:" << ibf_query_cost::exact(t_max) << '\n'
+                      << "#relative expected HIBF query cost:" << expected_HIBF_query_cost << '\n';
+        }
+        else
+        {
+            std::cout << "# " << t_max << '\t'
+                      << ibf_query_cost::exact(t_max) << '\t'
+                      << expected_HIBF_query_cost << '\n';
+        }
 
-        std::cout << t_max << '\t'
-                    << ibf_query_cost::exact(t_max)<< '\t'
-                    << expected_HIBF_query_cost << '\n';
 
         if (config.output_statistics)
             global_stats.print_summary();
@@ -185,7 +192,7 @@ size_t determine_best_number_of_technical_bins(pack_data & data, pack_config & c
         }
     }
 
-    std::cout << "Best t_max (regarding expected query runtime): " << best_t_max << '\n';
+    std::cout << "#Best t_max (regarding expected query runtime):" << best_t_max << '\n';
     return max_hibf_id;
 }
 
