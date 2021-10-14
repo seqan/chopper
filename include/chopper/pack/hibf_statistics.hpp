@@ -211,9 +211,13 @@ private:
 
         for (bin const & current_bin : curr_level)
         {
-            size_t const corrected_cardinality = std::ceil(current_bin.cardinality *
-                                                           (*fp_correction)[current_bin.num_spanning_tbs]);
-            max_cardinality = std::max(max_cardinality, corrected_cardinality);
+            size_t cardinality = current_bin.cardinality;
+            
+            // if this is the top recursive level, we must apply the FPR correction
+            if (level_summary_index == 0)
+                cardinality = std::ceil(cardinality * (*fp_correction)[current_bin.num_spanning_tbs]);
+
+            max_cardinality = std::max(max_cardinality, cardinality);
             max_cardinality_no_corr = std::max(max_cardinality_no_corr, current_bin.cardinality);
 
             num_tbs += current_bin.num_spanning_tbs;
@@ -223,7 +227,7 @@ private:
             {
                 num_split_tbs += current_bin.num_spanning_tbs;
                 num_split_ubs += 1;
-                split_tb_corr_kmers += corrected_cardinality * current_bin.num_spanning_tbs;
+                split_tb_corr_kmers += cardinality * current_bin.num_spanning_tbs;
                 split_tb_kmers += current_bin.cardinality * current_bin.num_spanning_tbs;
                 max_split_tb_span = std::max(max_split_tb_span, current_bin.num_spanning_tbs);
             }

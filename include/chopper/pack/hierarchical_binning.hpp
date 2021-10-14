@@ -128,11 +128,14 @@ private:
         assert(data != nullptr);
 
         // initialize first column
-        double const ub_cardinality = static_cast<double>(data->kmer_counts[0]);
         for (size_t i = 0; i < num_technical_bins; ++i)
         {
-            size_t const corrected_ub_cardinality = static_cast<size_t>(ub_cardinality * data->fp_correction[i + 1]);
-            matrix[i][0] = corrected_ub_cardinality / (i + 1);
+            size_t cardinality = data->kmer_counts[0];
+            // if this is the top recursive level, we must apply the FPR correction
+            if (data->previous.empty())
+                cardinality = std::ceil(static_cast<double>(cardinality) * data->fp_correction[i + 1]);
+
+            matrix[i][0] = cardinality / (i + 1);
             trace[i][0] = {0u, 0u}; // unnecessary?
         }
 
@@ -208,7 +211,6 @@ private:
         for (size_t j = 1; j < num_user_bins; ++j)
         {
             size_t const current_weight = data->kmer_counts[j];
-            double const ub_cardinality = static_cast<double>(current_weight);
 
             for (size_t i = 1; i < num_technical_bins; ++i)
             {
@@ -220,8 +222,13 @@ private:
                 {
                     // score: The current maximum technical bin size for the high-level IBF (score for the matrix M)
                     // full_score: The score to minimize -> score * #TB-high_level + low_level_memory footprint
-                    size_t const corrected_ub_cardinality = static_cast<size_t>(ub_cardinality * data->fp_correction[(i - i_prime)]);
-                    size_t score = std::max<size_t>(corrected_ub_cardinality / (i - i_prime), matrix[i_prime][j-1]);
+
+                    size_t cardinality = current_weight;
+                    // if this is the top recursive level, we must apply the FPR correction
+                    if (data->previous.empty())
+                        cardinality = std::ceil(static_cast<double>(cardinality) * data->fp_correction[i - i_prime]);
+                    
+                    size_t score = std::max<size_t>(cardinality / (i - i_prime), matrix[i_prime][j-1]);
                     size_t full_score = score * (i + 1) /*#TBs*/ + config.alpha * ll_matrix[i_prime][j-1];
 
                     // std::cout << " ++ j:" << j << " i:" << i << " i':" << i_prime << " score:" << score << std::endl;
@@ -332,7 +339,7 @@ private:
             size_t kmer_count = data->kmer_counts[trace_j];
             size_t number_of_bins = (trace_i - next_i);
 
-            correction = data->fp_correction[std::max<size_t>(1u, number_of_bins)];
+            correction = data->previous.empty() ? data->fp_correction[std::max<size_t>(1u, number_of_bins)] : 1u;
 
             if (trace_j == 0)
             {
@@ -378,7 +385,6 @@ private:
                 pack_data libf_data{};
                 libf_data.output_buffer = data->output_buffer;
                 libf_data.header_buffer = data->header_buffer;
-                libf_data.fp_correction = data->fp_correction;
 
                 libf_data.kmer_counts = {kmer_count};
                 libf_data.filenames = {data->filenames[trace_j]};
@@ -459,7 +465,6 @@ private:
                 pack_data libf_data{};
                 libf_data.output_buffer = data->output_buffer;
                 libf_data.header_buffer = data->header_buffer;
-                libf_data.fp_correction = data->fp_correction;
 
                 libf_data.kmer_counts = {kmer_count};
                 libf_data.filenames = {data->filenames[trace_j]};
