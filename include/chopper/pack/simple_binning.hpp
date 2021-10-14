@@ -82,7 +82,7 @@ class simple_binning
 {
 private:
     //!\brief The data input: filenames associated with the user bin and a kmer count per user bin.
-    pack_data * data{nullptr};
+    pack_data const * data{nullptr};
 
     /*!\brief The number of User bins.
      *

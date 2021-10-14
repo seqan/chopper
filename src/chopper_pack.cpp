@@ -133,7 +133,7 @@ size_t determine_best_number_of_technical_bins(pack_data & data, pack_config & c
     // expected query costs is written to the output
     std::cout << std::fixed << std::setprecision(2);
     if (!config.output_statistics)
-        std::cout << "# T_Max\tC_{T_Max}\trelative expected HIBF query cost\n";
+        std::cout << "T_Max\tC_{T_Max}\trelative expected HIBF query cost\n";
 
     double best_expected_HIBF_query_cost{std::numeric_limits<double>::infinity()};
     size_t best_t_max{};
@@ -168,7 +168,7 @@ size_t determine_best_number_of_technical_bins(pack_data & data, pack_config & c
         }
         else
         {
-            std::cout << "# " << t_max << '\t'
+            std::cout << t_max << '\t'
                       << ibf_query_cost::exact(t_max) << '\t'
                       << expected_HIBF_query_cost << '\n';
         }
