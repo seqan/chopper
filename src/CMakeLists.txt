@@ -12,6 +12,7 @@ target_compile_options (chopper_interface INTERFACE ${SEQAN_CXX_FLAGS_LIST})
 target_link_libraries (chopper_interface INTERFACE "${SEQAN_LIBRARIES}")
 target_link_libraries (chopper_interface INTERFACE xxhash)
 target_compile_options (chopper_interface INTERFACE "-pedantic" "-Wall" "-Wextra")
+add_dependencies (chopper_interface xxhash)
 
 add_library (chopper_count_lib STATIC chopper_count.cpp)
 target_link_libraries (chopper_count_lib "chopper_interface")
