@@ -120,7 +120,7 @@ public:
 
                 std::cout << max_split_bin_span << '\t'
                           << avg_split_bin << '\t'
-                          << (*fp_correction)[max_split_bin_span] << '\t'
+                          << level == 0 ? (*fp_correction)[max_split_bin_span] : 1.0 << '\t'
                           << avg_factor << '\n';
             }
             else
