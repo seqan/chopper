@@ -24,9 +24,6 @@ private:
     //!\brief The cost for querying `num_technical_bins` bins.
     double const interpolated_cost{};
 
-    //!\brief The total query cost of all k-mers.
-    double total_query_cost{};
-
 public:
     hierarchical_binning() = default; //!< Defaulted.
     hierarchical_binning(hierarchical_binning const &) = delete; //!< Deleted. Would modify same data.
@@ -95,7 +92,7 @@ public:
         // print_matrix(ll_matrix, num_technical_bins, num_user_bins, max_size_t);
         // print_matrix(trace, num_technical_bins, num_user_bins, std::make_pair(max_size_t, max_size_t));
 
-        return std::make_tuple(backtracking(matrix, trace), total_query_cost);
+        return backtracking(matrix, trace);
     }
 
 private:
@@ -285,8 +282,8 @@ private:
     }
 
     //!\brief Backtracks the trace matrix and writes the resulting binning into the output file.
-    size_t backtracking(std::vector<std::vector<size_t>> const & matrix,
-                        std::vector<std::vector<std::pair<size_t, size_t>>> const & trace)
+    std::tuple<size_t, double> backtracking(std::vector<std::vector<size_t>> const & matrix,
+                                            std::vector<std::vector<std::pair<size_t, size_t>>> const & trace)
     {
         assert(data != nullptr);
         assert(data->output_buffer != nullptr);
@@ -319,6 +316,7 @@ private:
         size_t high_level_max_id{};   // the id of the technical bin with maximal size
         size_t high_level_max_size{}; // the maximum technical bin size seen so far
         size_t bin_id{};              // the current bin that is processed, we start naming the bins here!
+        double total_query_cost{};    // The total query cost of all k-mers (debug information).
 
         while (trace_j >= 0)
         {
@@ -549,7 +547,7 @@ private:
             bin_id += number_of_bins;
         }
 
-        return high_level_max_id;
+        return std::make_tuple(high_level_max_id, total_query_cost);
     }
 
     pack_data initialise_libf_data(size_t const kmer_count, size_t const trace_j) const
