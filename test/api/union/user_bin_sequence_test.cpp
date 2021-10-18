@@ -271,3 +271,23 @@ TEST_F(user_bin_sequence_test, trace)
 
     EXPECT_RANGE_EQ(permutation, (std::vector<size_t>{1, 3, 0}));
 }
+
+TEST_F(user_bin_sequence_test, cluster_bins)
+{
+    this->read_hll_files(data("")); // load hll files for test_filenames from data directory
+
+    { // whole range
+        std::vector<size_t> permutation{};
+        this->cluster_bins(permutation, 0/*interval start*/, 3/*interval_end*/, 1/*number of threads*/);
+        // index 3 is not part of current permutation so it can participate in "the next interval"
+        EXPECT_RANGE_EQ(permutation, (std::vector<size_t>{2,0,1}));
+    }
+
+    { // intervals
+        std::vector<size_t> permutation{};
+        this->cluster_bins(permutation, 0/*interval start*/, 1/*interval_end*/, 1/*number of threads*/);
+        EXPECT_RANGE_EQ(permutation, (std::vector<size_t>{0}));
+        this->cluster_bins(permutation, 1/*interval start*/, 3/*interval_end*/, 1/*number of threads*/);
+        EXPECT_RANGE_EQ(permutation, (std::vector<size_t>{0,1,2}));
+    }
+}
