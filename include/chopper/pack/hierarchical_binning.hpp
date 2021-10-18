@@ -292,13 +292,13 @@ private:
         assert(data->output_buffer != nullptr);
         assert(data->header_buffer != nullptr);
 
-        bool const high = data->previous.empty();
-
-        // backtracking
-        size_t trace_i = num_technical_bins - 1;
-        int trace_j = num_user_bins - 1;
-        // std::cout << "optimum: " << matrix[trace_i][trace_j] << std::endl;
-        // std::cout << std::endl;
+        // TODO std::to_chars after https://github.com/seqan/product_backlog/issues/396
+        auto to_string_with_precision = [](double const value)
+        {
+            std::stringstream stream;
+            stream << std::fixed << std::setprecision(2) << value;
+            return stream.str();
+        };
 
         if (data->output_buffer->tellp() == 0) // beginning of the file
         {
@@ -308,20 +308,17 @@ private:
                 *data->output_buffer << "#FILES\tBIN_INDICES\tNUMBER_OF_BINS" << std::endl;
         }
 
-        size_t high_level_max_id{};
-        size_t high_level_max_size{};
+        bool const high = data->previous.empty(); // is this the top level ibf or not
 
-        size_t bin_id{};
+        // backtracking starts at the bottom right corner:
+        size_t trace_i = num_technical_bins - 1;
+        int trace_j = num_user_bins - 1;
         size_t const optimal_score{matrix[trace_i][trace_j]};
-        double correction{};
 
-        // TODO std::to_chars after https://github.com/seqan/product_backlog/issues/396
-        auto to_string_with_precision = [](double const value)
-        {
-            std::stringstream stream;
-            stream << std::fixed << std::setprecision(2) << value;
-            return stream.str();
-        };
+        // while backtracking, keep trach of the following variables
+        size_t high_level_max_id{};   // the id of the technical bin with maximal size
+        size_t high_level_max_size{}; // the maximum technical bin size seen so far
+        size_t bin_id{};              // the current bin that is processed, we start naming the bins here!
 
         while (trace_j >= 0)
         {
@@ -332,7 +329,7 @@ private:
             size_t kmer_count = data->kmer_counts[trace_j];
             size_t number_of_bins = (trace_i - next_i);
 
-            correction = data->fp_correction[std::max<size_t>(1u, number_of_bins)];
+            double const correction = data->fp_correction[std::max<size_t>(1u, number_of_bins)];
 
             if (trace_j == 0)
             {
