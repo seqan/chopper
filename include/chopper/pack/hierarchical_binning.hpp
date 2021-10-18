@@ -21,8 +21,6 @@ private:
     size_t const num_user_bins{};
     //!\brief The number of technical bins requested by the user.
     size_t const num_technical_bins{};
-    //!\brief The cost for querying `num_technical_bins` bins.
-    double const interpolated_cost{};
 
 public:
     hierarchical_binning() = default; //!< Defaulted.
@@ -43,8 +41,7 @@ public:
         config{config_},
         data{std::addressof(data_)},
         num_user_bins{data->kmer_counts.size()},
-        num_technical_bins{data->previous.empty() ? config.t_max : needed_technical_bins(num_user_bins)},
-        interpolated_cost{ibf_query_cost::interpolated(num_technical_bins)}
+        num_technical_bins{data->previous.empty() ? config.t_max : needed_technical_bins(num_user_bins)}
     {
         assert(data != nullptr);
         assert(data->output_buffer != nullptr);
@@ -306,6 +303,8 @@ private:
         }
 
         bool const high = data->previous.empty(); // is this the top level ibf or not
+        // The cost for querying `num_technical_bins` bins.
+        double const interpolated_cost{ibf_query_cost::interpolated(num_technical_bins)};
 
         // backtracking starts at the bottom right corner:
         size_t trace_i = num_technical_bins - 1;
