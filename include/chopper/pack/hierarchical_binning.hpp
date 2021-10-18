@@ -372,13 +372,7 @@ private:
             }
             else if (number_of_bins == 0) // start of merged bin
             {
-                pack_data libf_data{};
-                libf_data.output_buffer = data->output_buffer;
-                libf_data.header_buffer = data->header_buffer;
-                libf_data.fp_correction = data->fp_correction;
-
-                libf_data.kmer_counts = {kmer_count};
-                libf_data.filenames = {data->filenames[trace_j]};
+                auto libf_data = initialise_libf_data(kmer_count, trace_j);
                 size_t num_contained_ubs = 1;
                 size_t const j = trace_j;
 
@@ -453,13 +447,7 @@ private:
             }
             else if (number_of_bins == 1 && next_j != static_cast<size_t>(trace_j) - 1) // merged bin
             {
-                pack_data libf_data{};
-                libf_data.output_buffer = data->output_buffer;
-                libf_data.header_buffer = data->header_buffer;
-                libf_data.fp_correction = data->fp_correction;
-
-                libf_data.kmer_counts = {kmer_count};
-                libf_data.filenames = {data->filenames[trace_j]};
+                auto libf_data = initialise_libf_data(kmer_count, trace_j);
                 size_t num_contained_ubs = 1;
                 size_t const j = trace_j;
 
@@ -562,5 +550,18 @@ private:
         }
 
         return high_level_max_id;
+    }
+
+    pack_data initialise_libf_data(size_t const kmer_count, size_t const trace_j) const
+    {
+        pack_data libf_data{};
+        libf_data.output_buffer = data->output_buffer;
+        libf_data.header_buffer = data->header_buffer;
+        libf_data.fp_correction = data->fp_correction;
+
+        libf_data.kmer_counts = {kmer_count};
+        libf_data.filenames = {data->filenames[trace_j]};
+
+        return libf_data;
     }
 };
