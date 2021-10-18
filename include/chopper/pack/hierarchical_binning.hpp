@@ -7,6 +7,7 @@
 #include <chopper/helper.hpp>
 #include <chopper/pack/ibf_query_cost.hpp>
 #include <chopper/pack/pack_config.hpp>
+#include <chopper/pack/print_result_line.hpp>
 #include <chopper/pack/simple_binning.hpp>
 
 class hierarchical_binning
@@ -343,20 +344,10 @@ private:
                 // add split bin to ibf statistics
                 data->stats->emplace_back(hibf_statistics::bin_kind::split, average_bin_size, 1ul, trace_i);
 
-                *data->output_buffer << data->filenames[0] << '\t'
-                                     << data->previous.bin_indices  << (high ? "" : ";") << bin_id << '\t'
-                                     << data->previous.num_of_bins  << (high ? "" : ";") << trace_i;
-
-                if (config.debug)
-                {
-                    *data->output_buffer << '\t'
-                                         << data->previous.estimated_sizes << (high ? "" : ";") << average_bin_size << '\t'
-                                         << data->previous.optimal_score << (high ? "" : ";") << optimal_score << '\t'
-                                         << data->previous.correction << (high ? "" : ";") << correction << '\t'
-                                         << data->previous.tmax << (high ? "" : ";") << num_technical_bins;
-                }
-
-                *data->output_buffer << '\n';
+                if (!config.debug)
+                    print_result_line(*data, 0, bin_id, trace_i);
+                else
+                    print_debug_line(*data, 0, bin_id, trace_i, average_bin_size, optimal_score, correction, num_technical_bins);
 
                 if (average_bin_size > high_level_max_size)
                 {
@@ -511,25 +502,15 @@ private:
             {
                 size_t const kmer_count_per_bin = kmer_count / number_of_bins; // round down
 
-                *data->output_buffer << data->filenames[trace_j] << '\t'
-                                     << data->previous.bin_indices  << (high ? "" : ";") << bin_id << '\t'
-                                     << data->previous.num_of_bins  << (high ? "" : ";") << number_of_bins;
-
                 total_query_cost += (data->previous.cost + interpolated_cost) * kmer_count;
 
                 // add split bin to ibf statistics
                 data->stats->emplace_back(hibf_statistics::bin_kind::split, kmer_count_per_bin, 1ul, number_of_bins);
 
-                if (config.debug)
-                {
-                    *data->output_buffer << '\t'
-                                         << data->previous.estimated_sizes << (high ? "" : ";") << kmer_count_per_bin << '\t'
-                                         << data->previous.optimal_score << (high ? "" : ";") << optimal_score << '\t'
-                                         << data->previous.correction << (high ? "" : ";") << correction << '\t'
-                                         << data->previous.tmax << (high ? "" : ";") << num_technical_bins;
-                }
-
-                *data->output_buffer << '\n';
+                if (!config.debug)
+                    print_result_line(*data, trace_j, bin_id, number_of_bins);
+                else
+                    print_debug_line(*data, trace_j, bin_id, number_of_bins, kmer_count_per_bin, optimal_score, correction, num_technical_bins);
 
                 // std::cout << "split " << trace_j << " into " << number_of_bins << ": " << kmer_count_per_bin << std::endl;
 
