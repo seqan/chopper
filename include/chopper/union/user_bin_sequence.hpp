@@ -219,6 +219,8 @@ protected:
     {
         assert(num_threads >= 1);
         assert(filenames != nullptr);
+        assert(sketches.size() == filenames->size());
+        assert((first == 0) == permutation.empty());
 
         size_t const n = filenames->size();
         size_t const chunk_size = std::floor(std::sqrt(n));
