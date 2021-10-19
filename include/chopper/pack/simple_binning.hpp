@@ -11,6 +11,7 @@
 #include <chopper/pack/pack_data.hpp>
 #include <chopper/pack/previous_level.hpp>
 #include <chopper/pack/print_matrix.hpp>
+#include <chopper/pack/print_result_line.hpp>
 
 /*!\brief Distributes x Technical Bins across y User Bins while minimizing the maximal Technical Bin size
  *
@@ -220,21 +221,10 @@ public:
             // add split bin to ibf statistics
             data->stats->emplace_back(hibf_statistics::bin_kind::split, kmer_count_per_bin, 1ul, number_of_bins);
 
-            // columns: IBF_ID,NAME,NUM_TECHNICAL_BINS,ESTIMATED_TB_SIZE
-            *data->output_buffer << data->filenames[trace_j] << '\t'
-                                 << data->previous.bin_indices  << ';' << bin_id << '\t'
-                                 << data->previous.num_of_bins  << ';' << number_of_bins;
-
-            if (debug)
-            {
-                *data->output_buffer << '\t'
-                                     << data->previous.estimated_sizes << ';' << kmer_count_per_bin << '\t'
-                                     << data->previous.optimal_score << ';'  << optimal_score << '\t'
-                                     << data->previous.correction << ';'  << data->fp_correction[number_of_bins] << '\t'
-                                     << data->previous.tmax << ';'  << num_technical_bins;
-            }
-
-            *data->output_buffer << '\n';
+            if (!debug)
+                print_result_line(*data, trace_j, bin_id, number_of_bins);
+            else
+                print_debug_line(*data, trace_j, bin_id, number_of_bins, kmer_count_per_bin, optimal_score, data->fp_correction[number_of_bins], num_technical_bins);
 
             if (kmer_count_per_bin > max_size)
             {
@@ -260,21 +250,10 @@ public:
             max_size = kmer_count_per_bin;
         }
 
-        // columns: IBF_ID,NAME,NUM_TECHNICAL_BINS,ESTIMATED_TB_SIZE
-        *data->output_buffer << data->filenames[0] << '\t'
-                             << data->previous.bin_indices  << ';' << bin_id << '\t'
-                             << data->previous.num_of_bins  << ';' << trace_i;
-
-        if (debug)
-        {
-            *data->output_buffer << '\t'
-                                 << data->previous.estimated_sizes << ';' << kmer_count_per_bin << '\t'
-                                 << data->previous.optimal_score << ';'  << optimal_score << '\t'
-                                 << data->previous.correction << ';'  << data->fp_correction[trace_i] << '\t'
-                                 << data->previous.tmax << ';'  << num_technical_bins;
-        }
-
-        *data->output_buffer << '\n';
+        if (!debug)
+            print_result_line(*data, 0, bin_id, trace_i);
+        else
+            print_debug_line(*data, 0, bin_id, trace_i, kmer_count_per_bin, optimal_score, data->fp_correction[trace_i], num_technical_bins);
 
         return max_id;
     }

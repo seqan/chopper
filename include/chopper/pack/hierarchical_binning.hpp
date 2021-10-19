@@ -7,6 +7,7 @@
 #include <chopper/helper.hpp>
 #include <chopper/pack/ibf_query_cost.hpp>
 #include <chopper/pack/pack_config.hpp>
+#include <chopper/pack/print_result_line.hpp>
 #include <chopper/pack/simple_binning.hpp>
 
 class hierarchical_binning
@@ -21,11 +22,6 @@ private:
     size_t const num_user_bins{};
     //!\brief The number of technical bins requested by the user.
     size_t const num_technical_bins{};
-    //!\brief The cost for querying `num_technical_bins` bins.
-    double const interpolated_cost{};
-
-    //!\brief The total query cost of all k-mers.
-    double total_query_cost{};
 
 public:
     hierarchical_binning() = default; //!< Defaulted.
@@ -46,8 +42,7 @@ public:
         config{config_},
         data{std::addressof(data_)},
         num_user_bins{data->kmer_counts.size()},
-        num_technical_bins{data->previous.empty() ? config.t_max : needed_technical_bins(num_user_bins)},
-        interpolated_cost{ibf_query_cost::interpolated(num_technical_bins)}
+        num_technical_bins{data->previous.empty() ? config.t_max : needed_technical_bins(num_user_bins)}
     {
         assert(data != nullptr);
         assert(data->output_buffer != nullptr);
@@ -95,7 +90,7 @@ public:
         // print_matrix(ll_matrix, num_technical_bins, num_user_bins, max_size_t);
         // print_matrix(trace, num_technical_bins, num_user_bins, std::make_pair(max_size_t, max_size_t));
 
-        return std::make_tuple(backtracking(matrix, trace), total_query_cost);
+        return backtracking(matrix, trace);
     }
 
 private:
@@ -285,20 +280,20 @@ private:
     }
 
     //!\brief Backtracks the trace matrix and writes the resulting binning into the output file.
-    size_t backtracking(std::vector<std::vector<size_t>> const & matrix,
-                        std::vector<std::vector<std::pair<size_t, size_t>>> const & trace)
+    std::tuple<size_t, double> backtracking(std::vector<std::vector<size_t>> const & matrix,
+                                            std::vector<std::vector<std::pair<size_t, size_t>>> const & trace)
     {
         assert(data != nullptr);
         assert(data->output_buffer != nullptr);
         assert(data->header_buffer != nullptr);
 
-        bool const high = data->previous.empty();
-
-        // backtracking
-        size_t trace_i = num_technical_bins - 1;
-        int trace_j = num_user_bins - 1;
-        // std::cout << "optimum: " << matrix[trace_i][trace_j] << std::endl;
-        // std::cout << std::endl;
+        // TODO std::to_chars after https://github.com/seqan/product_backlog/issues/396
+        auto to_string_with_precision = [](double const value)
+        {
+            std::stringstream stream;
+            stream << std::fixed << std::setprecision(2) << value;
+            return stream.str();
+        };
 
         if (data->output_buffer->tellp() == 0) // beginning of the file
         {
@@ -308,20 +303,20 @@ private:
                 *data->output_buffer << "#FILES\tBIN_INDICES\tNUMBER_OF_BINS" << std::endl;
         }
 
-        size_t high_level_max_id{};
-        size_t high_level_max_size{};
+        bool const high = data->previous.empty(); // is this the top level ibf or not
+        // The cost for querying `num_technical_bins` bins.
+        double const interpolated_cost{ibf_query_cost::interpolated(num_technical_bins)};
 
-        size_t bin_id{};
+        // backtracking starts at the bottom right corner:
+        size_t trace_i = num_technical_bins - 1;
+        int trace_j = num_user_bins - 1;
         size_t const optimal_score{matrix[trace_i][trace_j]};
-        double correction{};
 
-        // TODO std::to_chars after https://github.com/seqan/product_backlog/issues/396
-        auto to_string_with_precision = [](double const value)
-        {
-            std::stringstream stream;
-            stream << std::fixed << std::setprecision(2) << value;
-            return stream.str();
-        };
+        // while backtracking, keep trach of the following variables
+        size_t high_level_max_id{};   // the id of the technical bin with maximal size
+        size_t high_level_max_size{}; // the maximum technical bin size seen so far
+        size_t bin_id{};              // the current bin that is processed, we start naming the bins here!
+        double total_query_cost{};    // The total query cost of all k-mers (debug information).
 
         while (trace_j >= 0)
         {
@@ -332,7 +327,7 @@ private:
             size_t kmer_count = data->kmer_counts[trace_j];
             size_t number_of_bins = (trace_i - next_i);
 
-            correction = data->fp_correction[std::max<size_t>(1u, number_of_bins)];
+            double const correction = data->fp_correction[std::max<size_t>(1u, number_of_bins)];
 
             if (trace_j == 0)
             {
@@ -349,20 +344,10 @@ private:
                 // add split bin to ibf statistics
                 data->stats->emplace_back(hibf_statistics::bin_kind::split, average_bin_size, 1ul, trace_i);
 
-                *data->output_buffer << data->filenames[0] << '\t'
-                                     << data->previous.bin_indices  << (high ? "" : ";") << bin_id << '\t'
-                                     << data->previous.num_of_bins  << (high ? "" : ";") << trace_i;
-
-                if (config.debug)
-                {
-                    *data->output_buffer << '\t'
-                                         << data->previous.estimated_sizes << (high ? "" : ";") << average_bin_size << '\t'
-                                         << data->previous.optimal_score << (high ? "" : ";") << optimal_score << '\t'
-                                         << data->previous.correction << (high ? "" : ";") << correction << '\t'
-                                         << data->previous.tmax << (high ? "" : ";") << num_technical_bins;
-                }
-
-                *data->output_buffer << '\n';
+                if (!config.debug)
+                    print_result_line(*data, 0, bin_id, trace_i);
+                else
+                    print_debug_line(*data, 0, bin_id, trace_i, average_bin_size, optimal_score, correction, num_technical_bins);
 
                 if (average_bin_size > high_level_max_size)
                 {
@@ -375,13 +360,7 @@ private:
             }
             else if (number_of_bins == 0) // start of merged bin
             {
-                pack_data libf_data{};
-                libf_data.output_buffer = data->output_buffer;
-                libf_data.header_buffer = data->header_buffer;
-                libf_data.fp_correction = data->fp_correction;
-
-                libf_data.kmer_counts = {kmer_count};
-                libf_data.filenames = {data->filenames[trace_j]};
+                auto libf_data = initialise_libf_data(kmer_count, trace_j);
                 size_t num_contained_ubs = 1;
                 size_t const j = trace_j;
 
@@ -456,13 +435,7 @@ private:
             }
             else if (number_of_bins == 1 && next_j != static_cast<size_t>(trace_j) - 1) // merged bin
             {
-                pack_data libf_data{};
-                libf_data.output_buffer = data->output_buffer;
-                libf_data.header_buffer = data->header_buffer;
-                libf_data.fp_correction = data->fp_correction;
-
-                libf_data.kmer_counts = {kmer_count};
-                libf_data.filenames = {data->filenames[trace_j]};
+                auto libf_data = initialise_libf_data(kmer_count, trace_j);
                 size_t num_contained_ubs = 1;
                 size_t const j = trace_j;
 
@@ -529,25 +502,15 @@ private:
             {
                 size_t const kmer_count_per_bin = kmer_count / number_of_bins; // round down
 
-                *data->output_buffer << data->filenames[trace_j] << '\t'
-                                     << data->previous.bin_indices  << (high ? "" : ";") << bin_id << '\t'
-                                     << data->previous.num_of_bins  << (high ? "" : ";") << number_of_bins;
-
                 total_query_cost += (data->previous.cost + interpolated_cost) * kmer_count;
 
                 // add split bin to ibf statistics
                 data->stats->emplace_back(hibf_statistics::bin_kind::split, kmer_count_per_bin, 1ul, number_of_bins);
 
-                if (config.debug)
-                {
-                    *data->output_buffer << '\t'
-                                         << data->previous.estimated_sizes << (high ? "" : ";") << kmer_count_per_bin << '\t'
-                                         << data->previous.optimal_score << (high ? "" : ";") << optimal_score << '\t'
-                                         << data->previous.correction << (high ? "" : ";") << correction << '\t'
-                                         << data->previous.tmax << (high ? "" : ";") << num_technical_bins;
-                }
-
-                *data->output_buffer << '\n';
+                if (!config.debug)
+                    print_result_line(*data, trace_j, bin_id, number_of_bins);
+                else
+                    print_debug_line(*data, trace_j, bin_id, number_of_bins, kmer_count_per_bin, optimal_score, correction, num_technical_bins);
 
                 // std::cout << "split " << trace_j << " into " << number_of_bins << ": " << kmer_count_per_bin << std::endl;
 
@@ -564,6 +527,19 @@ private:
             bin_id += number_of_bins;
         }
 
-        return high_level_max_id;
+        return std::make_tuple(high_level_max_id, total_query_cost);
+    }
+
+    pack_data initialise_libf_data(size_t const kmer_count, size_t const trace_j) const
+    {
+        pack_data libf_data{};
+        libf_data.output_buffer = data->output_buffer;
+        libf_data.header_buffer = data->header_buffer;
+        libf_data.fp_correction = data->fp_correction;
+
+        libf_data.kmer_counts = {kmer_count};
+        libf_data.filenames = {data->filenames[trace_j]};
+
+        return libf_data;
     }
 };
