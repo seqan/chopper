@@ -107,26 +107,20 @@ public:
                       << total_num_tbs / s.num_ibfs << '\t'
                       << split_tb_percentage << '\t';
 
-            // if there are no split bins on this level, the following statistics don't make sense
-            if (max_split_bin_span != 0)
-            {
-                size_t const total_num_split_ubs = std::reduce(s.num_split_ubs.begin(), s.num_split_ubs.end());
-                double const avg_split_bin = static_cast<double>(total_num_split_tbs)
-                                           / static_cast<double>(total_num_split_ubs);
-                size_t const total_split_tb_kmers = std::reduce(s.split_tb_kmers.begin(), s.split_tb_kmers.end());
-                double const avg_factor = static_cast<double>(std::reduce(s.split_tb_corr_kmers.begin(),
-                                                                          s.split_tb_corr_kmers.end()))
-                                        / static_cast<double>(total_split_tb_kmers);
+            assert(max_split_bin_span > 0); // even a UB that is in a single TB is a split bin. We cannot have 0 bins.
 
-                std::cout << max_split_bin_span << '\t'
-                          << avg_split_bin << '\t'
-                          << (*fp_correction)[max_split_bin_span] << '\t'
-                          << avg_factor << '\n';
-            }
-            else
-            {
-                std::cout << "-\t-\t-\t-\n";
-            }
+            size_t const total_num_split_ubs = std::reduce(s.num_split_ubs.begin(), s.num_split_ubs.end());
+            double const avg_split_bin = static_cast<double>(total_num_split_tbs)
+                                        / static_cast<double>(total_num_split_ubs);
+            size_t const total_split_tb_kmers = std::reduce(s.split_tb_kmers.begin(), s.split_tb_kmers.end());
+            double const avg_factor = static_cast<double>(std::reduce(s.split_tb_corr_kmers.begin(),
+                                                                        s.split_tb_corr_kmers.end()))
+                                    / static_cast<double>(total_split_tb_kmers);
+
+            std::cout << max_split_bin_span << '\t'
+                        << avg_split_bin << '\t'
+                        << (*fp_correction)[max_split_bin_span] << '\t'
+                        << avg_factor << '\n';
         }
 
         std::cout << "#Total HIBF size:" << to_formatted_BF_size(total_size) << '\n'
