@@ -25,9 +25,9 @@ TEST_F(cli_test, chopper_pack_statistics)
     std::string expected_cout =
 R"expected_cout(level	num_ibfs	level_size	level_size_no_corr	total_num_tbs	avg_num_tbs	split_tb_percentage	max_split_tb	avg_split_tb	max_factor	avg_factor
 0	1	37 KiB	37 KiB	64	64	81.25	1	1.00	1.00	1.00
-1	12	48 KiB	8 KiB	768	64	100.00	32	17.45	9.02	6.50
-#Total HIBF size:85 KiB
-#Total HIBF size no correction:45 KiB
+1	12	7 KiB	7 KiB	768	64	100.00	33	17.45	1.00	1.00
+#Total HIBF size:44 KiB
+#Total HIBF size no correction:44 KiB
 
 )expected_cout";
 
