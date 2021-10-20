@@ -340,11 +340,7 @@ private:
                 else
                     print_debug_line(*data, 0, bin_id, trace_i, average_bin_size, optimal_score, correction, num_technical_bins);
 
-                if (average_bin_size > high_level_max_size)
-                {
-                    high_level_max_id = bin_id;
-                    high_level_max_size = average_bin_size;
-                }
+                update_max_id(high_level_max_id, high_level_max_size, bin_id, average_bin_size);
 
                 --trace_j;
                 // std::cout << "split " << trace_j << " into " << trace_i << ": " << kmer_count / trace_i << std::endl;
@@ -393,11 +389,7 @@ private:
                 total_query_cost += lower_cost;
                 *data->header_buffer << "#" << merged_ibf_name << " max_bin_id:" << lower_max_bin << '\n';
 
-                if (kmer_count > high_level_max_size)
-                {
-                    high_level_max_id = bin_id;
-                    high_level_max_size = kmer_count;
-                }
+                update_max_id(high_level_max_id, high_level_max_size, bin_id, kmer_count);
 
                 // std::cout << "]: " << kmer_count << std::endl;
                 // std::cout << "\t I am now at " << trace_i << "," << trace_j << std::endl;
@@ -440,11 +432,7 @@ private:
                 total_query_cost += lower_cost;
                 *data->header_buffer << "#" << merged_ibf_name << " max_bin_id:" << lower_max_bin << '\n';
 
-                if (kmer_count > high_level_max_size)
-                {
-                    high_level_max_id = bin_id;
-                    high_level_max_size = kmer_count;
-                }
+                update_max_id(high_level_max_id, high_level_max_size, bin_id, kmer_count);
                 // std::cout << "]: " << kmer_count << std::endl;
             }
             else
@@ -463,11 +451,7 @@ private:
 
                 // std::cout << "split " << trace_j << " into " << number_of_bins << ": " << kmer_count_per_bin << std::endl;
 
-                if (kmer_count_per_bin > high_level_max_size)
-                {
-                    high_level_max_id = bin_id;
-                    high_level_max_size = kmer_count_per_bin;
-                }
+                update_max_id(high_level_max_id, high_level_max_size, bin_id, kmer_count_per_bin);
 
                 trace_i = trace[trace_i][trace_j].first;
                 --trace_j;
@@ -550,5 +534,14 @@ private:
         }
 
         return {merged_max_bin_id, lower_level_cost};
+    }
+
+    void update_max_id(size_t & max_id, size_t & max_size, size_t const new_id, size_t const new_size) const
+    {
+        if (new_size > max_size)
+        {
+            max_id = new_id;
+            max_size = new_size;
+        }
     }
 };
