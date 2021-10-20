@@ -370,24 +370,8 @@ private:
                 trace_i = next_i;
                 --trace_j;
 
-                update_libf_data(libf_data, *data, bin_id, interpolated_cost);
-
-                if (config.debug)
-                    update_debug_libf_data(libf_data, *data, kmer_count, optimal_score, correction, num_technical_bins);
-
-                std::string const merged_ibf_name{std::string{merged_bin_prefix} + "_" + libf_data.previous.bin_indices};
-
-                // add merged bin to ibf statistics
-                uint64_t const cardinality = config.estimate_union ? data->union_estimates[j][trace_j + 1] : kmer_count;
-                hibf_statistics::bin & bin_stats = data->stats->emplace_back(hibf_statistics::bin_kind::merged,
-                                                   cardinality, num_contained_ubs, 1ul);
-                libf_data.stats = &bin_stats.child_level;
-
-                // now do the binning for the low-level IBF:
-                auto [lower_max_bin, lower_cost] = add_lower_level(libf_data, kmer_count, interpolated_cost);
-
-                total_query_cost += lower_cost;
-                *data->header_buffer << "#" << merged_ibf_name << " max_bin_id:" << lower_max_bin << '\n';
+                total_query_cost += process_merged_bin(libf_data, *data, bin_id, trace_j, j, kmer_count, optimal_score,
+                                                       correction, interpolated_cost, num_contained_ubs);
 
                 update_max_id(high_level_max_id, high_level_max_size, bin_id, kmer_count);
 
@@ -414,23 +398,8 @@ private:
                 trace_i = next_i;
                 trace_j = next_j; // unneccessary?
 
-                update_libf_data(libf_data, *data, bin_id, interpolated_cost);
-
-                if (config.debug)
-                    update_debug_libf_data(libf_data, *data, kmer_count, optimal_score, correction, num_technical_bins);
-
-                std::string const merged_ibf_name{std::string{merged_bin_prefix} + "_" + libf_data.previous.bin_indices};
-
-                // add merged bin to ibf statistics
-                uint64_t const cardinality = config.estimate_union ? data->union_estimates[j][trace_j + 1] : kmer_count;
-                hibf_statistics::bin & bin_stats = data->stats->emplace_back(hibf_statistics::bin_kind::merged,
-                                                cardinality, num_contained_ubs, 1ul);
-                libf_data.stats = &bin_stats.child_level;
-
-                auto [lower_max_bin, lower_cost] = add_lower_level(libf_data, kmer_count, interpolated_cost);
-
-                total_query_cost += lower_cost;
-                *data->header_buffer << "#" << merged_ibf_name << " max_bin_id:" << lower_max_bin << '\n';
+                total_query_cost += process_merged_bin(libf_data, *data, bin_id, trace_j, j, kmer_count, optimal_score,
+                                                       correction, interpolated_cost, num_contained_ubs);
 
                 update_max_id(high_level_max_id, high_level_max_size, bin_id, kmer_count);
                 // std::cout << "]: " << kmer_count << std::endl;
@@ -482,6 +451,38 @@ private:
         libf_data.filenames = {data->filenames[trace_j]};
 
         return libf_data;
+    }
+
+    double process_merged_bin(pack_data & libf_data,
+                              pack_data & data,
+                              size_t const bin_id,
+                              int const trace_j,
+                              int const j,
+                              size_t const kmer_count,
+                              size_t const optimal_score,
+                              double const correction,
+                              double const interpolated_cost,
+                              double const num_contained_ubs) const
+    {
+        update_libf_data(libf_data, data, bin_id, interpolated_cost);
+
+        if (config.debug)
+            update_debug_libf_data(libf_data, data, kmer_count, optimal_score, correction, num_technical_bins);
+
+        std::string const merged_ibf_name{std::string{merged_bin_prefix} + "_" + libf_data.previous.bin_indices};
+
+        // add merged bin to ibf statistics
+        uint64_t const cardinality = config.estimate_union ? data.union_estimates[j][trace_j + 1] : kmer_count;
+        hibf_statistics::bin & bin_stats = data.stats->emplace_back(hibf_statistics::bin_kind::merged,
+                                            cardinality, num_contained_ubs, 1ul);
+        libf_data.stats = &bin_stats.child_level;
+
+        // now do the binning for the low-level IBF:
+        auto [lower_max_bin, lower_cost] = add_lower_level(libf_data, kmer_count, interpolated_cost);
+
+        *data.header_buffer << "#" << merged_ibf_name << " max_bin_id:" << lower_max_bin << '\n';
+
+        return lower_cost;
     }
 
     void update_libf_data(pack_data & libf_data, pack_data const & data, size_t const bin_id, double const cost) const
