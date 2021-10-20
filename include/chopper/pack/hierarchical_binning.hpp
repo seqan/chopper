@@ -385,13 +385,13 @@ private:
                 uint64_t const cardinality = config.estimate_union ? data->union_estimates[j][trace_j + 1] : kmer_count;
                 hibf_statistics::bin & bin_stats = data->stats->emplace_back(hibf_statistics::bin_kind::merged,
                                                    cardinality, num_contained_ubs, 1ul);
+                libf_data.stats = &bin_stats.child_level;
 
                 // now do the binning for the low-level IBF:
                 size_t merged_max_bin_id;
                 if (libf_data.kmer_counts.size() > config.t_max)
                 {
                     // recursively call hierarchical binning if there are still too many UBs
-                    libf_data.stats = &bin_stats.child_level;
                     auto const && [bin_id, cost] = hierarchical_binning{libf_data, config}.execute();
                     merged_max_bin_id = bin_id;
                     total_query_cost += cost;
@@ -399,7 +399,6 @@ private:
                 else
                 {
                     // use simple binning to distribute remaining UBs
-                    libf_data.stats = &bin_stats.child_level;
                     simple_binning algo{libf_data, 0, config.debug};
                     merged_max_bin_id = algo.execute();
                     total_query_cost += (data->previous.cost + interpolated_cost
@@ -448,19 +447,18 @@ private:
                 uint64_t const cardinality = config.estimate_union ? data->union_estimates[j][trace_j + 1] : kmer_count;
                 hibf_statistics::bin & bin_stats = data->stats->emplace_back(hibf_statistics::bin_kind::merged,
                                                 cardinality, num_contained_ubs, 1ul);
+                libf_data.stats = &bin_stats.child_level;
 
                 size_t merged_max_bin_id;
                 // now do the binning for the low-level IBF:
                 if (libf_data.kmer_counts.size() > config.t_max)
                 {
-                    libf_data.stats = &bin_stats.child_level;
                     auto const && [bin_id, cost] = hierarchical_binning{libf_data, config}.execute();
                     merged_max_bin_id = bin_id;
                     total_query_cost += cost;
                 }
                 else
                 {
-                    libf_data.stats = &bin_stats.child_level;
                     simple_binning algo{libf_data, 0, config.debug};
                     merged_max_bin_id = algo.execute();
                     total_query_cost += (data->previous.cost + interpolated_cost
