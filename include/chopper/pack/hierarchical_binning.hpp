@@ -388,24 +388,10 @@ private:
                 libf_data.stats = &bin_stats.child_level;
 
                 // now do the binning for the low-level IBF:
-                size_t merged_max_bin_id;
-                if (libf_data.kmer_counts.size() > config.t_max)
-                {
-                    // recursively call hierarchical binning if there are still too many UBs
-                    auto const && [bin_id, cost] = hierarchical_binning{libf_data, config}.execute();
-                    merged_max_bin_id = bin_id;
-                    total_query_cost += cost;
-                }
-                else
-                {
-                    // use simple binning to distribute remaining UBs
-                    simple_binning algo{libf_data, 0, config.debug};
-                    merged_max_bin_id = algo.execute();
-                    total_query_cost += (data->previous.cost + interpolated_cost
-                                        + ibf_query_cost::interpolated(algo.get_num_technical_bins()))
-                                        * kmer_count;
-                }
-                *data->header_buffer << "#" << merged_ibf_name << " max_bin_id:" << merged_max_bin_id << '\n';
+                auto [lower_max_bin, lower_cost] = add_lower_level(libf_data, kmer_count, interpolated_cost);
+
+                total_query_cost += lower_cost;
+                *data->header_buffer << "#" << merged_ibf_name << " max_bin_id:" << lower_max_bin << '\n';
 
                 if (kmer_count > high_level_max_size)
                 {
@@ -449,23 +435,10 @@ private:
                                                 cardinality, num_contained_ubs, 1ul);
                 libf_data.stats = &bin_stats.child_level;
 
-                size_t merged_max_bin_id;
-                // now do the binning for the low-level IBF:
-                if (libf_data.kmer_counts.size() > config.t_max)
-                {
-                    auto const && [bin_id, cost] = hierarchical_binning{libf_data, config}.execute();
-                    merged_max_bin_id = bin_id;
-                    total_query_cost += cost;
-                }
-                else
-                {
-                    simple_binning algo{libf_data, 0, config.debug};
-                    merged_max_bin_id = algo.execute();
-                    total_query_cost += (data->previous.cost + interpolated_cost
-                                        + ibf_query_cost::interpolated(algo.get_num_technical_bins()))
-                                        * kmer_count;
-                }
-                *data->header_buffer << "#" << merged_ibf_name << " max_bin_id:" << merged_max_bin_id << '\n';
+                auto [lower_max_bin, lower_cost] = add_lower_level(libf_data, kmer_count, interpolated_cost);
+
+                total_query_cost += lower_cost;
+                *data->header_buffer << "#" << merged_ibf_name << " max_bin_id:" << lower_max_bin << '\n';
 
                 if (kmer_count > high_level_max_size)
                 {
@@ -550,5 +523,32 @@ private:
         libf_data.previous.optimal_score += (is_top_level ? "" : ";") + std::to_string(optimal_score);
         libf_data.previous.correction += (is_top_level ? "" : ";") + to_string_with_precision(correction);
         libf_data.previous.tmax += (is_top_level ? "" : ";") + std::to_string(num_technical_bins);
+    }
+
+    std::pair<size_t, double>  add_lower_level(pack_data & libf_data,
+                                               size_t const kmer_count,
+                                               double interpolated_cost) const
+    {
+        size_t merged_max_bin_id;
+        double lower_level_cost;
+        // now do the binning for the low-level IBF:
+        if (libf_data.kmer_counts.size() > config.t_max)
+        {
+            // recursively call hierarchical binning if there are still too many UBs
+            auto const && [bin_id, cost] = hierarchical_binning{libf_data, config}.execute();
+            merged_max_bin_id = bin_id;
+            lower_level_cost = cost;
+        }
+        else
+        {
+            // use simple binning to distribute remaining UBs
+            simple_binning algo{libf_data, 0, config.debug};
+            merged_max_bin_id = algo.execute();
+            lower_level_cost = (data->previous.cost + interpolated_cost
+                               + ibf_query_cost::interpolated(algo.get_num_technical_bins()))
+                               * kmer_count;
+        }
+
+        return {merged_max_bin_id, lower_level_cost};
     }
 };
