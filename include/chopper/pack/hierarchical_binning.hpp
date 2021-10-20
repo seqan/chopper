@@ -287,14 +287,6 @@ private:
         assert(data->output_buffer != nullptr);
         assert(data->header_buffer != nullptr);
 
-        // TODO std::to_chars after https://github.com/seqan/product_backlog/issues/396
-        auto to_string_with_precision = [](double const value)
-        {
-            std::stringstream stream;
-            stream << std::fixed << std::setprecision(2) << value;
-            return stream.str();
-        };
-
         if (data->output_buffer->tellp() == 0) // beginning of the file
         {
             if (config.debug)
@@ -303,7 +295,6 @@ private:
                 *data->output_buffer << "#FILES\tBIN_INDICES\tNUMBER_OF_BINS" << std::endl;
         }
 
-        bool const high = data->previous.empty(); // is this the top level ibf or not
         // The cost for querying `num_technical_bins` bins.
         double const interpolated_cost{ibf_query_cost::interpolated(num_technical_bins)};
 
@@ -383,17 +374,10 @@ private:
                 trace_i = next_i;
                 --trace_j;
 
-                libf_data.previous = data->previous;
-                libf_data.previous.bin_indices += (high ? "" : ";") + std::to_string(bin_id);
-                libf_data.previous.num_of_bins  += (high ? "" : ";") + std::string{"1"};
-                libf_data.previous.cost += interpolated_cost;
+                update_libf_data(libf_data, *data, bin_id, interpolated_cost);
+
                 if (config.debug)
-                {
-                    libf_data.previous.estimated_sizes += (high ? "" : ";") + std::to_string(kmer_count);
-                    libf_data.previous.optimal_score += (high ? "" : ";") + std::to_string(optimal_score);
-                    libf_data.previous.correction += (high ? "" : ";") + to_string_with_precision(correction);
-                    libf_data.previous.tmax += (high ? "" : ";") + std::to_string(num_technical_bins);
-                }
+                    update_debug_libf_data(libf_data, *data, kmer_count, optimal_score, correction, num_technical_bins);
 
                 std::string const merged_ibf_name{std::string{merged_bin_prefix} + "_" + libf_data.previous.bin_indices};
 
@@ -453,17 +437,11 @@ private:
                 trace_i = next_i;
                 trace_j = next_j; // unneccessary?
 
-                libf_data.previous = data->previous;
-                libf_data.previous.bin_indices += (high ? "" : ";") + std::to_string(bin_id);
-                libf_data.previous.num_of_bins  += (high ? "" : ";") + std::string{"1"};
-                libf_data.previous.cost += interpolated_cost;
+                update_libf_data(libf_data, *data, bin_id, interpolated_cost);
+
                 if (config.debug)
-                {
-                    libf_data.previous.estimated_sizes += (high ? "" : ";") + std::to_string(kmer_count);
-                    libf_data.previous.optimal_score += (high ? "" : ";") + std::to_string(optimal_score);
-                    libf_data.previous.correction += (high ? "" : ";") + to_string_with_precision(correction);
-                    libf_data.previous.tmax += (high ? "" : ";") + std::to_string(num_technical_bins);
-                }
+                    update_debug_libf_data(libf_data, *data, kmer_count, optimal_score, correction, num_technical_bins);
+
                 std::string const merged_ibf_name{std::string{merged_bin_prefix} + "_" + libf_data.previous.bin_indices};
 
                 // add merged bin to ibf statistics
@@ -530,6 +508,14 @@ private:
         return std::make_tuple(high_level_max_id, total_query_cost);
     }
 
+    std::string to_string_with_precision(double const value) const
+    {
+        // TODO std::to_chars after https://github.com/seqan/product_backlog/issues/396
+        std::stringstream stream;
+        stream << std::fixed << std::setprecision(2) << value;
+        return stream.str();
+    };
+
     pack_data initialise_libf_data(size_t const kmer_count, size_t const trace_j) const
     {
         pack_data libf_data{};
@@ -541,5 +527,30 @@ private:
         libf_data.filenames = {data->filenames[trace_j]};
 
         return libf_data;
+    }
+
+    void update_libf_data(pack_data & libf_data, pack_data const & data, size_t const bin_id, double const cost) const
+    {
+        bool const is_top_level = data.previous.empty();
+
+        libf_data.previous = data.previous;
+        libf_data.previous.bin_indices += (is_top_level ? "" : ";") + std::to_string(bin_id);
+        libf_data.previous.num_of_bins  += (is_top_level ? "" : ";") + std::string{"1"};
+        libf_data.previous.cost += cost;
+    }
+
+    void update_debug_libf_data(pack_data & libf_data,
+                                pack_data const & data,
+                                size_t const kmer_count,
+                                size_t const optimal_score,
+                                double const correction,
+                                size_t const num_technical_bins) const
+    {
+        bool const is_top_level = data.previous.empty();
+
+        libf_data.previous.estimated_sizes += (is_top_level ? "" : ";") + std::to_string(kmer_count);
+        libf_data.previous.optimal_score += (is_top_level ? "" : ";") + std::to_string(optimal_score);
+        libf_data.previous.correction += (is_top_level ? "" : ";") + to_string_with_precision(correction);
+        libf_data.previous.tmax += (is_top_level ? "" : ";") + std::to_string(num_technical_bins);
     }
 };
