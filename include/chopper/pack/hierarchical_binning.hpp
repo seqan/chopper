@@ -374,25 +374,22 @@ private:
         assert(trace_i == 0 || trace_j == 0);
         if (trace_i == 0u && trace_j > 0u) // the last UBs get merged into the remaining TB
         {
-            size_t next_i = trace[trace_i][trace_j].first;
             size_t kmer_count = data->kmer_counts[trace_j];
             auto libf_data = initialise_libf_data(kmer_count, trace_j);
             size_t num_contained_ubs = 1;
             size_t const j = trace_j;
 
             // std::cout << "merged [" << trace_j;
-            while (trace_j > 0 && next_i == trace_i)
+            while (trace_j > 0)
             {
-                trace_i = next_i; // unnecessary?
                 --trace_j;
                 kmer_count += data->kmer_counts[trace_j];
                 libf_data.kmer_counts.push_back(data->kmer_counts[trace_j]);
                 libf_data.filenames.push_back(data->filenames[trace_j]);
                 ++num_contained_ubs;
-                next_i = trace[trace_i][trace_j].first;
                 // std::cout << "," << trace_j;
             }
-            assert(trace_j == 0 || trace_i - next_i == 1);
+            assert(trace_j == 0);
             assert(kmer_count == std::accumulate(libf_data.kmer_counts.begin(), libf_data.kmer_counts.end(), 0u));
 
             total_query_cost += process_merged_bin(libf_data, *data, bin_id, trace_j, j, kmer_count, optimal_score,
