@@ -24,10 +24,12 @@ inline void print_debug_line(pack_data const & data,
                              size_t const number_of_bins,
                              size_t const average_bin_size,
                              size_t const optimal_score,
-                             double const correction,
                              size_t const num_technical_bins)
 {
     bool const is_top_level = data.previous.empty();
+
+    assert(number_of_bins > 0);
+    double const correction = data.fp_correction[number_of_bins];
 
     *data.output_buffer << data.filenames[index]
                         << '\t' << data.previous.bin_indices << (is_top_level ? "" : ";") << bin_id

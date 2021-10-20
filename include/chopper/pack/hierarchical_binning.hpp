@@ -319,8 +319,6 @@ private:
             size_t kmer_count = data->kmer_counts[trace_j];
             size_t number_of_bins = (trace_i - next_i);
 
-            double const correction = data->fp_correction[std::max<size_t>(1u, number_of_bins)];
-
             if (number_of_bins == 1 && next_j != static_cast<size_t>(trace_j) - 1) // merged bin
             {
                 auto libf_data = initialise_libf_data(kmer_count, trace_j);
@@ -359,7 +357,7 @@ private:
                 if (!config.debug)
                     print_result_line(*data, trace_j, bin_id, number_of_bins);
                 else
-                    print_debug_line(*data, trace_j, bin_id, number_of_bins, kmer_count_per_bin, optimal_score, correction, num_technical_bins);
+                    print_debug_line(*data, trace_j, bin_id, number_of_bins, kmer_count_per_bin, optimal_score, num_technical_bins);
 
                 // std::cout << "split " << trace_j << " into " << number_of_bins << ": " << kmer_count_per_bin << std::endl;
 
@@ -415,7 +413,6 @@ private:
             size_t const kmer_count = data->kmer_counts[0];
             size_t const number_of_tbs = trace_i + 1;
             size_t const average_bin_size = kmer_count / number_of_tbs;
-            double const correction = data->fp_correction[number_of_tbs];
 
             total_query_cost += (data->previous.cost + interpolated_cost) * kmer_count;
 
@@ -425,7 +422,7 @@ private:
             if (!config.debug)
                 print_result_line(*data, 0, bin_id, number_of_tbs);
             else
-                print_debug_line(*data, 0, bin_id, number_of_tbs, average_bin_size, optimal_score, correction, num_technical_bins);
+                print_debug_line(*data, 0, bin_id, number_of_tbs, average_bin_size, optimal_score, num_technical_bins);
 
             update_max_id(high_level_max_id, high_level_max_size, bin_id, average_bin_size);
             // std::cout << "split " << trace_j << " into " << trace_i << ": " << kmer_count / number_of_tbs << std::endl;
