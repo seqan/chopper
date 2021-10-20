@@ -309,7 +309,7 @@ private:
         size_t bin_id{};              // the current bin that is processed, we start naming the bins here!
         double total_query_cost{};    // The total query cost of all k-mers (debug information).
 
-        while (trace_j >= 0)
+        while (trace_j > 0)
         {
             // std::cout << "\t I am now at " << trace_i << "," << trace_j << std::endl;
             size_t next_i = trace[trace_i][trace_j].first;
@@ -320,32 +320,7 @@ private:
 
             double const correction = data->fp_correction[std::max<size_t>(1u, number_of_bins)];
 
-            if (trace_j == 0)
-            {
-                // we only arrive here if the bin wasn't merged with some before so it is safe to assume
-                // that the bin was split (even if only into 1 bin).
-
-                ++trace_i; // because we want the length not the index
-                size_t const kmer_count = data->kmer_counts[0];
-                size_t const average_bin_size = kmer_count / trace_i;
-
-                // add query cost for determination of best t_max
-                total_query_cost += (data->previous.cost + interpolated_cost) * kmer_count;
-
-                // add split bin to ibf statistics
-                data->stats->emplace_back(hibf_statistics::bin_kind::split, average_bin_size, 1ul, trace_i);
-
-                if (!config.debug)
-                    print_result_line(*data, 0, bin_id, trace_i);
-                else
-                    print_debug_line(*data, 0, bin_id, trace_i, average_bin_size, optimal_score, correction, num_technical_bins);
-
-                update_max_id(high_level_max_id, high_level_max_size, bin_id, average_bin_size);
-
-                --trace_j;
-                // std::cout << "split " << trace_j << " into " << trace_i << ": " << kmer_count / trace_i << std::endl;
-            }
-            else if (number_of_bins == 0) // start of merged bin
+            if (number_of_bins == 0) // start of merged bin
             {
                 auto libf_data = initialise_libf_data(kmer_count, trace_j);
                 size_t num_contained_ubs = 1;
@@ -427,6 +402,30 @@ private:
             }
 
             bin_id += number_of_bins;
+        }
+
+        assert(trace_j == 0 || trace_j == -1);
+        if (trace_j == 0)
+        {
+            // we only arrive here if the first user bin (UB-0) wasn't merged with some before so it is safe to assume
+            // that the bin was split (even if only into 1 bin).
+            size_t const kmer_count = data->kmer_counts[0];
+            size_t const number_of_tbs = trace_i + 1;
+            size_t const average_bin_size = kmer_count / number_of_tbs;
+            double const correction = data->fp_correction[number_of_tbs];
+
+            total_query_cost += (data->previous.cost + interpolated_cost) * kmer_count;
+
+            // add split bin to ibf statistics
+            data->stats->emplace_back(hibf_statistics::bin_kind::split, average_bin_size, 1ul, number_of_tbs);
+
+            if (!config.debug)
+                print_result_line(*data, 0, bin_id, number_of_tbs);
+            else
+                print_debug_line(*data, 0, bin_id, number_of_tbs, average_bin_size, optimal_score, correction, num_technical_bins);
+
+            update_max_id(high_level_max_id, high_level_max_size, bin_id, average_bin_size);
+            // std::cout << "split " << trace_j << " into " << trace_i << ": " << kmer_count / number_of_tbs << std::endl;
         }
 
         return std::make_tuple(high_level_max_id, total_query_cost);

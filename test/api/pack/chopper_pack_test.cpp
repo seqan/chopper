@@ -91,7 +91,7 @@ TEST(chopper_pack_test, few_ubs_debug)
         "seq3\t18\t4\t125\t278\t2.23\t64\n"
         "seq2\t22\t4\t125\t278\t2.23\t64\n"
         "seq0\t26\t4\t125\t278\t2.23\t64\n"
-        "seq1\t30\t34\t29\t278\t9.23\t64\n"
+        "seq1\t30\t34\t29\t278\t9.44\t64\n"
     };
     std::string const actual_file{string_from_file(pack_file.get_path())};
 
