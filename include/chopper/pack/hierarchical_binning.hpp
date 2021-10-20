@@ -371,7 +371,7 @@ private:
                 --trace_j;
 
                 total_query_cost += process_merged_bin(libf_data, *data, bin_id, trace_j, j, kmer_count, optimal_score,
-                                                       correction, interpolated_cost, num_contained_ubs);
+                                                       interpolated_cost, num_contained_ubs);
 
                 update_max_id(high_level_max_id, high_level_max_size, bin_id, kmer_count);
 
@@ -399,7 +399,7 @@ private:
                 trace_j = next_j; // unneccessary?
 
                 total_query_cost += process_merged_bin(libf_data, *data, bin_id, trace_j, j, kmer_count, optimal_score,
-                                                       correction, interpolated_cost, num_contained_ubs);
+                                                       interpolated_cost, num_contained_ubs);
 
                 update_max_id(high_level_max_id, high_level_max_size, bin_id, kmer_count);
                 // std::cout << "]: " << kmer_count << std::endl;
@@ -460,14 +460,13 @@ private:
                               int const j,
                               size_t const kmer_count,
                               size_t const optimal_score,
-                              double const correction,
                               double const interpolated_cost,
                               double const num_contained_ubs) const
     {
         update_libf_data(libf_data, data, bin_id, interpolated_cost);
 
         if (config.debug)
-            update_debug_libf_data(libf_data, data, kmer_count, optimal_score, correction, num_technical_bins);
+            update_debug_libf_data(libf_data, data, kmer_count, optimal_score, num_technical_bins);
 
         std::string const merged_ibf_name{std::string{merged_bin_prefix} + "_" + libf_data.previous.bin_indices};
 
@@ -499,14 +498,13 @@ private:
                                 pack_data const & data,
                                 size_t const kmer_count,
                                 size_t const optimal_score,
-                                double const correction,
                                 size_t const num_technical_bins) const
     {
         bool const is_top_level = data.previous.empty();
 
         libf_data.previous.estimated_sizes += (is_top_level ? "" : ";") + std::to_string(kmer_count);
         libf_data.previous.optimal_score += (is_top_level ? "" : ";") + std::to_string(optimal_score);
-        libf_data.previous.correction += (is_top_level ? "" : ";") + to_string_with_precision(correction);
+        libf_data.previous.correction += (is_top_level ? "" : ";") + to_string_with_precision(1.0);
         libf_data.previous.tmax += (is_top_level ? "" : ";") + std::to_string(num_technical_bins);
     }
 
