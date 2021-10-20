@@ -309,7 +309,8 @@ private:
         size_t bin_id{};              // the current bin that is processed, we start naming the bins here!
         double total_query_cost{};    // The total query cost of all k-mers (debug information).
 
-        while (trace_j > 0)
+        // process the trace starting at the bottom right call until you arrive at the first row or column
+        while (trace_j > 0 && trace_i > 0)
         {
             // std::cout << "\t I am now at " << trace_i << "," << trace_j << std::endl;
             size_t next_i = trace[trace_i][trace_j].first;
@@ -320,40 +321,7 @@ private:
 
             double const correction = data->fp_correction[std::max<size_t>(1u, number_of_bins)];
 
-            if (number_of_bins == 0) // start of merged bin
-            {
-                auto libf_data = initialise_libf_data(kmer_count, trace_j);
-                size_t num_contained_ubs = 1;
-                size_t const j = trace_j;
-
-                // std::cout << "merged [" << trace_j;
-                while (trace_j > 0 && next_i == trace_i)
-                {
-                    trace_i = next_i; // unnecessary?
-                    --trace_j;
-                    kmer_count += data->kmer_counts[trace_j];
-                    libf_data.kmer_counts.push_back(data->kmer_counts[trace_j]);
-                    libf_data.filenames.push_back(data->filenames[trace_j]);
-                    ++num_contained_ubs;
-                    next_i = trace[trace_i][trace_j].first;
-                    // std::cout << "," << trace_j;
-                }
-                assert(trace_j == 0 || trace_i - next_i == 1);
-                assert(kmer_count == std::accumulate(libf_data.kmer_counts.begin(), libf_data.kmer_counts.end(), 0u));
-
-                ++number_of_bins;
-                trace_i = next_i;
-                --trace_j;
-
-                total_query_cost += process_merged_bin(libf_data, *data, bin_id, trace_j, j, kmer_count, optimal_score,
-                                                       interpolated_cost, num_contained_ubs);
-
-                update_max_id(high_level_max_id, high_level_max_size, bin_id, kmer_count);
-
-                // std::cout << "]: " << kmer_count << std::endl;
-                // std::cout << "\t I am now at " << trace_i << "," << trace_j << std::endl;
-            }
-            else if (number_of_bins == 1 && next_j != static_cast<size_t>(trace_j) - 1) // merged bin
+            if (number_of_bins == 1 && next_j != static_cast<size_t>(trace_j) - 1) // merged bin
             {
                 auto libf_data = initialise_libf_data(kmer_count, trace_j);
                 size_t num_contained_ubs = 1;
@@ -379,7 +347,7 @@ private:
                 update_max_id(high_level_max_id, high_level_max_size, bin_id, kmer_count);
                 // std::cout << "]: " << kmer_count << std::endl;
             }
-            else
+            else // split bin
             {
                 size_t const kmer_count_per_bin = kmer_count / number_of_bins; // round down
 
@@ -404,8 +372,43 @@ private:
             bin_id += number_of_bins;
         }
 
-        assert(trace_j == 0 || trace_j == -1);
-        if (trace_j == 0)
+        // process the first row or first column at last
+        assert(trace_i == 0 || trace_j == 0);
+        if (trace_i == 0u && trace_j > 0) // the last UBs get merged into the remaining TB
+        {
+            size_t next_i = trace[trace_i][trace_j].first;
+            size_t kmer_count = data->kmer_counts[trace_j];
+            auto libf_data = initialise_libf_data(kmer_count, trace_j);
+            size_t num_contained_ubs = 1;
+            size_t const j = trace_j;
+
+            // std::cout << "merged [" << trace_j;
+            while (trace_j > 0 && next_i == trace_i)
+            {
+                trace_i = next_i; // unnecessary?
+                --trace_j;
+                kmer_count += data->kmer_counts[trace_j];
+                libf_data.kmer_counts.push_back(data->kmer_counts[trace_j]);
+                libf_data.filenames.push_back(data->filenames[trace_j]);
+                ++num_contained_ubs;
+                next_i = trace[trace_i][trace_j].first;
+                // std::cout << "," << trace_j;
+            }
+            assert(trace_j == 0 || trace_i - next_i == 1);
+            assert(kmer_count == std::accumulate(libf_data.kmer_counts.begin(), libf_data.kmer_counts.end(), 0u));
+
+            trace_i = next_i;
+            --trace_j;
+
+            total_query_cost += process_merged_bin(libf_data, *data, bin_id, trace_j, j, kmer_count, optimal_score,
+                                                    interpolated_cost, num_contained_ubs);
+
+            update_max_id(high_level_max_id, high_level_max_size, bin_id, kmer_count);
+
+            // std::cout << "]: " << kmer_count << std::endl;
+            // std::cout << "\t I am now at " << trace_i << "," << trace_j << std::endl;
+        }
+        else if (trace_j == 0) // the last UB is split into the remaining TBs
         {
             // we only arrive here if the first user bin (UB-0) wasn't merged with some before so it is safe to assume
             // that the bin was split (even if only into 1 bin).
