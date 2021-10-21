@@ -224,7 +224,7 @@ public:
             if (!debug)
                 print_result_line(*data, trace_j, bin_id, number_of_bins);
             else
-                print_debug_line(*data, trace_j, bin_id, number_of_bins, kmer_count_per_bin, optimal_score, data->fp_correction[number_of_bins], num_technical_bins);
+                print_debug_line(*data, trace_j, bin_id, number_of_bins, kmer_count_per_bin, optimal_score, num_technical_bins);
 
             if (kmer_count_per_bin > max_size)
             {
@@ -253,7 +253,7 @@ public:
         if (!debug)
             print_result_line(*data, 0, bin_id, trace_i);
         else
-            print_debug_line(*data, 0, bin_id, trace_i, kmer_count_per_bin, optimal_score, data->fp_correction[trace_i], num_technical_bins);
+            print_debug_line(*data, 0, bin_id, trace_i, kmer_count_per_bin, optimal_score, num_technical_bins);
 
         return max_id;
     }
