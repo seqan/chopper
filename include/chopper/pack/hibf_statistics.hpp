@@ -211,11 +211,9 @@ private:
 
         for (bin const & current_bin : curr_level)
         {
-            size_t cardinality = current_bin.cardinality;
-            
-            // if this is the top recursive level, we must apply the FPR correction
-            if (level_summary_index == 0)
-                cardinality = std::ceil(cardinality * (*fp_correction)[current_bin.num_spanning_tbs]);
+            // if this is the first level, we must apply the FPR correction
+            double const factor = (level_summary_index == 0) ? (*fp_correction)[current_bin.num_spanning_tbs] : 1.0;
+            size_t const cardinality = current_bin.cardinality * factor;
 
             max_cardinality = std::max(max_cardinality, cardinality);
             max_cardinality_no_corr = std::max(max_cardinality_no_corr, current_bin.cardinality);
