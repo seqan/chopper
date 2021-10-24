@@ -120,11 +120,8 @@ private:
     {
         size_t const l = max_merge_levels(num_ubs_in_merge);
 
-        size_t const average_ubs_per_lowest_lvl_ibf = static_cast<double>(num_ubs_in_merge) / 
-                                                      static_cast<double>(std::pow(config.t_max, l - 1));
-
         double const average_split_bin_size = static_cast<double>(config.t_min) /
-                                              static_cast<double>(std::ceil(average_ubs_per_lowest_lvl_ibf));
+                                              (num_ubs_in_merge - std::pow(config.t_max, l - 1));
 
         double const lowest_level_scaling = data->fp_correction[std::ceil(average_split_bin_size)];
 
