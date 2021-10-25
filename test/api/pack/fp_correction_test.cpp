@@ -11,6 +11,7 @@ TEST(fp_correction_test, one_bin)
 
     std::vector<size_t> const values{9123, 123, 12, 87123, 8123, 4660};
 
+    // Splitting into 1 bin, i.e. not splitting, should not change the bin size.
     for (size_t const value : values)
         EXPECT_EQ(value, value * data.fp_correction[1]);
 }
