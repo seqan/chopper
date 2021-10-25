@@ -39,10 +39,11 @@ struct pack_data
         size_t const max_tb = next_multiple_of_64(requested_max_tb);
 
         fp_correction.resize(max_tb + 1, 0.0);
+        fp_correction[1] = 1.0;
 
         double const denominator = std::log(1 - std::exp(std::log(fp_rate) / num_hash_functions));
 
-        for (size_t i = 1; i <= max_tb; ++i)
+        for (size_t i = 2; i <= max_tb; ++i)
         {
             double const tmp = 1.0 - std::pow(1 - fp_rate, static_cast<double>(i));
             fp_correction[i] = std::log(1 - std::exp(std::log(tmp) / num_hash_functions)) / denominator;
