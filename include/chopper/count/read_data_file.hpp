@@ -4,9 +4,12 @@
 
 #include <robin_hood.h>
 
-#include <chopper/count/count_config.hpp>
+#include <chopper/count/configuration.hpp>
 
-inline auto read_data_file(count_config const & config)
+namespace chopper::count
+{
+
+inline auto read_data_file(configuration const & config)
 {
     robin_hood::unordered_map<std::string, std::vector<std::string>> filename_clusters; // result
 
@@ -52,3 +55,5 @@ inline auto read_data_file(count_config const & config)
 
     return filename_clusters;
 }
+
+} // namespace chopper::count

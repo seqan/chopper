@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <chopper/count/count_config.hpp>
+#include <chopper/count/configuration.hpp>
 #include <chopper/count/count_kmers.hpp>
 
 #include "../api_test.hpp"
@@ -9,7 +9,7 @@ TEST(count_kmers_test, small_example_serial)
 {
     seqan3::test::tmp_filename output_filename{"kmer_counts.txt"};
 
-    count_config config;
+    chopper::count::configuration config;
     config.k = 15;
     config.w = 25;
     config.num_threads = 1;
@@ -29,7 +29,7 @@ TEST(count_kmers_test, small_example_serial)
         input_file + ";" + input_file + "\t88\tTAX2\n"
     };
 
-    count_kmers(filename_clusters, config);
+    chopper::count::count_kmers(filename_clusters, config);
 
     std::ifstream output_file{output_filename.get_path()};
     std::string const output_file_str((std::istreambuf_iterator<char>(output_file)), std::istreambuf_iterator<char>());
@@ -42,7 +42,7 @@ TEST(count_kmers_test, small_example_hll)
     seqan3::test::tmp_filename output_filename{"kmer_counts.txt"};
     seqan3::test::tmp_filename hll_dir{"hll"};
 
-    count_config config;
+    chopper::count::configuration config;
     config.k = 15;
     config.w = 25;
     config.num_threads = 1;
@@ -74,7 +74,7 @@ TEST(count_kmers_test, small_example_parallel_2_threads)
 {
     seqan3::test::tmp_filename output_filename{"kmer_counts.txt"};
 
-    count_config config;
+    chopper::count::configuration config;
     config.k = 15;
     config.w = 25;
     config.num_threads = 2;
@@ -88,7 +88,7 @@ TEST(count_kmers_test, small_example_parallel_2_threads)
         {"TAX2", {input_file, input_file}}
     };
 
-    count_kmers(filename_clusters, config);
+    chopper::count::count_kmers(filename_clusters, config);
 
     std::vector<std::string> expected_components
     {
