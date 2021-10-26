@@ -1,12 +1,15 @@
 #include <seqan3/argument_parser/all.hpp>
 #include <seqan3/core/debug_stream.hpp>
 
-#include <chopper/count/count_config.hpp>
+#include <chopper/count/configuration.hpp>
 #include <chopper/count/count_kmers.hpp>
 #include <chopper/count/read_data_file.hpp>
 #include <chopper/print_peak_memory_usage.hpp>
 
-void initialize_argument_parser(seqan3::argument_parser & parser, count_config & config)
+namespace chopper::count
+{
+
+void initialize_argument_parser(seqan3::argument_parser & parser, chopper::count::configuration & config)
 {
     parser.info.author = "Avenja";
     parser.info.short_description = "Count all kmers of each file in a directory.";
@@ -37,9 +40,9 @@ void initialize_argument_parser(seqan3::argument_parser & parser, count_config &
                     "The exact counts are replaced by estimates of the single sketches for every sequence.");
 }
 
-int chopper_count(seqan3::argument_parser & parser)
+int execute(seqan3::argument_parser & parser)
 {
-    count_config config{};
+    chopper::count::configuration config{};
     initialize_argument_parser(parser, config);
 
     try
@@ -52,11 +55,13 @@ int chopper_count(seqan3::argument_parser & parser)
         return -1;
     }
 
-    auto filename_clusters = read_data_file(config);
+    auto filename_clusters = chopper::count::read_data_file(config);
 
-    count_kmers(filename_clusters, config);
+    chopper::count::count_kmers(filename_clusters, config);
 
     print_peak_memory_usage();
 
     return 0;
 }
+
+} // namespace chopper::count

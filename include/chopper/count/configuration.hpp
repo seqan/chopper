@@ -3,7 +3,10 @@
 #include <seqan3/std/filesystem>
 #include <thread>
 
-struct count_config
+namespace chopper::count
+{
+
+struct configuration
 {
     std::filesystem::path data_file{};
     std::filesystem::path output_filename{};
@@ -16,3 +19,5 @@ struct count_config
     bool disable_minimizers{false};
     bool exclusively_hlls{false};
 };
+
+} // namespace chopper::count

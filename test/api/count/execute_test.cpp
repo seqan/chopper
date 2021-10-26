@@ -6,12 +6,11 @@
 
 #include <seqan3/utility/views/to.hpp>
 
-#include <chopper/count/chopper_count.hpp>
-#include <chopper/count/count_config.hpp>
+#include <chopper/count/execute.hpp>
 
 #include "../api_test.hpp"
 
-TEST(chopper_count_test, small_example_parallel_2_threads)
+TEST(execute_test, small_example_parallel_2_threads)
 {
     std::string input_filename = data("small.fa");
     seqan3::test::tmp_filename data_filename{"data.tsv"};
@@ -37,7 +36,7 @@ TEST(chopper_count_test, small_example_parallel_2_threads)
         input_filename + ";" + input_filename + "\t88\tTAX2"
     };
 
-    chopper_count(count_parser);
+    chopper::count::execute(count_parser);
 
     std::ifstream output_file{output_filename.get_path()};
     std::string const output_file_str((std::istreambuf_iterator<char>(output_file)), std::istreambuf_iterator<char>());
@@ -52,7 +51,7 @@ TEST(chopper_count_test, small_example_parallel_2_threads)
     EXPECT_EQ(expected_components.size(), line_count);
 }
 
-TEST(chopper_count_test, disable_minimizers)
+TEST(execute_test, disable_minimizers)
 {
     std::string input_filename = data("small.fa");
     seqan3::test::tmp_filename data_filename{"data.tsv"};
@@ -82,7 +81,7 @@ TEST(chopper_count_test, disable_minimizers)
         input_filename + ";" + input_filename + "\t585\tTAX2\n"
     };
 
-    chopper_count(count_parser);
+    chopper::count::execute(count_parser);
 
     std::ifstream output_file{output_filename.get_path()};
     std::string const output_file_str((std::istreambuf_iterator<char>(output_file)), std::istreambuf_iterator<char>());

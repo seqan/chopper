@@ -4,7 +4,7 @@
 #include <sstream>
 #include <vector>
 
-#include <chopper/count/count_config.hpp>
+#include <chopper/count/configuration.hpp>
 #include <chopper/count/count_kmers.hpp>
 #include <chopper/pack/chopper_pack.hpp>
 
@@ -24,9 +24,9 @@ TEST(chopper_pack_hll_test, few_ubs)
     std::string const small2_filename = data("small2.fa");
 
     {
-        count_config const config{.output_filename{count_file.get_path()},
-                                  .hll_dir{hll_dir.get_path()},
-                                  .exclusively_hlls{true}};
+        chopper::count::configuration const config{.output_filename{count_file.get_path()},
+                                                   .hll_dir{hll_dir.get_path()},
+                                                   .exclusively_hlls{true}};
 
         std::vector<std::string> const files{seq1_filename,
                                              seq2_filename,
@@ -38,7 +38,7 @@ TEST(chopper_pack_hll_test, few_ubs)
         for (std::string const & filename : files)
             filename_clusters[filename].push_back(filename);
 
-        count_kmers(filename_clusters, config);
+        chopper::count::count_kmers(filename_clusters, config);
     }
 
     {
@@ -94,9 +94,9 @@ TEST(chopper_pack_hll_test, many_ubs)
     std::string const small2_filename = data("small2.fa");
 
     {
-        count_config const config{.output_filename{count_file.get_path()},
-                                  .hll_dir{hll_dir.get_path()},
-                                  .exclusively_hlls{true}};
+        chopper::count::configuration const config{.output_filename{count_file.get_path()},
+                                                   .hll_dir{hll_dir.get_path()},
+                                                   .exclusively_hlls{true}};
 
         std::vector<std::string> const files{seq1_filename,
                                              seq2_filename,
@@ -112,7 +112,7 @@ TEST(chopper_pack_hll_test, many_ubs)
             filename_clusters[cluster_name].push_back(files[i % 5]);
         }
 
-        count_kmers(filename_clusters, config);
+        chopper::count::count_kmers(filename_clusters, config);
     }
 
     {
