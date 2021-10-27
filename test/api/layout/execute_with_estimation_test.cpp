@@ -4,14 +4,14 @@
 #include <sstream>
 #include <vector>
 
-#include <chopper/pack/chopper_pack.hpp>
+#include <chopper/layout/execute.hpp>
 
 #include "../api_test.hpp"
 
-TEST(chopper_pack_estimation_test, few_ubs)
+TEST(execute_estimation_test, few_ubs)
 {
     seqan3::test::tmp_filename const count_file{"kmer_counts.tsv"};
-    seqan3::test::tmp_filename const pack_file{"pack.tsv"};
+    seqan3::test::tmp_filename const layout_file{"layout.tsv"};
 
     {
         std::ofstream fout{count_file.get_path()};
@@ -25,25 +25,25 @@ TEST(chopper_pack_estimation_test, few_ubs)
              << "seq7\t500\n";
     }
 
-    char const * const argv[] = {"./chopper-pack",
+    char const * const argv[] = {"./chopper-layout",
                                  "-b", "4",
                                  "--determine-num-bins",
                                  "-f", count_file.get_path().c_str(),
-                                 "-o", pack_file.get_path().c_str()};
+                                 "-o", layout_file.get_path().c_str()};
     int const argc = sizeof(argv) / sizeof(*argv);
 
-    seqan3::argument_parser pack_parser{"chopper-pack", argc, argv, seqan3::update_notifications::off};
+    seqan3::argument_parser layout_parser{"chopper-layout", argc, argv, seqan3::update_notifications::off};
     testing::internal::CaptureStdout();
-    chopper_pack(pack_parser);
+    chopper::layout::execute(layout_parser);
 
     EXPECT_EQ(testing::internal::GetCapturedStdout(), "T_Max\tC_{T_Max}\trelative expected HIBF query cost\n64\t1.00"
                                                       "\t1.00\n#Best t_max (regarding expected query runtime):64\n");
 }
 
-TEST(chopper_pack_estimation_test, many_ubs)
+TEST(execute_estimation_test, many_ubs)
 {
     seqan3::test::tmp_filename const count_file{"kmer_counts.tsv"};
-    seqan3::test::tmp_filename const pack_file{"pack.tsv"};
+    seqan3::test::tmp_filename const layout_file{"layout.tsv"};
 
     {
         // There are 20 files with a count of {100,200,300,400} each. There are 16 files with count 500.
@@ -52,26 +52,26 @@ TEST(chopper_pack_estimation_test, many_ubs)
             fout << seqan3::detail::to_string("seq", i, '\t', 100 * ((i + 20) / 20), '\n');
     }
 
-    char const * const argv[] = {"./chopper-pack",
+    char const * const argv[] = {"./chopper-layout",
                                  "-b", "1024",
                                  "--determine-num-bins",
                                  "-f", count_file.get_path().c_str(),
-                                 "-o", pack_file.get_path().c_str()};
+                                 "-o", layout_file.get_path().c_str()};
     int const argc = sizeof(argv) / sizeof(*argv);
 
-    seqan3::argument_parser pack_parser{"chopper-pack", argc, argv, seqan3::update_notifications::off};
+    seqan3::argument_parser layout_parser{"chopper-layout", argc, argv, seqan3::update_notifications::off};
     testing::internal::CaptureStdout();
-    chopper_pack(pack_parser);
+    chopper::layout::execute(layout_parser);
 
     EXPECT_EQ(testing::internal::GetCapturedStdout(), "T_Max\tC_{T_Max}\trelative expected HIBF query cost\n64\t1.00"
                                                       "\t1.26\n128\t1.10\t1.12\n256\t1.32\t1.32\n#Best t_max "
                                                       "(regarding expected query runtime):128\n");
 }
 
-TEST(chopper_pack_estimation_test, many_ubs_force_all)
+TEST(execute_estimation_test, many_ubs_force_all)
 {
     seqan3::test::tmp_filename const count_file{"kmer_counts.tsv"};
-    seqan3::test::tmp_filename const pack_file{"pack.tsv"};
+    seqan3::test::tmp_filename const layout_file{"layout.tsv"};
 
     {
         // There are 20 files with a count of {100,200,300,400} each. There are 16 files with count 500.
@@ -80,17 +80,17 @@ TEST(chopper_pack_estimation_test, many_ubs_force_all)
             fout << seqan3::detail::to_string("seq", i, '\t', 100 * ((i + 20) / 20), '\n');
     }
 
-    char const * const argv[] = {"./chopper-pack",
+    char const * const argv[] = {"./chopper-layout",
                                  "-b", "256",
                                  "--determine-num-bins",
                                  "--force-all-binnings",
                                  "-f", count_file.get_path().c_str(),
-                                 "-o", pack_file.get_path().c_str()};
+                                 "-o", layout_file.get_path().c_str()};
     int const argc = sizeof(argv) / sizeof(*argv);
 
-    seqan3::argument_parser pack_parser{"chopper-pack", argc, argv, seqan3::update_notifications::off};
+    seqan3::argument_parser layout_parser{"chopper-layout", argc, argv, seqan3::update_notifications::off};
     testing::internal::CaptureStdout();
-    chopper_pack(pack_parser);
+    chopper::layout::execute(layout_parser);
 
     EXPECT_EQ(testing::internal::GetCapturedStdout(), "T_Max\tC_{T_Max}\trelative expected HIBF query cost\n64\t1.00"
                                                       "\t1.26\n128\t1.10\t1.12\n256\t1.32\t1.32\n#Best t_max "

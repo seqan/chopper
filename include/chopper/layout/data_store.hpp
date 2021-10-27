@@ -5,16 +5,19 @@
 #include <vector>
 
 #include <chopper/helper.hpp>
-#include <chopper/pack/pack_config.hpp>
-#include <chopper/pack/hibf_statistics.hpp>
-#include <chopper/pack/previous_level.hpp>
+#include <chopper/layout/configuration.hpp>
+#include <chopper/layout/hibf_statistics.hpp>
+#include <chopper/layout/previous_level.hpp>
 #include <chopper/sketch/user_bin_sequence.hpp>
 
-struct pack_data
+namespace chopper::layout
+{
+
+struct data_store
 {
     //!\brief The file names of the user input. Since the input might be sorted, we need to keep track of the names.
     std::vector<std::string> filenames{};
-    //!\brief The kmer counts associated with the above files used to pack user bin into technical bins.
+    //!\brief The kmer counts associated with the above files used to layout user bin into technical bins.
     std::vector<size_t> kmer_counts{};
     std::vector<std::vector<std::string>> extra_information{};
     std::vector<double> fp_correction{};
@@ -52,7 +55,7 @@ struct pack_data
     }
 
     //!\brief Depending on cli flags given, use HyperLogLog estimates and/or rearrangement algorithms
-    void arrange_user_bins(pack_config const & config)
+    void arrange_user_bins(configuration const & config)
     {
         if (!user_bins_arranged)
         {
@@ -72,3 +75,5 @@ struct pack_data
         }
     }
 };
+
+} // namespace chopper::layout

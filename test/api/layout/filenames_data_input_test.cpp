@@ -2,16 +2,16 @@
 
 #include <seqan3/std/filesystem>
 
-#include <chopper/pack/filenames_data_input.hpp>
-#include <chopper/pack/pack_config.hpp>
-#include <chopper/pack/pack_data.hpp>
+#include <chopper/layout/filenames_data_input.hpp>
+#include <chopper/layout/configuration.hpp>
+#include <chopper/layout/data_store.hpp>
 
 #include "../api_test.hpp"
 
 TEST(read_filename_data_file_test, file_open_error)
 {
-    pack_config config;
-    pack_data data;
+    chopper::layout::configuration config;
+    chopper::layout::data_store data;
     config.data_file = "non_existing.file";
 
     EXPECT_THROW(read_filename_data_file(data, config), std::runtime_error);
@@ -19,19 +19,19 @@ TEST(read_filename_data_file_test, file_open_error)
 
 TEST(read_filename_data_file_test, only_filenames)
 {
-    pack_config config;
+    chopper::layout::configuration config;
     config.data_file = data("only_filenames.tsv");
 
-    pack_data data;
+    chopper::layout::data_store data;
     EXPECT_THROW(read_filename_data_file(data, config), std::runtime_error);
 }
 
 TEST(read_filename_data_file_test, filenames_and_counts)
 {
-    pack_config config;
+    chopper::layout::configuration config;
     config.data_file = data("filenames_and_counts.tsv");
 
-    pack_data data;
+    chopper::layout::data_store data;
     read_filename_data_file(data, config);
 
     ASSERT_EQ(data.filenames.size(), 3u);
@@ -51,10 +51,10 @@ TEST(read_filename_data_file_test, filenames_and_counts)
 
 TEST(read_filename_data_file_test, filenames_counts_and_extra_information)
 {
-    pack_config config;
+    chopper::layout::configuration config;
     config.data_file = data("filenames_counts_and_extra_information.tsv");
 
-    pack_data data;
+    chopper::layout::data_store data;
     read_filename_data_file(data, config);
 
     ASSERT_EQ(data.filenames.size(), 3u);

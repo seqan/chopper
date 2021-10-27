@@ -6,15 +6,15 @@
 
 #include <chopper/count/configuration.hpp>
 #include <chopper/count/count_kmers.hpp>
-#include <chopper/pack/chopper_pack.hpp>
+#include <chopper/layout/execute.hpp>
 
 #include "../api_test.hpp"
 #include "print_debug_file.hpp"
 
-TEST(chopper_pack_hll_test, few_ubs)
+TEST(execute_hll_test, few_ubs)
 {
     seqan3::test::tmp_filename const count_file{"kmer_counts.tsv"};
-    seqan3::test::tmp_filename const pack_file{"pack.tsv"};
+    seqan3::test::tmp_filename const layout_file{"layout.tsv"};
     seqan3::test::tmp_filename const hll_dir{"hll"};
 
     std::string const seq1_filename = data("seq1.fa");
@@ -50,14 +50,14 @@ TEST(chopper_pack_hll_test, few_ubs)
              << seq1_filename << "\t1\t" << seq1_filename << '\n';
     }
 
-    char const * const argv[] = {"./chopper-pack",
+    char const * const argv[] = {"./chopper-layout",
                                  "-b", "4",
                                  "-f", count_file.get_path().c_str(),
-                                 "-o", pack_file.get_path().c_str()};
+                                 "-o", layout_file.get_path().c_str()};
     int const argc = sizeof(argv) / sizeof(*argv);
 
-    seqan3::argument_parser pack_parser{"chopper-pack", argc, argv, seqan3::update_notifications::off};
-    chopper_pack(pack_parser);
+    seqan3::argument_parser layout_parser{"chopper-layout", argc, argv, seqan3::update_notifications::off};
+    chopper::layout::execute(layout_parser);
 
     std::vector<std::string> const expected_components
     {
@@ -69,7 +69,7 @@ TEST(chopper_pack_hll_test, few_ubs)
         {small_filename + "\t58\t6"},
         {small2_filename + "\t52\t6"}
     };
-    std::string const actual_file{string_from_file(pack_file.get_path())};
+    std::string const actual_file{string_from_file(layout_file.get_path())};
 
     size_t line_count{};
     for (auto && line : actual_file | std::views::split('\n') | seqan3::views::to<std::vector<std::string>>)
@@ -81,10 +81,10 @@ TEST(chopper_pack_hll_test, few_ubs)
     EXPECT_EQ(expected_components.size(), line_count);
 }
 
-TEST(chopper_pack_hll_test, many_ubs)
+TEST(execute_hll_test, many_ubs)
 {
     seqan3::test::tmp_filename const count_file{"kmer_counts.tsv"};
-    seqan3::test::tmp_filename const pack_file{"pack.tsv"};
+    seqan3::test::tmp_filename const layout_file{"layout.tsv"};
     seqan3::test::tmp_filename const hll_dir{"hll"};
 
     std::string const seq1_filename = data("seq1.fa");
@@ -215,14 +215,14 @@ TEST(chopper_pack_hll_test, many_ubs)
              << small2_filename << "\t2\tcluster29\n";
     }
 
-    char const * const argv[] = {"./chopper-pack",
+    char const * const argv[] = {"./chopper-layout",
                                  "-b", "4",
                                  "-f", count_file.get_path().c_str(),
-                                 "-o", pack_file.get_path().c_str()};
+                                 "-o", layout_file.get_path().c_str()};
     int const argc = sizeof(argv) / sizeof(*argv);
 
-    seqan3::argument_parser pack_parser{"chopper-pack", argc, argv, seqan3::update_notifications::off};
-    chopper_pack(pack_parser);
+    seqan3::argument_parser layout_parser{"chopper-layout", argc, argv, seqan3::update_notifications::off};
+    chopper::layout::execute(layout_parser);
 
     std::vector<std::string> const expected_components
     {
@@ -341,7 +341,7 @@ TEST(chopper_pack_hll_test, many_ubs)
         {small2_filename + "\t62\t1"},
         {small2_filename + "\t63\t1"}
     };
-    std::string const actual_file{string_from_file(pack_file.get_path())};
+    std::string const actual_file{string_from_file(layout_file.get_path())};
 
     size_t line_count{};
     for (auto && line : actual_file | std::views::split('\n') | seqan3::views::to<std::vector<std::string>>)

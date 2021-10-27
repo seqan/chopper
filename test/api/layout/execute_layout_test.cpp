@@ -4,15 +4,15 @@
 #include <sstream>
 #include <vector>
 
-#include <chopper/pack/chopper_pack.hpp>
+#include <chopper/layout/execute.hpp>
 
 #include "../api_test.hpp"
 #include "print_debug_file.hpp"
 
-TEST(chopper_pack_test, few_ubs)
+TEST(execute_test, few_ubs)
 {
     seqan3::test::tmp_filename const count_file{"kmer_counts.tsv"};
-    seqan3::test::tmp_filename const pack_file{"pack.tsv"};
+    seqan3::test::tmp_filename const layout_file{"layout.tsv"};
 
     {
         std::ofstream fout{count_file.get_path()};
@@ -26,14 +26,14 @@ TEST(chopper_pack_test, few_ubs)
              << "seq7\t500\n";
     }
 
-    char const * const argv[] = {"./chopper-pack",
+    char const * const argv[] = {"./chopper-layout",
                                  "-b", "64",
                                  "-f", count_file.get_path().c_str(),
-                                 "-o", pack_file.get_path().c_str()};
+                                 "-o", layout_file.get_path().c_str()};
     int const argc = sizeof(argv) / sizeof(*argv);
 
-    seqan3::argument_parser pack_parser{"chopper-pack", argc, argv, seqan3::update_notifications::off};
-    chopper_pack(pack_parser);
+    seqan3::argument_parser layout_parser{"chopper-layout", argc, argv, seqan3::update_notifications::off};
+    chopper::layout::execute(layout_parser);
 
     std::string const expected_file
     {
@@ -48,15 +48,15 @@ TEST(chopper_pack_test, few_ubs)
         "seq0\t26\t4\n"
         "seq1\t30\t34\n"
     };
-    std::string const actual_file{string_from_file(pack_file.get_path())};
+    std::string const actual_file{string_from_file(layout_file.get_path())};
 
     EXPECT_EQ(actual_file, expected_file);
 }
 
-TEST(chopper_pack_test, few_ubs_debug)
+TEST(execute_test, few_ubs_debug)
 {
     seqan3::test::tmp_filename const count_file{"kmer_counts.tsv"};
-    seqan3::test::tmp_filename const pack_file{"pack.tsv"};
+    seqan3::test::tmp_filename const layout_file{"layout.tsv"};
 
     {
         std::ofstream fout{count_file.get_path()};
@@ -70,15 +70,15 @@ TEST(chopper_pack_test, few_ubs_debug)
              << "seq7\t500\n";
     }
 
-    char const * const argv[] = {"./chopper-pack",
+    char const * const argv[] = {"./chopper-layout",
                                  "-b", "64",
                                  "-f", count_file.get_path().c_str(),
-                                 "-o", pack_file.get_path().c_str(),
+                                 "-o", layout_file.get_path().c_str(),
                                  "--debug"};
     int const argc = sizeof(argv) / sizeof(*argv);
 
-    seqan3::argument_parser pack_parser{"chopper-pack", argc, argv, seqan3::update_notifications::off};
-    chopper_pack(pack_parser);
+    seqan3::argument_parser layout_parser{"chopper-layout", argc, argv, seqan3::update_notifications::off};
+    chopper::layout::execute(layout_parser);
 
     std::string const expected_file
     {
@@ -93,16 +93,16 @@ TEST(chopper_pack_test, few_ubs_debug)
         "seq0\t26\t4\t125\t278\t2.23\t64\n"
         "seq1\t30\t34\t29\t278\t9.44\t64\n"
     };
-    std::string const actual_file{string_from_file(pack_file.get_path())};
+    std::string const actual_file{string_from_file(layout_file.get_path())};
 
     EXPECT_EQ(actual_file, expected_file);
-    // print_debug_file(pack_file.get_path()); // Formatted output
+    // print_debug_file(layout_file.get_path()); // Formatted output
 }
 
-TEST(chopper_pack_test, few_ubs_with_aggregatation)
+TEST(execute_test, few_ubs_with_aggregatation)
 {
     seqan3::test::tmp_filename const count_file{"kmer_counts.tsv"};
-    seqan3::test::tmp_filename const pack_file{"pack.tsv"};
+    seqan3::test::tmp_filename const layout_file{"layout.tsv"};
 
     {
         std::ofstream fout{count_file.get_path()};
@@ -120,15 +120,15 @@ TEST(chopper_pack_test, few_ubs_with_aggregatation)
              << "seq7\t500\tspecification-H\n";
     }
 
-    char const * const argv[] = {"./chopper-pack",
+    char const * const argv[] = {"./chopper-layout",
                                  "-b", "64",
                                  "--aggregate-by", "2", /* specification column */
                                  "-f", count_file.get_path().c_str(),
-                                 "-o", pack_file.get_path().c_str()};
+                                 "-o", layout_file.get_path().c_str()};
     int const argc = sizeof(argv) / sizeof(*argv);
 
-    seqan3::argument_parser pack_parser{"chopper-pack", argc, argv, seqan3::update_notifications::off};
-    chopper_pack(pack_parser);
+    seqan3::argument_parser layout_parser{"chopper-layout", argc, argv, seqan3::update_notifications::off};
+    chopper::layout::execute(layout_parser);
 
     std::string const expected_file
     {
@@ -143,15 +143,15 @@ TEST(chopper_pack_test, few_ubs_with_aggregatation)
         "seq0\t26\t4\n"
         "seq1.1;seq1.2;seq1.3;seq1.4\t30\t34\n"
     };
-    std::string const actual_file{string_from_file(pack_file.get_path())};
+    std::string const actual_file{string_from_file(layout_file.get_path())};
 
     EXPECT_EQ(actual_file, expected_file);
 }
 
-TEST(chopper_pack_test, many_ubs_debug)
+TEST(execute_test, many_ubs_debug)
 {
     seqan3::test::tmp_filename const count_file{"kmer_counts.tsv"};
-    seqan3::test::tmp_filename const pack_file{"pack.tsv"};
+    seqan3::test::tmp_filename const layout_file{"layout.tsv"};
 
     {
         // There are 20 files with a count of {100,200,300,400} each. There are 16 files with count 500.
@@ -160,15 +160,15 @@ TEST(chopper_pack_test, many_ubs_debug)
             fout << seqan3::detail::to_string("seq", i, '\t', 100 * ((i + 20) / 20), '\n');
     }
 
-    char const * const argv[] = {"./chopper-pack",
+    char const * const argv[] = {"./chopper-layout",
                                  "-b", "64",
                                  "-f", count_file.get_path().c_str(),
-                                 "-o", pack_file.get_path().c_str(),
+                                 "-o", layout_file.get_path().c_str(),
                                  "--debug"};
     int const argc = sizeof(argv) / sizeof(*argv);
 
-    seqan3::argument_parser pack_parser{"chopper-pack", argc, argv, seqan3::update_notifications::off};
-    chopper_pack(pack_parser);
+    seqan3::argument_parser layout_parser{"chopper-layout", argc, argv, seqan3::update_notifications::off};
+    chopper::layout::execute(layout_parser);
 
     std::string const expected_file
     {
@@ -283,7 +283,7 @@ TEST(chopper_pack_test, many_ubs_debug)
         "seq80\t62\t1\t500\t600\t1.00\t64\n"
         "seq95\t63\t1\t500\t600\t1.00\t64\n"
     };
-    std::string const actual_file{string_from_file(pack_file.get_path())};
+    std::string const actual_file{string_from_file(layout_file.get_path())};
 
     EXPECT_EQ(actual_file, expected_file) << actual_file << std::endl;
 }

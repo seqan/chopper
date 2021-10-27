@@ -4,10 +4,10 @@
 
 #include "cli_test.hpp"
 
-TEST_F(cli_test, chopper_pack_statistics)
+TEST_F(cli_test, chopper_layout_statistics)
 {
     seqan3::test::tmp_filename const count_file{"kmer_counts.tsv"};
-    seqan3::test::tmp_filename const pack_file{"pack.tsv"};
+    seqan3::test::tmp_filename const layout_file{"layout.tsv"};
 
     {
         // There are 20 files with a count of {100,200,300,400} each. There are 16 files with count 500.
@@ -16,10 +16,10 @@ TEST_F(cli_test, chopper_pack_statistics)
             fout << seqan3::detail::to_string("seq", i, '\t', 100 * ((i + 20) / 20), '\n');
     }
 
-    cli_test_result pack_result = execute_app("chopper", "pack",
+    cli_test_result layout_result = execute_app("chopper", "layout",
                                               "-b", "64",
                                               "-f", count_file.get_path().c_str(),
-                                              "-o", pack_file.get_path().c_str(),
+                                              "-o", layout_file.get_path().c_str(),
                                               "--output-statistics");
 
     std::string expected_cout =
@@ -31,12 +31,12 @@ R"expected_cout(level	num_ibfs	level_size	level_size_no_corr	total_num_tbs	avg_n
 
 )expected_cout";
 
-    EXPECT_EQ(pack_result.exit_code, 0);
-    EXPECT_EQ(pack_result.out, expected_cout) << pack_result.out;
-    EXPECT_EQ(pack_result.err, std::string{});
+    EXPECT_EQ(layout_result.exit_code, 0);
+    EXPECT_EQ(layout_result.out, expected_cout) << layout_result.out;
+    EXPECT_EQ(layout_result.err, std::string{});
 }
 
-TEST_F(cli_test, chopper_pack_statistics_determine_best_bins)
+TEST_F(cli_test, chopper_layout_statistics_determine_best_bins)
 {
     seqan3::test::tmp_filename const count_filename{"kmer_counts.txt"};
     seqan3::test::tmp_filename const binning_filename{"output.binning"};
@@ -56,7 +56,7 @@ TEST_F(cli_test, chopper_pack_statistics_determine_best_bins)
                 "seq9\t100000\n";
     }
 
-    cli_test_result pack_result = execute_app("chopper", "pack",
+    cli_test_result layout_result = execute_app("chopper", "layout",
                                               "-b", "128",
                                               "-f", count_filename.get_path().c_str(),
                                               "-o", binning_filename.get_path().c_str(),
@@ -85,7 +85,7 @@ level	num_ibfs	level_size	level_size_no_corr	total_num_tbs	avg_num_tbs	split_tb_
 #Best t_max (regarding expected query runtime):64
 )expected_cout";
 
-    EXPECT_EQ(pack_result.exit_code, 0);
-    EXPECT_EQ(pack_result.out, expected_cout) << pack_result.out;
-    EXPECT_EQ(pack_result.err, std::string{});
+    EXPECT_EQ(layout_result.exit_code, 0);
+    EXPECT_EQ(layout_result.out, expected_cout) << layout_result.out;
+    EXPECT_EQ(layout_result.err, std::string{});
 }

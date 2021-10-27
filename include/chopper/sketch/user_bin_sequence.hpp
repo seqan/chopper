@@ -55,7 +55,7 @@ protected:
     //!\brief A pointer to the filenames of the user input sequences.
     std::vector<std::string> * const filenames{nullptr};
 
-    //!\brief A pointer to kmer counts associated with the above files used to pack user bin into technical bins.
+    //!\brief A pointer to kmer counts associated with the above files used to layout user bin into technical bins.
     std::vector<size_t> * const user_bin_kmer_counts{nullptr};
 
     //!\brief HyperLogLog sketches on the k-mer sets of the sequences from the files of filenames.
@@ -128,7 +128,7 @@ public:
         }
         catch (std::runtime_error const & err)
         {
-            std::string const chopper_msg{"[CHOPPER PACK ERROR] Something went wrong trying to read the HyperLogLog"
+            std::string const chopper_msg{"[CHOPPER LAYOUT ERROR] Something went wrong trying to read the HyperLogLog"
                                           " sketches from files:\n"};
             throw std::runtime_error{chopper_msg + err.what()};
         }

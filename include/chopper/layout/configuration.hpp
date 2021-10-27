@@ -2,9 +2,12 @@
 
 #include <seqan3/std/filesystem>
 
-#include <chopper/pack/previous_level.hpp>
+#include <chopper/layout/previous_level.hpp>
 
-struct pack_config
+namespace chopper::layout
+{
+
+struct configuration
 {
     std::filesystem::path data_file;
     std::filesystem::path output_filename{"binning.out"};
@@ -37,3 +40,5 @@ struct pack_config
     bool output_statistics{false};
     bool debug{false};
 };
+
+} // namespace chopper::layout

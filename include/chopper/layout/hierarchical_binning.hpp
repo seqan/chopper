@@ -5,18 +5,21 @@
 
 #include <chopper/detail_bin_prefixes.hpp>
 #include <chopper/helper.hpp>
-#include <chopper/pack/ibf_query_cost.hpp>
-#include <chopper/pack/pack_config.hpp>
-#include <chopper/pack/print_result_line.hpp>
-#include <chopper/pack/simple_binning.hpp>
+#include <chopper/layout/ibf_query_cost.hpp>
+#include <chopper/layout/configuration.hpp>
+#include <chopper/layout/print_result_line.hpp>
+#include <chopper/layout/simple_binning.hpp>
+
+namespace chopper::layout
+{
 
 class hierarchical_binning
 {
 private:
     //!\brief The user configuration passed down from the command line.
-    pack_config const config{};
+    configuration const config{};
     //!\brief The data input: filenames associated with the user bin and a kmer count per user bin.
-    pack_data * const data{nullptr};
+    data_store * const data{nullptr};
 
     //!\brief The number of user bins, initialised with the length of user_bin_kmer_counts.
     size_t const num_user_bins{};
@@ -38,7 +41,7 @@ public:
      * Each entry in the names_ and input vector respectively is considered a user bin (both vectors must have the
      * same length).
      */
-    hierarchical_binning(pack_data & data_, pack_config const & config_) :
+    hierarchical_binning(data_store & data_, configuration const & config_) :
         config{config_},
         data{std::addressof(data_)},
         num_user_bins{data->kmer_counts.size()},
@@ -58,7 +61,7 @@ public:
             throw std::runtime_error{"The filenames and kmer counts do not have the same length."};
     }
 
-    //!\brief Executes the hierarchical binning algorithm and packs user bins into technical bins.
+    //!\brief Executes the hierarchical binning algorithm and layouts user bins into technical bins.
     std::tuple<size_t, double> execute()
     {
         assert(data != nullptr);
@@ -433,9 +436,9 @@ private:
         return stream.str();
     };
 
-    pack_data initialise_libf_data(size_t const kmer_count, size_t const trace_j) const
+    data_store initialise_libf_data(size_t const kmer_count, size_t const trace_j) const
     {
-        pack_data libf_data{};
+        data_store libf_data{};
         libf_data.output_buffer = data->output_buffer;
         libf_data.header_buffer = data->header_buffer;
         libf_data.fp_correction = data->fp_correction;
@@ -446,8 +449,8 @@ private:
         return libf_data;
     }
 
-    double process_merged_bin(pack_data & libf_data,
-                              pack_data & data,
+    double process_merged_bin(data_store & libf_data,
+                              data_store & data,
                               size_t const bin_id,
                               int const trace_j,
                               int const j,
@@ -477,7 +480,7 @@ private:
         return lower_cost;
     }
 
-    void update_libf_data(pack_data & libf_data, pack_data const & data, size_t const bin_id, double const cost) const
+    void update_libf_data(data_store & libf_data, data_store const & data, size_t const bin_id, double const cost) const
     {
         bool const is_top_level = data.previous.empty();
 
@@ -487,8 +490,8 @@ private:
         libf_data.previous.cost += cost;
     }
 
-    void update_debug_libf_data(pack_data & libf_data,
-                                pack_data const & data,
+    void update_debug_libf_data(data_store & libf_data,
+                                data_store const & data,
                                 size_t const kmer_count,
                                 size_t const optimal_score,
                                 size_t const num_technical_bins) const
@@ -501,7 +504,7 @@ private:
         libf_data.previous.tmax += (is_top_level ? "" : ";") + std::to_string(num_technical_bins);
     }
 
-    std::pair<size_t, double>  add_lower_level(pack_data & libf_data,
+    std::pair<size_t, double>  add_lower_level(data_store & libf_data,
                                                size_t const kmer_count,
                                                double interpolated_cost) const
     {
@@ -537,3 +540,5 @@ private:
         }
     }
 };
+
+} // namespace chopper::layout

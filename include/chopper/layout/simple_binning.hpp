@@ -8,10 +8,13 @@
 #include <vector>
 
 #include <chopper/helper.hpp>
-#include <chopper/pack/pack_data.hpp>
-#include <chopper/pack/previous_level.hpp>
-#include <chopper/pack/print_matrix.hpp>
-#include <chopper/pack/print_result_line.hpp>
+#include <chopper/layout/data_store.hpp>
+#include <chopper/layout/previous_level.hpp>
+#include <chopper/layout/print_matrix.hpp>
+#include <chopper/layout/print_result_line.hpp>
+
+namespace chopper::layout
+{
 
 /*!\brief Distributes x Technical Bins across y User Bins while minimizing the maximal Technical Bin size
  *
@@ -83,7 +86,7 @@ class simple_binning
 {
 private:
     //!\brief The data input: filenames associated with the user bin and a kmer count per user bin.
-    pack_data const * data{nullptr};
+    data_store const * data{nullptr};
 
     /*!\brief The number of User bins.
      *
@@ -99,7 +102,7 @@ private:
      */
     size_t const num_technical_bins{};
 
-    //!\brief Debug output in packing file.
+    //!\brief Debug output in layouting file.
     bool const debug{false};
 
 public:
@@ -113,7 +116,7 @@ public:
     /*!\brief The constructor from user bin names, their kmer counts and a configuration.
      * \param[in] data_ The filenames and kmer counts associated with the user bin, as well as the ostream buffer.
      * \param[in] num_bins (optional) The number of technical bins.
-     * \param[in] debug_ (optional) Enables debug output in packing file.
+     * \param[in] debug_ (optional) Enables debug output in layouting file.
      *
      * If the `num_bins` parameter is omitted or set to 0, then number of technical bins used in this algorithm
      * is automatically set to the next multiple of 64 given the number of user bins (e.g. \#UB = 88 -> \#TB = 124).
@@ -121,7 +124,7 @@ public:
      * \attention The number of technical bins must be greater or equal to the number of user bins!
      *            If you want to use less technical bins than user bins, see the hierarchical_binning algorithm.
      */
-    simple_binning(pack_data & data_, size_t const num_bins = 0, bool const debug_ = false) :
+    simple_binning(data_store & data_, size_t const num_bins = 0, bool const debug_ = false) :
         data{std::addressof(data_)},
         num_user_bins{data->kmer_counts.size()},
         num_technical_bins{num_bins ? num_bins : next_multiple_of_64(num_user_bins)},
@@ -150,7 +153,7 @@ public:
         return num_technical_bins;
     }
 
-    //!\brief Executes the simple binning algorithm and packs user bins into technical bins.
+    //!\brief Executes the simple binning algorithm and layouts user bins into technical bins.
     size_t execute()
     {
         assert(data != nullptr);
@@ -258,3 +261,5 @@ public:
         return max_id;
     }
 };
+
+} // namespace chopper::layout

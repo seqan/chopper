@@ -1,32 +1,35 @@
 #include <seqan3/argument_parser/all.hpp>
 
-#include <chopper/pack/aggregate_by.hpp>
-#include <chopper/pack/filenames_data_input.hpp>
-#include <chopper/pack/hierarchical_binning.hpp>
-#include <chopper/pack/ibf_query_cost.hpp>
-#include <chopper/pack/pack_config.hpp>
-#include <chopper/pack/previous_level.hpp>
+#include <chopper/layout/aggregate_by.hpp>
+#include <chopper/layout/filenames_data_input.hpp>
+#include <chopper/layout/hierarchical_binning.hpp>
+#include <chopper/layout/ibf_query_cost.hpp>
+#include <chopper/layout/configuration.hpp>
+#include <chopper/layout/previous_level.hpp>
 
-void set_up_subparser_pack(seqan3::argument_parser & parser, pack_config & config)
+namespace chopper::layout
+{
+
+void set_up_subparser_layout(seqan3::argument_parser & parser, chopper::layout::configuration & config)
 {
     parser.info.version = "1.0.0";
     parser.info.author = "Svenja Mehringer";
     parser.info.email = "svenja.mehringer@fu-berlin.de";
 
-    parser.info.description.emplace_back("The `pack` submodule will create a hierarchical binning that minimizes the "
+    parser.info.description.emplace_back("The `_layout` submodule will create a hierarchical binning that minimizes the "
                                          "space consumption of the resulting Interleaved Bloom Filter that you may "
                                          "build with the `build` submodule using the results.");
 
     parser.add_option(config.data_file, 'f', "filenames",
                       "A tab separated file that contains the filepaths of sequence data you want to analyse.\n"
                       "The first column must contain the paths to sequence files separated by ';'.\n"
-                      "The second column must contain the (kmer) count you want you data to be packed into bins. "
+                      "The second column must contain the (kmer) count that the layout is based on. "
                       " See the submodule count for more details on how to add kmer counts to your sequences\n."
                       "All other columns are optional and can be used to aggregate your data (e.g. taxonmic ids).",
                       seqan3::option_spec::required);
 
     parser.add_option(config.t_max, 'b', "technical-bins",
-                      "Into how many technical bins do you want your sequence data to be packed? "
+                      "Into how many technical bins do you want your sequence data to be put? "
                       "Will be ceiled to the next multiple of 64. Will be an upper bound for the number of bins "
                       "when -determine-num-bins is given.");
 
@@ -50,7 +53,7 @@ void set_up_subparser_pack(seqan3::argument_parser & parser, pack_config & confi
                                                          std::numeric_limits<aggregate_by_type>::max()});
 
     parser.add_section("HyperLogLog Sketches");
-    parser.add_line("To improve the packing, you can estimate your sequence similarities using HyperLogLog sketches.");
+    parser.add_line("To improve the _layouting, you can estimate your sequence similarities using HyperLogLog sketches.");
     parser.add_line("\n");
 
     parser.add_option(config.max_ratio, 'm', "max-ratio",
@@ -91,11 +94,11 @@ void set_up_subparser_pack(seqan3::argument_parser & parser, pack_config & confi
                     seqan3::option_spec::advanced);
 
     parser.add_flag(config.debug, '\0', "debug",
-                    "Enables debug output in packing file.",
+                    "Enables debug output in layouting file.",
                     seqan3::option_spec::advanced);
 }
 
-void sanity_checks(seqan3::argument_parser const & parser, pack_data const & data, pack_config & config)
+void sanity_checks(seqan3::argument_parser const & parser, chopper::layout::data_store const & data, chopper::layout::configuration & config)
 {
     if (config.rearrange_bins)
         config.estimate_union = true;
@@ -122,7 +125,7 @@ void sanity_checks(seqan3::argument_parser const & parser, pack_data const & dat
     }
 }
 
-size_t determine_best_number_of_technical_bins(pack_data & data, pack_config & config)
+size_t determine_best_number_of_technical_bins(chopper::layout::data_store & data, chopper::layout::configuration & config)
 {
     std::stringstream * const output_buffer_original = data.output_buffer;
     std::stringstream * const header_buffer_original = data.header_buffer;
@@ -148,27 +151,27 @@ size_t determine_best_number_of_technical_bins(pack_data & data, pack_config & c
         data.output_buffer = &output_buffer_tmp;
         data.header_buffer = &header_buffer_tmp;
 
-        data.previous = previous_level{};
+        data.previous = chopper::layout::previous_level{};
         config.t_max = t_max;
 
-        hibf_statistics global_stats{config, data.fp_correction};
+        chopper::layout::hibf_statistics global_stats{config, data.fp_correction};
         data.stats = &global_stats.top_level_ibf;
 
         // execute the actual algorithm
-        auto const && [max_hibf_id_tmp, total_query_cost] = hierarchical_binning{data, config}.execute();
+        auto const && [max_hibf_id_tmp, total_query_cost] = chopper::layout::hierarchical_binning{data, config}.execute();
 
         double const expected_HIBF_query_cost = total_query_cost / total_kmer_count;
 
         if (config.output_statistics)
         {
             std::cout << "#T_Max:" << t_max << '\n'
-                      << "#C_{T_Max}:" << ibf_query_cost::exact(t_max) << '\n'
+                      << "#C_{T_Max}:" << chopper::layout::ibf_query_cost::exact(t_max) << '\n'
                       << "#relative expected HIBF query cost:" << expected_HIBF_query_cost << '\n';
         }
         else
         {
             std::cout << t_max << '\t'
-                      << ibf_query_cost::exact(t_max) << '\t'
+                      << chopper::layout::ibf_query_cost::exact(t_max) << '\t'
                       << expected_HIBF_query_cost << '\n';
         }
 
@@ -195,39 +198,39 @@ size_t determine_best_number_of_technical_bins(pack_data & data, pack_config & c
     return max_hibf_id;
 }
 
-int chopper_pack(seqan3::argument_parser & parser)
+int execute(seqan3::argument_parser & parser)
 {
-    pack_config config;
-    pack_data data;
+    chopper::layout::configuration config;
+    chopper::layout::data_store data;
 
-    set_up_subparser_pack(parser, config);
+    set_up_subparser_layout(parser, config);
 
     try
     {
         parser.parse();
 
         // Read in the data file containing file paths, kmer counts and additional information.
-        read_filename_data_file(data, config);
+        chopper::layout::read_filename_data_file(data, config);
 
         sanity_checks(parser, data, config);
     }
     catch (seqan3::argument_parser_error const & ext) // the user did something wrong
     {
-        std::cerr << "[CHOPPER PACK ERROR] " << ext.what() << '\n';
+        std::cerr << "[CHOPPER LAYOUT ERROR] " << ext.what() << '\n';
         return -1;
     }
 
     if (config.t_max % 64 != 0)
     {
         config.t_max = next_multiple_of_64(config.t_max);
-        std::cerr << "[CHOPPER PACK WARNING]: Your requested number of technical bins was not a multiple of 64."
+        std::cerr << "[CHOPPER LAYOUT WARNING]: Your requested number of technical bins was not a multiple of 64."
                   << "Due to the architecture of the HIBF, it will use up space to the next multiple of 64 anyway, "
                   << "so we increased your number of technical bins to " << config.t_max << '\n';
     }
 
     data.compute_fp_correction(config.fp_rate, config.num_hash_functions, config.t_max);
 
-    // If requested, aggregate the data before packing them
+    // If requested, aggregate the data before layouting them
     if (config.aggregate_by_column != -1)
         aggregate_by(data, config.aggregate_by_column - 2/*user index includes first two columns (filename, count)*/);
 
@@ -245,10 +248,10 @@ int chopper_pack(seqan3::argument_parser & parser)
     }
     else
     {
-        hibf_statistics global_stats{config, data.fp_correction};
+        chopper::layout::hibf_statistics global_stats{config, data.fp_correction};
         data.stats = &global_stats.top_level_ibf;
 
-        max_hibf_id = std::get<0>(hierarchical_binning{data, config}.execute()); // just execute once
+        max_hibf_id = std::get<0>(chopper::layout::hierarchical_binning{data, config}.execute()); // just execute once
 
         if (config.output_statistics)
             global_stats.print_summary();
@@ -262,3 +265,5 @@ int chopper_pack(seqan3::argument_parser & parser)
 
     return 0;
 }
+
+} // namespace chopper::layout

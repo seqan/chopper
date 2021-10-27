@@ -7,7 +7,7 @@ inline void print_debug_file(std::filesystem::path const & path, size_t const co
 {
     std::ios::fmtflags const original_flags = std::cout.setf(std::ios::left, std::ios::adjustfield);
 
-    std::ifstream packing_file{path};
+    std::ifstream layouting_file{path};
 
     std::string buffer{};
     buffer.reserve(column_width);
@@ -18,7 +18,7 @@ inline void print_debug_file(std::filesystem::path const & path, size_t const co
         buffer.clear();
     };
 
-    for (auto it = std::istreambuf_iterator<char>(packing_file); it != std::istreambuf_iterator<char>(); ++it)
+    for (auto it = std::istreambuf_iterator<char>(layouting_file); it != std::istreambuf_iterator<char>(); ++it)
     {
         char const letter{*it};
         switch (letter)

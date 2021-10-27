@@ -3,14 +3,14 @@
 #include <sstream>
 #include <vector>
 
-#include <chopper/pack/aggregate_by.hpp>
-#include <chopper/pack/pack_data.hpp>
+#include <chopper/layout/aggregate_by.hpp>
+#include <chopper/layout/data_store.hpp>
 
 #include "../api_test.hpp"
 
 TEST(sort_by_test, small_example)
 {
-    pack_data data;
+    chopper::layout::data_store data;
     data.filenames = std::vector<std::string>{"seq1", "seq2", "seq3", "seq4", "seq5"};
     data.kmer_counts = std::vector<size_t>{100, 40, 20, 20, 5};
     data.extra_information = std::vector<std::vector<std::string>>{{"1", "foo"},
@@ -19,8 +19,8 @@ TEST(sort_by_test, small_example)
                                                                    {"2", "moo"},
                                                                    {"3", "moo"}};
     {
-        pack_data copy = data;
-        sort_by(copy, 0);
+        chopper::layout::data_store copy = data;
+        chopper::layout::sort_by(copy, 0);
 
         std::vector<std::string> expected_filenames{"seq1", "seq3", "seq2", "seq4", "seq5"};
         std::vector<size_t> expected_kmer_counts{100, 20, 40, 20, 5};
@@ -38,11 +38,11 @@ TEST(sort_by_test, small_example)
 
 TEST(aggregate_by_test, filenames_are_emprty)
 {
-    pack_data data{};
+    chopper::layout::data_store data{};
     char original_binary[sizeof(data)];
     std::memcpy(original_binary, &data, sizeof(data));
 
-    aggregate_by(data, 0);
+    chopper::layout::aggregate_by(data, 0);
 
     char new_binary[sizeof(data)];
     std::memcpy(new_binary, &data, sizeof(data));
@@ -51,7 +51,7 @@ TEST(aggregate_by_test, filenames_are_emprty)
 
 TEST(aggregate_by_test, small_example)
 {
-    pack_data data;
+    chopper::layout::data_store data;
     data.filenames = std::vector<std::string>{"seq1", "seq2", "seq3", "seq4", "seq5"};
     data.kmer_counts = std::vector<size_t>{100, 40, 20, 20, 5};
     data.extra_information = std::vector<std::vector<std::string>>{{"1", "foo"},
@@ -60,8 +60,8 @@ TEST(aggregate_by_test, small_example)
                                                                    {"2", "moo"},
                                                                    {"3", "moo"}};
     {
-        pack_data copy = data;
-        aggregate_by(copy, 0);
+        chopper::layout::data_store copy = data;
+        chopper::layout::aggregate_by(copy, 0);
 
         std::vector<std::string> expected_filenames{"seq1;seq3", "seq2;seq4", "seq5"};
         std::vector<size_t> expected_kmer_counts{120, 60, 5};
@@ -73,8 +73,8 @@ TEST(aggregate_by_test, small_example)
     }
 
     {
-        pack_data copy = data;
-        aggregate_by(copy, 1);
+        chopper::layout::data_store copy = data;
+        chopper::layout::aggregate_by(copy, 1);
 
         std::vector<std::string> expected_filenames{"seq1;seq2", "seq3;seq4;seq5"};
         std::vector<size_t> expected_kmer_counts{140, 45};
@@ -89,11 +89,11 @@ TEST(aggregate_by_test, small_example)
 #ifndef NDEBUG
 TEST(aggregate_by_test, column_index_to_sort_too_big)
 {
-    pack_data data;
+    chopper::layout::data_store data;
     data.filenames = std::vector<std::string>{"seq1", "seq2"};
     data.kmer_counts = std::vector<size_t>{100, 40};
     data.extra_information = std::vector<std::vector<std::string>>{{"1", "foo"}, {"2", "foo"}};
 
-    EXPECT_DEATH((aggregate_by(data, 4)), "");
+    EXPECT_DEATH((chopper::layout::aggregate_by(data, 4)), "");
 }
 #endif

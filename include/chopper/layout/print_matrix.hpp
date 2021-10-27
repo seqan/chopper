@@ -2,6 +2,9 @@
 
 #include <seqan3/core/debug_stream.hpp>
 
+namespace chopper::layout
+{
+
 // helper function to print a matrix when debugging
 template <typename matrix_type,typename matrix_value_type>
 void print_matrix(matrix_type const & matrix,
@@ -22,3 +25,5 @@ void print_matrix(matrix_type const & matrix,
     }
     seqan3::debug_stream << '\n';
 }
+
+} // namespace chopper::layout

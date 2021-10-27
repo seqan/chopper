@@ -5,15 +5,18 @@
 #include <fstream>
 #include <iostream>
 
-#include <chopper/pack/pack_config.hpp>
-#include <chopper/pack/pack_data.hpp>
+#include <chopper/layout/configuration.hpp>
+#include <chopper/layout/data_store.hpp>
 
-inline auto read_filename_data_file(pack_data & data, pack_config const & config)
+namespace chopper::layout
+{
+
+inline auto read_filename_data_file(data_store & data, configuration const & config)
 {
     std::ifstream file_in{config.data_file};
 
     if (!file_in.good())
-        throw std::runtime_error{"[CHOPPER PACK ERROR] Could not open file " + config.data_file.string()};
+        throw std::runtime_error{"[CHOPPER LAYOUT ERROR] Could not open file " + config.data_file.string()};
 
     std::string line;
     while (std::getline(file_in, line) && line[0] == '#'); // skip comments
@@ -32,7 +35,7 @@ inline auto read_filename_data_file(pack_data & data, pack_config const & config
         data.filenames.push_back(std::string(&buffer[0], ptr));
 
         if (ptr == buffer_end) // only file info, no kmer info
-            throw std::runtime_error{"[CHOPPER PACK ERROR] Your file only contains sequence names but no kmer counts."
+            throw std::runtime_error{"[CHOPPER LAYOUT ERROR] Your file only contains sequence names but no kmer counts."
                                      "Offending line: '" + line + "'."};
 
         // read kmer_count
@@ -53,3 +56,5 @@ inline auto read_filename_data_file(pack_data & data, pack_config const & config
     }
     while (std::getline(file_in, line));
 }
+
+} // namespace chopper::layout

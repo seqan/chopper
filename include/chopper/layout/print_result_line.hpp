@@ -2,10 +2,13 @@
 
 #include <fstream>
 
-#include <chopper/pack/pack_data.hpp>
-#include <chopper/pack/previous_level.hpp>
+#include <chopper/layout/data_store.hpp>
+#include <chopper/layout/previous_level.hpp>
 
-inline void print_result_line(pack_data const & data,
+namespace chopper::layout
+{
+
+inline void print_result_line(data_store const & data,
                               size_t const index,
                               size_t const bin_id,
                               size_t const number_of_bins)
@@ -18,7 +21,7 @@ inline void print_result_line(pack_data const & data,
                         << '\n';
 }
 
-inline void print_debug_line(pack_data const & data,
+inline void print_debug_line(data_store const & data,
                              size_t const index,
                              size_t const bin_id,
                              size_t const number_of_bins,
@@ -40,3 +43,5 @@ inline void print_debug_line(pack_data const & data,
                         << '\t' << data.previous.tmax << (is_top_level ? "" : ";") << num_technical_bins
                         << '\n';
 }
+
+} // namespace chopper::layout
