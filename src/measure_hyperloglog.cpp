@@ -12,7 +12,7 @@
 #include <seqan3/search/views/kmer_hash.hpp>
 
 #include <chopper/print_peak_memory_usage.hpp>
-#include <chopper/union/hyperloglog.hpp>
+#include <chopper/sketch/hyperloglog.hpp>
 
 struct cli_args
 {
