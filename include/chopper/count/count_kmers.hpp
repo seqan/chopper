@@ -14,7 +14,7 @@
 #include <seqan3/utility/views/to.hpp>
 
 #include <chopper/count/configuration.hpp>
-#include <chopper/union/hyperloglog.hpp>
+#include <chopper/sketch/hyperloglog.hpp>
 
 namespace chopper::count
 {

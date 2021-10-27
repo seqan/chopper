@@ -4,7 +4,7 @@
 
 #include <seqan3/io/sequence_file/input.hpp>
 
-#include <chopper/union/hyperloglog.hpp>
+#include <chopper/sketch/hyperloglog.hpp>
 
 #include "../api_test.hpp"
 
@@ -125,7 +125,7 @@ TEST(hyperloglog, add_and_estimate_small_SIMD)
     // XXH3_64bits hash -> first 4 bits: 1000, rank: 2
     sketch.add("bladuzel", 8);
 
-    hyperloglog other{sketch};
+    chopper::sketch::hyperloglog other{sketch};
 
     EXPECT_NEAR(sketch.merge_and_estimate_SIMD(other), 7.89952249, 0.0000001);
 }
@@ -140,7 +140,7 @@ TEST(hyperloglog, merge_and_merge_SIMD)
     chopper::sketch::hyperloglog merge_sketch(b);
     chopper::sketch::hyperloglog merge_SIMD_sketch(b);
 
-    std::vector<hyperloglog> partial_sketches;
+    std::vector<chopper::sketch::hyperloglog> partial_sketches;
 
     sequence_file_type seq_file{input_file};
 

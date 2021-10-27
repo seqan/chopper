@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <chopper/union/user_bin_sequence.hpp>
+#include <chopper/sketch/user_bin_sequence.hpp>
 
 #include "../api_test.hpp"
 

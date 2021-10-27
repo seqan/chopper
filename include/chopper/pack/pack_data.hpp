@@ -8,7 +8,7 @@
 #include <chopper/pack/pack_config.hpp>
 #include <chopper/pack/hibf_statistics.hpp>
 #include <chopper/pack/previous_level.hpp>
-#include <chopper/union/user_bin_sequence.hpp>
+#include <chopper/sketch/user_bin_sequence.hpp>
 
 struct pack_data
 {
