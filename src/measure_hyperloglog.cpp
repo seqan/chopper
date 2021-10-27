@@ -99,5 +99,5 @@ int main(int argc, const char *argv [])
         control.clear();
     }
 
-    print_peak_memory_usage();
+    chopper::print_peak_memory_usage();
 }

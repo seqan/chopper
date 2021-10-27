@@ -62,7 +62,7 @@ auto print_kmer_content(chopper_pack_record const & record,
     robin_hood::unordered_node_set<uint64_t> kmer_occurence{};
 
     size_t low_lvl_kmer_sum = 0;
-    bool is_merged = starts_with(record.bin_name, merged_bin_prefix);
+    bool is_merged = detail::starts_with(record.bin_name, merged_bin_prefix);
 
     for (auto const & filename : record.filenames)
     {
@@ -146,11 +146,11 @@ int main(int const argc, char const ** argv)
     {
         for (auto const & record : async_buf_records)
         {
-            if (starts_with(record.bin_name, split_bin_prefix))
+            if (detail::starts_with(record.bin_name, split_bin_prefix))
             {
                 print_kmer_content(record, record.bins, args.k, counts, fout);
             }
-            else if (starts_with(record.bin_name, merged_bin_prefix))
+            else if (detail::starts_with(record.bin_name, merged_bin_prefix))
             {
                 print_kmer_content(record, 1, args.k, counts, fout); // always one bin in high-level IBF, record.bins is for the low-level IBF
             }

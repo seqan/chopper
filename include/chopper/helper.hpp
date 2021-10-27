@@ -4,6 +4,9 @@
 #include <cstddef>
 #include <string>
 
+namespace chopper
+{
+
 /*!\brief Returns the smallest natural number that is greater or equal to `value` and a multiplicative of 64.
 * \param[in] value The Input value that is smaller or equal to the return value.
 */
@@ -41,3 +44,5 @@
 
     return result;
 }
+
+} // namespace chopper

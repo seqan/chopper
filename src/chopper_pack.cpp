@@ -219,7 +219,7 @@ int chopper_pack(seqan3::argument_parser & parser)
 
     if (config.t_max % 64 != 0)
     {
-        config.t_max = next_multiple_of_64(config.t_max);
+        config.t_max = chopper::next_multiple_of_64(config.t_max);
         std::cerr << "[CHOPPER PACK WARNING]: Your requested number of technical bins was not a multiple of 64."
                   << "Due to the architecture of the HIBF, it will use up space to the next multiple of 64 anyway, "
                   << "so we increased your number of technical bins to " << config.t_max << '\n';
@@ -256,7 +256,7 @@ int chopper_pack(seqan3::argument_parser & parser)
 
     // brief Write the output to the result file.
     std::ofstream fout{config.output_filename};
-    fout << "#" << hibf_prefix << " max_bin_id:" << max_hibf_id << '\n';
+    fout << "#" << chopper::hibf_prefix << " max_bin_id:" << max_hibf_id << '\n';
     fout << header_buffer.str();
     fout << output_buffer.str();
 

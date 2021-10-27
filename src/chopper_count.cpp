@@ -56,7 +56,7 @@ int chopper_count(seqan3::argument_parser & parser)
 
     chopper::count::count_kmers(filename_clusters, config);
 
-    print_peak_memory_usage();
+    chopper::print_peak_memory_usage();
 
     return 0;
 }

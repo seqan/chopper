@@ -4,6 +4,9 @@
 // #include <sys/resource.h>
 // #include <sys/time.h>
 
+namespace chopper
+{
+
 inline void print_peak_memory_usage()
 {
     // rusage usage;
@@ -13,3 +16,5 @@ inline void print_peak_memory_usage()
     // else
     //     std::cerr << "couldn't determine peak memory usage" << std::endl;
 }
+
+} // namespace chopper

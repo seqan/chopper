@@ -3,7 +3,7 @@
 #include <cassert>
 #include <cmath>
 
-#include <chopper/detail_bin_prefixes.hpp>
+#include <chopper/bin_prefixes.hpp>
 #include <chopper/helper.hpp>
 #include <chopper/pack/ibf_query_cost.hpp>
 #include <chopper/pack/configuration.hpp>

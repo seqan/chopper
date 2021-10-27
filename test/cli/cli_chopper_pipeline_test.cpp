@@ -11,7 +11,7 @@
 #include <seqan3/utility/views/join_with.hpp>
 #include <seqan3/utility/views/to.hpp>
 
-#include <chopper/detail_bin_prefixes.hpp>
+#include <chopper/bin_prefixes.hpp>
 
 #include "cli_test.hpp"
 
