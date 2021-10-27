@@ -13,14 +13,14 @@ struct input_traits : public seqan3::sequence_file_input_default_traits_dna
 using sequence_file_type = seqan3::sequence_file_input<input_traits, seqan3::fields<seqan3::field::seq>>;
 
 // inherits from user_bin_sequence to test private members
-struct user_bin_sequence_test : public ::testing::Test, public user_bin_sequence
+struct user_bin_sequence_test : public ::testing::Test, public chopper::sketch::user_bin_sequence
 {
 public:
 
     std::vector<std::string> test_filenames{"small.fa", "small.fa", "small2.fa", "small2.fa"};
     std::vector<size_t> test_kmer_counts{500, 600, 700, 800};
 
-    std::vector<hyperloglog> const & get_sketches()
+    std::vector<chopper::sketch::hyperloglog> const & get_sketches()
     {
         return this->sketches;
     }
@@ -37,19 +37,19 @@ public:
 
 TEST_F(user_bin_sequence_test, construction)
 {
-    EXPECT_TRUE(std::is_default_constructible<user_bin_sequence>::value);
-    EXPECT_TRUE(std::is_copy_constructible<user_bin_sequence>::value);
-    EXPECT_TRUE(std::is_move_constructible<user_bin_sequence>::value);
-    EXPECT_TRUE(std::is_destructible<user_bin_sequence>::value);
+    EXPECT_TRUE(std::is_default_constructible<chopper::sketch::user_bin_sequence>::value);
+    EXPECT_TRUE(std::is_copy_constructible<chopper::sketch::user_bin_sequence>::value);
+    EXPECT_TRUE(std::is_move_constructible<chopper::sketch::user_bin_sequence>::value);
+    EXPECT_TRUE(std::is_destructible<chopper::sketch::user_bin_sequence>::value);
 
     // class has a const pointer
-    EXPECT_FALSE(std::is_copy_assignable<user_bin_sequence>::value);
-    EXPECT_FALSE(std::is_move_assignable<user_bin_sequence>::value);
+    EXPECT_FALSE(std::is_copy_assignable<chopper::sketch::user_bin_sequence>::value);
+    EXPECT_FALSE(std::is_move_assignable<chopper::sketch::user_bin_sequence>::value);
 
     // construction from filenames and kmer_counts
     std::vector<std::string> filenames{"small.fa", "small.fa"};
     std::vector<size_t> kmer_counts{500, 500};
-    user_bin_sequence ubs{filenames, kmer_counts};
+    chopper::sketch::user_bin_sequence ubs{filenames, kmer_counts};
 }
 
 TEST_F(user_bin_sequence_test, apply_permutation)
@@ -74,7 +74,7 @@ TEST_F(user_bin_sequence_test, read_hll_files)
 {
     size_t const k{16};
     size_t const b{5};
-    hyperloglog expected{b};
+    chopper::sketch::hyperloglog expected{b};
 
     std::string const input_file{data("small.fa")};
     sequence_file_type seq_file{input_file};
@@ -82,7 +82,7 @@ TEST_F(user_bin_sequence_test, read_hll_files)
     // put every sequence in this file into the sketch
     for (auto && [seq] : seq_file)
     {
-        // we have to go C-style here for the HyperLogLog Interface
+        // we have to go C-style here for the chopper::sketch::HyperLogLog Interface
         const char * it = &(*seq.begin());
         char const * const end = it + seq.size() - k + 1;
 
@@ -212,7 +212,7 @@ TEST_F(user_bin_sequence_test, prune)
 
 TEST_F(user_bin_sequence_test, rotate)
 {
-    hyperloglog s{5}; // default sketch for every entry in the tree as it is not important for rotate
+    chopper::sketch::hyperloglog s{5}; // default sketch for every entry in the tree as it is not important for rotate
     auto f = std::numeric_limits<size_t>::max();
 
     /* test clustering tree
@@ -251,7 +251,7 @@ TEST_F(user_bin_sequence_test, rotate)
 
 TEST_F(user_bin_sequence_test, trace)
 {
-    hyperloglog s{5}; // default sketch for every entry in the tree as it is not important for rotate
+    chopper::sketch::hyperloglog s{5}; // default sketch for every entry in the tree as it is not important for rotate
     auto f = std::numeric_limits<size_t>::max();
 
     /* test clustering tree

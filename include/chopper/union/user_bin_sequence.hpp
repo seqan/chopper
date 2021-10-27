@@ -11,6 +11,9 @@
 
 #include <chopper/union/hyperloglog.hpp>
 
+namespace chopper::sketch
+{
+
 class user_bin_sequence
 {
 protected:
@@ -601,3 +604,5 @@ protected:
         }
     }
 };
+
+} // namespace chopper::sketch

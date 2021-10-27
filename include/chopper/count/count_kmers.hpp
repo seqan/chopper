@@ -45,7 +45,7 @@ void compute_hashes(seq_type && seq,
                     compute_view_type && compute_fn,
                     configuration const & config,
                     robin_hood::unordered_node_set<uint64_t> & result,
-                    hyperloglog & sketch)
+                    chopper::sketch::hyperloglog & sketch)
 {
     if (!config.exclusively_hlls)
     {
@@ -88,7 +88,7 @@ inline void count_kmers(robin_hood::unordered_map<std::string, std::vector<std::
                 sequence_vector.push_back(seq);
 
         robin_hood::unordered_node_set<uint64_t> result{};
-        hyperloglog sketch(config.sketch_bits);
+        chopper::sketch::hyperloglog sketch(config.sketch_bits);
 
         if (config.disable_minimizers)
             for (auto && seq : sequence_vector)

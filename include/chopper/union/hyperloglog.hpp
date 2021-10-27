@@ -21,6 +21,9 @@
 
 #include <seqan3/utility/container/aligned_allocator.hpp>
 
+namespace chopper::sketch
+{
+
 /** @class hyperloglog
  *  @brief Implement of 'HyperLogLog' estimate cardinality algorithm
  */
@@ -319,3 +322,5 @@ private:
     uint8_t b_{}; ///< register bit width
     std::vector<uint8_t, seqan3::aligned_allocator<uint8_t, 256u>> M_{}; ///< registers
 };
+
+} // namespace chopper::sketch
