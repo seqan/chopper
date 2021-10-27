@@ -13,8 +13,8 @@
 #include <chopper/build/build_config.hpp>
 #include <chopper/build/read_chopper_pack_file.hpp>
 #include <chopper/pack/filenames_data_input.hpp>
-#include <chopper/pack/pack_config.hpp>
-#include <chopper/pack/pack_data.hpp>
+#include <chopper/pack/configuration.hpp>
+#include <chopper/pack/data_store.hpp>
 #include <chopper/print_peak_memory_usage.hpp>
 
 #include <robin_hood.h>
@@ -127,10 +127,10 @@ int main(int const argc, char const ** argv)
     read_chopper_pack_file(data, config.binning_filename);
 
     // Reuse the kmer counts file.
-    pack_config p_config;
+    configuration p_config;
     p_config.data_file = args.count_file;
 
-    pack_data data;
+    data_store data;
     read_filename_data_file(data, p_config);
 
     robin_hood::unordered_map<std::string, size_t> counts;

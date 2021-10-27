@@ -2,13 +2,13 @@
 
 #include <fstream>
 
-#include <chopper/pack/pack_data.hpp>
+#include <chopper/pack/data_store.hpp>
 #include <chopper/pack/previous_level.hpp>
 
 namespace chopper::pack
 {
 
-inline void print_result_line(pack_data const & data,
+inline void print_result_line(data_store const & data,
                               size_t const index,
                               size_t const bin_id,
                               size_t const number_of_bins)
@@ -21,7 +21,7 @@ inline void print_result_line(pack_data const & data,
                         << '\n';
 }
 
-inline void print_debug_line(pack_data const & data,
+inline void print_debug_line(data_store const & data,
                              size_t const index,
                              size_t const bin_id,
                              size_t const number_of_bins,

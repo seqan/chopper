@@ -8,7 +8,7 @@
 #include <vector>
 
 #include <chopper/helper.hpp>
-#include <chopper/pack/pack_data.hpp>
+#include <chopper/pack/data_store.hpp>
 #include <chopper/pack/previous_level.hpp>
 #include <chopper/pack/print_matrix.hpp>
 #include <chopper/pack/print_result_line.hpp>
@@ -86,7 +86,7 @@ class simple_binning
 {
 private:
     //!\brief The data input: filenames associated with the user bin and a kmer count per user bin.
-    pack_data const * data{nullptr};
+    data_store const * data{nullptr};
 
     /*!\brief The number of User bins.
      *
@@ -124,7 +124,7 @@ public:
      * \attention The number of technical bins must be greater or equal to the number of user bins!
      *            If you want to use less technical bins than user bins, see the hierarchical_binning algorithm.
      */
-    simple_binning(pack_data & data_, size_t const num_bins = 0, bool const debug_ = false) :
+    simple_binning(data_store & data_, size_t const num_bins = 0, bool const debug_ = false) :
         data{std::addressof(data_)},
         num_user_bins{data->kmer_counts.size()},
         num_technical_bins{num_bins ? num_bins : next_multiple_of_64(num_user_bins)},

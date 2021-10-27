@@ -9,7 +9,7 @@
 #include <vector>
 
 #include <chopper/helper.hpp>
-#include <chopper/pack/pack_config.hpp>
+#include <chopper/pack/configuration.hpp>
 
 namespace chopper::pack
 {
@@ -28,7 +28,7 @@ public:
      * \param[in] config_ User configuration for the HIBF.
      * \param[in] fp_correction_ The false positive correction factors to use for the statistics.
      */
-    hibf_statistics(pack_config const & config_, std::vector<double> const & fp_correction_) :
+    hibf_statistics(configuration const & config_, std::vector<double> const & fp_correction_) :
         config{config_},
         fp_correction{&fp_correction_}
     {}
@@ -141,7 +141,7 @@ public:
 
 private:
     //!\brief Copy of the user configuration for this HIBF.
-    pack_config const config{};
+    configuration const config{};
 
     //!\brief The false positive correction factors to use for the statistics.
     std::vector<double> const * const fp_correction{nullptr};

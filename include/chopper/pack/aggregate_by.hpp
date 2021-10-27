@@ -5,12 +5,12 @@
 
 #include <seqan3/utility/views/to.hpp>
 
-#include <chopper/pack/pack_data.hpp>
+#include <chopper/pack/data_store.hpp>
 
 namespace chopper::pack
 {
 
-inline void sort_by(pack_data & data, int8_t column_to_sort_by)
+inline void sort_by(data_store & data, int8_t column_to_sort_by)
 {
     // Note: We may only sort by extra information
 
@@ -48,7 +48,7 @@ inline void sort_by(pack_data & data, int8_t column_to_sort_by)
  *            This differs from the column index the user specifies via the command line because the user input
  *            is a file containing filenames and kmer counts at the first and second column.
  */
-inline void aggregate_by(pack_data & data, int8_t column_to_aggregate_by)
+inline void aggregate_by(data_store & data, int8_t column_to_aggregate_by)
 {
     if (data.filenames.empty())
         return;

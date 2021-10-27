@@ -5,13 +5,13 @@
 #include <fstream>
 #include <iostream>
 
-#include <chopper/pack/pack_config.hpp>
-#include <chopper/pack/pack_data.hpp>
+#include <chopper/pack/configuration.hpp>
+#include <chopper/pack/data_store.hpp>
 
 namespace chopper::pack
 {
 
-inline auto read_filename_data_file(pack_data & data, pack_config const & config)
+inline auto read_filename_data_file(data_store & data, configuration const & config)
 {
     std::ifstream file_in{config.data_file};
 

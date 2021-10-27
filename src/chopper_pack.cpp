@@ -4,10 +4,10 @@
 #include <chopper/pack/filenames_data_input.hpp>
 #include <chopper/pack/hierarchical_binning.hpp>
 #include <chopper/pack/ibf_query_cost.hpp>
-#include <chopper/pack/pack_config.hpp>
+#include <chopper/pack/configuration.hpp>
 #include <chopper/pack/previous_level.hpp>
 
-void set_up_subparser_pack(seqan3::argument_parser & parser, chopper::pack::pack_config & config)
+void set_up_subparser_pack(seqan3::argument_parser & parser, chopper::pack::configuration & config)
 {
     parser.info.version = "1.0.0";
     parser.info.author = "Svenja Mehringer";
@@ -95,7 +95,7 @@ void set_up_subparser_pack(seqan3::argument_parser & parser, chopper::pack::pack
                     seqan3::option_spec::advanced);
 }
 
-void sanity_checks(seqan3::argument_parser const & parser, chopper::pack::pack_data const & data, chopper::pack::pack_config & config)
+void sanity_checks(seqan3::argument_parser const & parser, chopper::pack::data_store const & data, chopper::pack::configuration & config)
 {
     if (config.rearrange_bins)
         config.estimate_union = true;
@@ -122,7 +122,7 @@ void sanity_checks(seqan3::argument_parser const & parser, chopper::pack::pack_d
     }
 }
 
-size_t determine_best_number_of_technical_bins(chopper::pack::pack_data & data, chopper::pack::pack_config & config)
+size_t determine_best_number_of_technical_bins(chopper::pack::data_store & data, chopper::pack::configuration & config)
 {
     std::stringstream * const output_buffer_original = data.output_buffer;
     std::stringstream * const header_buffer_original = data.header_buffer;
@@ -197,8 +197,8 @@ size_t determine_best_number_of_technical_bins(chopper::pack::pack_data & data, 
 
 int chopper_pack(seqan3::argument_parser & parser)
 {
-    chopper::pack::pack_config config;
-    chopper::pack::pack_data data;
+    chopper::pack::configuration config;
+    chopper::pack::data_store data;
 
     set_up_subparser_pack(parser, config);
 

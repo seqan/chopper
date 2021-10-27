@@ -3,8 +3,8 @@
 #include <iostream>
 
 #include <chopper/pack/hibf_statistics.hpp>
-#include <chopper/pack/pack_config.hpp>
-#include <chopper/pack/pack_data.hpp>
+#include <chopper/pack/configuration.hpp>
+#include <chopper/pack/data_store.hpp>
 
 #include "../api_test.hpp"
 
@@ -16,8 +16,8 @@ TEST(hibf_statistics, only_merged_on_top_level)
     size_t const top_level_num_contained_user_bins = 2u;
     size_t const lower_level_split_bin_span = 1u;
 
-    chopper::pack::pack_config config; // default config
-    chopper::pack::pack_data data;
+    chopper::pack::configuration config; // default config
+    chopper::pack::data_store data;
     data.compute_fp_correction(config.fp_rate, config.num_hash_functions, lower_level_split_bin_span);
 
     chopper::pack::hibf_statistics stats(config, data.fp_correction);

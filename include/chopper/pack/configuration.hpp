@@ -7,7 +7,7 @@
 namespace chopper::pack
 {
 
-struct pack_config
+struct configuration
 {
     std::filesystem::path data_file;
     std::filesystem::path output_filename{"binning.out"};

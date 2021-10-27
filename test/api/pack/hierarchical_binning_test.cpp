@@ -13,12 +13,12 @@
 
 TEST(hierarchical_binning_test, filenames_and_kmer_counts_size_differs)
 {
-    chopper::pack::pack_config config;
+    chopper::pack::configuration config;
     config.t_max = 4;
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
-    chopper::pack::pack_data data;
+    chopper::pack::data_store data;
     data.output_buffer = &output_buffer;
     data.header_buffer = &header_buffer;
     data.compute_fp_correction(0.05, 2, config.t_max);
@@ -33,12 +33,12 @@ TEST(hierarchical_binning_test, filenames_and_kmer_counts_size_differs)
 
 TEST(hierarchical_binning_test, small_example)
 {
-    chopper::pack::pack_config config;
+    chopper::pack::configuration config;
     config.t_max = 4;
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
-    chopper::pack::pack_data data;
+    chopper::pack::data_store data;
     data.output_buffer = &output_buffer;
     data.header_buffer = &header_buffer;
     data.filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6",  "seq7"};
@@ -69,12 +69,12 @@ TEST(hierarchical_binning_test, small_example)
 
 TEST(hierarchical_binning_test, another_example)
 {
-    chopper::pack::pack_config config;
+    chopper::pack::configuration config;
     config.t_max = 5;
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
-    chopper::pack::pack_data data;
+    chopper::pack::data_store data;
     data.output_buffer = &output_buffer;
     data.header_buffer = &header_buffer;
     data.filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6",  "seq7"};
@@ -106,12 +106,12 @@ TEST(hierarchical_binning_test, another_example)
 
 TEST(hierarchical_binning_test, high_level_max_bin_id_is_0)
 {
-    chopper::pack::pack_config config;
+    chopper::pack::configuration config;
     config.t_max = 4;
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
-    chopper::pack::pack_data data;
+    chopper::pack::data_store data;
     data.output_buffer = &output_buffer;
     data.header_buffer = &header_buffer;
     data.filenames = {"seq0", "seq1", "seq2", "seq3"};
@@ -137,13 +137,13 @@ TEST(hierarchical_binning_test, high_level_max_bin_id_is_0)
 
 TEST(hierarchical_binning_test, knuts_example)
 {
-    chopper::pack::pack_config config;
+    chopper::pack::configuration config;
     config.alpha = 1;
     config.t_max = 5;
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
-    chopper::pack::pack_data data;
+    chopper::pack::data_store data;
     data.output_buffer = &output_buffer;
     data.header_buffer = &header_buffer;
     data.filenames = {"seq0", "seq1", "seq2", "seq3", "seq4"};
@@ -171,13 +171,13 @@ TEST(hierarchical_binning_test, knuts_example)
 
 TEST(hierarchical_binning_test, four_level_hibf)
 {
-    chopper::pack::pack_config config;
+    chopper::pack::configuration config;
     config.t_max = 2;
     // config.debug = true;
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
-    chopper::pack::pack_data data;
+    chopper::pack::data_store data;
     data.output_buffer = &output_buffer;
     data.header_buffer = &header_buffer;
     data.filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5"};
@@ -209,13 +209,13 @@ TEST(hierarchical_binning_test, four_level_hibf)
 
 TEST(hierarchical_binning_test, tb0_is_a_merged_bin)
 {
-    chopper::pack::pack_config config;
+    chopper::pack::configuration config;
     config.alpha = 1;
     config.t_max = 2;
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
-    chopper::pack::pack_data data;
+    chopper::pack::data_store data;
     data.output_buffer = &output_buffer;
     data.header_buffer = &header_buffer;
     data.filenames = {"seq0", "seq1", "seq2", "seq3"};
@@ -243,14 +243,14 @@ TEST(hierarchical_binning_test, tb0_is_a_merged_bin)
 
 TEST(hierarchical_binning_test, tb0_is_a_merged_bin_with_debug)
 {
-    chopper::pack::pack_config config;
+    chopper::pack::configuration config;
     config.alpha = 1;
     config.t_max = 2;
     config.debug = true;
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
-    chopper::pack::pack_data data;
+    chopper::pack::data_store data;
     data.output_buffer = &output_buffer;
     data.header_buffer = &header_buffer;
     data.filenames = {"seq0", "seq1", "seq2", "seq3"};
@@ -278,13 +278,13 @@ TEST(hierarchical_binning_test, tb0_is_a_merged_bin_with_debug)
 
 TEST(hierarchical_binning_test, tb0_is_a_merged_bin_and_leads_to_recursive_call)
 {
-    chopper::pack::pack_config config;
+    chopper::pack::configuration config;
     config.alpha = 1;
     config.t_max = 2;
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
-    chopper::pack::pack_data data;
+    chopper::pack::data_store data;
     data.output_buffer = &output_buffer;
     data.header_buffer = &header_buffer;
     data.filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7"};

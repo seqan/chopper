@@ -5,7 +5,7 @@
 #include <vector>
 
 #include <chopper/helper.hpp>
-#include <chopper/pack/pack_config.hpp>
+#include <chopper/pack/configuration.hpp>
 #include <chopper/pack/hibf_statistics.hpp>
 #include <chopper/pack/previous_level.hpp>
 #include <chopper/sketch/user_bin_sequence.hpp>
@@ -13,7 +13,7 @@
 namespace chopper::pack
 {
 
-struct pack_data
+struct data_store
 {
     //!\brief The file names of the user input. Since the input might be sorted, we need to keep track of the names.
     std::vector<std::string> filenames{};
@@ -55,7 +55,7 @@ struct pack_data
     }
 
     //!\brief Depending on cli flags given, use HyperLogLog estimates and/or rearrangement algorithms
-    void arrange_user_bins(pack_config const & config)
+    void arrange_user_bins(configuration const & config)
     {
         if (!user_bins_arranged)
         {
