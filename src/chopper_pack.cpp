@@ -7,7 +7,7 @@
 #include <chopper/pack/pack_config.hpp>
 #include <chopper/pack/previous_level.hpp>
 
-void set_up_subparser_pack(seqan3::argument_parser & parser, pack_config & config)
+void set_up_subparser_pack(seqan3::argument_parser & parser, chopper::pack::pack_config & config)
 {
     parser.info.version = "1.0.0";
     parser.info.author = "Svenja Mehringer";
@@ -95,7 +95,7 @@ void set_up_subparser_pack(seqan3::argument_parser & parser, pack_config & confi
                     seqan3::option_spec::advanced);
 }
 
-void sanity_checks(seqan3::argument_parser const & parser, pack_data const & data, pack_config & config)
+void sanity_checks(seqan3::argument_parser const & parser, chopper::pack::pack_data const & data, chopper::pack::pack_config & config)
 {
     if (config.rearrange_bins)
         config.estimate_union = true;
@@ -122,7 +122,7 @@ void sanity_checks(seqan3::argument_parser const & parser, pack_data const & dat
     }
 }
 
-size_t determine_best_number_of_technical_bins(pack_data & data, pack_config & config)
+size_t determine_best_number_of_technical_bins(chopper::pack::pack_data & data, chopper::pack::pack_config & config)
 {
     std::stringstream * const output_buffer_original = data.output_buffer;
     std::stringstream * const header_buffer_original = data.header_buffer;
@@ -148,27 +148,27 @@ size_t determine_best_number_of_technical_bins(pack_data & data, pack_config & c
         data.output_buffer = &output_buffer_tmp;
         data.header_buffer = &header_buffer_tmp;
 
-        data.previous = previous_level{};
+        data.previous = chopper::pack::previous_level{};
         config.t_max = t_max;
 
-        hibf_statistics global_stats{config, data.fp_correction};
+        chopper::pack::hibf_statistics global_stats{config, data.fp_correction};
         data.stats = &global_stats.top_level_ibf;
 
         // execute the actual algorithm
-        auto const && [max_hibf_id_tmp, total_query_cost] = hierarchical_binning{data, config}.execute();
+        auto const && [max_hibf_id_tmp, total_query_cost] = chopper::pack::hierarchical_binning{data, config}.execute();
 
         double const expected_HIBF_query_cost = total_query_cost / total_kmer_count;
 
         if (config.output_statistics)
         {
             std::cout << "#T_Max:" << t_max << '\n'
-                      << "#C_{T_Max}:" << ibf_query_cost::exact(t_max) << '\n'
+                      << "#C_{T_Max}:" << chopper::pack::ibf_query_cost::exact(t_max) << '\n'
                       << "#relative expected HIBF query cost:" << expected_HIBF_query_cost << '\n';
         }
         else
         {
             std::cout << t_max << '\t'
-                      << ibf_query_cost::exact(t_max) << '\t'
+                      << chopper::pack::ibf_query_cost::exact(t_max) << '\t'
                       << expected_HIBF_query_cost << '\n';
         }
 
@@ -197,8 +197,8 @@ size_t determine_best_number_of_technical_bins(pack_data & data, pack_config & c
 
 int chopper_pack(seqan3::argument_parser & parser)
 {
-    pack_config config;
-    pack_data data;
+    chopper::pack::pack_config config;
+    chopper::pack::pack_data data;
 
     set_up_subparser_pack(parser, config);
 
@@ -207,7 +207,7 @@ int chopper_pack(seqan3::argument_parser & parser)
         parser.parse();
 
         // Read in the data file containing file paths, kmer counts and additional information.
-        read_filename_data_file(data, config);
+        chopper::pack::read_filename_data_file(data, config);
 
         sanity_checks(parser, data, config);
     }
@@ -245,10 +245,10 @@ int chopper_pack(seqan3::argument_parser & parser)
     }
     else
     {
-        hibf_statistics global_stats{config, data.fp_correction};
+        chopper::pack::hibf_statistics global_stats{config, data.fp_correction};
         data.stats = &global_stats.top_level_ibf;
 
-        max_hibf_id = std::get<0>(hierarchical_binning{data, config}.execute()); // just execute once
+        max_hibf_id = std::get<0>(chopper::pack::hierarchical_binning{data, config}.execute()); // just execute once
 
         if (config.output_statistics)
             global_stats.print_summary();

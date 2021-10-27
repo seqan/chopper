@@ -3,6 +3,9 @@
 #include <cassert>
 #include <string>
 
+namespace chopper::pack
+{
+
 //!\brief Information about the previous IBF level to be passed down to ensure correct output.
 struct previous_level
 {
@@ -24,3 +27,5 @@ struct previous_level
         return bin_indices.empty();
     }
 };
+
+} // namespace chopper::pack

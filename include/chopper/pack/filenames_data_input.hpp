@@ -8,6 +8,9 @@
 #include <chopper/pack/pack_config.hpp>
 #include <chopper/pack/pack_data.hpp>
 
+namespace chopper::pack
+{
+
 inline auto read_filename_data_file(pack_data & data, pack_config const & config)
 {
     std::ifstream file_in{config.data_file};
@@ -53,3 +56,5 @@ inline auto read_filename_data_file(pack_data & data, pack_config const & config
     }
     while (std::getline(file_in, line));
 }
+
+} // namespace chopper::pack

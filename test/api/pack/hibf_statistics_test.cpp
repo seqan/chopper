@@ -16,16 +16,16 @@ TEST(hibf_statistics, only_merged_on_top_level)
     size_t const top_level_num_contained_user_bins = 2u;
     size_t const lower_level_split_bin_span = 1u;
 
-    pack_config config; // default config
-    pack_data data;
+    chopper::pack::pack_config config; // default config
+    chopper::pack::pack_data data;
     data.compute_fp_correction(config.fp_rate, config.num_hash_functions, lower_level_split_bin_span);
 
-    hibf_statistics stats(config, data.fp_correction);
+    chopper::pack::hibf_statistics stats(config, data.fp_correction);
 
     for (size_t i = 0; i < num_top_level_bins; ++i)
     {
-        hibf_statistics::bin & bin = stats.top_level_ibf.emplace_back(
-            hibf_statistics::bin_kind::merged,
+        chopper::pack::hibf_statistics::bin & bin = stats.top_level_ibf.emplace_back(
+            chopper::pack::hibf_statistics::bin_kind::merged,
             cardinality,
             top_level_num_contained_user_bins,
             1u // merged bin always is a single technical bin
@@ -34,7 +34,7 @@ TEST(hibf_statistics, only_merged_on_top_level)
         for (size_t j = 0; j < top_level_num_contained_user_bins; ++j)
         {
             bin.child_level.emplace_back(
-                hibf_statistics::bin_kind::split,
+                chopper::pack::hibf_statistics::bin_kind::split,
                 cardinality,
                 1u, // split bin always contains only a single user bin
                 lower_level_split_bin_span

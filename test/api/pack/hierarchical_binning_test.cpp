@@ -13,40 +13,40 @@
 
 TEST(hierarchical_binning_test, filenames_and_kmer_counts_size_differs)
 {
-    pack_config config;
+    chopper::pack::pack_config config;
     config.t_max = 4;
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
-    pack_data data;
+    chopper::pack::pack_data data;
     data.output_buffer = &output_buffer;
     data.header_buffer = &header_buffer;
     data.compute_fp_correction(0.05, 2, config.t_max);
-    hibf_statistics global_stats_dummy{};
+    chopper::pack::hibf_statistics global_stats_dummy{};
     data.stats = &global_stats_dummy.top_level_ibf;
 
     data.filenames = {"seq0", "seq1"};   // 2 filenames
     data.kmer_counts = {500, 1000, 500}; // 3 kmer_counts :(
 
-    EXPECT_THROW((hierarchical_binning{data, config}), std::runtime_error);
+    EXPECT_THROW((chopper::pack::hierarchical_binning{data, config}), std::runtime_error);
 }
 
 TEST(hierarchical_binning_test, small_example)
 {
-    pack_config config;
+    chopper::pack::pack_config config;
     config.t_max = 4;
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
-    pack_data data;
+    chopper::pack::pack_data data;
     data.output_buffer = &output_buffer;
     data.header_buffer = &header_buffer;
     data.filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6",  "seq7"};
     data.kmer_counts = {500, 1000, 500, 500, 500, 500, 500, 500};
     data.compute_fp_correction(0.05, 2, config.t_max);
-    hibf_statistics global_stats_dummy{};
+    chopper::pack::hibf_statistics global_stats_dummy{};
     data.stats = &global_stats_dummy.top_level_ibf;
-    hierarchical_binning algo{data, config};
+    chopper::pack::hierarchical_binning algo{data, config};
     EXPECT_EQ(std::get<0>(algo.execute()), 1u); // #HIGH_LEVEL_IBF max_bin_id:3
 
     std::string expected_file
@@ -69,21 +69,21 @@ TEST(hierarchical_binning_test, small_example)
 
 TEST(hierarchical_binning_test, another_example)
 {
-    pack_config config;
+    chopper::pack::pack_config config;
     config.t_max = 5;
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
-    pack_data data;
+    chopper::pack::pack_data data;
     data.output_buffer = &output_buffer;
     data.header_buffer = &header_buffer;
     data.filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6",  "seq7"};
     data.kmer_counts = {50, 1000, 1000, 50, 5, 10, 10, 5};
     data.compute_fp_correction(0.05, 2, config.t_max);
-    hibf_statistics global_stats_dummy{};
+    chopper::pack::hibf_statistics global_stats_dummy{};
     data.stats = &global_stats_dummy.top_level_ibf;
 
-    hierarchical_binning algo{data, config};
+    chopper::pack::hierarchical_binning algo{data, config};
     EXPECT_EQ(std::get<0>(algo.execute()), 1u); // #HIGH_LEVEL_IBF max_bin_id:1
 
     std::string expected_file
@@ -106,21 +106,21 @@ TEST(hierarchical_binning_test, another_example)
 
 TEST(hierarchical_binning_test, high_level_max_bin_id_is_0)
 {
-    pack_config config;
+    chopper::pack::pack_config config;
     config.t_max = 4;
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
-    pack_data data;
+    chopper::pack::pack_data data;
     data.output_buffer = &output_buffer;
     data.header_buffer = &header_buffer;
     data.filenames = {"seq0", "seq1", "seq2", "seq3"};
     data.kmer_counts = {500, 500, 500, 500};
     data.compute_fp_correction(0.05, 2, config.t_max);
-    hibf_statistics global_stats_dummy{};
+    chopper::pack::hibf_statistics global_stats_dummy{};
     data.stats = &global_stats_dummy.top_level_ibf;
 
-    hierarchical_binning algo{data, config};
+    chopper::pack::hierarchical_binning algo{data, config};
     EXPECT_EQ(std::get<0>(algo.execute()), 0u); // #HIGH_LEVEL_IBF max_bin_id:1
 
     std::string expected_file
@@ -137,22 +137,22 @@ TEST(hierarchical_binning_test, high_level_max_bin_id_is_0)
 
 TEST(hierarchical_binning_test, knuts_example)
 {
-    pack_config config;
+    chopper::pack::pack_config config;
     config.alpha = 1;
     config.t_max = 5;
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
-    pack_data data;
+    chopper::pack::pack_data data;
     data.output_buffer = &output_buffer;
     data.header_buffer = &header_buffer;
     data.filenames = {"seq0", "seq1", "seq2", "seq3", "seq4"};
     data.kmer_counts = {60, 600, 1000, 800, 800};
     data.compute_fp_correction(0.05, 2, config.t_max);
-    hibf_statistics global_stats_dummy{};
+    chopper::pack::hibf_statistics global_stats_dummy{};
     data.stats = &global_stats_dummy.top_level_ibf;
 
-    hierarchical_binning algo{data, config};
+    chopper::pack::hierarchical_binning algo{data, config};
     EXPECT_EQ(std::get<0>(algo.execute()), 1u);
 
     std::string expected_file
@@ -171,22 +171,22 @@ TEST(hierarchical_binning_test, knuts_example)
 
 TEST(hierarchical_binning_test, four_level_hibf)
 {
-    pack_config config;
+    chopper::pack::pack_config config;
     config.t_max = 2;
     // config.debug = true;
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
-    pack_data data;
+    chopper::pack::pack_data data;
     data.output_buffer = &output_buffer;
     data.header_buffer = &header_buffer;
     data.filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5"};
     data.kmer_counts = {11090, 5080, 3040, 1020, 510, 500};
     data.compute_fp_correction(0.05, 2, config.t_max);
-    hibf_statistics global_stats_dummy{};
+    chopper::pack::hibf_statistics global_stats_dummy{};
     data.stats = &global_stats_dummy.top_level_ibf;
 
-    hierarchical_binning algo{data, config};
+    chopper::pack::hierarchical_binning algo{data, config};
     EXPECT_EQ(std::get<0>(algo.execute()), 1u); // #HIGH_LEVEL_IBF max_bin_id:1
 
     std::string expected_file
@@ -209,22 +209,22 @@ TEST(hierarchical_binning_test, four_level_hibf)
 
 TEST(hierarchical_binning_test, tb0_is_a_merged_bin)
 {
-    pack_config config;
+    chopper::pack::pack_config config;
     config.alpha = 1;
     config.t_max = 2;
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
-    pack_data data;
+    chopper::pack::pack_data data;
     data.output_buffer = &output_buffer;
     data.header_buffer = &header_buffer;
     data.filenames = {"seq0", "seq1", "seq2", "seq3"};
     data.kmer_counts = {500, 500, 500, 500};
     data.compute_fp_correction(0.05, 2, config.t_max);
-    hibf_statistics global_stats_dummy{};
+    chopper::pack::hibf_statistics global_stats_dummy{};
     data.stats = &global_stats_dummy.top_level_ibf;
 
-    hierarchical_binning algo{data, config};
+    chopper::pack::hierarchical_binning algo{data, config};
     EXPECT_EQ(std::get<0>(algo.execute()), 0u);
 
     std::string expected_file
@@ -243,23 +243,23 @@ TEST(hierarchical_binning_test, tb0_is_a_merged_bin)
 
 TEST(hierarchical_binning_test, tb0_is_a_merged_bin_with_debug)
 {
-    pack_config config;
+    chopper::pack::pack_config config;
     config.alpha = 1;
     config.t_max = 2;
     config.debug = true;
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
-    pack_data data;
+    chopper::pack::pack_data data;
     data.output_buffer = &output_buffer;
     data.header_buffer = &header_buffer;
     data.filenames = {"seq0", "seq1", "seq2", "seq3"};
     data.kmer_counts = {500, 500, 500, 500};
     data.compute_fp_correction(0.05, 2, config.t_max);
-    hibf_statistics global_stats_dummy{};
+    chopper::pack::hibf_statistics global_stats_dummy{};
     data.stats = &global_stats_dummy.top_level_ibf;
 
-    hierarchical_binning algo{data, config};
+    chopper::pack::hierarchical_binning algo{data, config};
     EXPECT_EQ(std::get<0>(algo.execute()), 0u);
 
     std::string expected_file
@@ -278,22 +278,22 @@ TEST(hierarchical_binning_test, tb0_is_a_merged_bin_with_debug)
 
 TEST(hierarchical_binning_test, tb0_is_a_merged_bin_and_leads_to_recursive_call)
 {
-    pack_config config;
+    chopper::pack::pack_config config;
     config.alpha = 1;
     config.t_max = 2;
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
-    pack_data data;
+    chopper::pack::pack_data data;
     data.output_buffer = &output_buffer;
     data.header_buffer = &header_buffer;
     data.filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7"};
     data.kmer_counts = {500, 500, 500, 500, 500, 500, 500, 500};
     data.compute_fp_correction(0.05, 2, config.t_max);
-    hibf_statistics global_stats_dummy{};
+    chopper::pack::hibf_statistics global_stats_dummy{};
     data.stats = &global_stats_dummy.top_level_ibf;
 
-    hierarchical_binning algo{data, config};
+    chopper::pack::hierarchical_binning algo{data, config};
     EXPECT_EQ(std::get<0>(algo.execute()), 0u);
 
     std::string expected_file

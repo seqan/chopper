@@ -10,6 +10,9 @@
 #include <chopper/pack/print_result_line.hpp>
 #include <chopper/pack/simple_binning.hpp>
 
+namespace chopper::pack
+{
+
 class hierarchical_binning
 {
 private:
@@ -537,3 +540,5 @@ private:
         }
     }
 };
+
+} // namespace chopper::pack

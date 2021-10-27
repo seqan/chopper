@@ -13,6 +13,9 @@
 #include <chopper/pack/print_matrix.hpp>
 #include <chopper/pack/print_result_line.hpp>
 
+namespace chopper::pack
+{
+
 /*!\brief Distributes x Technical Bins across y User Bins while minimizing the maximal Technical Bin size
  *
  * # Terminology
@@ -258,3 +261,5 @@ public:
         return max_id;
     }
 };
+
+} // namespace chopper::pack

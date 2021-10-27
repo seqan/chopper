@@ -7,6 +7,9 @@
 
 #include <chopper/pack/pack_data.hpp>
 
+namespace chopper::pack
+{
+
 inline void sort_by(pack_data & data, int8_t column_to_sort_by)
 {
     // Note: We may only sort by extra information
@@ -81,3 +84,5 @@ inline void aggregate_by(pack_data & data, int8_t column_to_aggregate_by)
         }
     }
 }
+
+} // namespace chopper::pack

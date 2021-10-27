@@ -9,16 +9,16 @@
 TEST(simple_binning_test, small_example)
 {
     std::stringstream output_buffer;
-    pack_data data;
+    chopper::pack::pack_data data;
     data.output_buffer = &output_buffer;
     data.header_buffer = &output_buffer;
     data.kmer_counts = {100, 40, 20, 20};
     data.filenames = {"seq1", "seq2", "seq3", "seq4"};
     data.fp_correction = std::vector<double>(65, 1.0);
-    hibf_statistics global_stats_dummy{};
+    chopper::pack::hibf_statistics global_stats_dummy{};
     data.stats = &global_stats_dummy.top_level_ibf;
 
-    simple_binning algo{data, 9};
+    chopper::pack::simple_binning algo{data, 9};
     size_t max_bin = algo.execute();
 
     std::string expected
@@ -36,16 +36,16 @@ TEST(simple_binning_test, small_example)
 TEST(simple_binning_test, uniform_distribution)
 {
     std::stringstream output_buffer;
-    pack_data data;
+    chopper::pack::pack_data data;
     data.output_buffer = &output_buffer;
     data.header_buffer = &output_buffer;
     data.kmer_counts = {20, 20, 20, 20};
     data.filenames = {"seq1", "seq2", "seq3", "seq4"};
     data.fp_correction = std::vector<double>(65, 1.0);
-    hibf_statistics global_stats_dummy{};
+    chopper::pack::hibf_statistics global_stats_dummy{};
     data.stats = &global_stats_dummy.top_level_ibf;
 
-    simple_binning algo{data, 4u};
+    chopper::pack::simple_binning algo{data, 4u};
     size_t max_bin = algo.execute();
 
     std::string expected
@@ -63,14 +63,14 @@ TEST(simple_binning_test, uniform_distribution)
 TEST(simple_binning_test, user_bins_must_be_smaller_than_technical_bins)
 {
     std::stringstream output_buffer;
-    pack_data data;
+    chopper::pack::pack_data data;
     data.output_buffer = &output_buffer;
     data.header_buffer = &output_buffer;
     data.kmer_counts = {100, 40, 20, 20};
     data.filenames = {"seq1", "seq2", "seq3", "seq4"};
     data.fp_correction = std::vector<double>(65, 1.0);
-    hibf_statistics global_stats_dummy{};
+    chopper::pack::hibf_statistics global_stats_dummy{};
     data.stats = &global_stats_dummy.top_level_ibf;
 
-    EXPECT_THROW((simple_binning{data, 2}), std::runtime_error);
+    EXPECT_THROW((chopper::pack::simple_binning{data, 2}), std::runtime_error);
 }

@@ -11,6 +11,9 @@
 #include <chopper/helper.hpp>
 #include <chopper/pack/pack_config.hpp>
 
+namespace chopper::pack
+{
+
 class hibf_statistics
 {
 public:
@@ -256,3 +259,5 @@ private:
         summary.ibf_mem_size_no_corr.push_back(max_cardinality_no_corr * num_tbs);
     }
 };
+
+} // namespace chopper::pack

@@ -5,6 +5,9 @@
 #include <cassert>
 #include <stdexcept>
 
+namespace chopper::pack
+{
+
 class ibf_query_cost
 {
 public:
@@ -75,3 +78,5 @@ private:
         return std::countr_zero(value) - 6;
     }
 };
+
+} // namespace chopper::pack

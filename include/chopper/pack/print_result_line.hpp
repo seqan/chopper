@@ -5,6 +5,9 @@
 #include <chopper/pack/pack_data.hpp>
 #include <chopper/pack/previous_level.hpp>
 
+namespace chopper::pack
+{
+
 inline void print_result_line(pack_data const & data,
                               size_t const index,
                               size_t const bin_id,
@@ -40,3 +43,5 @@ inline void print_debug_line(pack_data const & data,
                         << '\t' << data.previous.tmax << (is_top_level ? "" : ";") << num_technical_bins
                         << '\n';
 }
+
+} // namespace chopper::pack

@@ -10,6 +10,9 @@
 #include <chopper/pack/previous_level.hpp>
 #include <chopper/sketch/user_bin_sequence.hpp>
 
+namespace chopper::pack
+{
+
 struct pack_data
 {
     //!\brief The file names of the user input. Since the input might be sorted, we need to keep track of the names.
@@ -72,3 +75,5 @@ struct pack_data
         }
     }
 };
+
+} // namespace chopper::pack
