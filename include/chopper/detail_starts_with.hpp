@@ -3,6 +3,9 @@
 #include <string>
 #include <string_view>
 
+namespace chopper::detail
+{
+
 inline bool starts_with(std::string const & target, std::string_view const & query)
 {
     size_t index{};
@@ -10,3 +13,5 @@ inline bool starts_with(std::string const & target, std::string_view const & que
         ++index;
     return index == query.size();
 }
+
+} // namespace chopper
