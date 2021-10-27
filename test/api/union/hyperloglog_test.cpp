@@ -18,9 +18,9 @@ using sequence_file_type = seqan3::sequence_file_input<input_traits, seqan3::fie
 TEST(hyperloglog, bit_widths)
 {
     for (uint8_t i : std::views::iota(0u, 4u))
-        EXPECT_THROW(hyperloglog{i}, std::invalid_argument);
+        EXPECT_THROW(chopper::sketch::hyperloglog{i}, std::invalid_argument);
 
-    EXPECT_NO_THROW(hyperloglog{4u});
+    EXPECT_NO_THROW(chopper::sketch::hyperloglog{4u});
 }
 
 TEST(hyperloglog, initialization)
@@ -28,7 +28,7 @@ TEST(hyperloglog, initialization)
     size_t const b = 6;
     size_t const m = 1 << b;
 
-    hyperloglog sketch(b);
+    chopper::sketch::hyperloglog sketch(b);
 
     EXPECT_EQ(sketch.registerSize(), m);
 
@@ -42,7 +42,7 @@ TEST(hyperloglog, add_and_estimate_small)
 {
     size_t const b = 4;
 
-    hyperloglog sketch(b); // m = 1 << b
+    chopper::sketch::hyperloglog sketch(b); // m = 1 << b
 
     // XXH3_64bits hash -> first 4 bits: 0000, rank: 3
     sketch.add("bla", 3);
@@ -76,7 +76,7 @@ TEST(hyperloglog, add_and_estimate_large)
     size_t const k = 16;
 
     size_t const b = 4; // m = 1 << b
-    hyperloglog sketch(b);
+    chopper::sketch::hyperloglog sketch(b);
 
     std::unordered_set<std::string> control;
 
@@ -106,7 +106,7 @@ TEST(hyperloglog, add_and_estimate_small_SIMD)
 {
     size_t const b = 5; // m = 1 << b
 
-    hyperloglog sketch(b);
+    chopper::sketch::hyperloglog sketch(b);
 
     // XXH3_64bits hash -> first 4 bits: 0000, rank: 3
     sketch.add("bla", 3);
@@ -136,9 +136,9 @@ TEST(hyperloglog, merge_and_merge_SIMD)
     size_t const k = 16;
 
     size_t const b = 5; // m = 1 << b
-    hyperloglog full_sketch(b);
-    hyperloglog merge_sketch(b);
-    hyperloglog merge_SIMD_sketch(b);
+    chopper::sketch::hyperloglog full_sketch(b);
+    chopper::sketch::hyperloglog merge_sketch(b);
+    chopper::sketch::hyperloglog merge_SIMD_sketch(b);
 
     std::vector<hyperloglog> partial_sketches;
 
@@ -176,7 +176,7 @@ TEST(hyperloglog, merge_and_merge_SIMD)
 
 TEST(hyperloglog, fail_dump)
 {
-    hyperloglog sketch{4};
+    chopper::sketch::hyperloglog sketch{4};
     std::ofstream ostrm{"chopper_non_existent_outputfile"};
     ostrm.close();
     EXPECT_THROW(sketch.dump(ostrm), std::runtime_error);
@@ -190,7 +190,7 @@ TEST(hyperloglog, fail_restore)
         std::ofstream ostrm{file_name.get_path()};
         ostrm.write((char*)&b, sizeof(b));
     }
-    hyperloglog sketch{};
+    chopper::sketch::hyperloglog sketch{};
     std::ifstream istrm{file_name.get_path()};
     EXPECT_THROW(sketch.restore(istrm), std::runtime_error);
 }
@@ -203,7 +203,7 @@ TEST(hyperloglog, fail_restore_bit_width)
         std::ofstream ostrm{file_name.get_path()};
         ostrm.write((char*)&b, sizeof(b));
     }
-    hyperloglog sketch{};
+    chopper::sketch::hyperloglog sketch{};
     std::ifstream istrm{file_name.get_path()};
     EXPECT_THROW(sketch.restore(istrm), std::runtime_error);
 }
@@ -214,8 +214,8 @@ TEST(hyperloglog, dump_and_restore)
     size_t const k = 16;
 
     size_t const b = 4; // m = 1 << b
-    hyperloglog dump_sketch(b);
-    hyperloglog restore_sketch(b);
+    chopper::sketch::hyperloglog dump_sketch(b);
+    chopper::sketch::hyperloglog restore_sketch(b);
 
     sequence_file_type seq_file{input_file};
 

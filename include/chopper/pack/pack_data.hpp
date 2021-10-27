@@ -56,7 +56,7 @@ struct pack_data
     {
         if (!user_bins_arranged)
         {
-            user_bin_sequence bin_sequence{filenames, kmer_counts};
+            chopper::sketch::user_bin_sequence bin_sequence{filenames, kmer_counts};
             bin_sequence.sort_by_cardinalities();
 
             if (config.estimate_union)

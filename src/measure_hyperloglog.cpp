@@ -58,7 +58,7 @@ int main(int argc, const char *argv [])
     sequence_file_type seq_file{args.input_path};
     std::ofstream fout{args.output_path};
 
-    std::vector<hyperloglog> sketches;
+    std::vector<chopper::sketch::hyperloglog> sketches;
     std::unordered_set<uint64_t> control;
 
     // write metadata

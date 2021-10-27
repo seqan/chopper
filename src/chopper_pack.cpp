@@ -6,7 +6,6 @@
 #include <chopper/pack/ibf_query_cost.hpp>
 #include <chopper/pack/pack_config.hpp>
 #include <chopper/pack/previous_level.hpp>
-#include <chopper/union/user_bin_sequence.hpp>
 
 void set_up_subparser_pack(seqan3::argument_parser & parser, pack_config & config)
 {
