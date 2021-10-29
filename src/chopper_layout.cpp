@@ -174,7 +174,9 @@ size_t determine_best_number_of_technical_bins(chopper::layout::data_store & dat
         {
             std::cout << "#T_Max:" << t_max << '\n'
                       << "#C_{T_Max}:" << chopper::layout::ibf_query_cost::exact(t_max) << '\n'
-                      << "#relative expected HIBF query cost:" << expected_HIBF_query_cost << '\n';
+                      << "#relative expected HIBF query time cost (l):" << expected_HIBF_query_cost << '\n' /*relative to a 64 bin IBF*/
+                      << "#relative HIBF memory usage (m):" << relative_memory_size << '\n' /*relative to the 64 T_Max HIBF*/
+                      << "#l*m:" << query_time_memory_usage_prod << '\n';
         }
         else
         {
@@ -249,6 +251,14 @@ int execute(seqan3::argument_parser & parser)
     data.header_buffer = &header_buffer;
 
     size_t max_hibf_id;
+
+    // print some important parameters of the user configuration and data input
+    if (config.output_statistics)
+    {
+        std::cout << "#number of user bins:" << data.filenames.size() << '\n'
+                  << "#number of hash functions:" << config.num_hash_functions << '\n'
+                  << "#false positive rate:" << config.fp_rate << "\n\n";
+    }
 
     if (config.determine_num_bins)
     {
