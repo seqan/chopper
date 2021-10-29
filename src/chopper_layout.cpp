@@ -142,6 +142,8 @@ size_t determine_best_number_of_technical_bins(chopper::layout::data_store & dat
 
     size_t const total_kmer_count = std::accumulate(data.kmer_counts.begin(), data.kmer_counts.end(), size_t{});
 
+    double t_max_64_memory;
+
     for (size_t t_max = 64, total_t_max = config.t_max; t_max <= total_t_max; t_max *= 2)
     {
         // reset state for the binning algorithm and save output buffer
@@ -162,11 +164,19 @@ size_t determine_best_number_of_technical_bins(chopper::layout::data_store & dat
 
         double const expected_HIBF_query_cost = total_query_cost / total_kmer_count;
 
+        if (t_max == 64)
+            t_max_64_memory = global_stats.get_total_hibf_memory_size();
+
+        double const relative_memory_size = global_stats.get_total_hibf_memory_size() / t_max_64_memory;
+        double const query_time_memory_usage_prod = expected_HIBF_query_cost * relative_memory_size;
+        
         if (config.output_statistics)
         {
             std::cout << "#T_Max:" << t_max << '\n'
                       << "#C_{T_Max}:" << chopper::layout::ibf_query_cost::exact(t_max) << '\n'
-                      << "#relative expected HIBF query cost:" << expected_HIBF_query_cost << '\n';
+                      << "#relative expected HIBF query time cost (l):" << expected_HIBF_query_cost << '\n' /*relative to a 64 bin IBF*/
+                      << "#relative HIBF memory usage (m):" << relative_memory_size << '\n' /*relative to the 64 T_Max HIBF*/
+                      << "#l*m:" << query_time_memory_usage_prod << '\n';
         }
         else
         {
@@ -241,6 +251,14 @@ int execute(seqan3::argument_parser & parser)
     data.header_buffer = &header_buffer;
 
     size_t max_hibf_id;
+
+    // print some important parameters of the user configuration and data input
+    if (config.output_statistics)
+    {
+        std::cout << "#number of user bins:" << data.filenames.size() << '\n'
+                  << "#number of hash functions:" << config.num_hash_functions << '\n'
+                  << "#false positive rate:" << config.fp_rate << "\n\n";
+    }
 
     if (config.determine_num_bins)
     {
