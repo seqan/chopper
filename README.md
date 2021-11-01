@@ -32,12 +32,12 @@ make test
 
 :warning: The following section is not yet adapted to the multi-level approach :warning:
 
-## Chopper pack
+## Chopper layout
 
-This submodule uses a hierarchical DP algorithm to pack user bins into a given number technical bins,
+This submodule uses a hierarchical DP algorithm to layout user bins into a given number technical bins,
 optimizing the space consumption of a Hierarchical Binning Directory.
 
-The app `chopper pack` needs an input file with filenames and weights as input
+The app `chopper layout` needs an input file with filenames and weights as input
 (see chopper count if you want to use kmer counts as weights).
 
 The file has to be **tab separated** and looks like this:
@@ -58,10 +58,10 @@ file_path2    10     taxID_2
 ...
 ```
 
-If you have the file you can use `chopper pack` like this:
+If you have the file you can use `chopper layout` like this:
 
 ```
-./chopper pack -f fata.tsv --technical-bins 2 -o output_filename.txt
+./chopper layout -f fata.tsv --technical-bins 2 -o output_filename.txt
 ```
 
 Given the example tsv file with the 3 lines above, it will create a file `output_filename.txt` which looks like this:

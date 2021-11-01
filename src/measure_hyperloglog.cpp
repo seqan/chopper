@@ -12,7 +12,7 @@
 #include <seqan3/search/views/kmer_hash.hpp>
 
 #include <chopper/print_peak_memory_usage.hpp>
-#include <chopper/union/hyperloglog.hpp>
+#include <chopper/sketch/hyperloglog.hpp>
 
 struct cli_args
 {
@@ -58,7 +58,7 @@ int main(int argc, const char *argv [])
     sequence_file_type seq_file{args.input_path};
     std::ofstream fout{args.output_path};
 
-    std::vector<hyperloglog> sketches;
+    std::vector<chopper::sketch::hyperloglog> sketches;
     std::unordered_set<uint64_t> control;
 
     // write metadata
@@ -99,5 +99,5 @@ int main(int argc, const char *argv [])
         control.clear();
     }
 
-    print_peak_memory_usage();
+    chopper::print_peak_memory_usage();
 }

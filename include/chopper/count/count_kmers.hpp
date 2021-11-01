@@ -13,8 +13,11 @@
 #include <seqan3/search/views/minimiser_hash.hpp>
 #include <seqan3/utility/views/to.hpp>
 
-#include <chopper/count/count_config.hpp>
-#include <chopper/union/hyperloglog.hpp>
+#include <chopper/count/configuration.hpp>
+#include <chopper/sketch/hyperloglog.hpp>
+
+namespace chopper::count
+{
 
 inline void write_cluster_data(std::pair<std::string, std::vector<std::string>> const & cluster,
                                uint64_t const size,
@@ -40,9 +43,9 @@ using sequence_file_type = seqan3::sequence_file_input<mytraits,
 template <typename seq_type, typename compute_view_type>
 void compute_hashes(seq_type && seq,
                     compute_view_type && compute_fn,
-                    count_config const & config,
+                    configuration const & config,
                     robin_hood::unordered_node_set<uint64_t> & result,
-                    hyperloglog & sketch)
+                    chopper::sketch::hyperloglog & sketch)
 {
     if (!config.exclusively_hlls)
     {
@@ -56,7 +59,7 @@ void compute_hashes(seq_type && seq,
 }
 
 inline void count_kmers(robin_hood::unordered_map<std::string, std::vector<std::string>> const & filename_clusters,
-                        count_config const & config)
+                        configuration const & config)
 {
     // output file
     std::ofstream fout{config.output_filename};
@@ -85,7 +88,7 @@ inline void count_kmers(robin_hood::unordered_map<std::string, std::vector<std::
                 sequence_vector.push_back(seq);
 
         robin_hood::unordered_node_set<uint64_t> result{};
-        hyperloglog sketch(config.sketch_bits);
+        chopper::sketch::hyperloglog sketch(config.sketch_bits);
 
         if (config.disable_minimizers)
             for (auto && seq : sequence_vector)
@@ -115,3 +118,5 @@ inline void count_kmers(robin_hood::unordered_map<std::string, std::vector<std::
         }
     }
 }
+
+} // namespace chopper::count

@@ -11,7 +11,7 @@
 #include <seqan3/utility/views/join_with.hpp>
 #include <seqan3/utility/views/to.hpp>
 
-#include <chopper/detail_bin_prefixes.hpp>
+#include <chopper/bin_prefixes.hpp>
 
 #include "cli_test.hpp"
 
@@ -70,18 +70,18 @@ TEST_F(cli_test, chopper_pipeline)
         fout << (expected_components | seqan3::views::join_with(std::string{'\n'}) | seqan3::views::to<std::string>);
     }
 
-    // CHOPPER PACK
+    // CHOPPER LAYOUT
     // =========================================================================
     seqan3::test::tmp_filename const binning_filename{"output.binning"};
 
-    cli_test_result pack_result = execute_app("chopper", "pack",
+    cli_test_result layout_result = execute_app("chopper", "layout",
                                               "-b", "64",
                                               "-f", count_filename.get_path().c_str(),
                                               "-o", binning_filename.get_path().c_str());
 
-    EXPECT_EQ(pack_result.exit_code, 0);
-    EXPECT_EQ(pack_result.out, std::string{});
-    EXPECT_EQ(pack_result.err, std::string{});
+    EXPECT_EQ(layout_result.exit_code, 0);
+    EXPECT_EQ(layout_result.out, std::string{});
+    EXPECT_EQ(layout_result.err, std::string{});
 
     std::string expected_file
     {
@@ -183,11 +183,11 @@ TEST_F(cli_test, chopper_hll_pipeline)
         fout << (expected_components | seqan3::views::join_with(std::string{'\n'}) | seqan3::views::to<std::string>);
     }
 
-    // CHOPPER PACK
+    // CHOPPER layout
     // =========================================================================
     seqan3::test::tmp_filename const binning_filename{"output.binning"};
 
-    cli_test_result pack_result = execute_app("chopper", "pack",
+    cli_test_result layout_result = execute_app("chopper", "layout",
                                               "-b", "64",
                                               "-t", "2",
                                               "-r",
@@ -195,9 +195,9 @@ TEST_F(cli_test, chopper_hll_pipeline)
                                               "-f", count_filename.get_path().c_str(),
                                               "-o", binning_filename.get_path().c_str());
 
-    EXPECT_EQ(pack_result.exit_code, 0);
-    EXPECT_EQ(pack_result.out, std::string{});
-    EXPECT_EQ(pack_result.err, std::string{});
+    EXPECT_EQ(layout_result.exit_code, 0);
+    EXPECT_EQ(layout_result.out, std::string{});
+    EXPECT_EQ(layout_result.err, std::string{});
 
     std::string expected_file
     {

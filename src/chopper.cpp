@@ -1,13 +1,13 @@
 #include <seqan3/argument_parser/all.hpp>
 #include <seqan3/core/debug_stream.hpp>
 
-#include <chopper/count/chopper_count.hpp>
-#include <chopper/pack/chopper_pack.hpp>
+#include <chopper/count/execute.hpp>
+#include <chopper/layout/execute.hpp>
 
 int main(int argc, const char *argv [])
 {
     seqan3::argument_parser top_level_parser{"chopper", argc, argv, seqan3::update_notifications::off,
-                                             {"count", "pack"}};
+                                             {"count", "layout"}};
     top_level_parser.info.version = "1.0.0";
 
     try
@@ -24,10 +24,10 @@ int main(int argc, const char *argv [])
 
     int error_code{};
 
-    if (sub_parser.info.app_name == std::string_view{"chopper-pack"})
-        error_code = chopper_pack(sub_parser);
+    if (sub_parser.info.app_name == std::string_view{"chopper-layout"})
+        error_code = chopper::layout::execute(sub_parser);
     else if (sub_parser.info.app_name == std::string_view{"chopper-count"})
-        error_code = chopper_count(sub_parser);
+        error_code = chopper::count::execute(sub_parser);
 
     return error_code;
 }
