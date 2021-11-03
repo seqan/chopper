@@ -14,6 +14,8 @@ if (NOT CMAKE_BUILD_TYPE)
          FORCE)
 endif ()
 
+set (CHOPPER_SUBMODULES_DIR "${CMAKE_CURRENT_LIST_DIR}/lib" CACHE STRING "Directory containing submodules.")
+
 # Flag checks
 include (CheckCXXCompilerFlag)
 
@@ -36,6 +38,8 @@ endif ()
 set (CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set (CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+set (CMAKE_INSTALL_LIBDIR "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}" CACHE STRING "")
+set (CMAKE_INSTALL_BINDIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}" CACHE STRING "")
 
 # Messages
 string (ASCII 27 Esc)
@@ -43,7 +47,7 @@ set (FontBold "${Esc}[1m")
 set (FontReset "${Esc}[m")
 
 # Dependency: SeqAn3.
-find_package (SeqAn3 REQUIRED QUIET HINTS lib/seqan3/build_system)
+find_package (SeqAn3 REQUIRED QUIET HINTS ${CHOPPER_SUBMODULES_DIR}/seqan3/build_system)
 
 # Allow to include CMake scripts from seqan3.
 list (APPEND CMAKE_MODULE_PATH "${SEQAN3_CLONE_DIR}/test/cmake/")
@@ -58,14 +62,6 @@ list (APPEND SEQAN3_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_C_FLAGS=${CMAKE_C_FLAGS
 list (APPEND SEQAN3_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
 list (APPEND SEQAN3_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}")
 list (APPEND SEQAN3_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_VERBOSE_MAKEFILE=${CMAKE_VERBOSE_MAKEFILE}")
-
-# Dependency: SeqAn
-# Note: includes seqan-config.cmake manually to have
-# SEQAN_DEFINITIONS, SEQAN_CXX_FLAGS_LIST, SEQAN_LIBRARIES, SEQAN_INCLUDE_DIRS
-# defined. We don't want any seqan version but the submodule one!
-list (APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/lib/seqan/util/cmake")
-list (APPEND CMAKE_INCLUDE_PATH "${CMAKE_SOURCE_DIR}/lib/seqan/include/")
-include (${CMAKE_SOURCE_DIR}/lib/seqan/util/cmake/seqan-config.cmake)
 
 # Dependency: xxHash
 set (CHOPPER_XXHASH_PATH "${PROJECT_BINARY_DIR}/lib/libxxhash.a")
