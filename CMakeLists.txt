@@ -59,14 +59,6 @@ list (APPEND SEQAN3_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_BUILD_TYPE=${CMAKE_BUIL
 list (APPEND SEQAN3_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}")
 list (APPEND SEQAN3_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_VERBOSE_MAKEFILE=${CMAKE_VERBOSE_MAKEFILE}")
 
-# Dependency: SeqAn
-# Note: includes seqan-config.cmake manually to have
-# SEQAN_DEFINITIONS, SEQAN_CXX_FLAGS_LIST, SEQAN_LIBRARIES, SEQAN_INCLUDE_DIRS
-# defined. We don't want any seqan version but the submodule one!
-list (APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/lib/seqan/util/cmake")
-list (APPEND CMAKE_INCLUDE_PATH "${CMAKE_SOURCE_DIR}/lib/seqan/include/")
-include (${CMAKE_SOURCE_DIR}/lib/seqan/util/cmake/seqan-config.cmake)
-
 # Dependency: xxHash
 set (CHOPPER_XXHASH_PATH "${PROJECT_BINARY_DIR}/lib/libxxhash.a")
 
