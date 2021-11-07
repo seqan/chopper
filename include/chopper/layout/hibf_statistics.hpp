@@ -137,17 +137,19 @@ public:
     }
 
     //!\brief Return the total corrected size of the HIBF in bytes
-    size_t get_total_hibf_memory_size()
+    size_t total_hibf_size_in_byte()
     {
         if (summaries.empty())
             gather_statistics(top_level_ibf, 0);
         
-        size_t total_size = 0;
+        size_t total_size{};
         
         // go through each level and collect the memory sizes
-        for (auto const & [level, s] : summaries)
+        for (auto const & [level, summary] : summaries)
         {
-            total_size += std::reduce(s.ibf_mem_size.begin(), s.ibf_mem_size.end());
+            (void) level;
+            
+            total_size += std::reduce(summary.ibf_mem_size.begin(), summary.ibf_mem_size.end());
         }
 
         return compute_bin_size(total_size) / 8;

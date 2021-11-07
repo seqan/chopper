@@ -142,7 +142,7 @@ size_t determine_best_number_of_technical_bins(chopper::layout::data_store & dat
 
     size_t const total_kmer_count = std::accumulate(data.kmer_counts.begin(), data.kmer_counts.end(), size_t{});
 
-    double t_max_64_memory = -1.0;
+    size_t t_max_64_memory{};
 
     for (size_t t_max = 64, total_t_max = config.t_max; t_max <= total_t_max; t_max *= 2)
     {
@@ -164,10 +164,11 @@ size_t determine_best_number_of_technical_bins(chopper::layout::data_store & dat
 
         double const expected_HIBF_query_cost = total_query_cost / total_kmer_count;
 
-        if (t_max_64_memory == -1.0)
-            t_max_64_memory = global_stats.get_total_hibf_memory_size();
+        if (!t_max_64_memory)
+            t_max_64_memory = global_stats.total_hibf_size_in_byte();
 
-        double const relative_memory_size = global_stats.get_total_hibf_memory_size() / t_max_64_memory;
+        double const relative_memory_size = global_stats.total_hibf_size_in_byte() / 
+                                            static_cast<double>(t_max_64_memory);
         double const query_time_memory_usage_prod = expected_HIBF_query_cost * relative_memory_size;
         
         if (config.output_statistics)
