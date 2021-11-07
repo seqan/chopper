@@ -136,6 +136,25 @@ public:
                   << "#Total HIBF size no correction:" << to_formatted_BF_size(total_size_no_corr) << "\n\n";
     }
 
+    //!\brief Return the total corrected size of the HIBF in bytes
+    size_t total_hibf_size_in_byte()
+    {
+        if (summaries.empty())
+            gather_statistics(top_level_ibf, 0);
+        
+        size_t total_size{};
+        
+        // go through each level and collect the memory sizes
+        for (auto const & [level, summary] : summaries)
+        {
+            (void) level;
+            
+            total_size += std::reduce(summary.ibf_mem_size.begin(), summary.ibf_mem_size.end());
+        }
+
+        return compute_bin_size(total_size) / 8;
+    }
+
     //!\brief The top level IBF of this HIBF, often starting point for recursions.
     level top_level_ibf;
 

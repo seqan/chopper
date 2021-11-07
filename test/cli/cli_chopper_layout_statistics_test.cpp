@@ -23,7 +23,11 @@ TEST_F(cli_test, chopper_layout_statistics)
                                               "--output-statistics");
 
     std::string expected_cout =
-R"expected_cout(level	num_ibfs	level_size	level_size_no_corr	total_num_tbs	avg_num_tbs	split_tb_percentage	max_split_tb	avg_split_tb	max_factor	avg_factor
+R"expected_cout(#number of user bins:96
+#number of hash functions:2
+#false positive rate:0.05
+
+level	num_ibfs	level_size	level_size_no_corr	total_num_tbs	avg_num_tbs	split_tb_percentage	max_split_tb	avg_split_tb	max_factor	avg_factor
 0	1	37 KiB	37 KiB	64	64	81.25	1	1.00	1.00	1.00
 1	12	48 KiB	8 KiB	768	64	100.00	32	17.45	9.02	6.50
 #Total HIBF size:85 KiB
@@ -66,9 +70,15 @@ TEST_F(cli_test, chopper_layout_statistics_determine_best_bins)
 
 
     std::string expected_cout =
-R"expected_cout(#T_Max:64
+R"expected_cout(#number of user bins:10
+#number of hash functions:2
+#false positive rate:0.05
+
+#T_Max:64
 #C_{T_Max}:1.00
-#relative expected HIBF query cost:1.00
+#relative expected HIBF query time cost (l):1.00
+#relative HIBF memory usage (m):1.00
+#l*m:1.00
 level	num_ibfs	level_size	level_size_no_corr	total_num_tbs	avg_num_tbs	split_tb_percentage	max_split_tb	avg_split_tb	max_factor	avg_factor
 0	1	1 MiB	1 MiB	64	64	100.00	20	6.40	6.38	3.62
 #Total HIBF size:1 MiB
@@ -76,7 +86,9 @@ level	num_ibfs	level_size	level_size_no_corr	total_num_tbs	avg_num_tbs	split_tb_
 
 #T_Max:128
 #C_{T_Max}:1.10
-#relative expected HIBF query cost:1.10
+#relative expected HIBF query time cost (l):1.10
+#relative HIBF memory usage (m):1.63
+#l*m:1.79
 level	num_ibfs	level_size	level_size_no_corr	total_num_tbs	avg_num_tbs	split_tb_percentage	max_split_tb	avg_split_tb	max_factor	avg_factor
 0	1	3 MiB	2 MiB	128	128	100.00	47	12.80	12.17	5.96
 #Total HIBF size:3 MiB
