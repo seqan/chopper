@@ -14,22 +14,11 @@
 #include <seqan3/utility/views/to.hpp>
 
 #include <chopper/count/configuration.hpp>
+#include <chopper/count/output.hpp>
 #include <chopper/sketch/hyperloglog.hpp>
 
 namespace chopper::count
 {
-
-inline void write_cluster_data(std::pair<std::string, std::vector<std::string>> const & cluster,
-                               uint64_t const size,
-                               std::ofstream & fout)
-{
-    assert(cluster.second.size() >= 1);
-
-    fout << cluster.second[0]; // write first filename
-    for (size_t i = 1; i < cluster.second.size(); ++i)
-        fout << ";" << cluster.second[i];
-    fout << '\t' << size << '\t' << cluster.first << std::endl;
-}
 
 struct mytraits : public seqan3::sequence_file_input_default_traits_dna
 {
@@ -98,24 +87,13 @@ inline void count_kmers(robin_hood::unordered_map<std::string, std::vector<std::
                 compute_hashes(seq, compute_minimiser, config, result, sketch);
 
         // print either the exact or the approximate count, depending on exclusively_hlls
-        uint64_t const size = config.exclusively_hlls ? static_cast<uint64_t>(sketch.estimate()) : result.size();
+        uint64_t const weight = config.exclusively_hlls ? static_cast<uint64_t>(sketch.estimate()) : result.size();
 
         #pragma omp critical
-        write_cluster_data(cluster_vector[i], size, fout);
+        write_count_file_line(cluster_vector[i], weight, fout);
 
         if (!config.hll_dir.empty())
-        {
-            // For more than one file in the cluster, Felix doesn't know how to name the file
-            // and what exactly is supposed to happen.
-            if (cluster_vector[i].second.size() > 1)
-                throw std::runtime_error("This mode is not implemented yet for multiple files grouped together.");
-
-            // For one file in the cluster, the file stem is used with the .hll ending
-            std::filesystem::path path = config.hll_dir / std::filesystem::path(cluster_vector[i].first).stem();
-            path += ".hll";
-            std::ofstream hll_fout(path, std::ios::binary);
-            sketch.dump(hll_fout);
-        }
+            write_sketch_file(cluster_vector[i], sketch, config);
     }
 }
 
