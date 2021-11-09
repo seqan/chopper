@@ -34,10 +34,15 @@ TEST(execute_estimation_test, few_ubs)
 
     seqan3::argument_parser layout_parser{"chopper-layout", argc, argv, seqan3::update_notifications::off};
     testing::internal::CaptureStdout();
+    testing::internal::CaptureStderr();
     chopper::layout::execute(layout_parser);
 
     EXPECT_EQ(testing::internal::GetCapturedStdout(), "T_Max\tC_{T_Max}\trelative expected HIBF query cost\n64\t1.00"
                                                       "\t1.00\n#Best t_max (regarding expected query runtime):64\n");
+    EXPECT_EQ(testing::internal::GetCapturedStderr(), "[CHOPPER LAYOUT WARNING]: Your requested number of technical "
+                                                      "bins was not a multiple of 64. Due to the architecture of the "
+                                                      "HIBF, it will use up space equal to the next multiple of 64 "
+                                                      "anyway, so we increased your number of technical bins to 64.\n");
 }
 
 TEST(execute_estimation_test, many_ubs)

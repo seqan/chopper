@@ -234,9 +234,9 @@ int execute(seqan3::argument_parser & parser)
     if (config.t_max % 64 != 0)
     {
         config.t_max = chopper::next_multiple_of_64(config.t_max);
-        std::cerr << "[CHOPPER LAYOUT WARNING]: Your requested number of technical bins was not a multiple of 64."
-                  << "Due to the architecture of the HIBF, it will use up space to the next multiple of 64 anyway, "
-                  << "so we increased your number of technical bins to " << config.t_max << '\n';
+        std::cerr << "[CHOPPER LAYOUT WARNING]: Your requested number of technical bins was not a multiple of 64. "
+                  << "Due to the architecture of the HIBF, it will use up space equal to the next multiple of 64 "
+                  << "anyway, so we increased your number of technical bins to " << config.t_max << ".\n";
     }
 
     data.compute_fp_correction(config.fp_rate, config.num_hash_functions, config.t_max);
