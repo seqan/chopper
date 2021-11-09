@@ -40,7 +40,7 @@ void set_up_subparser_layout(seqan3::argument_parser & parser, chopper::layout::
                       "The desired false positive rate of the IBFs.");
 
     parser.add_option(config.alpha, 'a', "alpha",
-                      "The scaling factor to influence the number of merged bins.");
+                      "The scaling factor to influence the number of merged bins.", seqan3::option_spec::advanced);
 
     parser.add_option(config.output_filename, 'o', "outfile",
                       "An output file name for the binning results.");
@@ -48,7 +48,7 @@ void set_up_subparser_layout(seqan3::argument_parser & parser, chopper::layout::
     using aggregate_by_type = std::remove_cvref_t<decltype(config.aggregate_by_column)>;
     parser.add_option(config.aggregate_by_column, 'y', "aggregate-by",
                       "Which column do you want to aggregate your files by? Start counting your columns from 0!",
-                      seqan3::option_spec::standard,
+                      seqan3::option_spec::hidden,
                       seqan3::arithmetic_range_validator{aggregate_by_type{2},
                                                          std::numeric_limits<aggregate_by_type>::max()});
 
@@ -167,10 +167,10 @@ size_t determine_best_number_of_technical_bins(chopper::layout::data_store & dat
         if (!t_max_64_memory)
             t_max_64_memory = global_stats.total_hibf_size_in_byte();
 
-        double const relative_memory_size = global_stats.total_hibf_size_in_byte() / 
+        double const relative_memory_size = global_stats.total_hibf_size_in_byte() /
                                             static_cast<double>(t_max_64_memory);
         double const query_time_memory_usage_prod = expected_HIBF_query_cost * relative_memory_size;
-        
+
         if (config.output_statistics)
         {
             std::cout << "#T_Max:" << t_max << '\n'
