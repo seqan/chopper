@@ -142,9 +142,20 @@ size_t determine_best_number_of_technical_bins(chopper::layout::data_store & dat
 
     size_t const total_kmer_count = std::accumulate(data.kmer_counts.begin(), data.kmer_counts.end(), size_t{});
 
+    std::set<size_t> potential_t_max{};
+
+    for (size_t t_max = 64; t_max <= config.t_max; t_max *= 2)
+        potential_t_max.insert(t_max);
+
+    // Additionally, add the t_max that is closest to the sqrt() of the number of 
+    // user bins, as it is expected to evenly spread bins and may perform well.
+    size_t const user_bin_count{std::ranges::size(data.kmer_counts)};
+    size_t const sqrt_t_max{next_multiple_of_64(std::ceil(std::sqrt(user_bin_count)))};
+    potential_t_max.insert(sqrt_t_max);
+
     size_t t_max_64_memory{};
 
-    for (size_t t_max = 64, total_t_max = config.t_max; t_max <= total_t_max; t_max *= 2)
+    for (size_t const t_max : potential_t_max)
     {
         // reset state for the binning algorithm and save output buffer
         std::stringstream output_buffer_tmp;
