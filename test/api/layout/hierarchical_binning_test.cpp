@@ -47,7 +47,7 @@ TEST(hierarchical_binning_test, small_example)
     chopper::layout::hibf_statistics global_stats_dummy{};
     data.stats = &global_stats_dummy.top_level_ibf;
     chopper::layout::hierarchical_binning algo{data, config};
-    EXPECT_EQ(std::get<0>(algo.execute()), 1u); // #HIGH_LEVEL_IBF max_bin_id:3
+    EXPECT_EQ(algo.execute(), 1u); // #HIGH_LEVEL_IBF max_bin_id:3
 
     std::string expected_file
     {
@@ -84,7 +84,7 @@ TEST(hierarchical_binning_test, another_example)
     data.stats = &global_stats_dummy.top_level_ibf;
 
     chopper::layout::hierarchical_binning algo{data, config};
-    EXPECT_EQ(std::get<0>(algo.execute()), 1u); // #HIGH_LEVEL_IBF max_bin_id:1
+    EXPECT_EQ(algo.execute(), 1u); // #HIGH_LEVEL_IBF max_bin_id:1
 
     std::string expected_file
     {
@@ -121,7 +121,7 @@ TEST(hierarchical_binning_test, high_level_max_bin_id_is_0)
     data.stats = &global_stats_dummy.top_level_ibf;
 
     chopper::layout::hierarchical_binning algo{data, config};
-    EXPECT_EQ(std::get<0>(algo.execute()), 0u); // #HIGH_LEVEL_IBF max_bin_id:1
+    EXPECT_EQ(algo.execute(), 0u); // #HIGH_LEVEL_IBF max_bin_id:1
 
     std::string expected_file
     {
@@ -153,7 +153,7 @@ TEST(hierarchical_binning_test, knuts_example)
     data.stats = &global_stats_dummy.top_level_ibf;
 
     chopper::layout::hierarchical_binning algo{data, config};
-    EXPECT_EQ(std::get<0>(algo.execute()), 1u);
+    EXPECT_EQ(algo.execute(), 1u);
 
     std::string expected_file
     {
@@ -187,7 +187,7 @@ TEST(hierarchical_binning_test, four_level_hibf)
     data.stats = &global_stats_dummy.top_level_ibf;
 
     chopper::layout::hierarchical_binning algo{data, config};
-    EXPECT_EQ(std::get<0>(algo.execute()), 1u); // #HIGH_LEVEL_IBF max_bin_id:1
+    EXPECT_EQ(algo.execute(), 1u); // #HIGH_LEVEL_IBF max_bin_id:1
 
     std::string expected_file
     {
@@ -225,7 +225,7 @@ TEST(hierarchical_binning_test, tb0_is_a_merged_bin)
     data.stats = &global_stats_dummy.top_level_ibf;
 
     chopper::layout::hierarchical_binning algo{data, config};
-    EXPECT_EQ(std::get<0>(algo.execute()), 0u);
+    EXPECT_EQ(algo.execute(), 0u);
 
     std::string expected_file
     {
@@ -260,7 +260,7 @@ TEST(hierarchical_binning_test, tb0_is_a_merged_bin_with_debug)
     data.stats = &global_stats_dummy.top_level_ibf;
 
     chopper::layout::hierarchical_binning algo{data, config};
-    EXPECT_EQ(std::get<0>(algo.execute()), 0u);
+    EXPECT_EQ(algo.execute(), 0u);
 
     std::string expected_file
     {
@@ -294,7 +294,7 @@ TEST(hierarchical_binning_test, tb0_is_a_merged_bin_and_leads_to_recursive_call)
     data.stats = &global_stats_dummy.top_level_ibf;
 
     chopper::layout::hierarchical_binning algo{data, config};
-    EXPECT_EQ(std::get<0>(algo.execute()), 0u);
+    EXPECT_EQ(algo.execute(), 0u);
 
     std::string expected_file
     {

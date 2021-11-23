@@ -62,7 +62,7 @@ public:
     }
 
     //!\brief Executes the hierarchical binning algorithm and layouts user bins into technical bins.
-    std::tuple<size_t, double> execute()
+    size_t execute()
     {
         assert(data != nullptr);
         assert(data->output_buffer != nullptr);
@@ -283,8 +283,8 @@ private:
     }
 
     //!\brief Backtracks the trace matrix and writes the resulting binning into the output file.
-    std::tuple<size_t, double> backtracking(std::vector<std::vector<size_t>> const & matrix,
-                                            std::vector<std::vector<std::pair<size_t, size_t>>> const & trace)
+    size_t backtracking(std::vector<std::vector<size_t>> const & matrix,
+                        std::vector<std::vector<std::pair<size_t, size_t>>> const & trace)
     {
         assert(data != nullptr);
         assert(data->output_buffer != nullptr);
@@ -310,7 +310,6 @@ private:
         size_t high_level_max_id{};   // the id of the technical bin with maximal size
         size_t high_level_max_size{}; // the maximum technical bin size seen so far
         size_t bin_id{};              // the current bin that is processed, we start naming the bins here!
-        double total_query_cost{};    // The total query cost of all k-mers (debug information).
 
         // process the trace starting at the bottom right call until you arrive at the first row or column
         while (trace_j > 0u && trace_i > 0u)
@@ -342,8 +341,8 @@ private:
                 trace_i = next_i;
                 trace_j = next_j; // unneccessary?
 
-                total_query_cost += process_merged_bin(libf_data, *data, bin_id, trace_j, j, kmer_count, optimal_score,
-                                                       interpolated_cost, num_contained_ubs);
+                process_merged_bin(libf_data, *data, bin_id, trace_j, j, kmer_count, optimal_score,
+                                   interpolated_cost, num_contained_ubs);
 
                 update_max_id(high_level_max_id, high_level_max_size, bin_id, kmer_count);
                 // std::cout << "]: " << kmer_count << std::endl;
@@ -352,7 +351,7 @@ private:
             {
                 size_t const kmer_count_per_bin = kmer_count / number_of_bins; // round down
 
-                total_query_cost += (data->previous.cost + interpolated_cost) * kmer_count;
+                data->total_query_cost += (data->previous.cost + interpolated_cost) * kmer_count;
 
                 // add split bin to ibf statistics
                 data->stats->emplace_back(hibf_statistics::bin_kind::split, kmer_count_per_bin, 1ul, number_of_bins);
@@ -395,8 +394,8 @@ private:
             assert(trace_j == 0);
             assert(kmer_count == std::accumulate(libf_data.kmer_counts.begin(), libf_data.kmer_counts.end(), 0u));
 
-            total_query_cost += process_merged_bin(libf_data, *data, bin_id, trace_j, j, kmer_count, optimal_score,
-                                                    interpolated_cost, num_contained_ubs);
+            process_merged_bin(libf_data, *data, bin_id, trace_j, j, kmer_count, optimal_score,
+                               interpolated_cost, num_contained_ubs);
 
             update_max_id(high_level_max_id, high_level_max_size, bin_id, kmer_count);
 
@@ -411,7 +410,7 @@ private:
             size_t const number_of_tbs = trace_i + 1;
             size_t const average_bin_size = kmer_count / number_of_tbs;
 
-            total_query_cost += (data->previous.cost + interpolated_cost) * kmer_count;
+            data->total_query_cost += (data->previous.cost + interpolated_cost) * kmer_count;
 
             // add split bin to ibf statistics
             data->stats->emplace_back(hibf_statistics::bin_kind::split, average_bin_size, 1ul, number_of_tbs);
@@ -425,7 +424,7 @@ private:
             // std::cout << "split " << trace_j << " into " << trace_i << ": " << kmer_count / number_of_tbs << std::endl;
         }
 
-        return std::make_tuple(high_level_max_id, total_query_cost);
+        return high_level_max_id;
     }
 
     std::string to_string_with_precision(double const value) const
@@ -449,15 +448,15 @@ private:
         return libf_data;
     }
 
-    double process_merged_bin(data_store & libf_data,
-                              data_store & data,
-                              size_t const bin_id,
-                              int const trace_j,
-                              int const j,
-                              size_t const kmer_count,
-                              size_t const optimal_score,
-                              double const interpolated_cost,
-                              double const num_contained_ubs) const
+    void process_merged_bin(data_store & libf_data,
+                            data_store & data,
+                            size_t const bin_id,
+                            int const trace_j,
+                            int const j,
+                            size_t const kmer_count,
+                            size_t const optimal_score,
+                            double const interpolated_cost,
+                            double const num_contained_ubs) const
     {
         update_libf_data(libf_data, data, bin_id, interpolated_cost);
 
@@ -473,11 +472,9 @@ private:
         libf_data.stats = &bin_stats.child_level;
 
         // now do the binning for the low-level IBF:
-        auto [lower_max_bin, lower_cost] = add_lower_level(libf_data, kmer_count, interpolated_cost);
+        size_t const lower_max_bin = add_lower_level(libf_data, kmer_count, interpolated_cost);
 
         *data.header_buffer << "#" << merged_ibf_name << " max_bin_id:" << lower_max_bin << '\n';
-
-        return lower_cost;
     }
 
     void update_libf_data(data_store & libf_data, data_store const & data, size_t const bin_id, double const cost) const
@@ -504,9 +501,7 @@ private:
         libf_data.previous.tmax += (is_top_level ? "" : ";") + std::to_string(num_technical_bins);
     }
 
-    std::pair<size_t, double>  add_lower_level(data_store & libf_data,
-                                               size_t const kmer_count,
-                                               double interpolated_cost) const
+    size_t add_lower_level(data_store & libf_data, size_t const kmer_count, double interpolated_cost) const
     {
         size_t merged_max_bin_id;
         double lower_level_cost;
@@ -514,9 +509,8 @@ private:
         if (libf_data.kmer_counts.size() > config.t_max)
         {
             // recursively call hierarchical binning if there are still too many UBs
-            auto const && [bin_id, cost] = hierarchical_binning{libf_data, config}.execute();
-            merged_max_bin_id = bin_id;
-            lower_level_cost = cost;
+            merged_max_bin_id = hierarchical_binning{libf_data, config}.execute();
+            lower_level_cost = libf_data.total_query_cost;
         }
         else
         {
@@ -528,7 +522,8 @@ private:
                                * kmer_count;
         }
 
-        return {merged_max_bin_id, lower_level_cost};
+        data->total_query_cost += lower_level_cost;
+        return merged_max_bin_id;
     }
 
     void update_max_id(size_t & max_id, size_t & max_size, size_t const new_id, size_t const new_size) const

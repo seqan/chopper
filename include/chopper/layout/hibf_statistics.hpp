@@ -141,14 +141,14 @@ public:
     {
         if (summaries.empty())
             gather_statistics(top_level_ibf, 0);
-        
+
         size_t total_size{};
-        
+
         // go through each level and collect the memory sizes
         for (auto const & [level, summary] : summaries)
         {
             (void) level;
-            
+
             total_size += std::reduce(summary.ibf_mem_size.begin(), summary.ibf_mem_size.end());
         }
 
