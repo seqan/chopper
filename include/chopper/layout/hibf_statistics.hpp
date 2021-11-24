@@ -36,7 +36,10 @@ public:
     struct bin; // forward declaration
 
     //!\brief A representation of an IBF level that gathers information about bins in an IBF.
-    using level = std::vector<bin>;
+    struct level
+    {
+        std::vector<bin> bins;
+    };
 
     //!\brief The kind of bin that is stored.
     enum class bin_kind
@@ -141,14 +144,14 @@ public:
     {
         if (summaries.empty())
             gather_statistics(top_level_ibf, 0);
-        
+
         size_t total_size{};
-        
+
         // go through each level and collect the memory sizes
         for (auto const & [level, summary] : summaries)
         {
             (void) level;
-            
+
             total_size += std::reduce(summary.ibf_mem_size.begin(), summary.ibf_mem_size.end());
         }
 
@@ -231,7 +234,7 @@ private:
                num_merged_tbs{}, num_split_ubs{}, num_merged_ubs{}, max_split_tb_span{},
                split_tb_kmers{}, max_ubs_in_merged{}, split_tb_corr_kmers{};
 
-        for (bin const & current_bin : curr_level)
+        for (bin const & current_bin : curr_level.bins)
         {
             size_t const corrected_cardinality = std::ceil(current_bin.cardinality *
                                                            (*fp_correction)[current_bin.num_spanning_tbs]);

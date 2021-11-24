@@ -24,7 +24,7 @@ TEST(hibf_statistics, only_merged_on_top_level)
 
     for (size_t i = 0; i < num_top_level_bins; ++i)
     {
-        chopper::layout::hibf_statistics::bin & bin = stats.top_level_ibf.emplace_back(
+        chopper::layout::hibf_statistics::bin & bin = stats.top_level_ibf.bins.emplace_back(
             chopper::layout::hibf_statistics::bin_kind::merged,
             cardinality,
             top_level_num_contained_user_bins,
@@ -33,7 +33,7 @@ TEST(hibf_statistics, only_merged_on_top_level)
 
         for (size_t j = 0; j < top_level_num_contained_user_bins; ++j)
         {
-            bin.child_level.emplace_back(
+            bin.child_level.bins.emplace_back(
                 chopper::layout::hibf_statistics::bin_kind::split,
                 cardinality,
                 1u, // split bin always contains only a single user bin
