@@ -74,11 +74,17 @@ public:
         }
     };
 
+    //!\brief Gather all statistics to have all members ready.
+    void finalize()
+    {
+        gather_statistics(top_level_ibf, 0);
+    }
+
     //!\brief Prints a tab-separated summary of the statistics of this HIBF to the command line.
     void print_summary()
     {
         if (summaries.empty())
-            gather_statistics(top_level_ibf, 0);
+            finalize();
 
         std::cout << std::fixed << std::setprecision(2);
 
