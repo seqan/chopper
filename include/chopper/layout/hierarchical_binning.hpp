@@ -351,7 +351,7 @@ private:
             {
                 size_t const kmer_count_per_bin = kmer_count / number_of_bins; // round down
 
-                data->total_query_cost += (data->previous.cost + interpolated_cost) * kmer_count;
+                data->total_query_cost += (data->previous.cost + interpolated_cost) * kmer_count /* user bin weight */;
 
                 // add split bin to ibf statistics
                 data->stats->bins.emplace_back(hibf_statistics::bin_kind::split, kmer_count_per_bin, 1ul, number_of_bins);
@@ -503,6 +503,8 @@ private:
         {
             // recursively call hierarchical binning if there are still too many UBs
             merged_max_bin_id = hierarchical_binning{libf_data, config}.execute();
+            // libf_data.previous.cost contains cost including the current level (done in update_libf_data)
+            // so now we just have to add whats been added up in the recursive hierarchical_binning call.
             lower_level_cost = libf_data.total_query_cost;
         }
         else
@@ -510,8 +512,8 @@ private:
             // use simple binning to distribute remaining UBs
             simple_binning algo{libf_data, 0, config.debug};
             merged_max_bin_id = algo.execute();
-            lower_level_cost = (data->previous.cost + ibf_query_cost::interpolated(num_technical_bins)
-                               + ibf_query_cost::interpolated(algo.get_num_technical_bins()))
+            lower_level_cost = (libf_data.previous.cost /* cost where we came from and current ones */
+                               + ibf_query_cost::interpolated(algo.get_num_technical_bins())) /* cost of lower level */
                                * kmer_count;
         }
 
