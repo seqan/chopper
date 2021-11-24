@@ -341,7 +341,7 @@ private:
                 trace_i = next_i;
                 trace_j = next_j; // unneccessary?
 
-                process_merged_bin(libf_data, *data, bin_id, trace_j, j, kmer_count, optimal_score,
+                process_merged_bin(libf_data, bin_id, trace_j, j, kmer_count, optimal_score,
                                    interpolated_cost, num_contained_ubs);
 
                 update_max_id(high_level_max_id, high_level_max_size, bin_id, kmer_count);
@@ -394,7 +394,7 @@ private:
             assert(trace_j == 0);
             assert(kmer_count == std::accumulate(libf_data.kmer_counts.begin(), libf_data.kmer_counts.end(), 0u));
 
-            process_merged_bin(libf_data, *data, bin_id, trace_j, j, kmer_count, optimal_score,
+            process_merged_bin(libf_data, bin_id, trace_j, j, kmer_count, optimal_score,
                                interpolated_cost, num_contained_ubs);
 
             update_max_id(high_level_max_id, high_level_max_size, bin_id, kmer_count);
@@ -449,7 +449,6 @@ private:
     }
 
     void process_merged_bin(data_store & libf_data,
-                            data_store & data,
                             size_t const bin_id,
                             int const trace_j,
                             int const j,
@@ -458,42 +457,41 @@ private:
                             double const interpolated_cost,
                             double const num_contained_ubs) const
     {
-        update_libf_data(libf_data, data, bin_id, interpolated_cost);
+        update_libf_data(libf_data, bin_id, interpolated_cost);
 
         if (config.debug)
-            update_debug_libf_data(libf_data, data, kmer_count, optimal_score, num_technical_bins);
+            update_debug_libf_data(libf_data, kmer_count, optimal_score, num_technical_bins);
 
         std::string const merged_ibf_name{std::string{merged_bin_prefix} + "_" + libf_data.previous.bin_indices};
 
         // add merged bin to ibf statistics
-        uint64_t const cardinality = config.estimate_union ? data.union_estimates[j][trace_j + 1] : kmer_count;
-        hibf_statistics::bin & bin_stats = data.stats->emplace_back(hibf_statistics::bin_kind::merged,
+        uint64_t const cardinality = config.estimate_union ? data->union_estimates[j][trace_j + 1] : kmer_count;
+        hibf_statistics::bin & bin_stats = data->stats->emplace_back(hibf_statistics::bin_kind::merged,
                                             cardinality, num_contained_ubs, 1ul);
         libf_data.stats = &bin_stats.child_level;
 
         // now do the binning for the low-level IBF:
         size_t const lower_max_bin = add_lower_level(libf_data, kmer_count, interpolated_cost);
 
-        *data.header_buffer << "#" << merged_ibf_name << " max_bin_id:" << lower_max_bin << '\n';
+        *data->header_buffer << "#" << merged_ibf_name << " max_bin_id:" << lower_max_bin << '\n';
     }
 
-    void update_libf_data(data_store & libf_data, data_store const & data, size_t const bin_id, double const cost) const
+    void update_libf_data(data_store & libf_data, size_t const bin_id, double const cost) const
     {
-        bool const is_top_level = data.previous.empty();
+        bool const is_top_level = data->previous.empty();
 
-        libf_data.previous = data.previous;
+        libf_data.previous = data->previous;
         libf_data.previous.bin_indices += (is_top_level ? "" : ";") + std::to_string(bin_id);
         libf_data.previous.num_of_bins  += (is_top_level ? "" : ";") + std::string{"1"};
         libf_data.previous.cost += cost;
     }
 
     void update_debug_libf_data(data_store & libf_data,
-                                data_store const & data,
                                 size_t const kmer_count,
                                 size_t const optimal_score,
                                 size_t const num_technical_bins) const
     {
-        bool const is_top_level = data.previous.empty();
+        bool const is_top_level = data->previous.empty();
 
         libf_data.previous.estimated_sizes += (is_top_level ? "" : ";") + std::to_string(kmer_count);
         libf_data.previous.optimal_score += (is_top_level ? "" : ";") + std::to_string(optimal_score);
