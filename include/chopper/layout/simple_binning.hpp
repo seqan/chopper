@@ -222,7 +222,7 @@ public:
             size_t const kmer_count_per_bin = (kmer_count + number_of_bins - 1) / number_of_bins; // round up
 
             // add split bin to ibf statistics
-            data->stats->emplace_back(hibf_statistics::bin_kind::split, kmer_count_per_bin, 1ul, number_of_bins);
+            data->stats->bins.emplace_back(hibf_statistics::bin_kind::split, kmer_count_per_bin, 1ul, number_of_bins);
 
             if (!debug)
                 print_result_line(*data, trace_j, bin_id, number_of_bins);
@@ -245,7 +245,7 @@ public:
         size_t const kmer_count_per_bin =  (kmer_count + trace_i - 1) / trace_i;
 
         // add split bin to ibf statistics
-        data->stats->emplace_back(hibf_statistics::bin_kind::split, kmer_count_per_bin, 1ul, trace_i);
+        data->stats->bins.emplace_back(hibf_statistics::bin_kind::split, kmer_count_per_bin, 1ul, trace_i);
 
         if (kmer_count_per_bin > max_size)
         {

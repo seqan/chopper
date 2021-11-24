@@ -354,7 +354,7 @@ private:
                 data->total_query_cost += (data->previous.cost + interpolated_cost) * kmer_count;
 
                 // add split bin to ibf statistics
-                data->stats->emplace_back(hibf_statistics::bin_kind::split, kmer_count_per_bin, 1ul, number_of_bins);
+                data->stats->bins.emplace_back(hibf_statistics::bin_kind::split, kmer_count_per_bin, 1ul, number_of_bins);
 
                 if (!config.debug)
                     print_result_line(*data, trace_j, bin_id, number_of_bins);
@@ -412,7 +412,7 @@ private:
             data->total_query_cost += (data->previous.cost + interpolated_cost) * kmer_count;
 
             // add split bin to ibf statistics
-            data->stats->emplace_back(hibf_statistics::bin_kind::split, average_bin_size, 1ul, number_of_tbs);
+            data->stats->bins.emplace_back(hibf_statistics::bin_kind::split, average_bin_size, 1ul, number_of_tbs);
 
             if (!config.debug)
                 print_result_line(*data, 0, bin_id, number_of_tbs);
@@ -464,7 +464,7 @@ private:
 
         // add merged bin to ibf statistics
         uint64_t const cardinality = config.estimate_union ? data->union_estimates[j][trace_j + 1] : kmer_count;
-        hibf_statistics::bin & bin_stats = data->stats->emplace_back(hibf_statistics::bin_kind::merged,
+        hibf_statistics::bin & bin_stats = data->stats->bins.emplace_back(hibf_statistics::bin_kind::merged,
                                             cardinality, num_contained_ubs, 1ul);
         libf_data.stats = &bin_stats.child_level;
 
