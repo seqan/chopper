@@ -8,6 +8,7 @@
 #include <chopper/layout/ibf_query_cost.hpp>
 #include <chopper/layout/configuration.hpp>
 #include <chopper/layout/print_result_line.hpp>
+#include <chopper/layout/arrange_user_bins.hpp>
 #include <chopper/layout/simple_binning.hpp>
 
 namespace chopper::layout
@@ -70,7 +71,7 @@ public:
 
         static constexpr size_t max_size_t{std::numeric_limits<size_t>::max()};
 
-        data->arrange_user_bins(config);
+        arrange_user_bins(*data, config);
 
         // technical bins (outer) = rows; user bins (inner) = columns
         std::vector<std::vector<size_t>> matrix(num_technical_bins,
