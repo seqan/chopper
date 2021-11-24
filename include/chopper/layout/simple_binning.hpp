@@ -227,7 +227,7 @@ public:
                                            kmer_count_per_bin,
                                            1ul,
                                            number_of_bins,
-                                           (data->previous.cost + ibf_query_cost::interpolated(num_technical_bins)) * kmer_count);
+                                           (data->stats->previous_query_cost + ibf_query_cost::interpolated(num_technical_bins)) * kmer_count);
 
             if (!debug)
                 print_result_line(*data, trace_j, bin_id, number_of_bins);
@@ -254,7 +254,7 @@ public:
                                        kmer_count_per_bin,
                                        1ul,
                                        trace_i,
-                                       (data->previous.cost + ibf_query_cost::interpolated(num_technical_bins)) * kmer_count);
+                                       (data->stats->previous_query_cost + ibf_query_cost::interpolated(num_technical_bins)) * kmer_count);
 
         if (kmer_count_per_bin > max_size)
         {

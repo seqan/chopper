@@ -39,6 +39,9 @@ public:
     struct level
     {
         std::vector<bin> bins;
+
+        // if the level represents some lower level IBF, this tracks the estimated query costs so far.
+        double previous_query_cost{0.0};
     };
 
     //!\brief The kind of bin that is stored.

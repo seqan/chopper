@@ -15,7 +15,6 @@ struct previous_level
     std::string optimal_score;
     std::string correction;
     std::string tmax;
-    double cost{};
 
     bool empty() const
     {

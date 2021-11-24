@@ -356,7 +356,7 @@ private:
                                                kmer_count_per_bin,
                                                1ul,
                                                number_of_bins,
-                                               (data->previous.cost + interpolated_cost) * kmer_count);
+                                               (data->stats->previous_query_cost + interpolated_cost) * kmer_count);
 
                 if (!config.debug)
                     print_result_line(*data, trace_j, bin_id, number_of_bins);
@@ -416,7 +416,7 @@ private:
                                            average_bin_size,
                                            1ul,
                                            number_of_tbs,
-                                           (data->previous.cost + interpolated_cost) * kmer_count);
+                                           (data->stats->previous_query_cost + interpolated_cost) * kmer_count);
 
             if (!config.debug)
                 print_result_line(*data, 0, bin_id, number_of_tbs);
@@ -471,6 +471,7 @@ private:
         hibf_statistics::bin & bin_stats = data->stats->bins.emplace_back(hibf_statistics::bin_kind::merged,
                                             cardinality, num_contained_ubs, 1ul);
         libf_data.stats = &bin_stats.child_level;
+        libf_data.stats->previous_query_cost += ibf_query_cost::interpolated(num_technical_bins);
 
         // now do the binning for the low-level IBF:
         size_t const lower_max_bin = add_lower_level(libf_data);
@@ -484,8 +485,7 @@ private:
 
         libf_data.previous = data->previous;
         libf_data.previous.bin_indices += (is_top_level ? "" : ";") + std::to_string(bin_id);
-        libf_data.previous.num_of_bins  += (is_top_level ? "" : ";") + std::string{"1"};
-        libf_data.previous.cost += ibf_query_cost::interpolated(num_technical_bins); // needed for statistics
+        libf_data.previous.num_of_bins += (is_top_level ? "" : ";") + std::string{"1"};
     }
 
     void update_debug_libf_data(data_store & libf_data, size_t const kmer_count, size_t const optimal_score) const
