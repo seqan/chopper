@@ -56,6 +56,7 @@ public:
         size_t const cardinality; //!< The size/weight of the bin (either a kmer count or hll sketch estimation).
         size_t const num_contained_ubs; //!< [MERGED] How many UBs are merged within this TB.
         size_t const num_spanning_tbs; //!< [SPLIT] How many TBs are used for this sindle UB.
+        double const estimated_query_cost; //!< [SPLIT] Whats the estimated query cost of querying all kmers of this UB.
 
         level child_level; //!< [MERGED] The lower level ibf statistics.
 
@@ -66,8 +67,16 @@ public:
         bin & operator=(bin &&) = default; //!< Defaulted.
         ~bin() = default; //!< Defaulted.
 
-        bin(bin_kind const kind_, size_t const card, size_t const contained_ubs, size_t const spanning_tbs) :
-            kind{kind_}, cardinality{card}, num_contained_ubs{contained_ubs}, num_spanning_tbs{spanning_tbs}
+        bin(bin_kind const kind_,
+            size_t const card,
+            size_t const contained_ubs,
+            size_t const spanning_tbs,
+            double const cost = 0.0) :
+            kind{kind_},
+            cardinality{card},
+            num_contained_ubs{contained_ubs},
+            num_spanning_tbs{spanning_tbs},
+            estimated_query_cost{cost}
         {
             assert((kind == bin_kind::split  && num_contained_ubs == 1u) ||
                    (kind == bin_kind::merged && num_spanning_tbs  == 1u));
@@ -167,6 +176,9 @@ public:
     //!\brief The top level IBF of this HIBF, often starting point for recursions.
     level top_level_ibf;
 
+    //!\brief The estimated query cost of every single kmer in this HIBF.
+    double total_query_cost{0.0};
+
 private:
     //!\brief Copy of the user configuration for this HIBF.
     configuration const config{};
@@ -257,6 +269,7 @@ private:
                 split_tb_corr_kmers += corrected_cardinality * current_bin.num_spanning_tbs;
                 split_tb_kmers += current_bin.cardinality * current_bin.num_spanning_tbs;
                 max_split_tb_span = std::max(max_split_tb_span, current_bin.num_spanning_tbs);
+                total_query_cost += current_bin.estimated_query_cost;
             }
             else
             {

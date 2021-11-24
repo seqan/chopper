@@ -169,12 +169,13 @@ size_t determine_best_number_of_technical_bins(chopper::layout::data_store & dat
 
         chopper::layout::hibf_statistics global_stats{config, data.fp_correction};
         data.stats = &global_stats.top_level_ibf;
-        data.total_query_cost = 0.0;
 
         // execute the actual algorithm
         size_t const max_hibf_id_tmp = chopper::layout::hierarchical_binning{data, config}.execute();
 
-        double const expected_HIBF_query_cost = data.total_query_cost / total_kmer_count;
+        global_stats.finalize();
+
+        double const expected_HIBF_query_cost = global_stats.total_query_cost / total_kmer_count;
 
         if (!t_max_64_memory)
             t_max_64_memory = global_stats.total_hibf_size_in_byte();
