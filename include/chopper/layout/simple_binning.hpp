@@ -206,6 +206,8 @@ public:
         // print_matrix(trace, num_technical_bins, num_user_bins, std::numeric_limits<size_t>::max());
 
         // backtracking
+        data->stats->current_query_cost += ibf_query_cost::interpolated(num_technical_bins);
+
         size_t trace_i = num_technical_bins - 1;
         size_t trace_j = num_user_bins - 1;
 
@@ -227,7 +229,7 @@ public:
                                            kmer_count_per_bin,
                                            1ul,
                                            number_of_bins,
-                                           (data->stats->previous_query_cost + ibf_query_cost::interpolated(num_technical_bins)) * kmer_count);
+                                           data->stats->current_query_cost * kmer_count);
 
             if (!debug)
                 print_result_line(*data, trace_j, bin_id, number_of_bins);
@@ -254,7 +256,7 @@ public:
                                        kmer_count_per_bin,
                                        1ul,
                                        trace_i,
-                                       (data->stats->previous_query_cost + ibf_query_cost::interpolated(num_technical_bins)) * kmer_count);
+                                       data->stats->current_query_cost * kmer_count);
 
         if (kmer_count_per_bin > max_size)
         {

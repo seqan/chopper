@@ -38,10 +38,11 @@ public:
     //!\brief A representation of an IBF level that gathers information about bins in an IBF.
     struct level
     {
+        //!\brief The bins of the current IBF level. May be split or merged bins.
         std::vector<bin> bins;
 
-        // if the level represents some lower level IBF, this tracks the estimated query costs so far.
-        double previous_query_cost{0.0};
+        //!\brief The query cost to arrive at this IBF (updated before backtracking respective DP).
+        double current_query_cost{0.0};
     };
 
     //!\brief The kind of bin that is stored.
