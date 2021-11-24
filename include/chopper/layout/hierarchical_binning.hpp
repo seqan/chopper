@@ -457,7 +457,7 @@ private:
         update_libf_data(libf_data, bin_id);
 
         if (config.debug)
-            update_debug_libf_data(libf_data, kmer_count, optimal_score, num_technical_bins);
+            update_debug_libf_data(libf_data, kmer_count, optimal_score);
 
         std::string const merged_ibf_name{std::string{merged_bin_prefix} + "_" + libf_data.previous.bin_indices};
 
@@ -483,10 +483,7 @@ private:
         libf_data.previous.cost += ibf_query_cost::interpolated(num_technical_bins);
     }
 
-    void update_debug_libf_data(data_store & libf_data,
-                                size_t const kmer_count,
-                                size_t const optimal_score,
-                                size_t const num_technical_bins) const
+    void update_debug_libf_data(data_store & libf_data, size_t const kmer_count, size_t const optimal_score) const
     {
         bool const is_top_level = data->previous.empty();
 
