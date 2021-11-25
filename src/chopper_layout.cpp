@@ -290,6 +290,20 @@ int execute(seqan3::argument_parser & parser)
 
     // brief Write the output to the result file.
     std::ofstream fout{config.output_filename};
+    // output configuration information
+    fout << "## Data input: " << config.data_file.string() << '\n'
+         << "## False positive rate: " << config.fp_rate << '\n'
+         << "## Number of hash fucntions: " << config.num_hash_functions << '\n'
+         << "## Tmax: " << config.t_max << '\n'
+         << "## Alpha: " << config.alpha << '\n';
+    if (!config.hll_dir.empty())
+    {
+        fout << "## HLL-input: " << config.hll_dir.string() << '\n'
+             << "## HLL-max-ratio: " << config.max_ratio << '\n'
+             << "## HLL-estimate-union: " << config.estimate_union << '\n'
+             << "## HLL-rearrange-bins: " << config.rearrange_bins << '\n';
+    }
+    // output layout header
     fout << "#" << chopper::hibf_prefix << " max_bin_id:" << max_hibf_id << '\n';
     fout << header_buffer.str();
     fout << output_buffer.str();

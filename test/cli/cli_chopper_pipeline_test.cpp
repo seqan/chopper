@@ -85,6 +85,11 @@ TEST_F(cli_test, chopper_pipeline)
 
     std::string expected_file
     {
+        "## Data input: " + count_filename.get_path().string() + "\n"
+        "## False positive rate: 0.05\n"
+        "## Number of hash fucntions: 2\n"
+        "## Tmax: 64\n"
+        "## Alpha: 1.2\n"
         "#HIGH_LEVEL_IBF max_bin_id:0\n"
         "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\n" +
         seq_filename + "\t0\t22\n" +
@@ -201,6 +206,15 @@ TEST_F(cli_test, chopper_hll_pipeline)
 
     std::string expected_file
     {
+        "## Data input: " + count_filename.get_path().string() + "\n"
+        "## False positive rate: 0.05\n"
+        "## Number of hash fucntions: 2\n"
+        "## Tmax: 64\n"
+        "## Alpha: 1.2\n"
+        "## HLL-input: " + hll_dir.path().string() + "\n"
+        "## HLL-max-ratio: 0.5\n"
+        "## HLL-estimate-union: 1\n"
+        "## HLL-rearrange-bins: 1\n"
         "#HIGH_LEVEL_IBF max_bin_id:0\n"
         "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\n" +
         seq3_filename + "\t0\t54\n" +

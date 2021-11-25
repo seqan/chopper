@@ -61,6 +61,14 @@ TEST(execute_hll_test, few_ubs)
 
     std::vector<std::string> const expected_components
     {
+        {"## Data input: " + count_file.get_path().string()},
+        {"## False positive rate: 0.05"},
+        {"## Number of hash fucntions: 2"},
+        {"## Tmax: 64"},
+        {"## Alpha: 1.2"},
+        // {"## HLL-max-ratio: 1.2"},
+        // {"## HLL-estimate-union: 1"},
+        // {"## HLL-rearrange-bins: 1"},
         {"#HIGH_LEVEL_IBF max_bin_id:0"},
         {"#FILES\tBIN_INDICES\tNUMBER_OF_BINS"},
         {seq1_filename + "\t0\t48"},
@@ -226,6 +234,14 @@ TEST(execute_hll_test, many_ubs)
 
     std::vector<std::string> const expected_components
     {
+        {"## Data input: " + count_file.get_path().string()},
+        {"## False positive rate: 0.05"},
+        {"## Number of hash fucntions: 2"},
+        {"## Tmax: 64"},
+        {"## Alpha: 1.2"},
+        // {"## HLL-max-ratio: 1.2"},
+        // {"## HLL-estimate-union: 1"},
+        // {"## HLL-rearrange-bins: 1"},
         {"#HIGH_LEVEL_IBF max_bin_id:10"},
         {"#MERGED_BIN_10 max_bin_id:0"},
         {"#MERGED_BIN_11 max_bin_id:0"},

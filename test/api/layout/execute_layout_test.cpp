@@ -37,6 +37,11 @@ TEST(execute_test, few_ubs)
 
     std::string const expected_file
     {
+        "## Data input: " + count_file.get_path().string() + "\n"
+        "## False positive rate: 0.05\n"
+        "## Number of hash fucntions: 2\n"
+        "## Tmax: 64\n"
+        "## Alpha: 1.2\n"
         "#HIGH_LEVEL_IBF max_bin_id:6\n"
         "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\n"
         "seq7\t0\t6\n"
@@ -82,6 +87,11 @@ TEST(execute_test, few_ubs_debug)
 
     std::string const expected_file
     {
+        "## Data input: " + count_file.get_path().string() + "\n"
+        "## False positive rate: 0.05\n"
+        "## Number of hash fucntions: 2\n"
+        "## Tmax: 64\n"
+        "## Alpha: 1.2\n"
         "#HIGH_LEVEL_IBF max_bin_id:6\n"
         "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\tEST_MAX_TB_SIZES\tSCORE\tCORR\tT_MAX\n"
         "seq7\t0\t6\t83\t278\t2.86\t64\n"
@@ -132,6 +142,11 @@ TEST(execute_test, few_ubs_with_aggregatation)
 
     std::string const expected_file
     {
+        "## Data input: " + count_file.get_path().string() + "\n"
+        "## False positive rate: 0.05\n"
+        "## Number of hash fucntions: 2\n"
+        "## Tmax: 64\n"
+        "## Alpha: 1.2\n"
         "#HIGH_LEVEL_IBF max_bin_id:6\n"
         "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\n"
         "seq7\t0\t6\n"
@@ -172,6 +187,11 @@ TEST(execute_test, many_ubs_debug)
 
     std::string const expected_file
     {
+        "## Data input: " + count_file.get_path().string() + "\n"
+        "## False positive rate: 0.05\n"
+        "## Number of hash fucntions: 2\n"
+        "## Tmax: 64\n"
+        "## Alpha: 1.2\n"
         "#HIGH_LEVEL_IBF max_bin_id:0\n"
         "#MERGED_BIN_0 max_bin_id:14\n"
         "#MERGED_BIN_1 max_bin_id:14\n"
