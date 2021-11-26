@@ -13,7 +13,7 @@ struct configuration
     std::filesystem::path count_filename{};   // set internally
     std::filesystem::path sketch_directory{}; // set internally
     size_t column_index_to_cluster{1u};
-    size_t num_threads{1u};
+    size_t threads{1u};
     uint8_t k{19};
     uint8_t sketch_bits{12};
     bool disable_sketch_output{false};

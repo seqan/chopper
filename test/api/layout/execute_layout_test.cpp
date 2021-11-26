@@ -29,7 +29,7 @@ TEST(execute_test, few_ubs)
     char const * const argv[] = {"./chopper-layout",
                                  "--tmax", "64",
                                  "--input-prefix", input_prefix.get_path().c_str(),
-                                 "--output-file", layout_file.get_path().c_str()};
+                                 "--output-filename", layout_file.get_path().c_str()};
     int const argc = sizeof(argv) / sizeof(*argv);
 
     seqan3::argument_parser layout_parser{"chopper-layout", argc, argv, seqan3::update_notifications::off};
@@ -37,6 +37,34 @@ TEST(execute_test, few_ubs)
 
     std::string const expected_file
     {
+        "##CONFIG:\n"
+        "##{\n"
+        "##    \"config\": {\n"
+        "##        \"version\": 1,\n"
+        "##        \"input_prefix\": \"" + input_prefix.get_path().string() + "\",\n"
+        "##        \"count_filename\": {\n"
+        "##            \"value0\": \"" + input_prefix.get_path().string() + ".count\"\n"
+        "##        },\n"
+        "##        \"sketch_directory\": {\n"
+        "##            \"value0\": \"" + input_prefix.get_path().string() + "_sketches\"\n"
+        "##        },\n"
+        "##        \"output_filename\": {\n"
+        "##            \"value0\": \"" + layout_file.get_path().string() + "\"\n"
+        "##        },\n"
+        "##        \"tmax\": 64,\n"
+        "##        \"num_hash_functions\": 2,\n"
+        "##        \"false_positive_rate\": 0.05,\n"
+        "##        \"alpha\": 1.2,\n"
+        "##        \"max_rearrangement_ratio\": 0.5,\n"
+        "##        \"threads\": 1,\n"
+        "##        \"estimate_union\": false,\n"
+        "##        \"rearrange_user_bins\": false,\n"
+        "##        \"determine_best_tmax\": false,\n"
+        "##        \"force_all_binnings\": false,\n"
+        "##        \"output_statistics\": false\n"
+        "##    }\n"
+        "##}\n"
+        "##ENDCONFIG\n"
         "#HIGH_LEVEL_IBF max_bin_id:6\n"
         "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\n"
         "seq7\t0\t6\n"
@@ -50,7 +78,7 @@ TEST(execute_test, few_ubs)
     };
     std::string const actual_file{string_from_file(layout_file.get_path())};
 
-    EXPECT_EQ(actual_file, expected_file);
+    EXPECT_EQ(actual_file, expected_file) << actual_file;
 }
 
 TEST(execute_test, few_ubs_debug)
@@ -73,7 +101,7 @@ TEST(execute_test, few_ubs_debug)
     char const * const argv[] = {"./chopper-layout",
                                  "--tmax", "64",
                                  "--input-prefix", input_prefix.get_path().c_str(),
-                                 "--output-file", layout_file.get_path().c_str(),
+                                 "--output-filename", layout_file.get_path().c_str(),
                                  "--debug"};
     int const argc = sizeof(argv) / sizeof(*argv);
 
@@ -82,6 +110,35 @@ TEST(execute_test, few_ubs_debug)
 
     std::string const expected_file
     {
+
+        "##CONFIG:\n"
+        "##{\n"
+        "##    \"config\": {\n"
+        "##        \"version\": 1,\n"
+        "##        \"input_prefix\": \"" + input_prefix.get_path().string() + "\",\n"
+        "##        \"count_filename\": {\n"
+        "##            \"value0\": \"" + input_prefix.get_path().string() + ".count\"\n"
+        "##        },\n"
+        "##        \"sketch_directory\": {\n"
+        "##            \"value0\": \"" + input_prefix.get_path().string() + "_sketches\"\n"
+        "##        },\n"
+        "##        \"output_filename\": {\n"
+        "##            \"value0\": \"" + layout_file.get_path().string() + "\"\n"
+        "##        },\n"
+        "##        \"tmax\": 64,\n"
+        "##        \"num_hash_functions\": 2,\n"
+        "##        \"false_positive_rate\": 0.05,\n"
+        "##        \"alpha\": 1.2,\n"
+        "##        \"max_rearrangement_ratio\": 0.5,\n"
+        "##        \"threads\": 1,\n"
+        "##        \"estimate_union\": false,\n"
+        "##        \"rearrange_user_bins\": false,\n"
+        "##        \"determine_best_tmax\": false,\n"
+        "##        \"force_all_binnings\": false,\n"
+        "##        \"output_statistics\": false\n"
+        "##    }\n"
+        "##}\n"
+        "##ENDCONFIG\n"
         "#HIGH_LEVEL_IBF max_bin_id:6\n"
         "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\tEST_MAX_TB_SIZES\tSCORE\tCORR\tT_MAX\n"
         "seq7\t0\t6\t83\t278\t2.86\t64\n"
@@ -122,9 +179,9 @@ TEST(execute_test, few_ubs_with_aggregatation)
 
     char const * const argv[] = {"./chopper-layout",
                                  "--tmax", "64",
-                                 "--aggregate-by", "2", /* specification column */
+                                 "--aggregate-by-column", "2", /* specification column */
                                  "--input-prefix", input_prefix.get_path().c_str(),
-                                 "--output-file", layout_file.get_path().c_str()};
+                                 "--output-filename", layout_file.get_path().c_str()};
     int const argc = sizeof(argv) / sizeof(*argv);
 
     seqan3::argument_parser layout_parser{"chopper-layout", argc, argv, seqan3::update_notifications::off};
@@ -132,6 +189,35 @@ TEST(execute_test, few_ubs_with_aggregatation)
 
     std::string const expected_file
     {
+
+        "##CONFIG:\n"
+        "##{\n"
+        "##    \"config\": {\n"
+        "##        \"version\": 1,\n"
+        "##        \"input_prefix\": \"" + input_prefix.get_path().string() + "\",\n"
+        "##        \"count_filename\": {\n"
+        "##            \"value0\": \"" + input_prefix.get_path().string() + ".count\"\n"
+        "##        },\n"
+        "##        \"sketch_directory\": {\n"
+        "##            \"value0\": \"" + input_prefix.get_path().string() + "_sketches\"\n"
+        "##        },\n"
+        "##        \"output_filename\": {\n"
+        "##            \"value0\": \"" + layout_file.get_path().string() + "\"\n"
+        "##        },\n"
+        "##        \"tmax\": 64,\n"
+        "##        \"num_hash_functions\": 2,\n"
+        "##        \"false_positive_rate\": 0.05,\n"
+        "##        \"alpha\": 1.2,\n"
+        "##        \"max_rearrangement_ratio\": 0.5,\n"
+        "##        \"threads\": 1,\n"
+        "##        \"estimate_union\": false,\n"
+        "##        \"rearrange_user_bins\": false,\n"
+        "##        \"determine_best_tmax\": false,\n"
+        "##        \"force_all_binnings\": false,\n"
+        "##        \"output_statistics\": false\n"
+        "##    }\n"
+        "##}\n"
+        "##ENDCONFIG\n"
         "#HIGH_LEVEL_IBF max_bin_id:6\n"
         "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\n"
         "seq7\t0\t6\n"
@@ -163,7 +249,7 @@ TEST(execute_test, many_ubs_debug)
     char const * const argv[] = {"./chopper-layout",
                                  "--tmax", "64",
                                  "--input-prefix", input_prefix.get_path().c_str(),
-                                 "--output-file", layout_file.get_path().c_str(),
+                                 "--output-filename", layout_file.get_path().c_str(),
                                  "--debug"};
     int const argc = sizeof(argv) / sizeof(*argv);
 
@@ -172,6 +258,34 @@ TEST(execute_test, many_ubs_debug)
 
     std::string const expected_file
     {
+        "##CONFIG:\n"
+        "##{\n"
+        "##    \"config\": {\n"
+        "##        \"version\": 1,\n"
+        "##        \"input_prefix\": \"" + input_prefix.get_path().string() + "\",\n"
+        "##        \"count_filename\": {\n"
+        "##            \"value0\": \"" + input_prefix.get_path().string() + ".count\"\n"
+        "##        },\n"
+        "##        \"sketch_directory\": {\n"
+        "##            \"value0\": \"" + input_prefix.get_path().string() + "_sketches\"\n"
+        "##        },\n"
+        "##        \"output_filename\": {\n"
+        "##            \"value0\": \"" + layout_file.get_path().string() + "\"\n"
+        "##        },\n"
+        "##        \"tmax\": 64,\n"
+        "##        \"num_hash_functions\": 2,\n"
+        "##        \"false_positive_rate\": 0.05,\n"
+        "##        \"alpha\": 1.2,\n"
+        "##        \"max_rearrangement_ratio\": 0.5,\n"
+        "##        \"threads\": 1,\n"
+        "##        \"estimate_union\": false,\n"
+        "##        \"rearrange_user_bins\": false,\n"
+        "##        \"determine_best_tmax\": false,\n"
+        "##        \"force_all_binnings\": false,\n"
+        "##        \"output_statistics\": false\n"
+        "##    }\n"
+        "##}\n"
+        "##ENDCONFIG\n"
         "#HIGH_LEVEL_IBF max_bin_id:0\n"
         "#MERGED_BIN_0 max_bin_id:14\n"
         "#MERGED_BIN_1 max_bin_id:14\n"

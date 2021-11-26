@@ -46,7 +46,7 @@ public:
         config{config_},
         data{std::addressof(data_)},
         num_user_bins{data->kmer_counts.size()},
-        num_technical_bins{data->previous.empty() ? config.t_max : needed_technical_bins(num_user_bins)}
+        num_technical_bins{data->previous.empty() ? config.tmax : needed_technical_bins(num_user_bins)}
     {
         assert(data != nullptr);
         assert(data->output_buffer != nullptr);
@@ -103,7 +103,7 @@ private:
      */
     [[nodiscard]] size_t needed_technical_bins(size_t const requested_num_ub) const
     {
-        return std::min<size_t>(next_multiple_of_64(requested_num_ub), config.t_max);
+        return std::min<size_t>(next_multiple_of_64(requested_num_ub), config.tmax);
     }
 
     /*!\brief Returns the maximum number of needed levels when merging `num_ubs_in_merge` many user bins.
@@ -300,7 +300,7 @@ private:
         }
 
         // The cost for querying `num_technical_bins` bins.
-        double const interpolated_cost{ibf_query_cost::interpolated(num_technical_bins, config.fp_rate)};
+        double const interpolated_cost{ibf_query_cost::interpolated(num_technical_bins, config.false_positive_rate)};
         data->stats->current_query_cost += interpolated_cost;
 
         // backtracking starts at the bottom right corner:
@@ -503,7 +503,7 @@ private:
     size_t add_lower_level(data_store & libf_data) const
     {
         // now do the binning for the low-level IBF:
-        if (libf_data.kmer_counts.size() > config.t_max)
+        if (libf_data.kmer_counts.size() > config.tmax)
         {
             // recursively call hierarchical binning if there are still too many UBs
             return hierarchical_binning{libf_data, config}.execute(); // return id of maximum technical bin

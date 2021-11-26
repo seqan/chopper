@@ -52,9 +52,9 @@ TEST(execute_hll_test, few_ubs)
     }
 
     char const * const argv[] = {"./chopper-layout",
-                                 "--tmax", "4",
+                                 "--tmax", "64",
                                  "--input-prefix", io_prefix.get_path().c_str(),
-                                 "--output-file", layout_file.get_path().c_str()};
+                                 "--output-filename", layout_file.get_path().c_str()};
     int const argc = sizeof(argv) / sizeof(*argv);
 
     seqan3::argument_parser layout_parser{"chopper-layout", argc, argv, seqan3::update_notifications::off};
@@ -62,6 +62,34 @@ TEST(execute_hll_test, few_ubs)
 
     std::vector<std::string> const expected_components
     {
+        {"##CONFIG:"},
+        {"##{"},
+        {"##    \"config\": {"},
+        {"##        \"version\": 1,"},
+        {"##        \"input_prefix\": \"" + io_prefix.get_path().string() + "\","},
+        {"##        \"count_filename\": {"},
+        {"##            \"value0\": \"" + io_prefix.get_path().string() + ".count\""},
+        {"##        },"},
+        {"##        \"sketch_directory\": {"},
+        {"##            \"value0\": \"" + io_prefix.get_path().string() + "_sketches\""},
+        {"##        },"},
+        {"##        \"output_filename\": {"},
+        {"##            \"value0\": \"" + layout_file.get_path().string() + "\""},
+        {"##        },"},
+        {"##        \"tmax\": 64,"},
+        {"##        \"num_hash_functions\": 2,"},
+        {"##        \"false_positive_rate\": 0.05,"},
+        {"##        \"alpha\": 1.2,"},
+        {"##        \"max_rearrangement_ratio\": 0.5,"},
+        {"##        \"threads\": 1,"},
+        {"##        \"estimate_union\": false,"},
+        {"##        \"rearrange_user_bins\": false,"},
+        {"##        \"determine_best_tmax\": false,"},
+        {"##        \"force_all_binnings\": false,"},
+        {"##        \"output_statistics\": false"},
+        {"##    }"},
+        {"##}"},
+        {"##ENDCONFIG"},
         {"#HIGH_LEVEL_IBF max_bin_id:0"},
         {"#FILES\tBIN_INDICES\tNUMBER_OF_BINS"},
         {seq1_filename + "\t0\t48"},
@@ -70,6 +98,7 @@ TEST(execute_hll_test, few_ubs)
         {small_filename + "\t58\t6"},
         {small2_filename + "\t52\t6"}
     };
+
     std::string const actual_file{string_from_file(layout_file.get_path())};
 
     size_t line_count{};
@@ -219,7 +248,7 @@ TEST(execute_hll_test, many_ubs)
     char const * const argv[] = {"./chopper-layout",
                                  "--tmax", "4",
                                  "--input-prefix", io_prefix.get_path().c_str(),
-                                 "--output-file", layout_file.get_path().c_str()};
+                                 "--output-filename", layout_file.get_path().c_str()};
     int const argc = sizeof(argv) / sizeof(*argv);
 
     seqan3::argument_parser layout_parser{"chopper-layout", argc, argv, seqan3::update_notifications::off};
@@ -227,6 +256,34 @@ TEST(execute_hll_test, many_ubs)
 
     std::vector<std::string> const expected_components
     {
+        {"##CONFIG:"},
+        {"##{"},
+        {"##    \"config\": {"},
+        {"##        \"version\": 1,"},
+        {"##        \"input_prefix\": \"" + io_prefix.get_path().string() + "\","},
+        {"##        \"count_filename\": {"},
+        {"##            \"value0\": \"" + io_prefix.get_path().string() + ".count\""},
+        {"##        },"},
+        {"##        \"sketch_directory\": {"},
+        {"##            \"value0\": \"" + io_prefix.get_path().string() + "_sketches\""},
+        {"##        },"},
+        {"##        \"output_filename\": {"},
+        {"##            \"value0\": \"" + layout_file.get_path().string() + "\""},
+        {"##        },"},
+        {"##        \"tmax\": 64,"},
+        {"##        \"num_hash_functions\": 2,"},
+        {"##        \"false_positive_rate\": 0.05,"},
+        {"##        \"alpha\": 1.2,"},
+        {"##        \"max_rearrangement_ratio\": 0.5,"},
+        {"##        \"threads\": 1,"},
+        {"##        \"estimate_union\": false,"},
+        {"##        \"rearrange_user_bins\": false,"},
+        {"##        \"determine_best_tmax\": false,"},
+        {"##        \"force_all_binnings\": false,"},
+        {"##        \"output_statistics\": false"},
+        {"##    }"},
+        {"##}"},
+        {"##ENDCONFIG"},
         {"#HIGH_LEVEL_IBF max_bin_id:10"},
         {"#MERGED_BIN_10 max_bin_id:0"},
         {"#MERGED_BIN_11 max_bin_id:0"},

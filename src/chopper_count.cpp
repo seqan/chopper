@@ -48,7 +48,7 @@ void initialize_argument_parser(seqan3::argument_parser & parser, chopper::count
                       "the default prefix " + std::string{prefix::chopper} + " is appended.",
                       seqan3::option_spec::required);
 
-    parser.add_option(config.num_threads,
+    parser.add_option(config.threads,
                       '\0', "threads",
                       "The number of threads to be used for parallel processing.");
 

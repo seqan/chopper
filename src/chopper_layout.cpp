@@ -1,11 +1,14 @@
+#include <iostream>
+
 #include <seqan3/argument_parser/all.hpp>
 
 #include <chopper/detail_apply_prefix.hpp>
 #include <chopper/layout/aggregate_by.hpp>
+#include <chopper/layout/configuration.hpp>
 #include <chopper/layout/filenames_data_input.hpp>
 #include <chopper/layout/hierarchical_binning.hpp>
 #include <chopper/layout/ibf_query_cost.hpp>
-#include <chopper/layout/configuration.hpp>
+#include <chopper/layout/output.hpp>
 #include <chopper/layout/previous_level.hpp>
 
 namespace chopper::layout
@@ -40,7 +43,7 @@ void set_up_subparser_layout(seqan3::argument_parser & parser, chopper::layout::
     parser.add_list_item("", "/absolute/path/to/file2.fa.gz     600");
     parser.add_list_item("", "```");
 
-    parser.add_option(config.t_max,
+    parser.add_option(config.tmax,
                       '\0', "tmax",
                       "Limits the number of technical bins on each level of the HIBF. Choosing a good tmax is not "
                       "trivial. The smaller tmax, the more levels the layout needs to represent the data. This results "
@@ -57,22 +60,22 @@ void set_up_subparser_layout(seqan3::argument_parser & parser, chopper::layout::
                       "The number of hash functions to use when building the HIBF from the resulting layout. "
                       "This parameter is needed to correctly estimate the index size when computing the layout.");
 
-    parser.add_option(config.fp_rate,
+    parser.add_option(config.false_positive_rate,
                       '\0', "false-positive-rate",
                       "The false positive rate you aim for when building the HIBF from the resulting layout. "
                       "This parameter is needed to correctly estimate the index size when computing the layout.");
 
-    parser.add_option(config.output_filename, '\0', "output-file", "A file name for the resulting layout.");
+    parser.add_option(config.output_filename, '\0', "output-filename", "A file name for the resulting layout.");
 
     using aggregate_by_type = std::remove_cvref_t<decltype(config.aggregate_by_column)>;
     parser.add_option(config.aggregate_by_column,
-                      '\0', "aggregate-by",
+                      '\0', "aggregate-by-column",
                       "Which column do you want to aggregate your files by? Start counting your columns from 0!",
                       seqan3::option_spec::hidden,
                       seqan3::arithmetic_range_validator{aggregate_by_type{2},
                                                          std::numeric_limits<aggregate_by_type>::max()});
 
-    parser.add_option(config.num_threads,
+    parser.add_option(config.threads,
                       '\0', "threads",
                       "The number of threads to use. Currently, only merging of sketches is parallelized, so if option "
                       "--rearrange-user-bins is not set, --threads will have no effect.",
@@ -88,7 +91,7 @@ void set_up_subparser_layout(seqan3::argument_parser & parser, chopper::layout::
                     "layout computation as merging user bins that do not increase technical bin sizes will be "
                     "preferred. Attention: Only possible if the directory [INPUT-PREFIX]_sketches is present.");
 
-    parser.add_flag(config.rearrange_bins,
+    parser.add_flag(config.rearrange_user_bins,
                     '\0', "rearrange-user-bins",
                     "As a preprocessing step, rearranging the order of the given user bins based on their sequence "
                     "similarity may lead to favourable small unions and thus a smaller index. "
@@ -106,7 +109,7 @@ void set_up_subparser_layout(seqan3::argument_parser & parser, chopper::layout::
                       "bins are chosen in the layout. This improves query times but leads to a bigger index.",
                       seqan3::option_spec::advanced);
 
-    parser.add_option(config.max_ratio,
+    parser.add_option(config.max_rearrangement_ratio,
                       '\0', "max-rearrangement-ratio",
                       "When the option --rearrange-user-bins is set, this option can influence the rearrangement "
                       "algorithm. The algorithm only rearranges the order of user bins in fixed intervals. The higher "
@@ -148,7 +151,7 @@ void set_up_subparser_layout(seqan3::argument_parser & parser, chopper::layout::
 
 void sanity_checks(layout::data_store const & data, chopper::layout::configuration & config)
 {
-    if (config.rearrange_bins)
+    if (config.rearrange_user_bins)
         config.estimate_union = true;
 
     if (config.estimate_union &&
@@ -197,7 +200,7 @@ size_t determine_best_number_of_technical_bins(chopper::layout::data_store & dat
 
     std::set<size_t> potential_t_max{};
 
-    for (size_t t_max = 64; t_max <= config.t_max; t_max *= 2)
+    for (size_t t_max = 64; t_max <= config.tmax; t_max *= 2)
         potential_t_max.insert(t_max);
 
     // Additionally, add the t_max that is closest to the sqrt() of the number of
@@ -218,7 +221,7 @@ size_t determine_best_number_of_technical_bins(chopper::layout::data_store & dat
         data.header_buffer = &header_buffer_tmp;
 
         data.previous = chopper::layout::previous_level{};
-        config.t_max = t_max;
+        config.tmax = t_max;
 
         chopper::layout::hibf_statistics global_stats{config, data.fp_correction};
         data.stats = &global_stats.top_level_ibf;
@@ -240,7 +243,7 @@ size_t determine_best_number_of_technical_bins(chopper::layout::data_store & dat
         if (config.output_statistics)
         {
             std::cout << "#T_Max:" << t_max << '\n'
-                      << "#C_{T_Max}:" << chopper::layout::ibf_query_cost::interpolated(t_max, config.fp_rate) << '\n'
+                      << "#C_{T_Max}:" << chopper::layout::ibf_query_cost::interpolated(t_max, config.false_positive_rate) << '\n'
                       << "#relative expected HIBF query time cost (l):" << expected_HIBF_query_cost << '\n' /*relative to a 64 bin IBF*/
                       << "#relative HIBF memory usage (m):" << relative_memory_size << '\n' /*relative to the 64 T_Max HIBF*/
                       << "#l*m:" << query_time_memory_usage_prod << '\n';
@@ -248,7 +251,7 @@ size_t determine_best_number_of_technical_bins(chopper::layout::data_store & dat
         else
         {
             std::cout << t_max << '\t'
-                      << chopper::layout::ibf_query_cost::interpolated(t_max, config.fp_rate) << '\t'
+                      << chopper::layout::ibf_query_cost::interpolated(t_max, config.false_positive_rate) << '\t'
                       << expected_HIBF_query_cost << '\n';
         }
 
@@ -299,15 +302,15 @@ int execute(seqan3::argument_parser & parser)
         return -1;
     }
 
-    if (config.t_max % 64 != 0)
+    if (config.tmax % 64 != 0)
     {
-        config.t_max = chopper::next_multiple_of_64(config.t_max);
+        config.tmax = chopper::next_multiple_of_64(config.tmax);
         std::cerr << "[CHOPPER LAYOUT WARNING]: Your requested number of technical bins was not a multiple of 64. "
                   << "Due to the architecture of the HIBF, it will use up space equal to the next multiple of 64 "
-                  << "anyway, so we increased your number of technical bins to " << config.t_max << ".\n";
+                  << "anyway, so we increased your number of technical bins to " << config.tmax << ".\n";
     }
 
-    data.compute_fp_correction(config.fp_rate, config.num_hash_functions, config.t_max);
+    data.compute_fp_correction(config.false_positive_rate, config.num_hash_functions, config.tmax);
 
     // If requested, aggregate the data before layouting them
     if (config.aggregate_by_column != -1)
@@ -318,7 +321,7 @@ int execute(seqan3::argument_parser & parser)
 
     data.output_buffer = &output_buffer;
     data.header_buffer = &header_buffer;
-    data.false_positive_rate = config.fp_rate;
+    data.false_positive_rate = config.false_positive_rate;
 
     size_t max_hibf_id;
 
@@ -327,7 +330,7 @@ int execute(seqan3::argument_parser & parser)
     {
         std::cout << "#number of user bins:" << data.filenames.size() << '\n'
                   << "#number of hash functions:" << config.num_hash_functions << '\n'
-                  << "#false positive rate:" << config.fp_rate << "\n\n";
+                  << "#false positive rate:" << config.false_positive_rate << "\n\n";
     }
 
     if (config.determine_best_tmax)
@@ -345,10 +348,9 @@ int execute(seqan3::argument_parser & parser)
             global_stats.print_summary();
     }
 
-    // brief Write the output to the result file.
+    // brief Write the output to the layout file.
     std::ofstream fout{config.output_filename};
-    fout << prefix::header << prefix::high_level << " max_bin_id:" << max_hibf_id << '\n';
-    fout << header_buffer.str();
+    write_layout_header_to(config, max_hibf_id, header_buffer.str(), fout);
     fout << output_buffer.str();
 
     return 0;

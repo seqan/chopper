@@ -106,7 +106,7 @@ TEST_F(cli_test, chopper_layout_cmd_error_no_extra_information)
     cli_test_result result = execute_app("chopper", "layout",
                                          "--tmax", "64",
                                          "--input-prefix", prefix.get_path(),
-                                         "--aggregate-by", "3");
+                                         "--aggregate-by-column", "3");
 
     std::string expected
     {
@@ -131,7 +131,7 @@ TEST_F(cli_test, chopper_layout_cmd_error_column_index_out_of_bounds)
     cli_test_result result = execute_app("chopper", "layout",
                                          "--tmax", "64",
                                          "--input-prefix", prefix.get_path(),
-                                         "--aggregate-by", "4");
+                                         "--aggregate-by-column", "4");
 
     std::string expected
     {
