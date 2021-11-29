@@ -2,8 +2,6 @@
 
 #include <seqan3/std/filesystem>
 
-#include <chopper/layout/previous_level.hpp>
-
 namespace chopper::layout
 {
 
