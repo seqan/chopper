@@ -187,7 +187,7 @@ size_t determine_best_number_of_technical_bins(chopper::layout::data_store & dat
         if (config.output_statistics)
         {
             std::cout << "#T_Max:" << t_max << '\n'
-                      << "#C_{T_Max}:" << chopper::layout::ibf_query_cost::interpolated(t_max) << '\n'
+                      << "#C_{T_Max}:" << chopper::layout::ibf_query_cost::interpolated(t_max, config.fp_rate) << '\n'
                       << "#relative expected HIBF query time cost (l):" << expected_HIBF_query_cost << '\n' /*relative to a 64 bin IBF*/
                       << "#relative HIBF memory usage (m):" << relative_memory_size << '\n' /*relative to the 64 T_Max HIBF*/
                       << "#l*m:" << query_time_memory_usage_prod << '\n';
@@ -195,7 +195,7 @@ size_t determine_best_number_of_technical_bins(chopper::layout::data_store & dat
         else
         {
             std::cout << t_max << '\t'
-                      << chopper::layout::ibf_query_cost::interpolated(t_max) << '\t'
+                      << chopper::layout::ibf_query_cost::interpolated(t_max, config.fp_rate) << '\t'
                       << expected_HIBF_query_cost << '\n';
         }
 
