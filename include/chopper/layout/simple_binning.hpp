@@ -206,7 +206,7 @@ public:
         // print_matrix(trace, num_technical_bins, num_user_bins, std::numeric_limits<size_t>::max());
 
         // backtracking
-        data->stats->current_query_cost += ibf_query_cost::interpolated(num_technical_bins, config.fp_rate);
+        data->stats->current_query_cost += ibf_query_cost::interpolated(num_technical_bins, data->false_positive_rate);
 
         size_t trace_i = num_technical_bins - 1;
         size_t trace_j = num_user_bins - 1;

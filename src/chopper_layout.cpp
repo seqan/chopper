@@ -263,6 +263,7 @@ int execute(seqan3::argument_parser & parser)
 
     data.output_buffer = &output_buffer;
     data.header_buffer = &header_buffer;
+    data.false_positive_rate = config.fp_rate;
 
     size_t max_hibf_id;
 
