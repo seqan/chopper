@@ -300,7 +300,7 @@ private:
         }
 
         // The cost for querying `num_technical_bins` bins.
-        double const interpolated_cost{ibf_query_cost::interpolated(num_technical_bins)};
+        double const interpolated_cost{ibf_query_cost::interpolated(num_technical_bins, config.fp_rate)};
         data->stats->current_query_cost += interpolated_cost;
 
         // backtracking starts at the bottom right corner:
@@ -445,6 +445,7 @@ private:
         libf_data.output_buffer = data->output_buffer;
         libf_data.header_buffer = data->header_buffer;
         libf_data.fp_correction = data->fp_correction;
+        libf_data.false_positive_rate = data->false_positive_rate;
 
         libf_data.kmer_counts = {kmer_count};
         libf_data.filenames = {data->filenames[trace_j]};
