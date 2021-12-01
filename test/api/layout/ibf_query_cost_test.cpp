@@ -15,7 +15,7 @@ TEST(ibf_query_cost_test, exact)
     }
 
     EXPECT_NO_THROW(chopper::layout::ibf_query_cost::exact(chopper::layout::ibf_query_cost::maximum_t_max, 0.0125));
-    ASSERT_EQ(chopper::layout::ibf_query_cost::exact(chopper::layout::ibf_query_cost::maximum_t_max, 0.0125), 90.42);
+    ASSERT_EQ(chopper::layout::ibf_query_cost::exact(chopper::layout::ibf_query_cost::maximum_t_max, 0.0125), 59.08);
     EXPECT_THROW(chopper::layout::ibf_query_cost::exact(chopper::layout::ibf_query_cost::maximum_t_max + 1, 0.0125), std::invalid_argument);
 }
 
