@@ -63,7 +63,6 @@ public:
 
 private:
 
-    // dummy table to see if refactoring works before entering new values
     static inline const std::map<double, std::array<double, 11>> cost_factors
     {   /* FPR, cost factors relative to a 64 IBF */
         {0.0001, {1.0, 0.87, 1.07, 1.58, 1.86, 2.3, 3.56, 4.78, 6.89, 11.61, 22.7}},
