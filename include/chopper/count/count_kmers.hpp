@@ -29,38 +29,20 @@ using sequence_file_type = seqan3::sequence_file_input<mytraits,
                                                        seqan3::fields<seqan3::field::seq>,
                                                        seqan3::type_list<seqan3::format_fasta, seqan3::format_fastq>>;
 
-template <typename seq_type, typename compute_view_type>
-void compute_hashes(seq_type && seq,
-                    compute_view_type && compute_fn,
-                    configuration const & config,
-                    robin_hood::unordered_node_set<uint64_t> & result,
-                    chopper::sketch::hyperloglog & sketch)
-{
-    if (!config.exclusively_hlls)
-    {
-        auto hash_view = seq | compute_fn | std::views::common;
-        result.insert(hash_view.begin(), hash_view.end());
-    }
-
-    if (config.exclusively_hlls || !config.hll_dir.empty())
-        for (auto && hash : seq | compute_fn)
-            sketch.add(reinterpret_cast<char*>(&hash), sizeof(hash));
-}
-
+template <typename hash_view_type>
 inline void count_kmers(robin_hood::unordered_map<std::string, std::vector<std::string>> const & filename_clusters,
-                        configuration const & config)
+                        configuration const & config,
+                        hash_view_type && hash_fn)
 {
-    // output file
-    std::ofstream fout{config.output_filename};
+   // output file
+    std::ofstream fout{config.count_filename};
+
+    if (!fout.good())
+        throw std::runtime_error{"Could not open file" + config.count_filename.string() + " for reading."};
 
     // create the hll dir if it doesn't already exist
-    if (!config.hll_dir.empty())
-        std::filesystem::create_directory(config.hll_dir);
-
-    auto compute_minimiser = seqan3::views::minimiser_hash(seqan3::ungapped{config.k},
-                                                           seqan3::window_size{config.w},
-                                                           seqan3::seed{0x8F3F73B5CF1C9ADE >> (64u - 2u * config.k)});
-    auto compute_kmers = seqan3::views::kmer_hash(seqan3::ungapped{config.k});
+    if (!config.disable_sketch_output)
+        std::filesystem::create_directory(config.sketch_directory);
 
     // copy filename clusters to vector
     std::vector<std::pair<std::string, std::vector<std::string>>> cluster_vector{};
@@ -70,31 +52,39 @@ inline void count_kmers(robin_hood::unordered_map<std::string, std::vector<std::
     #pragma omp parallel for schedule(static) num_threads(config.num_threads)
     for (size_t i = 0; i < cluster_vector.size(); ++i)
     {
-        // read files
-        std::vector<std::vector<seqan3::dna4>> sequence_vector{};
-        for (auto const & filename : cluster_vector[i].second)
-            for (auto && [seq] : sequence_file_type{filename})
-                sequence_vector.push_back(seq);
-
-        robin_hood::unordered_node_set<uint64_t> result{};
         chopper::sketch::hyperloglog sketch(config.sketch_bits);
 
-        if (config.disable_minimizers)
-            for (auto && seq : sequence_vector)
-                compute_hashes(seq, compute_kmers, config, result, sketch);
-        else
-            for (auto && seq : sequence_vector)
-                compute_hashes(seq, compute_minimiser, config, result, sketch);
+        // read files
+        for (auto const & filename : cluster_vector[i].second)
+            for (auto && [seq] : sequence_file_type{filename})
+                for (auto && hash : seq | hash_fn)
+                    sketch.add(reinterpret_cast<char*>(&hash), sizeof(hash));
 
         // print either the exact or the approximate count, depending on exclusively_hlls
-        uint64_t const weight = config.exclusively_hlls ? static_cast<uint64_t>(sketch.estimate()) : result.size();
+        uint64_t const weight = sketch.estimate();
 
         #pragma omp critical
         write_count_file_line(cluster_vector[i], weight, fout);
 
-        if (!config.hll_dir.empty())
+        if (!config.disable_sketch_output)
             write_sketch_file(cluster_vector[i], sketch, config);
     }
+}
+
+inline void count_kmers(robin_hood::unordered_map<std::string, std::vector<std::string>> const & filename_clusters,
+                        configuration const & config)
+{
+
+    auto compute_minimiser = seqan3::views::minimiser_hash(seqan3::ungapped{config.k},
+                                                           seqan3::window_size{config.w},
+                                                           seqan3::seed{0x8F3F73B5CF1C9ADE >> (64u - 2u * config.k)});
+
+    auto compute_kmers = seqan3::views::kmer_hash(seqan3::ungapped{config.k});
+
+    if (config.disable_minimizers)
+        count_kmers(filename_clusters, config, compute_kmers);
+    else
+        count_kmers(filename_clusters, config, compute_minimiser);
 }
 
 } // namespace chopper::count

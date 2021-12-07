@@ -105,13 +105,9 @@ public:
     */
     void read_hll_files(std::filesystem::path const & hll_dir)
     {
-        if (std::filesystem::is_empty(hll_dir))
-        {
-            throw std::runtime_error("A directory where the HyperLogLog sketches are stored must be given "
-                                     "when union estimates are enabled");
-        }
-
         assert(filenames != nullptr);
+        assert(std::filesystem::exists(hll_dir) && !std::filesystem::is_empty(hll_dir)); // checked in chopper_layout
+
         sketches.reserve(filenames->size());
 
         try

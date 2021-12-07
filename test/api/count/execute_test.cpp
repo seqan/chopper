@@ -14,55 +14,60 @@ TEST(execute_test, small_example_parallel_2_threads)
 {
     std::string input_filename = data("small.fa");
     seqan3::test::tmp_filename data_filename{"data.tsv"};
-    seqan3::test::tmp_filename output_filename{"kmer_counts.txt"};
+    seqan3::test::tmp_filename output_prefix{"small_example"};
 
     // generate data filename
     {
         std::ofstream fout{data_filename.get_path()};
         fout << input_filename << '\t' << "TAX1\n"
              << input_filename << '\t' << "TAX2\n"
-             << input_filename << '\t' << "TAX2\n";
+             /* << input_filename << '\t' << "TAX2\n" */;
     }
 
-    const char * argv[] = {"./chopper-count", "-k", "15", "-w", "25", "-t", "2", "-c", "2",
+    const char * argv[] = {"./chopper-count",
+                           "-k", "15",
+                           "-w", "25",
+                           "-t", "2",
+                           "-c", "2",
+                           "--disable-sketch-output",
                            "-f", data_filename.get_path().c_str(),
-                           "-o", output_filename.get_path().c_str()};
-    int argc = 13;
+                           "-o", output_prefix.get_path().c_str()};
+    int argc = 14;
     seqan3::argument_parser count_parser{"chopper-count", argc, argv, seqan3::update_notifications::off};
 
     std::vector<std::string> expected_components
     {
-        input_filename + "\t88\tTAX1",
-        input_filename + ";" + input_filename + "\t88\tTAX2"
+        input_filename + "\t86\tTAX1",
+        input_filename + /* ";" + input_filename */ + "\t86\tTAX2"
     };
 
-    chopper::count::execute(count_parser);
+    EXPECT_NO_THROW(chopper::count::execute(count_parser));
 
-    std::ifstream output_file{output_filename.get_path()};
+    std::ifstream output_file{output_prefix.get_path().string() + ".count"};
     std::string const output_file_str((std::istreambuf_iterator<char>(output_file)), std::istreambuf_iterator<char>());
 
     size_t line_count{};
     for (auto && line : output_file_str | std::views::split('\n') | seqan3::views::to<std::vector<std::string>>)
     {
-        EXPECT_TRUE(std::ranges::find(expected_components, line) != expected_components.end());
+        EXPECT_TRUE(std::ranges::find(expected_components, line) != expected_components.end()) << "missing:" << line;
         ++line_count;
     }
 
-    EXPECT_EQ(expected_components.size(), line_count);
+    EXPECT_EQ(expected_components.size(), line_count) << "File: " <<  output_file_str;
 }
 
 TEST(execute_test, disable_minimizers)
 {
     std::string input_filename = data("small.fa");
     seqan3::test::tmp_filename data_filename{"data.tsv"};
-    seqan3::test::tmp_filename output_filename{"kmer_counts.txt"};
+    seqan3::test::tmp_filename output_prefix{"small_example"};
 
     // generate data filename
     {
         std::ofstream fout{data_filename.get_path()};
         fout << input_filename << '\t' << "TAX1\n"
              << input_filename << '\t' << "TAX2\n"
-             << input_filename << '\t' << "TAX2\n";
+             /* << input_filename << '\t' << "TAX2\n" */;
     }
 
     const char * argv[] = {"./chopper-count",
@@ -70,21 +75,29 @@ TEST(execute_test, disable_minimizers)
                            "-t", "1",
                            "-c", "2",
                            "--disable-minimizers",
+                           "--disable-sketch-output",
                            "-f", data_filename.get_path().c_str(),
-                           "-o", output_filename.get_path().c_str()};
-    int argc = 12;
+                           "-o", output_prefix.get_path().c_str()};
+    int argc = 13;
     seqan3::argument_parser count_parser{"chopper-count", argc, argv, seqan3::update_notifications::off};
 
-    std::string expected
+    std::vector<std::string> expected_components
     {
-        input_filename + "\t585\tTAX1\n" +
-        input_filename + ";" + input_filename + "\t585\tTAX2\n"
+        input_filename + "\t590\tTAX1",
+        input_filename + /* ";" + input_filename */ + "\t590\tTAX2"
     };
 
     chopper::count::execute(count_parser);
 
-    std::ifstream output_file{output_filename.get_path()};
+    std::ifstream output_file{output_prefix.get_path().string() + ".count"};
     std::string const output_file_str((std::istreambuf_iterator<char>(output_file)), std::istreambuf_iterator<char>());
 
-    EXPECT_EQ(expected, output_file_str);
+    size_t line_count{};
+    for (auto && line : output_file_str | std::views::split('\n') | seqan3::views::to<std::vector<std::string>>)
+    {
+        EXPECT_TRUE(std::ranges::find(expected_components, line) != expected_components.end()) << "missing:" << line;
+        ++line_count;
+    }
+
+    EXPECT_EQ(expected_components.size(), line_count) << "File: " <<  output_file_str;
 }

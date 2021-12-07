@@ -12,7 +12,7 @@ TEST(read_filename_data_file_test, file_open_error)
 {
     chopper::layout::configuration config;
     chopper::layout::data_store data;
-    config.data_file = "non_existing.file";
+    config.count_filename = "non_existing.file";
 
     EXPECT_THROW(read_filename_data_file(data, config), std::runtime_error);
 }
@@ -20,7 +20,7 @@ TEST(read_filename_data_file_test, file_open_error)
 TEST(read_filename_data_file_test, only_filenames)
 {
     chopper::layout::configuration config;
-    config.data_file = data("only_filenames.tsv");
+    config.count_filename = data("only_filenames.tsv");
 
     chopper::layout::data_store data;
     EXPECT_THROW(read_filename_data_file(data, config), std::runtime_error);
@@ -29,7 +29,7 @@ TEST(read_filename_data_file_test, only_filenames)
 TEST(read_filename_data_file_test, filenames_and_counts)
 {
     chopper::layout::configuration config;
-    config.data_file = data("filenames_and_counts.tsv");
+    config.count_filename = data("filenames_and_counts.tsv");
 
     chopper::layout::data_store data;
     read_filename_data_file(data, config);
@@ -52,7 +52,7 @@ TEST(read_filename_data_file_test, filenames_and_counts)
 TEST(read_filename_data_file_test, filenames_counts_and_extra_information)
 {
     chopper::layout::configuration config;
-    config.data_file = data("filenames_counts_and_extra_information.tsv");
+    config.count_filename = data("filenames_counts_and_extra_information.tsv");
 
     chopper::layout::data_store data;
     read_filename_data_file(data, config);

@@ -7,12 +7,12 @@ namespace chopper::layout
 
 struct configuration
 {
-    std::filesystem::path data_file;
+    std::string input_prefix; // provided by user
+    std::filesystem::path count_filename;   // internally set
+    std::filesystem::path sketch_directory; // internally set
     std::filesystem::path output_filename{"binning.out"};
     uint16_t t_max{64};
     int8_t aggregate_by_column{-1};
-    //!\brief If given, the hll sketches are dumped to this directory and restored when they already exist.
-    std::filesystem::path hll_dir{};
     //!\brief The number of hash functions for the IBFs.
     size_t num_hash_functions{2};
     //!\brief The desired false positive rate of the IBFs.

@@ -6,19 +6,19 @@
 
 TEST_F(cli_test, chopper_layout_statistics)
 {
-    seqan3::test::tmp_filename const count_file{"kmer_counts.tsv"};
+    seqan3::test::tmp_filename const input_prefix{"test"};
     seqan3::test::tmp_filename const layout_file{"layout.tsv"};
 
     {
         // There are 20 files with a count of {100,200,300,400} each. There are 16 files with count 500.
-        std::ofstream fout{count_file.get_path()};
+        std::ofstream fout{input_prefix.get_path().string() + ".count"};
         for (size_t i{0}; i < 96u; ++i)
             fout << seqan3::detail::to_string("seq", i, '\t', 100 * ((i + 20) / 20), '\n');
     }
 
     cli_test_result layout_result = execute_app("chopper", "layout",
                                               "-b", "64",
-                                              "-f", count_file.get_path().c_str(),
+                                              "-i", input_prefix.get_path().c_str(),
                                               "-o", layout_file.get_path().c_str(),
                                               "--output-statistics");
 
@@ -42,12 +42,12 @@ level	num_ibfs	level_size	level_size_no_corr	total_num_tbs	avg_num_tbs	split_tb_
 
 TEST_F(cli_test, chopper_layout_statistics_determine_best_bins)
 {
-    seqan3::test::tmp_filename const count_filename{"kmer_counts.txt"};
+    seqan3::test::tmp_filename const input_prefixname{"test"};
     seqan3::test::tmp_filename const binning_filename{"output.binning"};
 
     // Write count data to file.
     {
-        std::ofstream fout{count_filename.get_path()};
+        std::ofstream fout{input_prefixname.get_path().string() + ".count"};
         fout << "seq0\t10000\n"
                 "seq1\t20000\n"
                 "seq2\t30000\n"
@@ -62,7 +62,7 @@ TEST_F(cli_test, chopper_layout_statistics_determine_best_bins)
 
     cli_test_result layout_result = execute_app("chopper", "layout",
                                               "-b", "128",
-                                              "-f", count_filename.get_path().c_str(),
+                                              "-i", input_prefixname.get_path().c_str(),
                                               "-o", binning_filename.get_path().c_str(),
                                               "--output-statistics",
                                               "--determine-num-bins",
@@ -85,16 +85,16 @@ level	num_ibfs	level_size	level_size_no_corr	total_num_tbs	avg_num_tbs	split_tb_
 #Total HIBF size no correction:1 MiB
 
 #T_Max:128
-#C_{T_Max}:0.96
-#relative expected HIBF query time cost (l):0.96
+#C_{T_Max}:1.10
+#relative expected HIBF query time cost (l):1.10
 #relative HIBF memory usage (m):1.63
-#l*m:1.56
+#l*m:1.79
 level	num_ibfs	level_size	level_size_no_corr	total_num_tbs	avg_num_tbs	split_tb_percentage	max_split_tb	avg_split_tb	max_factor	avg_factor
 0	1	3 MiB	2 MiB	128	128	100.00	47	12.80	12.17	5.96
 #Total HIBF size:3 MiB
 #Total HIBF size no correction:2 MiB
 
-#Best t_max (regarding expected query runtime):128
+#Best t_max (regarding expected query runtime):64
 )expected_cout";
 
     EXPECT_EQ(layout_result.exit_code, 0);

@@ -1,5 +1,6 @@
 #include <seqan3/argument_parser/all.hpp>
 
+#include <chopper/detail_apply_prefix.hpp>
 #include <chopper/layout/aggregate_by.hpp>
 #include <chopper/layout/filenames_data_input.hpp>
 #include <chopper/layout/hierarchical_binning.hpp>
@@ -20,12 +21,8 @@ void set_up_subparser_layout(seqan3::argument_parser & parser, chopper::layout::
                                          "space consumption of the resulting Interleaved Bloom Filter that you may "
                                          "build with the `build` submodule using the results.");
 
-    parser.add_option(config.data_file, 'f', "filenames",
-                      "A tab separated file that contains the filepaths of sequence data you want to analyse.\n"
-                      "The first column must contain the paths to sequence files separated by ';'.\n"
-                      "The second column must contain the (kmer) count that the layout is based on. "
-                      " See the submodule count for more details on how to add kmer counts to your sequences\n."
-                      "All other columns are optional and can be used to aggregate your data (e.g. taxonmic ids).",
+    parser.add_option(config.input_prefix, 'i', "input-prefix",
+                      "Provide the prefix you used for the output prefix in chopper count -o/--output-prefix option.",
                       seqan3::option_spec::required);
 
     parser.add_option(config.t_max, 'b', "technical-bins",
@@ -67,16 +64,12 @@ void set_up_subparser_layout(seqan3::argument_parser & parser, chopper::layout::
                       seqan3::arithmetic_range_validator{static_cast<size_t>(1), std::numeric_limits<size_t>::max()});
 
     parser.add_flag(config.estimate_union, 'u', "estimate-union",
-                    "[HLL] Estimate the union of kmer sets to possibly improve the binning.");
-
-    parser.add_option(config.hll_dir, 'd', "hll-dir",
-                      "[HLL] If given, the hll sketches are restored from this directory. Required for -u.",
-                      seqan3::option_spec::standard,
-                      seqan3::input_directory_validator{});
+                    "[HLL] Estimate the union of kmer sets to possibly improve the binning. Only possible if the "
+                    "directory [INPUT-PREFIX]_sketches is present.");
 
     parser.add_flag(config.rearrange_bins, 'r', "rearrange-bins",
                     "[HLL] Do a rearrangement of the bins which takes into account similarity. Enabling this option "
-                    "also enables -u.");
+                    "also enables -u. Only possible if the directory [INPUT-PREFIX]_sketches is present.");
 
     parser.add_section("Special options");
     parser.add_line("\n");
@@ -98,16 +91,21 @@ void set_up_subparser_layout(seqan3::argument_parser & parser, chopper::layout::
                     seqan3::option_spec::advanced);
 }
 
-void sanity_checks(seqan3::argument_parser const & parser, chopper::layout::data_store const & data, chopper::layout::configuration & config)
+void sanity_checks(layout::data_store const & data, chopper::layout::configuration & config)
 {
     if (config.rearrange_bins)
         config.estimate_union = true;
 
-    if (config.estimate_union && !parser.is_option_set("hll-dir") && !parser.is_option_set('d'))
-        throw seqan3::argument_parser_error{"An hll dir needs to be provided when enabling -u or -r."};
+    if (config.estimate_union &&
+        (!std::filesystem::exists(config.sketch_directory) || std::filesystem::is_empty(config.sketch_directory)))
+    {
+        throw seqan3::argument_parser_error{"The directory " + config.sketch_directory.string() + " must be present "
+                                            "and not empty in order to enable --estimate-union or --rearrange-bins "
+                                            "(created with chopper count)."};
+    }
 
     if (data.filenames.empty())
-        throw seqan3::argument_parser_error{seqan3::detail::to_string("The file ", config.data_file.string(),
+        throw seqan3::argument_parser_error{seqan3::detail::to_string("The file ", config.count_filename.string(),
                                                                       " appears to be empty.")};
 
     if (config.aggregate_by_column != -1 && data.extra_information[0].empty())
@@ -233,10 +231,12 @@ int execute(seqan3::argument_parser & parser)
     {
         parser.parse();
 
+        detail::apply_prefix(config.input_prefix, config.count_filename, config.sketch_directory);
+
         // Read in the data file containing file paths, kmer counts and additional information.
         chopper::layout::read_filename_data_file(data, config);
 
-        sanity_checks(parser, data, config);
+        sanity_checks(data, config);
     }
     catch (seqan3::argument_parser_error const & ext) // the user did something wrong
     {

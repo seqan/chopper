@@ -11,11 +11,11 @@
 
 TEST(execute_test, few_ubs)
 {
-    seqan3::test::tmp_filename const count_file{"kmer_counts.tsv"};
+    seqan3::test::tmp_filename const input_prefix{"test"};
     seqan3::test::tmp_filename const layout_file{"layout.tsv"};
 
     {
-        std::ofstream fout{count_file.get_path()};
+        std::ofstream fout{input_prefix.get_path().string() + ".count"};
         fout << "seq0\t500\n"
              << "seq1\t1000\n"
              << "seq2\t500\n"
@@ -28,7 +28,7 @@ TEST(execute_test, few_ubs)
 
     char const * const argv[] = {"./chopper-layout",
                                  "-b", "64",
-                                 "-f", count_file.get_path().c_str(),
+                                 "-i", input_prefix.get_path().c_str(),
                                  "-o", layout_file.get_path().c_str()};
     int const argc = sizeof(argv) / sizeof(*argv);
 
@@ -55,11 +55,11 @@ TEST(execute_test, few_ubs)
 
 TEST(execute_test, few_ubs_debug)
 {
-    seqan3::test::tmp_filename const count_file{"kmer_counts.tsv"};
+    seqan3::test::tmp_filename const input_prefix{"test"};
     seqan3::test::tmp_filename const layout_file{"layout.tsv"};
 
     {
-        std::ofstream fout{count_file.get_path()};
+        std::ofstream fout{input_prefix.get_path().string() + ".count"};
         fout << "seq0\t500\n"
              << "seq1\t1000\n"
              << "seq2\t500\n"
@@ -72,7 +72,7 @@ TEST(execute_test, few_ubs_debug)
 
     char const * const argv[] = {"./chopper-layout",
                                  "-b", "64",
-                                 "-f", count_file.get_path().c_str(),
+                                 "-i", input_prefix.get_path().c_str(),
                                  "-o", layout_file.get_path().c_str(),
                                  "--debug"};
     int const argc = sizeof(argv) / sizeof(*argv);
@@ -101,11 +101,11 @@ TEST(execute_test, few_ubs_debug)
 
 TEST(execute_test, few_ubs_with_aggregatation)
 {
-    seqan3::test::tmp_filename const count_file{"kmer_counts.tsv"};
+    seqan3::test::tmp_filename const input_prefix{"test"};
     seqan3::test::tmp_filename const layout_file{"layout.tsv"};
 
     {
-        std::ofstream fout{count_file.get_path()};
+        std::ofstream fout{input_prefix.get_path().string() + ".count"};
         fout << "seq0\t500\tspecification-A\n"
              << "seq1.1\t250\tspecification-B\n"
              << "seq1.2\t250\tspecification-B\n"
@@ -123,7 +123,7 @@ TEST(execute_test, few_ubs_with_aggregatation)
     char const * const argv[] = {"./chopper-layout",
                                  "-b", "64",
                                  "--aggregate-by", "2", /* specification column */
-                                 "-f", count_file.get_path().c_str(),
+                                 "-i", input_prefix.get_path().c_str(),
                                  "-o", layout_file.get_path().c_str()};
     int const argc = sizeof(argv) / sizeof(*argv);
 
@@ -150,19 +150,19 @@ TEST(execute_test, few_ubs_with_aggregatation)
 
 TEST(execute_test, many_ubs_debug)
 {
-    seqan3::test::tmp_filename const count_file{"kmer_counts.tsv"};
+    seqan3::test::tmp_filename const input_prefix{"test"};
     seqan3::test::tmp_filename const layout_file{"layout.tsv"};
 
     {
         // There are 20 files with a count of {100,200,300,400} each. There are 16 files with count 500.
-        std::ofstream fout{count_file.get_path()};
+        std::ofstream fout{input_prefix.get_path().string() + ".count"};
         for (size_t i{0}; i < 96u; ++i)
             fout << seqan3::detail::to_string("seq", i, '\t', 100 * ((i + 20) / 20), '\n');
     }
 
     char const * const argv[] = {"./chopper-layout",
                                  "-b", "64",
-                                 "-f", count_file.get_path().c_str(),
+                                 "-i", input_prefix.get_path().c_str(),
                                  "-o", layout_file.get_path().c_str(),
                                  "--debug"};
     int const argc = sizeof(argv) / sizeof(*argv);
