@@ -2,53 +2,20 @@
 
 #include <chopper/count/configuration.hpp>
 #include <chopper/count/count_kmers.hpp>
+#include <chopper/detail_apply_prefix.hpp>
 
 #include "../api_test.hpp"
 
-TEST(count_kmers_test, small_example_serial)
+TEST(count_kmers_test, small_example)
 {
-    seqan3::test::tmp_filename output_filename{"kmer_counts.txt"};
+    seqan3::test::tmp_filename output_prefix{"small"};
 
     chopper::count::configuration config;
     config.k = 15;
     config.w = 25;
     config.num_threads = 1;
-    config.output_filename = output_filename.get_path();
-
-    std::string input_file = data("small.fa");
-
-    robin_hood::unordered_map<std::string, std::vector<std::string>> filename_clusters
-    {
-        {"TAX1", {input_file}},
-        {"TAX2", {input_file, input_file}}
-    };
-
-    std::string expected
-    {
-        input_file + "\t88\tTAX1\n" +
-        input_file + ";" + input_file + "\t88\tTAX2\n"
-    };
-
-    chopper::count::count_kmers(filename_clusters, config);
-
-    std::ifstream output_file{output_filename.get_path()};
-    std::string const output_file_str((std::istreambuf_iterator<char>(output_file)), std::istreambuf_iterator<char>());
-
-    EXPECT_EQ(expected, output_file_str);
-}
-
-TEST(count_kmers_test, small_example_hll)
-{
-    seqan3::test::tmp_filename output_filename{"kmer_counts.txt"};
-    seqan3::test::tmp_filename hll_dir{"hll"};
-
-    chopper::count::configuration config;
-    config.k = 15;
-    config.w = 25;
-    config.num_threads = 1;
-    config.exclusively_hlls = true;
-    config.hll_dir = hll_dir.get_path();
-    config.output_filename = output_filename.get_path();
+    config.output_prefix = output_prefix.get_path().string();
+    chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
     std::string input_file = data("small.fa");
 
@@ -64,7 +31,8 @@ TEST(count_kmers_test, small_example_hll)
 
     count_kmers(filename_clusters, config);
 
-    std::ifstream output_file{output_filename.get_path()};
+    ASSERT_TRUE(std::filesystem::exists(config.count_filename));
+    std::ifstream output_file{config.count_filename};
     std::string const output_file_str((std::istreambuf_iterator<char>(output_file)), std::istreambuf_iterator<char>());
 
     EXPECT_EQ(expected, output_file_str);
@@ -72,37 +40,39 @@ TEST(count_kmers_test, small_example_hll)
 
 TEST(count_kmers_test, small_example_parallel_2_threads)
 {
-    seqan3::test::tmp_filename output_filename{"kmer_counts.txt"};
+    seqan3::test::tmp_filename output_prefix{"parallel"};
 
     chopper::count::configuration config;
     config.k = 15;
     config.w = 25;
     config.num_threads = 2;
-    config.output_filename = output_filename.get_path();
+    config.output_prefix = output_prefix.get_path().string();
+    chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
     std::string input_file = data("small.fa");
 
     robin_hood::unordered_map<std::string, std::vector<std::string>> filename_clusters
     {
         {"TAX1", {input_file}},
-        {"TAX2", {input_file, input_file}}
+        {"TAX2", {input_file/* , input_file -- not supported by hll sketches yet*/}}
     };
 
     chopper::count::count_kmers(filename_clusters, config);
 
     std::vector<std::string> expected_components
     {
-        input_file + "\t88\tTAX1",
-        input_file + ";" + input_file + "\t88\tTAX2"
+        input_file + "\t86\tTAX1",
+        input_file + /* ";" + input_file + */ "\t86\tTAX2"
     };
 
-    std::ifstream output_file{output_filename.get_path()};
+    ASSERT_TRUE(std::filesystem::exists(config.count_filename));
+    std::ifstream output_file{config.count_filename};
     std::string const output_file_str((std::istreambuf_iterator<char>(output_file)), std::istreambuf_iterator<char>());
 
     size_t line_count{};
     for (auto && line : output_file_str | std::views::split('\n') | seqan3::views::to<std::vector<std::string>>)
     {
-        EXPECT_TRUE(std::ranges::find(expected_components, line) != expected_components.end());
+        EXPECT_TRUE(std::ranges::find(expected_components, line) != expected_components.end()) << "missing: " << line;
         ++line_count;
     }
 

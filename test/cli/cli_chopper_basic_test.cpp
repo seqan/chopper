@@ -53,7 +53,7 @@ TEST_F(cli_test, chopper_layout_cmd_error_unknown_option)
     cli_test_result result = execute_app("chopper", "layout", "--unkown-option");
     std::string expected
     {
-        "[CHOPPER LAYOUT ERROR] Option -f/--filenames is required but not set.\n"
+        "[CHOPPER LAYOUT ERROR] Option -i/--input-prefix is required but not set.\n"
     };
     EXPECT_EQ(result.exit_code, 65280);
     EXPECT_EQ(result.out, std::string{});
@@ -62,17 +62,17 @@ TEST_F(cli_test, chopper_layout_cmd_error_unknown_option)
 
 TEST_F(cli_test, chopper_layout_cmd_error_empty_file)
 {
-    seqan3::test::tmp_filename empty_file{"empty.file"};
+    seqan3::test::tmp_filename empty_file_prefix{"empty"};
 
     {
-        std::ofstream ofs{empty_file.get_path()}; // opens file, s.t. it exists but is empty
+        std::ofstream ofs{empty_file_prefix.get_path().string() + ".count"}; // opens file, s.t. it exists but is empty
     }
 
-    cli_test_result result = execute_app("chopper", "layout", "-f", empty_file.get_path());
+    cli_test_result result = execute_app("chopper", "layout", "-i", empty_file_prefix.get_path().c_str());
 
     std::string expected
     {
-        "[CHOPPER LAYOUT ERROR] The file " + empty_file.get_path().string() +  " appears to be empty.\n"
+        "[CHOPPER LAYOUT ERROR] The file " + empty_file_prefix.get_path().string() +  ".count appears to be empty.\n"
     };
     EXPECT_EQ(result.exit_code, 65280);
     EXPECT_EQ(result.out, std::string{});
@@ -81,15 +81,15 @@ TEST_F(cli_test, chopper_layout_cmd_error_empty_file)
 
 TEST_F(cli_test, chopper_layout_cmd_error_no_extra_information)
 {
-    seqan3::test::tmp_filename empty_file{"no_extra_information.data"};
+    seqan3::test::tmp_filename prefix{"no_extra_information"};
 
     {
-        std::ofstream ofs{empty_file.get_path()};
+        std::ofstream ofs{prefix.get_path().string() + ".count"};
         ofs << "seq1\t500\n"
             << "seq2\t600\n";
     }
 
-    cli_test_result result = execute_app("chopper", "layout", "-f", empty_file.get_path(), "--aggregate-by", "3");
+    cli_test_result result = execute_app("chopper", "layout", "-i", prefix.get_path(), "--aggregate-by", "3");
 
     std::string expected
     {
@@ -103,15 +103,15 @@ TEST_F(cli_test, chopper_layout_cmd_error_no_extra_information)
 
 TEST_F(cli_test, chopper_layout_cmd_error_column_index_out_of_bounds)
 {
-    seqan3::test::tmp_filename empty_file{"no_extra_information.data"};
+    seqan3::test::tmp_filename prefix{"no_extra_information"};
 
     {
-        std::ofstream ofs{empty_file.get_path()};
+        std::ofstream ofs{prefix.get_path().string() + ".count"};
         ofs << "seq1\t500\tinformation1\n"
             << "seq2\t600\tinformation1\n";
     }
 
-    cli_test_result result = execute_app("chopper", "layout", "-f", empty_file.get_path(), "--aggregate-by", "4");
+    cli_test_result result = execute_app("chopper", "layout", "-i", prefix.get_path(), "--aggregate-by", "4");
 
     std::string expected
     {
@@ -125,19 +125,20 @@ TEST_F(cli_test, chopper_layout_cmd_error_column_index_out_of_bounds)
 
 TEST_F(cli_test, chopper_layout_cmd_error_no_hll_dir)
 {
-    seqan3::test::tmp_filename empty_file{"my.data"};
+    seqan3::test::tmp_filename prefix{"foo"};
 
     {
-        std::ofstream ofs{empty_file.get_path()};
+        std::ofstream ofs{prefix.get_path().string() + ".count"};
         ofs << "seq1\t500\n"
             << "seq2\t600\n";
     }
 
-    cli_test_result result = execute_app("chopper", "layout", "-f", empty_file.get_path(), "--estimate-union");
+    cli_test_result result = execute_app("chopper", "layout", "-i", prefix.get_path(), "--estimate-union");
 
     std::string expected
     {
-        "[CHOPPER LAYOUT ERROR] An hll dir needs to be provided when enabling -u or -r.\n"
+        "[CHOPPER LAYOUT ERROR] The directory " + prefix.get_path().string() + "_sketches must be present and not "
+        "empty in order to enable --estimate-union or --rearrange-bins (created with chopper count).\n"
     };
     EXPECT_EQ(result.exit_code, 65280);
     EXPECT_EQ(result.out, std::string{});

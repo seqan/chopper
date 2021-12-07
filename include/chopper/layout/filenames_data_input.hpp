@@ -13,10 +13,10 @@ namespace chopper::layout
 
 inline auto read_filename_data_file(data_store & data, configuration const & config)
 {
-    std::ifstream file_in{config.data_file};
+    std::ifstream file_in{config.count_filename};
 
     if (!file_in.good())
-        throw std::runtime_error{"[CHOPPER LAYOUT ERROR] Could not open file " + config.data_file.string()};
+        throw std::runtime_error{"[CHOPPER LAYOUT ERROR] Could not open file " + config.count_filename.string()};
 
     std::string line;
     while (std::getline(file_in, line) && line[0] == '#'); // skip comments

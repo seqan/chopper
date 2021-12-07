@@ -103,8 +103,15 @@ TEST_F(user_bin_sequence_test, read_hll_files_empty_dir)
     auto const parent_dir = tmp_file.get_path().parent_path();
     auto const empty_dir = parent_dir / "empty_dir";
     std::filesystem::create_directory(empty_dir); // create empty dir
+    ASSERT_TRUE(std::filesystem::exists(empty_dir));
+    ASSERT_TRUE(std::filesystem::is_empty(empty_dir));
 
+    // Will throw in Release, but assert in Debug
+#ifdef NDEBUG
     EXPECT_THROW(this->read_hll_files(empty_dir), std::runtime_error);
+#else
+    EXPECT_DEATH(this->read_hll_files(empty_dir), "");
+#endif
 }
 
 TEST_F(user_bin_sequence_test, read_hll_files_faulty_file)

@@ -6,6 +6,7 @@
 
 #include <chopper/count/configuration.hpp>
 #include <chopper/count/count_kmers.hpp>
+#include <chopper/detail_apply_prefix.hpp>
 #include <chopper/layout/execute.hpp>
 
 #include "../api_test.hpp"
@@ -13,9 +14,9 @@
 
 TEST(execute_hll_test, few_ubs)
 {
-    seqan3::test::tmp_filename const count_file{"kmer_counts.tsv"};
+    seqan3::test::tmp_filename const data_file{"test.tsv"};
+    seqan3::test::tmp_filename const io_prefix{"hll"};
     seqan3::test::tmp_filename const layout_file{"layout.tsv"};
-    seqan3::test::tmp_filename const hll_dir{"hll"};
 
     std::string const seq1_filename = data("seq1.fa");
     std::string const seq2_filename = data("seq2.fa");
@@ -24,9 +25,9 @@ TEST(execute_hll_test, few_ubs)
     std::string const small2_filename = data("small2.fa");
 
     {
-        chopper::count::configuration const config{.output_filename{count_file.get_path()},
-                                                   .hll_dir{hll_dir.get_path()},
-                                                   .exclusively_hlls{true}};
+        chopper::count::configuration config{.data_file{data_file.get_path()},
+                                             .output_prefix{io_prefix.get_path().string()}};
+        chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
         std::vector<std::string> const files{seq1_filename,
                                              seq2_filename,
@@ -42,7 +43,7 @@ TEST(execute_hll_test, few_ubs)
     }
 
     {
-        std::ofstream fout{count_file.get_path()};
+        std::ofstream fout{io_prefix.get_path().string() + ".count"};
         fout << seq2_filename << "\t1\t" << seq2_filename << '\n'
              << small_filename << "\t2\t" << small_filename << '\n'
              << small2_filename << "\t2\t" << small2_filename << '\n'
@@ -52,7 +53,7 @@ TEST(execute_hll_test, few_ubs)
 
     char const * const argv[] = {"./chopper-layout",
                                  "-b", "4",
-                                 "-f", count_file.get_path().c_str(),
+                                 "-i", io_prefix.get_path().c_str(),
                                  "-o", layout_file.get_path().c_str()};
     int const argc = sizeof(argv) / sizeof(*argv);
 
@@ -83,9 +84,9 @@ TEST(execute_hll_test, few_ubs)
 
 TEST(execute_hll_test, many_ubs)
 {
-    seqan3::test::tmp_filename const count_file{"kmer_counts.tsv"};
+    seqan3::test::tmp_filename const data_file{"test.tsv"};
+    seqan3::test::tmp_filename const io_prefix{"hll"};
     seqan3::test::tmp_filename const layout_file{"layout.tsv"};
-    seqan3::test::tmp_filename const hll_dir{"hll"};
 
     std::string const seq1_filename = data("seq1.fa");
     std::string const seq2_filename = data("seq2.fa");
@@ -94,9 +95,9 @@ TEST(execute_hll_test, many_ubs)
     std::string const small2_filename = data("small2.fa");
 
     {
-        chopper::count::configuration const config{.output_filename{count_file.get_path()},
-                                                   .hll_dir{hll_dir.get_path()},
-                                                   .exclusively_hlls{true}};
+        chopper::count::configuration config{.data_file{data_file.get_path()},
+                                             .output_prefix{io_prefix.get_path().string()}};
+        chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
         std::vector<std::string> const files{seq1_filename,
                                              seq2_filename,
@@ -116,7 +117,7 @@ TEST(execute_hll_test, many_ubs)
     }
 
     {
-        std::ofstream fout{count_file.get_path()};
+        std::ofstream fout{io_prefix.get_path().string() + ".count"};
         fout << small_filename << "\t2\tcluster18\n"
              << seq1_filename << "\t1\tcluster45\n"
              << small2_filename << "\t2\tcluster44\n"
@@ -217,7 +218,7 @@ TEST(execute_hll_test, many_ubs)
 
     char const * const argv[] = {"./chopper-layout",
                                  "-b", "4",
-                                 "-f", count_file.get_path().c_str(),
+                                 "-i", io_prefix.get_path().c_str(),
                                  "-o", layout_file.get_path().c_str()};
     int const argc = sizeof(argv) / sizeof(*argv);
 

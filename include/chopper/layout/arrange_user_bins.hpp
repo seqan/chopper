@@ -17,7 +17,7 @@ inline void arrange_user_bins(data_store & data, configuration const & config)
 
         if (config.estimate_union)
         {
-            bin_sequence.read_hll_files(config.hll_dir);
+            bin_sequence.read_hll_files(config.sketch_directory);
             if (config.rearrange_bins)
                 bin_sequence.rearrange_bins(config.max_ratio, config.num_threads);
 

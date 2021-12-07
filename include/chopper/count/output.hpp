@@ -35,7 +35,7 @@ inline void write_sketch_file(std::pair<std::string, std::vector<std::string>> c
         throw std::runtime_error("This mode is not implemented yet for multiple files grouped together.");
 
     // For one file in the cluster, the file stem is used with the .hll ending
-    std::filesystem::path path = config.hll_dir / std::filesystem::path(key).stem();
+    std::filesystem::path path = config.sketch_directory / std::filesystem::path(key).stem();
     path += ".hll";
     std::ofstream hll_fout(path, std::ios::binary);
     sketch.dump(hll_fout);
