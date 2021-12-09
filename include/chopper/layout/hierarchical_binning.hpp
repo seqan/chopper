@@ -3,7 +3,7 @@
 #include <cassert>
 #include <cmath>
 
-#include <chopper/bin_prefixes.hpp>
+#include <chopper/prefixes.hpp>
 #include <chopper/helper.hpp>
 #include <chopper/layout/ibf_query_cost.hpp>
 #include <chopper/layout/configuration.hpp>
@@ -460,7 +460,7 @@ private:
         if (config.debug)
             update_debug_libf_data(libf_data, kmer_count, optimal_score);
 
-        std::string const merged_ibf_name{std::string{merged_bin_prefix} + "_" + libf_data.previous.bin_indices};
+        std::string const merged_ibf_name{std::string{prefix::merged_bin} + "_" + libf_data.previous.bin_indices};
 
         // add merged bin to ibf statistics
         uint64_t const cardinality = config.estimate_union ? data->union_estimates[j][trace_j + 1] : kmer_count;
