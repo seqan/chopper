@@ -294,9 +294,9 @@ private:
         if (data->output_buffer->tellp() == 0) // beginning of the file
         {
             if (config.debug)
-                *data->output_buffer << "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\tEST_MAX_TB_SIZES\tSCORE\tCORR\tT_MAX" << std::endl;
+                *data->output_buffer << prefix::header <<"FILES\tBIN_INDICES\tNUMBER_OF_BINS\tEST_MAX_TB_SIZES\tSCORE\tCORR\tT_MAX" << std::endl;
             else
-                *data->output_buffer << "#FILES\tBIN_INDICES\tNUMBER_OF_BINS" << std::endl;
+                *data->output_buffer << prefix::header <<"FILES\tBIN_INDICES\tNUMBER_OF_BINS" << std::endl;
         }
 
         // The cost for querying `num_technical_bins` bins.
@@ -471,7 +471,7 @@ private:
         // now do the binning for the low-level IBF:
         size_t const lower_max_bin = add_lower_level(libf_data, kmer_count);
 
-        *data->header_buffer << "#" << merged_ibf_name << " max_bin_id:" << lower_max_bin << '\n';
+        *data->header_buffer << prefix::header << merged_ibf_name << " max_bin_id:" << lower_max_bin << '\n';
     }
 
     void update_libf_data(data_store & libf_data, size_t const bin_id) const
