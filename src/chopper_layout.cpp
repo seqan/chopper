@@ -290,7 +290,7 @@ int execute(seqan3::argument_parser & parser)
 
     // brief Write the output to the result file.
     std::ofstream fout{config.output_filename};
-    fout << prefix::header << prefix::hibf << " max_bin_id:" << max_hibf_id << '\n';
+    fout << prefix::header << prefix::high_level << " max_bin_id:" << max_hibf_id << '\n';
     fout << header_buffer.str();
     fout << output_buffer.str();
 
