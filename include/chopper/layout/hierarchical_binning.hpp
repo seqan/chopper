@@ -294,9 +294,9 @@ private:
         if (data->output_buffer->tellp() == 0) // beginning of the file
         {
             if (config.debug)
-                *data->output_buffer << prefix::header <<"FILES\tBIN_INDICES\tNUMBER_OF_BINS\tEST_MAX_TB_SIZES\tSCORE\tCORR\tT_MAX" << std::endl;
+                *data->output_buffer << prefix::header << "FILES\tBIN_INDICES\tNUMBER_OF_BINS\tEST_MAX_TB_SIZES\tSCORE\tCORR\tT_MAX" << std::endl;
             else
-                *data->output_buffer << prefix::header <<"FILES\tBIN_INDICES\tNUMBER_OF_BINS" << std::endl;
+                *data->output_buffer << prefix::header << "FILES\tBIN_INDICES\tNUMBER_OF_BINS" << std::endl;
         }
 
         // The cost for querying `num_technical_bins` bins.
