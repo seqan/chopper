@@ -5,6 +5,8 @@
 namespace chopper::prefix
 {
 
+constexpr std::string_view chopper{"chopper"};
+
 constexpr std::string_view header{"#"};
 
 constexpr std::string_view high_level{"HIGH_LEVEL_IBF"};

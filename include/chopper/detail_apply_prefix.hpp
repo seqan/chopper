@@ -3,6 +3,8 @@
 #include <filesystem>
 #include <string_view>
 
+#include <chopper/prefixes.hpp>
+
 namespace chopper::detail
 {
 
@@ -21,7 +23,7 @@ inline void apply_prefix(std::string_view const & prefix,
 {
     // remove trailing slash if given
     std::filesystem::path safe_prefix{prefix};
-    safe_prefix = (safe_prefix.has_filename()) ? safe_prefix.replace_extension("") : safe_prefix += "chopper";
+    safe_prefix = (safe_prefix.has_filename()) ? safe_prefix.replace_extension("") : safe_prefix += prefix::chopper;
 
     filename += safe_prefix;
     filename += ".count";

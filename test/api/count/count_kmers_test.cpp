@@ -12,7 +12,6 @@ TEST(count_kmers_test, small_example)
 
     chopper::count::configuration config;
     config.k = 15;
-    config.w = 25;
     config.num_threads = 1;
     config.output_prefix = output_prefix.get_path().string();
     chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
@@ -26,7 +25,7 @@ TEST(count_kmers_test, small_example)
 
     std::string expected
     {
-        input_file + "\t86\tTAX1\n"
+        input_file + "\t571\tTAX1\n"
     };
 
     count_kmers(filename_clusters, config);
@@ -44,7 +43,6 @@ TEST(count_kmers_test, small_example_parallel_2_threads)
 
     chopper::count::configuration config;
     config.k = 15;
-    config.w = 25;
     config.num_threads = 2;
     config.output_prefix = output_prefix.get_path().string();
     chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
@@ -61,8 +59,8 @@ TEST(count_kmers_test, small_example_parallel_2_threads)
 
     std::vector<std::string> expected_components
     {
-        input_file + "\t86\tTAX1",
-        input_file + /* ";" + input_file + */ "\t86\tTAX2"
+        input_file + "\t571\tTAX1",
+        input_file + /* ";" + input_file + */ "\t571\tTAX2"
     };
 
     ASSERT_TRUE(std::filesystem::exists(config.count_filename));

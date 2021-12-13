@@ -27,9 +27,9 @@ TEST(execute_test, few_ubs)
     }
 
     char const * const argv[] = {"./chopper-layout",
-                                 "-b", "64",
-                                 "-i", input_prefix.get_path().c_str(),
-                                 "-o", layout_file.get_path().c_str()};
+                                 "--tmax", "64",
+                                 "--input-prefix", input_prefix.get_path().c_str(),
+                                 "--output-file", layout_file.get_path().c_str()};
     int const argc = sizeof(argv) / sizeof(*argv);
 
     seqan3::argument_parser layout_parser{"chopper-layout", argc, argv, seqan3::update_notifications::off};
@@ -71,9 +71,9 @@ TEST(execute_test, few_ubs_debug)
     }
 
     char const * const argv[] = {"./chopper-layout",
-                                 "-b", "64",
-                                 "-i", input_prefix.get_path().c_str(),
-                                 "-o", layout_file.get_path().c_str(),
+                                 "--tmax", "64",
+                                 "--input-prefix", input_prefix.get_path().c_str(),
+                                 "--output-file", layout_file.get_path().c_str(),
                                  "--debug"};
     int const argc = sizeof(argv) / sizeof(*argv);
 
@@ -121,10 +121,10 @@ TEST(execute_test, few_ubs_with_aggregatation)
     }
 
     char const * const argv[] = {"./chopper-layout",
-                                 "-b", "64",
+                                 "--tmax", "64",
                                  "--aggregate-by", "2", /* specification column */
-                                 "-i", input_prefix.get_path().c_str(),
-                                 "-o", layout_file.get_path().c_str()};
+                                 "--input-prefix", input_prefix.get_path().c_str(),
+                                 "--output-file", layout_file.get_path().c_str()};
     int const argc = sizeof(argv) / sizeof(*argv);
 
     seqan3::argument_parser layout_parser{"chopper-layout", argc, argv, seqan3::update_notifications::off};
@@ -161,9 +161,9 @@ TEST(execute_test, many_ubs_debug)
     }
 
     char const * const argv[] = {"./chopper-layout",
-                                 "-b", "64",
-                                 "-i", input_prefix.get_path().c_str(),
-                                 "-o", layout_file.get_path().c_str(),
+                                 "--tmax", "64",
+                                 "--input-prefix", input_prefix.get_path().c_str(),
+                                 "--output-file", layout_file.get_path().c_str(),
                                  "--debug"};
     int const argc = sizeof(argv) / sizeof(*argv);
 

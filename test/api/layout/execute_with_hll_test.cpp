@@ -52,9 +52,9 @@ TEST(execute_hll_test, few_ubs)
     }
 
     char const * const argv[] = {"./chopper-layout",
-                                 "-b", "4",
-                                 "-i", io_prefix.get_path().c_str(),
-                                 "-o", layout_file.get_path().c_str()};
+                                 "--tmax", "4",
+                                 "--input-prefix", io_prefix.get_path().c_str(),
+                                 "--output-file", layout_file.get_path().c_str()};
     int const argc = sizeof(argv) / sizeof(*argv);
 
     seqan3::argument_parser layout_parser{"chopper-layout", argc, argv, seqan3::update_notifications::off};
@@ -217,9 +217,9 @@ TEST(execute_hll_test, many_ubs)
     }
 
     char const * const argv[] = {"./chopper-layout",
-                                 "-b", "4",
-                                 "-i", io_prefix.get_path().c_str(),
-                                 "-o", layout_file.get_path().c_str()};
+                                 "--tmax", "4",
+                                 "--input-prefix", io_prefix.get_path().c_str(),
+                                 "--output-file", layout_file.get_path().c_str()};
     int const argc = sizeof(argv) / sizeof(*argv);
 
     seqan3::argument_parser layout_parser{"chopper-layout", argc, argv, seqan3::update_notifications::off};

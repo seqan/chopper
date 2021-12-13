@@ -25,20 +25,19 @@ TEST(execute_test, small_example_parallel_2_threads)
     }
 
     const char * argv[] = {"./chopper-count",
-                           "-k", "15",
-                           "-w", "25",
-                           "-t", "2",
-                           "-c", "2",
+                           "--kmer-size", "15",
+                           "--threads", "2",
+                           "--column-index", "2",
                            "--disable-sketch-output",
-                           "-f", data_filename.get_path().c_str(),
-                           "-o", output_prefix.get_path().c_str()};
-    int argc = 14;
+                           "--input-file", data_filename.get_path().c_str(),
+                           "--output-prefix", output_prefix.get_path().c_str()};
+    int argc = 12;
     seqan3::argument_parser count_parser{"chopper-count", argc, argv, seqan3::update_notifications::off};
 
     std::vector<std::string> expected_components
     {
-        input_filename + "\t86\tTAX1",
-        input_filename + /* ";" + input_filename */ + "\t86\tTAX2"
+        input_filename + "\t571\tTAX1",
+        input_filename + /* ";" + input_filename */ + "\t571\tTAX2"
     };
 
     EXPECT_NO_THROW(chopper::count::execute(count_parser));
@@ -56,7 +55,7 @@ TEST(execute_test, small_example_parallel_2_threads)
     EXPECT_EQ(expected_components.size(), line_count) << "File: " <<  output_file_str;
 }
 
-TEST(execute_test, disable_minimizers)
+TEST(execute_test, some_test)
 {
     std::string input_filename = data("small.fa");
     seqan3::test::tmp_filename data_filename{"data.tsv"};
@@ -71,14 +70,13 @@ TEST(execute_test, disable_minimizers)
     }
 
     const char * argv[] = {"./chopper-count",
-                           "-k", "25",
-                           "-t", "1",
-                           "-c", "2",
-                           "--disable-minimizers",
+                           "--kmer-size", "25",
+                           "--threads", "1",
+                           "--column-index", "2",
                            "--disable-sketch-output",
-                           "-f", data_filename.get_path().c_str(),
-                           "-o", output_prefix.get_path().c_str()};
-    int argc = 13;
+                           "--input-file", data_filename.get_path().c_str(),
+                           "--output-prefix", output_prefix.get_path().c_str()};
+    int argc = 12;
     seqan3::argument_parser count_parser{"chopper-count", argc, argv, seqan3::update_notifications::off};
 
     std::vector<std::string> expected_components
