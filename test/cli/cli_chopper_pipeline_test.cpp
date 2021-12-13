@@ -11,8 +11,6 @@
 #include <seqan3/utility/views/join_with.hpp>
 #include <seqan3/utility/views/to.hpp>
 
-#include <chopper/bin_prefixes.hpp>
-
 #include "cli_test.hpp"
 
 // check if each chopper submodule can work with the output of the other

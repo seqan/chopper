@@ -3,7 +3,7 @@
 #include <cassert>
 #include <cmath>
 
-#include <chopper/bin_prefixes.hpp>
+#include <chopper/prefixes.hpp>
 #include <chopper/helper.hpp>
 #include <chopper/layout/ibf_query_cost.hpp>
 #include <chopper/layout/configuration.hpp>
@@ -294,9 +294,9 @@ private:
         if (data->output_buffer->tellp() == 0) // beginning of the file
         {
             if (config.debug)
-                *data->output_buffer << "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\tEST_MAX_TB_SIZES\tSCORE\tCORR\tT_MAX" << std::endl;
+                *data->output_buffer << prefix::header << "FILES\tBIN_INDICES\tNUMBER_OF_BINS\tEST_MAX_TB_SIZES\tSCORE\tCORR\tT_MAX" << std::endl;
             else
-                *data->output_buffer << "#FILES\tBIN_INDICES\tNUMBER_OF_BINS" << std::endl;
+                *data->output_buffer << prefix::header << "FILES\tBIN_INDICES\tNUMBER_OF_BINS" << std::endl;
         }
 
         // The cost for querying `num_technical_bins` bins.
@@ -466,7 +466,7 @@ private:
         if (config.debug)
             update_debug_libf_data(libf_data, kmer_count, optimal_score);
 
-        std::string const merged_ibf_name{std::string{merged_bin_prefix} + "_" + libf_data.previous.bin_indices};
+        std::string const merged_ibf_name{std::string{prefix::merged_bin} + "_" + libf_data.previous.bin_indices};
 
         // add merged bin to ibf statistics
         uint64_t const cardinality = config.estimate_union ? data->union_estimates[j][trace_j + 1] : kmer_count;
@@ -478,7 +478,7 @@ private:
         // now do the binning for the low-level IBF:
         size_t const lower_max_bin = add_lower_level(libf_data);
 
-        *data->header_buffer << "#" << merged_ibf_name << " max_bin_id:" << lower_max_bin << '\n';
+        *data->header_buffer << prefix::header << merged_ibf_name << " max_bin_id:" << lower_max_bin << '\n';
     }
 
     void update_libf_data(data_store & libf_data, size_t const bin_id) const
