@@ -16,79 +16,134 @@ void set_up_subparser_layout(seqan3::argument_parser & parser, chopper::layout::
     parser.info.version = "1.0.0";
     parser.info.author = "Svenja Mehringer";
     parser.info.email = "svenja.mehringer@fu-berlin.de";
+    parser.info.short_description = "Compute an HIBF layout";
 
-    parser.info.description.emplace_back("The `_layout` submodule will create a hierarchical binning that minimizes the "
-                                         "space consumption of the resulting Interleaved Bloom Filter that you may "
-                                         "build with the `build` submodule using the results.");
+    parser.info.description.emplace_back("Computes an HIBF layout that tries to minimize the disk space consumption of "
+                                         "the resulting index. The space is estimated using a k-mer count per user "
+                                         "bin which represents the potential denisity in a technical bin in an "
+                                         "interleaved Bloom filter.  You can pass the resulting layout to raptor "
+                                         "(https://github.com/seqan/raptor) to build the index and "
+                                         "conduct queries.");
 
-    parser.add_option(config.input_prefix, 'i', "input-prefix",
-                      "Provide the prefix you used for the output prefix in chopper count -o/--output-prefix option.",
+    parser.add_subsection("Main options:");
+    // -----------------------------------------------------------------------------------------------------------------
+    parser.add_option(config.input_prefix,
+                      '\0', "input-prefix",
+                      "Provide the prefix you used for the output prefix in the chopper count --output-prefix option. "
+                      "If you have different means of estimating the k-mer counts of your input data, make sure that a "
+                      "file [INPUT-PREFIX].count exists. It needs to be tab-separated and consist of two columns: "
+                      "\"[filepath] [tab] [weight/count]\".",
+                      seqan3::option_spec::required);
+    parser.add_list_item("", "Example count file:");
+    parser.add_list_item("", "```");
+    parser.add_list_item("", "/absolute/path/to/file1.fasta     500");
+    parser.add_list_item("", "/absolute/path/to/file2.fa.gz     600");
+    parser.add_list_item("", "```");
+
+    parser.add_option(config.t_max,
+                      '\0', "tmax",
+                      "Limits the number of technical bins on each level of the HIBF. Choosing a good tmax is not "
+                      "trivial. The smaller tmax, the more levels the layout needs to represent the data. This results "
+                      "in a higher space consumption of the index. While querying each individual level is cheap, "
+                      "querying many levels might also lead to an increased runtime. "
+                      "A good tmax is usually the square root of the number of user bins rounded to the next multiple "
+                      "of 64. Note that your tmax will be rounded to the next multiple of 64 anyway. "
+                      "At the expense of a longer runtime, you can enable the statistic mode that determines the best "
+                      "tmax. See the option --determine-best-tmax",
                       seqan3::option_spec::required);
 
-    parser.add_option(config.t_max, 'b', "technical-bins",
-                      "Into how many technical bins do you want your sequence data to be put? "
-                      "Will be ceiled to the next multiple of 64. Will be an upper bound for the number of bins "
-                      "when -determine-num-bins is given.");
+    parser.add_option(config.num_hash_functions,
+                      '\0', "num-hash-functions",
+                      "The number of hash functions to use when building the HIBF from the resulting layout. "
+                      "This parameter is needed to correctly estimate the index size when computing the layout.");
 
-    parser.add_option(config.num_hash_functions, 's', "num-hash-functions",
-                      "The number of hash functions for the IBFs.");
+    parser.add_option(config.fp_rate,
+                      '\0', "false-positive-rate",
+                      "The false positive rate you aim for when building the HIBF from the resulting layout. "
+                      "This parameter is needed to correctly estimate the index size when computing the layout.");
 
-    parser.add_option(config.fp_rate, 'p', "false-positive-rate",
-                      "The desired false positive rate of the IBFs.");
-
-    parser.add_option(config.alpha, 'a', "alpha",
-                      "The scaling factor to influence the number of merged bins.", seqan3::option_spec::advanced);
-
-    parser.add_option(config.output_filename, 'o', "outfile",
-                      "An output file name for the binning results.");
+    parser.add_option(config.output_filename, '\0', "output-file", "A file name for the resulting layout.");
 
     using aggregate_by_type = std::remove_cvref_t<decltype(config.aggregate_by_column)>;
-    parser.add_option(config.aggregate_by_column, 'y', "aggregate-by",
+    parser.add_option(config.aggregate_by_column,
+                      '\0', "aggregate-by",
                       "Which column do you want to aggregate your files by? Start counting your columns from 0!",
                       seqan3::option_spec::hidden,
                       seqan3::arithmetic_range_validator{aggregate_by_type{2},
                                                          std::numeric_limits<aggregate_by_type>::max()});
 
-    parser.add_section("HyperLogLog Sketches");
-    parser.add_line("To improve the _layouting, you can estimate your sequence similarities using HyperLogLog sketches.");
-    parser.add_line("\n");
-
-    parser.add_option(config.max_ratio, 'm', "max-ratio",
-                      "[HLL] The maximal cardinality ratio in the clustering intervals.",
-                      seqan3::option_spec::standard,
-                      seqan3::arithmetic_range_validator{0.0, 1.0});
-
-    parser.add_option(config.num_threads, 't', "num-threads",
-                      "[HLL] The number of threads to use to compute merged HLL sketches.",
+    parser.add_option(config.num_threads,
+                      '\0', "threads",
+                      "The number of threads to use. Currently, only merging of sketches is parallelized, so if option "
+                      "--rearrange-user-bins is not set, --threads will have no effect.",
                       seqan3::option_spec::standard,
                       seqan3::arithmetic_range_validator{static_cast<size_t>(1), std::numeric_limits<size_t>::max()});
 
-    parser.add_flag(config.estimate_union, 'u', "estimate-union",
-                    "[HLL] Estimate the union of kmer sets to possibly improve the binning. Only possible if the "
-                    "directory [INPUT-PREFIX]_sketches is present.");
+    parser.add_subsection("HyperLogLog Sketches:");
+    parser.add_line("To improve the layout, you can estimate the sequence similarities using HyperLogLog sketches.");
 
-    parser.add_flag(config.rearrange_bins, 'r', "rearrange-bins",
-                    "[HLL] Do a rearrangement of the bins which takes into account similarity. Enabling this option "
-                    "also enables -u. Only possible if the directory [INPUT-PREFIX]_sketches is present.");
+    parser.add_flag(config.estimate_union,
+                    '\0', "estimate-union",
+                    "Use sketches to estimate the sequence similarity among a set of user bins. This will improve the "
+                    "layout computation as merging user bins that do not increase technical bin sizes will be "
+                    "preferred. Attention: Only possible if the directory [INPUT-PREFIX]_sketches is present.");
 
-    parser.add_section("Special options");
-    parser.add_line("\n");
+    parser.add_flag(config.rearrange_bins,
+                    '\0', "rearrange-user-bins",
+                    "As a preprocessing step, rearranging the order of the given user bins based on their sequence "
+                    "similarity may lead to favourable small unions and thus a smaller index. "
+                    "Attention: Also enables --estimate-union and is only possible if the directory "
+                    "[INPUT-PREFIX]_sketches is present.");
 
-    parser.add_flag(config.determine_num_bins, '\0', "determine-num-bins",
-                    "If given, the programm will determine the best number of technical bins by "
-                    "doing multiple binning runs. The -b option will then be an upper bound.");
+    parser.add_subsection("Parameter Tweaking:");
+    // -----------------------------------------------------------------------------------------------------------------
+    parser.add_option(config.alpha,
+                      '\0', "alpha",
+                      "The layout algorithm optimizes the space consumption of the resulting HIBF but currently has no "
+                      "means of optimizing the runtime for querying such an HIBF. In general, the ratio of merged bins "
+                      "and split bins influences the query time because a merged bin always triggers another search on "
+                      "a lower level. To influence this ratio, alpha can be used. The higher alpha, the less merged "
+                      "bins are chosen in the layout. This improves query times but leads to a bigger index.",
+                      seqan3::option_spec::advanced);
 
-    parser.add_flag(config.force_all_binnings, '\0', "force-all-binnings",
-                    "If given together with --determine-num-bins, all binnings up to the chosen t_max are computed "
-                    "instead of stopping when the expected query costs become worse.");
+    parser.add_option(config.max_ratio,
+                      '\0', "max-rearrangement-ratio",
+                      "When the option --rearrange-user-bins is set, this option can influence the rearrangement "
+                      "algorithm. The algorithm only rearranges the order of user bins in fixed intervals. The higher "
+                      "--max-rearrangement-ratio, the larger the intervals. This potentially improves the layout, but "
+                      "increases the runtime of the layout algorithm.",
+                      seqan3::option_spec::standard,
+                      seqan3::arithmetic_range_validator{0.0, 1.0});
 
-    parser.add_flag(config.output_statistics, '\0', "output-statistics",
-                    "Print additional statistics and information to the command line (std::cout).",
+    parser.add_subsection("Special options");
+    // -----------------------------------------------------------------------------------------------------------------
+    parser.add_flag(config.determine_best_tmax,
+                    '\0', "determine-best-tmax",
+                    "When this flag is set, the program will compute multiple layouts for tmax in "
+                    "[64 , 128, 256, ... , tmax] as well as tmax=sqrt(number of user bins). "
+                    "The layout algorithm itself only optimizes the space consumption. When determining the best "
+                    "layout, we additionally keep track of the average number of queries needed to traverse each "
+                    "layout. This query cost is taken into account when determining the best tmax for your data. "
+                    "Note that the option --tmax serves as upper bound. Once the layout quality starts dropping, the "
+                    "computation is stopped. To run all layout computations, pass the flag --force-all-binnings.");
+
+    parser.add_flag(config.force_all_binnings,
+                    '\0', "force-all-binnings",
+                    "Forces all layouts up to --tmax to be computed, "
+                    "regardless of the layout quality. If the flag --determine-best-tmax is not set, this flag is "
+                    "ignored and has no effect.");
+
+    parser.add_flag(config.output_statistics,
+                    '\0', "output-statistics",
+                    "Enable verbose statistics to be "
+                    "printed to std::cout. If the flag --determine-best-tmax is not set, this flag is ignored "
+                    "and has no effect.",
                     seqan3::option_spec::advanced);
 
-    parser.add_flag(config.debug, '\0', "debug",
-                    "Enables debug output in layouting file.",
-                    seqan3::option_spec::advanced);
+    parser.add_flag(config.debug,
+                    '\0', "debug",
+                    "Enables debug output in layout file.",
+                    seqan3::option_spec::hidden);
 }
 
 void sanity_checks(layout::data_store const & data, chopper::layout::configuration & config)
@@ -100,8 +155,8 @@ void sanity_checks(layout::data_store const & data, chopper::layout::configurati
         (!std::filesystem::exists(config.sketch_directory) || std::filesystem::is_empty(config.sketch_directory)))
     {
         throw seqan3::argument_parser_error{"The directory " + config.sketch_directory.string() + " must be present "
-                                            "and not empty in order to enable --estimate-union or --rearrange-bins "
-                                            "(created with chopper count)."};
+                                            "and not empty in order to enable --estimate-union or "
+                                            "--rearrange-user-bins (created with chopper count)."};
     }
 
     if (data.filenames.empty())
@@ -129,7 +184,7 @@ size_t determine_best_number_of_technical_bins(chopper::layout::data_store & dat
     std::stringstream * const header_buffer_original = data.header_buffer;
     size_t max_hibf_id{};
 
-    // with -determine-num-bins the algorithm is executed multiple times and result with the minimum
+    // with -determine-best-tmax the algorithm is executed multiple times and result with the minimum
     // expected query costs is written to the output
     std::cout << std::fixed << std::setprecision(2);
     if (!config.output_statistics)
@@ -275,7 +330,7 @@ int execute(seqan3::argument_parser & parser)
                   << "#false positive rate:" << config.fp_rate << "\n\n";
     }
 
-    if (config.determine_num_bins)
+    if (config.determine_best_tmax)
     {
         max_hibf_id = determine_best_number_of_technical_bins(data, config);
     }

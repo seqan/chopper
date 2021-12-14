@@ -14,10 +14,8 @@ struct configuration
     std::filesystem::path sketch_directory{}; // set internally
     size_t column_index_to_cluster{1u};
     size_t num_threads{1u};
-    uint8_t k{25};
-    unsigned int w{500};
+    uint8_t k{19};
     uint8_t sketch_bits{12};
-    bool disable_minimizers{false};
     bool disable_sketch_output{false};
 };
 

@@ -26,10 +26,10 @@ TEST(execute_estimation_test, few_ubs)
     }
 
     char const * const argv[] = {"./chopper-layout",
-                                 "-b", "4",
-                                 "--determine-num-bins",
-                                 "-i", input_prefix.get_path().c_str(),
-                                 "-o", layout_file.get_path().c_str()};
+                                 "--tmax", "4",
+                                 "--determine-best-tmax",
+                                 "--input-prefix", input_prefix.get_path().c_str(),
+                                 "--output-file", layout_file.get_path().c_str()};
     int const argc = sizeof(argv) / sizeof(*argv);
 
     seqan3::argument_parser layout_parser{"chopper-layout", argc, argv, seqan3::update_notifications::off};
@@ -58,10 +58,10 @@ TEST(execute_estimation_test, many_ubs)
     }
 
     char const * const argv[] = {"./chopper-layout",
-                                 "-b", "1024",
-                                 "--determine-num-bins",
-                                 "-i", input_prefix.get_path().c_str(),
-                                 "-o", layout_file.get_path().c_str()};
+                                 "--tmax", "1024",
+                                 "--determine-best-tmax",
+                                 "--input-prefix", input_prefix.get_path().c_str(),
+                                 "--output-file", layout_file.get_path().c_str()};
     int const argc = sizeof(argv) / sizeof(*argv);
 
     seqan3::argument_parser layout_parser{"chopper-layout", argc, argv, seqan3::update_notifications::off};
@@ -86,11 +86,11 @@ TEST(execute_estimation_test, many_ubs_force_all)
     }
 
     char const * const argv[] = {"./chopper-layout",
-                                 "-b", "256",
-                                 "--determine-num-bins",
+                                 "--tmax", "256",
+                                 "--determine-best-tmax",
                                  "--force-all-binnings",
-                                 "-i", input_prefix.get_path().c_str(),
-                                 "-o", layout_file.get_path().c_str()};
+                                 "--input-prefix", input_prefix.get_path().c_str(),
+                                 "--output-file", layout_file.get_path().c_str()};
     int const argc = sizeof(argv) / sizeof(*argv);
 
     seqan3::argument_parser layout_parser{"chopper-layout", argc, argv, seqan3::update_notifications::off};

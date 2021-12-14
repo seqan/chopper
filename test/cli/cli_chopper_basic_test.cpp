@@ -41,7 +41,7 @@ TEST_F(cli_test, chopper_count_cmd_error_unknown_option)
     cli_test_result result = execute_app("chopper", "count", "--unkown-option");
     std::string expected
     {
-        "[CHOPPER COUNT ERROR] Option -f/--data_file is required but not set.\n"
+        "[CHOPPER COUNT ERROR] Option --input-file is required but not set.\n"
     };
     EXPECT_EQ(result.exit_code, 65280);
     EXPECT_EQ(result.out, std::string{});
@@ -53,7 +53,19 @@ TEST_F(cli_test, chopper_layout_cmd_error_unknown_option)
     cli_test_result result = execute_app("chopper", "layout", "--unkown-option");
     std::string expected
     {
-        "[CHOPPER LAYOUT ERROR] Option -i/--input-prefix is required but not set.\n"
+        "[CHOPPER LAYOUT ERROR] Option --input-prefix is required but not set.\n"
+    };
+    EXPECT_EQ(result.exit_code, 65280);
+    EXPECT_EQ(result.out, std::string{});
+    EXPECT_EQ(result.err, expected);
+}
+
+TEST_F(cli_test, chopper_layout_cmd_error_tmax_missing)
+{
+    cli_test_result result = execute_app("chopper", "layout", "--input-prefix", "foo.txt");
+    std::string expected
+    {
+        "[CHOPPER LAYOUT ERROR] Option --tmax is required but not set.\n"
     };
     EXPECT_EQ(result.exit_code, 65280);
     EXPECT_EQ(result.out, std::string{});
@@ -68,7 +80,9 @@ TEST_F(cli_test, chopper_layout_cmd_error_empty_file)
         std::ofstream ofs{empty_file_prefix.get_path().string() + ".count"}; // opens file, s.t. it exists but is empty
     }
 
-    cli_test_result result = execute_app("chopper", "layout", "-i", empty_file_prefix.get_path().c_str());
+    cli_test_result result = execute_app("chopper", "layout",
+                                         "--tmax", "64", /* required option */
+                                         "--input-prefix", empty_file_prefix.get_path().c_str());
 
     std::string expected
     {
@@ -89,7 +103,10 @@ TEST_F(cli_test, chopper_layout_cmd_error_no_extra_information)
             << "seq2\t600\n";
     }
 
-    cli_test_result result = execute_app("chopper", "layout", "-i", prefix.get_path(), "--aggregate-by", "3");
+    cli_test_result result = execute_app("chopper", "layout",
+                                         "--tmax", "64",
+                                         "--input-prefix", prefix.get_path(),
+                                         "--aggregate-by", "3");
 
     std::string expected
     {
@@ -111,7 +128,10 @@ TEST_F(cli_test, chopper_layout_cmd_error_column_index_out_of_bounds)
             << "seq2\t600\tinformation1\n";
     }
 
-    cli_test_result result = execute_app("chopper", "layout", "-i", prefix.get_path(), "--aggregate-by", "4");
+    cli_test_result result = execute_app("chopper", "layout",
+                                         "--tmax", "64",
+                                         "--input-prefix", prefix.get_path(),
+                                         "--aggregate-by", "4");
 
     std::string expected
     {
@@ -133,12 +153,15 @@ TEST_F(cli_test, chopper_layout_cmd_error_no_hll_dir)
             << "seq2\t600\n";
     }
 
-    cli_test_result result = execute_app("chopper", "layout", "-i", prefix.get_path(), "--estimate-union");
+    cli_test_result result = execute_app("chopper", "layout",
+                                         "--tmax", "64",
+                                         "--input-prefix", prefix.get_path(),
+                                         "--estimate-union");
 
     std::string expected
     {
         "[CHOPPER LAYOUT ERROR] The directory " + prefix.get_path().string() + "_sketches must be present and not "
-        "empty in order to enable --estimate-union or --rearrange-bins (created with chopper count).\n"
+        "empty in order to enable --estimate-union or --rearrange-user-bins (created with chopper count).\n"
     };
     EXPECT_EQ(result.exit_code, 65280);
     EXPECT_EQ(result.out, std::string{});

@@ -29,10 +29,8 @@ using sequence_file_type = seqan3::sequence_file_input<mytraits,
                                                        seqan3::fields<seqan3::field::seq>,
                                                        seqan3::type_list<seqan3::format_fasta, seqan3::format_fastq>>;
 
-template <typename hash_view_type>
 inline void count_kmers(robin_hood::unordered_map<std::string, std::vector<std::string>> const & filename_clusters,
-                        configuration const & config,
-                        hash_view_type && hash_fn)
+                        configuration const & config)
 {
    // output file
     std::ofstream fout{config.count_filename};
@@ -57,7 +55,7 @@ inline void count_kmers(robin_hood::unordered_map<std::string, std::vector<std::
         // read files
         for (auto const & filename : cluster_vector[i].second)
             for (auto && [seq] : sequence_file_type{filename})
-                for (auto && hash : seq | hash_fn)
+                for (auto && hash : seq | seqan3::views::kmer_hash(seqan3::ungapped{config.k}))
                     sketch.add(reinterpret_cast<char*>(&hash), sizeof(hash));
 
         // print either the exact or the approximate count, depending on exclusively_hlls
@@ -69,22 +67,6 @@ inline void count_kmers(robin_hood::unordered_map<std::string, std::vector<std::
         if (!config.disable_sketch_output)
             write_sketch_file(cluster_vector[i], sketch, config);
     }
-}
-
-inline void count_kmers(robin_hood::unordered_map<std::string, std::vector<std::string>> const & filename_clusters,
-                        configuration const & config)
-{
-
-    auto compute_minimiser = seqan3::views::minimiser_hash(seqan3::ungapped{config.k},
-                                                           seqan3::window_size{config.w},
-                                                           seqan3::seed{0x8F3F73B5CF1C9ADE >> (64u - 2u * config.k)});
-
-    auto compute_kmers = seqan3::views::kmer_hash(seqan3::ungapped{config.k});
-
-    if (config.disable_minimizers)
-        count_kmers(filename_clusters, config, compute_kmers);
-    else
-        count_kmers(filename_clusters, config, compute_minimiser);
 }
 
 } // namespace chopper::count
