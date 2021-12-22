@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <seqan3/std/filesystem>
+#include <filesystem>
 
 #include <chopper/layout/filenames_data_input.hpp>
 #include <chopper/layout/configuration.hpp>

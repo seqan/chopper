@@ -1,6 +1,6 @@
 #pragma once
 
-#include <seqan3/std/filesystem>
+#include <filesystem>
 
 namespace chopper::layout
 {

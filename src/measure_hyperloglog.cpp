@@ -1,5 +1,5 @@
 #include <cmath>
-#include <seqan3/std/filesystem>
+#include <filesystem>
 #include <fstream>
 #include <string>
 #include <unordered_set>
