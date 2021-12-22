@@ -1,6 +1,6 @@
 #pragma once
 
-#include <seqan3/std/filesystem>
+#include <filesystem>
 #include <thread>
 
 namespace chopper::count

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <seqan3/std/charconv>
-#include <seqan3/std/filesystem>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 

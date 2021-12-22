@@ -1,6 +1,6 @@
 #pragma once
 
-#include <seqan3/std/filesystem>
+#include <filesystem>
 #include <iostream>
 
 inline void print_debug_file(std::filesystem::path const & path, size_t const column_width = 18u)
