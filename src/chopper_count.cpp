@@ -39,7 +39,7 @@ void initialize_argument_parser(seqan3::argument_parser & parser, chopper::count
 
     parser.add_option(config.output_prefix,
                       '\0', "output-prefix",
-                      "The program creates a `[PREFIX].counts` file that contains estimated k-mer counts for each "
+                      "The program creates a `[PREFIX].count` file that contains estimated k-mer counts for each "
                       "sequence file. These counts are used in chopper layout to create an index layout file that can "
                       "be used by the app raptor to build an HIBF. Additionally, a directory [PREFIX]_sketches is "
                       "created that will contain one `.hll` file per sequence file. The sketch files improve the "
