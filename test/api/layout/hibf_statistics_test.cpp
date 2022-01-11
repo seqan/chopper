@@ -18,7 +18,7 @@ TEST(hibf_statistics, only_merged_on_top_level)
 
     chopper::layout::configuration config; // default config
     chopper::layout::data_store data;
-    data.compute_fp_correction(config.fp_rate, config.num_hash_functions, lower_level_split_bin_span);
+    data.compute_fp_correction(config.false_positive_rate, config.num_hash_functions, lower_level_split_bin_span);
 
     chopper::layout::hibf_statistics stats(config, data.fp_correction);
 

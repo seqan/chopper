@@ -29,7 +29,7 @@ TEST(execute_estimation_test, few_ubs)
                                  "--tmax", "4",
                                  "--determine-best-tmax",
                                  "--input-prefix", input_prefix.get_path().c_str(),
-                                 "--output-file", layout_file.get_path().c_str()};
+                                 "--output-filename", layout_file.get_path().c_str()};
     int const argc = sizeof(argv) / sizeof(*argv);
 
     seqan3::argument_parser layout_parser{"chopper-layout", argc, argv, seqan3::update_notifications::off};
@@ -61,7 +61,7 @@ TEST(execute_estimation_test, many_ubs)
                                  "--tmax", "1024",
                                  "--determine-best-tmax",
                                  "--input-prefix", input_prefix.get_path().c_str(),
-                                 "--output-file", layout_file.get_path().c_str()};
+                                 "--output-filename", layout_file.get_path().c_str()};
     int const argc = sizeof(argv) / sizeof(*argv);
 
     seqan3::argument_parser layout_parser{"chopper-layout", argc, argv, seqan3::update_notifications::off};
@@ -90,7 +90,7 @@ TEST(execute_estimation_test, many_ubs_force_all)
                                  "--determine-best-tmax",
                                  "--force-all-binnings",
                                  "--input-prefix", input_prefix.get_path().c_str(),
-                                 "--output-file", layout_file.get_path().c_str()};
+                                 "--output-filename", layout_file.get_path().c_str()};
     int const argc = sizeof(argv) / sizeof(*argv);
 
     seqan3::argument_parser layout_parser{"chopper-layout", argc, argv, seqan3::update_notifications::off};

@@ -12,7 +12,7 @@ TEST(count_kmers_test, small_example)
 
     chopper::count::configuration config;
     config.k = 15;
-    config.num_threads = 1;
+    config.threads = 1;
     config.output_prefix = output_prefix.get_path().string();
     chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
@@ -43,7 +43,7 @@ TEST(count_kmers_test, small_example_parallel_2_threads)
 
     chopper::count::configuration config;
     config.k = 15;
-    config.num_threads = 2;
+    config.threads = 2;
     config.output_prefix = output_prefix.get_path().string();
     chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 

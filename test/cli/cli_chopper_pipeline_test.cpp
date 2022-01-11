@@ -75,7 +75,7 @@ TEST_F(cli_test, chopper_pipeline)
     cli_test_result layout_result = execute_app("chopper", "layout",
                                                 "--tmax", "64",
                                                 "--input-prefix", sketch_prefix.get_path().c_str(),
-                                                "--output-file", binning_filename.get_path().c_str());
+                                                "--output-filename", binning_filename.get_path().c_str());
 
     EXPECT_EQ(layout_result.exit_code, 0);
     EXPECT_EQ(layout_result.out, std::string{});
@@ -83,6 +83,34 @@ TEST_F(cli_test, chopper_pipeline)
 
     std::string expected_file
     {
+        "##CONFIG:\n"
+        "##{\n"
+        "##    \"config\": {\n"
+        "##        \"version\": 1,\n"
+        "##        \"input_prefix\": \"" + sketch_prefix.get_path().string() + "\",\n"
+        "##        \"count_filename\": {\n"
+        "##            \"value0\": \"" + sketch_prefix.get_path().string() + ".count\"\n"
+        "##        },\n"
+        "##        \"sketch_directory\": {\n"
+        "##            \"value0\": \"" + sketch_prefix.get_path().string() + "_sketches\"\n"
+        "##        },\n"
+        "##        \"output_filename\": {\n"
+        "##            \"value0\": \"" + binning_filename.get_path().string() + "\"\n"
+        "##        },\n"
+        "##        \"tmax\": 64,\n"
+        "##        \"num_hash_functions\": 2,\n"
+        "##        \"false_positive_rate\": 0.05,\n"
+        "##        \"alpha\": 1.2,\n"
+        "##        \"max_rearrangement_ratio\": 0.5,\n"
+        "##        \"threads\": 1,\n"
+        "##        \"estimate_union\": false,\n"
+        "##        \"rearrange_user_bins\": false,\n"
+        "##        \"determine_best_tmax\": false,\n"
+        "##        \"force_all_binnings\": false,\n"
+        "##        \"output_statistics\": false\n"
+        "##    }\n"
+        "##}\n"
+        "##ENDCONFIG\n"
         "#HIGH_LEVEL_IBF max_bin_id:22\n"
         "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\n" +
         seq_filename + "\t0\t22\n" +
@@ -165,7 +193,7 @@ TEST_F(cli_test, chopper_pipeline2)
                                                 "--threads", "2",
                                                 "--rearrange-user-bins",
                                                 "--input-prefix", sketch_prefix.get_path().c_str(),
-                                                "--output-file", binning_filename.get_path().c_str());
+                                                "--output-filename", binning_filename.get_path().c_str());
 
     EXPECT_EQ(layout_result.exit_code, 0);
     EXPECT_EQ(layout_result.out, std::string{});
@@ -173,6 +201,34 @@ TEST_F(cli_test, chopper_pipeline2)
 
     std::string expected_file
     {
+        "##CONFIG:\n"
+        "##{\n"
+        "##    \"config\": {\n"
+        "##        \"version\": 1,\n"
+        "##        \"input_prefix\": \"" + sketch_prefix.get_path().string() + "\",\n"
+        "##        \"count_filename\": {\n"
+        "##            \"value0\": \"" + sketch_prefix.get_path().string() + ".count\"\n"
+        "##        },\n"
+        "##        \"sketch_directory\": {\n"
+        "##            \"value0\": \"" + sketch_prefix.get_path().string() + "_sketches\"\n"
+        "##        },\n"
+        "##        \"output_filename\": {\n"
+        "##            \"value0\": \"" + binning_filename.get_path().string() + "\"\n"
+        "##        },\n"
+        "##        \"tmax\": 64,\n"
+        "##        \"num_hash_functions\": 2,\n"
+        "##        \"false_positive_rate\": 0.05,\n"
+        "##        \"alpha\": 1.2,\n"
+        "##        \"max_rearrangement_ratio\": 0.5,\n"
+        "##        \"threads\": 2,\n"
+        "##        \"estimate_union\": true,\n"
+        "##        \"rearrange_user_bins\": true,\n"
+        "##        \"determine_best_tmax\": false,\n"
+        "##        \"force_all_binnings\": false,\n"
+        "##        \"output_statistics\": false\n"
+        "##    }\n"
+        "##}\n"
+        "##ENDCONFIG\n"
         "#HIGH_LEVEL_IBF max_bin_id:56\n"
         "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\n" +
         seq3_filename + "\t0\t14\n" +

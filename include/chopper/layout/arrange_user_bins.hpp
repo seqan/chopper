@@ -18,10 +18,10 @@ inline void arrange_user_bins(data_store & data, configuration const & config)
         if (config.estimate_union)
         {
             bin_sequence.read_hll_files(config.sketch_directory);
-            if (config.rearrange_bins)
-                bin_sequence.rearrange_bins(config.max_ratio, config.num_threads);
+            if (config.rearrange_user_bins)
+                bin_sequence.rearrange_bins(config.max_rearrangement_ratio, config.threads);
 
-            bin_sequence.estimate_interval_unions(data.union_estimates, config.num_threads);
+            bin_sequence.estimate_interval_unions(data.union_estimates, config.threads);
         }
 
         data.user_bins_arranged = true;

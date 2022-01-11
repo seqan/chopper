@@ -47,7 +47,7 @@ inline void count_kmers(robin_hood::unordered_map<std::string, std::vector<std::
     for (auto const & cluster : filename_clusters)
         cluster_vector.emplace_back(cluster.first, cluster.second);
 
-    #pragma omp parallel for schedule(static) num_threads(config.num_threads)
+    #pragma omp parallel for schedule(static) num_threads(config.threads)
     for (size_t i = 0; i < cluster_vector.size(); ++i)
     {
         chopper::sketch::hyperloglog sketch(config.sketch_bits);

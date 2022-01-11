@@ -19,7 +19,7 @@ TEST_F(cli_test, chopper_layout_statistics)
     cli_test_result layout_result = execute_app("chopper", "layout",
                                               "--tmax", "64",
                                               "--input-prefix", input_prefix.get_path().c_str(),
-                                              "--output-file", layout_file.get_path().c_str(),
+                                              "--output-filename", layout_file.get_path().c_str(),
                                               "--output-statistics");
 
     std::string expected_cout =
@@ -63,7 +63,7 @@ TEST_F(cli_test, chopper_layout_statistics_determine_best_bins)
     cli_test_result layout_result = execute_app("chopper", "layout",
                                               "--tmax", "128",
                                               "--input-prefix", input_prefixname.get_path().c_str(),
-                                              "--output-file", binning_filename.get_path().c_str(),
+                                              "--output-filename", binning_filename.get_path().c_str(),
                                               "--output-statistics",
                                               "--determine-best-tmax",
                                               "--force-all-binnings");

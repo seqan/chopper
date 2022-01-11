@@ -230,7 +230,7 @@ private:
     size_t compute_bin_size(size_t const number_of_kmers_to_be_stored) const
     {
         return std::ceil( - static_cast<double>(number_of_kmers_to_be_stored * config.num_hash_functions) /
-               std::log(1 - std::exp(std::log(config.fp_rate) / config.num_hash_functions)));
+               std::log(1 - std::exp(std::log(config.false_positive_rate) / config.num_hash_functions)));
     }
 
     /*!\brief Compute the Bloom Filter size from `number_of_kmers_to_be_stored` and
