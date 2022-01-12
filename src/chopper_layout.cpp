@@ -196,8 +196,6 @@ size_t determine_best_number_of_technical_bins(chopper::layout::data_store & dat
     double best_expected_HIBF_query_cost{std::numeric_limits<double>::infinity()};
     size_t best_t_max{};
 
-    size_t const total_kmer_count = std::accumulate(data.kmer_counts.begin(), data.kmer_counts.end(), size_t{});
-
     std::set<size_t> potential_t_max{};
 
     for (size_t t_max = 64; t_max <= config.tmax; t_max *= 2)
@@ -223,7 +221,7 @@ size_t determine_best_number_of_technical_bins(chopper::layout::data_store & dat
         data.previous = chopper::layout::previous_level{};
         config.tmax = t_max;
 
-        chopper::layout::hibf_statistics global_stats{config, data.fp_correction};
+        chopper::layout::hibf_statistics global_stats{config, data.fp_correction, data.kmer_counts};
         data.stats = &global_stats.top_level_ibf;
 
         // execute the actual algorithm
@@ -231,42 +229,25 @@ size_t determine_best_number_of_technical_bins(chopper::layout::data_store & dat
 
         global_stats.finalize();
 
-        double const expected_HIBF_query_cost = global_stats.total_query_cost / total_kmer_count;
-
-        if (!t_max_64_memory)
-            t_max_64_memory = global_stats.total_hibf_size_in_byte();
-
-        double const relative_memory_size = global_stats.total_hibf_size_in_byte() /
-                                            static_cast<double>(t_max_64_memory);
-        double const query_time_memory_usage_prod = expected_HIBF_query_cost * relative_memory_size;
-
         if (config.output_statistics)
         {
-            std::cout << "#T_Max:" << t_max << '\n'
-                      << "#C_{T_Max}:" << chopper::layout::ibf_query_cost::interpolated(t_max, config.false_positive_rate) << '\n'
-                      << "#relative expected HIBF query time cost (l):" << expected_HIBF_query_cost << '\n' /*relative to a 64 bin IBF*/
-                      << "#relative HIBF memory usage (m):" << relative_memory_size << '\n' /*relative to the 64 T_Max HIBF*/
-                      << "#l*m:" << query_time_memory_usage_prod << '\n';
+            global_stats.print_summary(t_max_64_memory);
         }
         else
         {
             std::cout << t_max << '\t'
                       << chopper::layout::ibf_query_cost::interpolated(t_max, config.false_positive_rate) << '\t'
-                      << expected_HIBF_query_cost << '\n';
+                      << global_stats.expected_HIBF_query_cost << '\n';
         }
 
-
-        if (config.output_statistics)
-            global_stats.print_summary();
-
         // Use result if better than previous one.
-        if (expected_HIBF_query_cost < best_expected_HIBF_query_cost)
+        if (global_stats.expected_HIBF_query_cost < best_expected_HIBF_query_cost)
         {
             *output_buffer_original = std::move(output_buffer_tmp);
             *header_buffer_original = std::move(header_buffer_tmp);
             max_hibf_id = max_hibf_id_tmp;
             best_t_max = t_max;
-            best_expected_HIBF_query_cost = expected_HIBF_query_cost;
+            best_expected_HIBF_query_cost = global_stats.expected_HIBF_query_cost;
         }
         else if (!config.force_all_binnings)
         {
@@ -339,13 +320,14 @@ int execute(seqan3::argument_parser & parser)
     }
     else
     {
-        chopper::layout::hibf_statistics global_stats{config, data.fp_correction};
+        chopper::layout::hibf_statistics global_stats{config, data.fp_correction, data.kmer_counts};
         data.stats = &global_stats.top_level_ibf;
+        size_t dummy{};
 
         max_hibf_id = chopper::layout::hierarchical_binning{data, config}.execute(); // just execute once
 
         if (config.output_statistics)
-            global_stats.print_summary();
+            global_stats.print_summary(dummy);
     }
 
     // brief Write the output to the layout file.
