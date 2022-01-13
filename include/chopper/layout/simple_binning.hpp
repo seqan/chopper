@@ -229,7 +229,7 @@ public:
             if (data->stats)
             {
                 data->stats->bins.emplace_back(hibf_statistics::bin_kind::split,
-                                               kmer_count_per_bin,
+                                               kmer_count,
                                                1ul,
                                                number_of_bins,
                                                data->stats->current_query_cost * kmer_count);
@@ -259,7 +259,7 @@ public:
         if (data->stats)
         {
             data->stats->bins.emplace_back(hibf_statistics::bin_kind::split,
-                                           kmer_count_per_bin,
+                                           kmer_count,
                                            1ul,
                                            trace_i,
                                            data->stats->current_query_cost * kmer_count);

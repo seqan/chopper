@@ -283,10 +283,12 @@ private:
 
         for (bin const & current_bin : curr_level.bins)
         {
-            size_t const corrected_cardinality = std::ceil(current_bin.cardinality *
+            size_t const cardinality_per_split_bin = (current_bin.cardinality + current_bin.num_spanning_tbs - 1) /
+                                                     current_bin.num_spanning_tbs; // round up
+            size_t const corrected_cardinality = std::ceil(cardinality_per_split_bin *
                                                            (*fp_correction)[current_bin.num_spanning_tbs]);
             max_cardinality = std::max(max_cardinality, corrected_cardinality);
-            max_cardinality_no_corr = std::max(max_cardinality_no_corr, current_bin.cardinality);
+            max_cardinality_no_corr = std::max(max_cardinality_no_corr, cardinality_per_split_bin);
 
             num_tbs += current_bin.num_spanning_tbs;
             num_ubs += current_bin.num_contained_ubs;
@@ -296,7 +298,7 @@ private:
                 num_split_tbs += current_bin.num_spanning_tbs;
                 num_split_ubs += 1;
                 split_tb_corr_kmers += corrected_cardinality * current_bin.num_spanning_tbs;
-                split_tb_kmers += current_bin.cardinality * current_bin.num_spanning_tbs;
+                split_tb_kmers += cardinality_per_split_bin * current_bin.num_spanning_tbs;
                 max_split_tb_span = std::max(max_split_tb_span, current_bin.num_spanning_tbs);
                 total_query_cost += current_bin.estimated_query_cost;
             }
