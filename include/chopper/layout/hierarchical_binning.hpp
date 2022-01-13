@@ -359,8 +359,7 @@ private:
                     data->stats->bins.emplace_back(hibf_statistics::bin_kind::split,
                                                 kmer_count,
                                                 1ul,
-                                                number_of_bins,
-                                                data->stats->current_query_cost * kmer_count);
+                                                number_of_bins);
                 }
 
                 if (!config.debug)
@@ -422,8 +421,7 @@ private:
                 data->stats->bins.emplace_back(hibf_statistics::bin_kind::split,
                                                kmer_count,
                                                1ul,
-                                               number_of_tbs,
-                                               data->stats->current_query_cost * kmer_count);
+                                               number_of_tbs);
             }
 
             if (!config.debug)

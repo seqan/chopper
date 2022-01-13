@@ -231,8 +231,7 @@ public:
                 data->stats->bins.emplace_back(hibf_statistics::bin_kind::split,
                                                kmer_count,
                                                1ul,
-                                               number_of_bins,
-                                               data->stats->current_query_cost * kmer_count);
+                                               number_of_bins);
             }
 
             if (!debug)
@@ -261,8 +260,7 @@ public:
             data->stats->bins.emplace_back(hibf_statistics::bin_kind::split,
                                            kmer_count,
                                            1ul,
-                                           trace_i,
-                                           data->stats->current_query_cost * kmer_count);
+                                           trace_i);
         }
 
         if (kmer_count_per_bin > max_size)
