@@ -10,6 +10,7 @@
 
 #include <chopper/helper.hpp>
 #include <chopper/layout/configuration.hpp>
+#include <chopper/layout/ibf_query_cost.hpp>
 
 namespace chopper::layout
 {
@@ -27,10 +28,14 @@ public:
     /*!\brief Construct an empty HIBF with an empty top level IBF
      * \param[in] config_ User configuration for the HIBF.
      * \param[in] fp_correction_ The false positive correction factors to use for the statistics.
+     * \param[in] kmer_counts The original user bin weights (kmer counts).
      */
-    hibf_statistics(configuration const & config_, std::vector<double> const & fp_correction_) :
+    hibf_statistics(configuration const & config_,
+                    std::vector<double> const & fp_correction_,
+                    std::vector<size_t> const & kmer_counts) :
         config{config_},
-        fp_correction{&fp_correction_}
+        fp_correction{&fp_correction_},
+        total_kmer_count{std::accumulate(kmer_counts.begin(), kmer_counts.end(), size_t{})}
     {}
 
     struct bin; // forward declaration
@@ -91,15 +96,30 @@ public:
     void finalize()
     {
         gather_statistics(top_level_ibf, 0);
+
+        expected_HIBF_query_cost = total_query_cost / total_kmer_count;
     }
 
     //!\brief Prints a tab-separated summary of the statistics of this HIBF to the command line.
-    void print_summary()
+    void print_summary(size_t & t_max_64_memory)
     {
         if (summaries.empty())
             finalize();
 
+        if (t_max_64_memory == 0)
+            t_max_64_memory = total_hibf_size_in_byte();
+
+        double const relative_memory_size = total_hibf_size_in_byte() /
+                                            static_cast<double>(t_max_64_memory);
+        double const query_time_memory_usage_prod = expected_HIBF_query_cost * relative_memory_size;
+
         std::cout << std::fixed << std::setprecision(2);
+
+        std::cout << "#T_Max:" << config.tmax << '\n'
+                  << "#C_{T_Max}:" << chopper::layout::ibf_query_cost::interpolated(config.tmax, config.false_positive_rate) << '\n'
+                  << "#relative expected HIBF query time cost (l):" << expected_HIBF_query_cost << '\n' /*relative to a 64 bin IBF*/
+                  << "#relative HIBF memory usage (m):" << relative_memory_size << '\n' /*relative to the 64 T_Max HIBF*/
+                  << "#l*m:" << query_time_memory_usage_prod << '\n';
 
         // print column names
         std::cout << "level\tnum_ibfs\tlevel_size\tlevel_size_no_corr\ttotal_num_tbs"
@@ -183,12 +203,17 @@ public:
     //!\brief The estimated query cost of every single kmer in this HIBF.
     double total_query_cost{0.0};
 
+    //!\brief The estimated query cost relative to the total k-mer count in the data set.
+    double expected_HIBF_query_cost{0.0};
 private:
     //!\brief Copy of the user configuration for this HIBF.
     configuration const config{};
 
     //!\brief The false positive correction factors to use for the statistics.
     std::vector<double> const * const fp_correction{nullptr};
+
+    //!\brief The original kmer count of all user bins.
+    size_t const total_kmer_count{};
 
     //!\brief Statistics for all IBFs on a certain level of the HIBF.
     struct level_summary

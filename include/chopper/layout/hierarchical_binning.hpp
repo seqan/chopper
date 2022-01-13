@@ -301,7 +301,8 @@ private:
 
         // The cost for querying `num_technical_bins` bins.
         double const interpolated_cost{ibf_query_cost::interpolated(num_technical_bins, config.false_positive_rate)};
-        data->stats->current_query_cost += interpolated_cost;
+        if (data->stats)
+            data->stats->current_query_cost += interpolated_cost;
 
         // backtracking starts at the bottom right corner:
         size_t trace_i = num_technical_bins - 1;
@@ -353,11 +354,14 @@ private:
                 size_t const kmer_count_per_bin = kmer_count / number_of_bins; // round down
 
                 // add split bin to ibf statistics
-                data->stats->bins.emplace_back(hibf_statistics::bin_kind::split,
-                                               kmer_count_per_bin,
-                                               1ul,
-                                               number_of_bins,
-                                               data->stats->current_query_cost * kmer_count);
+                if (data->stats)
+                {
+                    data->stats->bins.emplace_back(hibf_statistics::bin_kind::split,
+                                                kmer_count_per_bin,
+                                                1ul,
+                                                number_of_bins,
+                                                data->stats->current_query_cost * kmer_count);
+                }
 
                 if (!config.debug)
                     print_result_line(*data, trace_j, bin_id, number_of_bins);
@@ -413,11 +417,14 @@ private:
             size_t const average_bin_size = kmer_count / number_of_tbs;
 
             // add split bin to ibf statistics
-            data->stats->bins.emplace_back(hibf_statistics::bin_kind::split,
-                                           average_bin_size,
-                                           1ul,
-                                           number_of_tbs,
-                                           data->stats->current_query_cost * kmer_count);
+            if (data->stats)
+            {
+                data->stats->bins.emplace_back(hibf_statistics::bin_kind::split,
+                                               average_bin_size,
+                                               1ul,
+                                               number_of_tbs,
+                                               data->stats->current_query_cost * kmer_count);
+            }
 
             if (!config.debug)
                 print_result_line(*data, 0, bin_id, number_of_tbs);
@@ -469,11 +476,14 @@ private:
         std::string const merged_ibf_name{std::string{prefix::merged_bin} + "_" + libf_data.previous.bin_indices};
 
         // add merged bin to ibf statistics
-        uint64_t const cardinality = config.estimate_union ? data->union_estimates[j][trace_j + 1] : kmer_count;
-        hibf_statistics::bin & bin_stats = data->stats->bins.emplace_back(hibf_statistics::bin_kind::merged,
-                                            cardinality, num_contained_ubs, 1ul);
-        libf_data.stats = &bin_stats.child_level;
-        libf_data.stats->current_query_cost = data->stats->current_query_cost;
+        if (data->stats)
+        {
+            uint64_t const cardinality = config.estimate_union ? data->union_estimates[j][trace_j + 1] : kmer_count;
+            hibf_statistics::bin & bin_stats = data->stats->bins.emplace_back(hibf_statistics::bin_kind::merged,
+                                                cardinality, num_contained_ubs, 1ul);
+            libf_data.stats = &bin_stats.child_level;
+            libf_data.stats->current_query_cost = data->stats->current_query_cost;
+        }
 
         // now do the binning for the low-level IBF:
         size_t const lower_max_bin = add_lower_level(libf_data);
