@@ -90,16 +90,16 @@ level	num_ibfs	level_size	level_size_no_corr	total_num_tbs	avg_num_tbs	split_tb_
 #Total HIBF size no correction:1 MiB
 
 #T_Max:128
-#C_{T_Max}:1.10
-#relative expected HIBF query time cost (l):1.10
+#C_{T_Max}:0.96
+#relative expected HIBF query time cost (l):0.96
 #relative HIBF memory usage (m):1.63
-#l*m:1.79
+#l*m:1.56
 level	num_ibfs	level_size	level_size_no_corr	total_num_tbs	avg_num_tbs	split_tb_percentage	max_split_tb	avg_split_tb	max_factor	avg_factor
 0	1	3 MiB	2 MiB	128	128	100.00	47	12.80	12.17	5.96
 #Total HIBF size:3 MiB
 #Total HIBF size no correction:2 MiB
 
-#Best t_max (regarding expected query runtime):64
+#Best t_max (regarding expected query runtime):128
 )expected_cout";
 
     EXPECT_EQ(layout_result.exit_code, 0);
