@@ -141,14 +141,14 @@ TEST(execute_test, few_ubs_debug)
         "##ENDCONFIG\n"
         "#HIGH_LEVEL_IBF max_bin_id:6\n"
         "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\tEST_MAX_TB_SIZES\tSCORE\tCORR\tT_MAX\n"
-        "seq7\t0\t6\t83\t278\t2.86\t64\n"
+        "seq7\t0\t6\t84\t278\t2.86\t64\n"
         "seq6\t6\t4\t125\t278\t2.23\t64\n"
         "seq5\t10\t4\t125\t278\t2.23\t64\n"
         "seq4\t14\t4\t125\t278\t2.23\t64\n"
         "seq3\t18\t4\t125\t278\t2.23\t64\n"
         "seq2\t22\t4\t125\t278\t2.23\t64\n"
         "seq0\t26\t4\t125\t278\t2.23\t64\n"
-        "seq1\t30\t34\t29\t278\t9.44\t64\n"
+        "seq1\t30\t34\t30\t278\t9.44\t64\n"
     };
     std::string const actual_file{string_from_file(layout_file.get_path())};
 

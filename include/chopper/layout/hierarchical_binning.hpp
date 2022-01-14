@@ -351,7 +351,7 @@ private:
             }
             else // split bin
             {
-                size_t const kmer_count_per_bin = kmer_count / number_of_bins; // round down
+                size_t const kmer_count_per_bin = (kmer_count + number_of_bins - 1) / number_of_bins; // round up
 
                 // add split bin to ibf statistics
                 if (data->stats)
@@ -414,7 +414,7 @@ private:
             // that the bin was split (even if only into 1 bin).
             size_t const kmer_count = data->kmer_counts[0];
             size_t const number_of_tbs = trace_i + 1;
-            size_t const average_bin_size = kmer_count / number_of_tbs;
+            size_t const average_bin_size = (kmer_count + number_of_tbs - 1) / number_of_tbs; // round up
 
             // add split bin to ibf statistics
             if (data->stats)
