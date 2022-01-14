@@ -179,7 +179,7 @@ public:
     size_t total_hibf_size_in_byte()
     {
         if (summaries.empty())
-            gather_statistics(top_level_ibf, 0);
+            finalize();
 
         size_t total_size{};
 
