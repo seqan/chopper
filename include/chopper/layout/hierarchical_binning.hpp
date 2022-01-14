@@ -5,7 +5,6 @@
 
 #include <chopper/prefixes.hpp>
 #include <chopper/helper.hpp>
-#include <chopper/layout/ibf_query_cost.hpp>
 #include <chopper/layout/configuration.hpp>
 #include <chopper/layout/print_result_line.hpp>
 #include <chopper/layout/arrange_user_bins.hpp>
@@ -299,11 +298,6 @@ private:
                 *data->output_buffer << prefix::header << "FILES\tBIN_INDICES\tNUMBER_OF_BINS" << std::endl;
         }
 
-        // The cost for querying `num_technical_bins` bins.
-        double const interpolated_cost{ibf_query_cost::interpolated(num_technical_bins, config.false_positive_rate)};
-        if (data->stats)
-            data->stats->current_query_cost += interpolated_cost;
-
         // backtracking starts at the bottom right corner:
         size_t trace_i = num_technical_bins - 1;
         size_t trace_j = num_user_bins - 1;
@@ -480,7 +474,6 @@ private:
             hibf_statistics::bin & bin_stats = data->stats->bins.emplace_back(hibf_statistics::bin_kind::merged,
                                                 cardinality, num_contained_ubs, 1ul);
             libf_data.stats = &bin_stats.child_level;
-            libf_data.stats->current_query_cost = data->stats->current_query_cost;
         }
 
         // now do the binning for the low-level IBF:

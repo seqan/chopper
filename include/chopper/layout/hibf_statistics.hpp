@@ -92,6 +92,8 @@ public:
     //!\brief Gather all statistics to have all members ready.
     void finalize()
     {
+        compute_total_query_cost(top_level_ibf);
+
         gather_statistics(top_level_ibf, 0);
 
         expected_HIBF_query_cost = total_query_cost / total_kmer_count;
@@ -265,6 +267,44 @@ private:
         return byte_size_to_formatted_str(size_in_bytes);
     }
 
+    //!\brief Computes the estimated query cost
+    void compute_total_query_cost(level & curr_level)
+    {
+        // Compute number of technical bins in current level (<= tmax)
+        size_t number_of_tbs{0};
+        size_t level_kmer_count{0};
+        for (bin const & current_bin : curr_level.bins)
+        {
+            if (current_bin.kind == bin_kind::merged)
+            {
+                ++number_of_tbs;
+            }
+            else if (current_bin.kind == bin_kind::split) // bin_kind::split
+            {
+                number_of_tbs += current_bin.num_spanning_tbs;
+                level_kmer_count += current_bin.cardinality;
+            }
+        }
+        assert(number_of_tbs <= config.tmax);
+
+        // Add cost of querying the current IBF
+        // (how costly is querying number_of_tbs (e.g. 128 tbs) compared to 64 tbs given the current FPR)
+        curr_level.current_query_cost += ibf_query_cost::interpolated(number_of_tbs, config.false_positive_rate);
+
+        // Add costs of querying the HIBF for each kmer in this level.
+        total_query_cost += curr_level.current_query_cost * level_kmer_count;
+
+        // call function recursively for each merged bin and pass on current_query_cost
+        for (bin & current_bin : curr_level.bins)
+        {
+            if (current_bin.kind == bin_kind::merged)
+            {
+                current_bin.child_level.current_query_cost = curr_level.current_query_cost;
+                compute_total_query_cost(current_bin.child_level);
+            }
+        }
+    }
+
     /*!\brief Recursively gather all the statistics from the bins.
      * \param[in] curr_level The current IBF from which the statistics will be extracted.
      * \param[in] level_summary_index The index of `curr_level` in `summeries`.
@@ -297,7 +337,6 @@ private:
                 split_tb_corr_kmers += corrected_cardinality * current_bin.num_spanning_tbs;
                 split_tb_kmers += cardinality_per_split_bin * current_bin.num_spanning_tbs;
                 max_split_tb_span = std::max(max_split_tb_span, current_bin.num_spanning_tbs);
-                total_query_cost += curr_level.current_query_cost * current_bin.cardinality;
             }
             else
             {
