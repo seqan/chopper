@@ -31,6 +31,10 @@ void initialize_argument_parser(seqan3::argument_parser & parser, chopper::count
                       "per line. If your file contains auxiliary information (e.g. species IDs), your file must be tab-"
                       "separated.",
                       seqan3::option_spec::required);
+    parser.add_list_item("", "The paths must either lead to sequence files, in which case the sequences are read "
+                             "and hash values are computed using the seqan3::views::kmer_hash or have the extension "
+                             ".minimizer, in which case it considered a binary encoded file containing hash values.",
+                             seqan3::option_spec::advanced);
     parser.add_list_item("", "Example file:");
     parser.add_list_item("", "```");
     parser.add_list_item("", "/absolute/path/to/file1.fasta");

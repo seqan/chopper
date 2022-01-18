@@ -54,9 +54,23 @@ inline void count_kmers(robin_hood::unordered_map<std::string, std::vector<std::
 
         // read files
         for (auto const & filename : cluster_vector[i].second)
-            for (auto && [seq] : sequence_file_type{filename})
-                for (auto && hash : seq | seqan3::views::kmer_hash(seqan3::ungapped{config.k}))
+        {
+            if (std::filesystem::path{filename}.extension() == ".minimizer")
+            {
+                std::ifstream infile{filename, std::ios::binary};
+
+                uint64_t hash;
+                while (infile.read(reinterpret_cast<char*>(&hash), sizeof(hash)))
                     sketch.add(reinterpret_cast<char*>(&hash), sizeof(hash));
+            }
+            else
+            {
+                for (auto && [seq] : sequence_file_type{filename})
+                    for (auto && hash : seq | seqan3::views::kmer_hash(seqan3::ungapped{config.k}))
+                        sketch.add(reinterpret_cast<char*>(&hash), sizeof(hash));
+            }
+
+        }
 
         // print either the exact or the approximate count, depending on exclusively_hlls
         uint64_t const weight = sketch.estimate();
