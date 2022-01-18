@@ -38,8 +38,26 @@ TEST(execute_estimation_test, few_ubs)
     testing::internal::CaptureStderr();
     chopper::layout::execute(layout_parser);
 
-    EXPECT_EQ(testing::internal::GetCapturedStdout(), "T_Max\tC_{T_Max}\trelative expected HIBF query cost\n64\t1.00"
-                                                      "\t1.00\n#Best t_max (regarding expected query runtime):64\n");
+    EXPECT_EQ(testing::internal::GetCapturedStdout(),
+R"expected_cout(## ### Parameters ###
+## number of user bins = 8
+## number of hash functions = 2
+## false positive rate = 0.05
+## ### Notation ###
+## X-IBF = An IBF with X number of bins.
+## X-HIBF = An HIBF with tmax = X, e.g a maximum of X technical bins on each level.
+## ### Column Description ###
+## tmax : The maximum number of technical bin on each level
+## c_tmax : The technical extra cost of querying an tmax-IBF, compared to 64-IBF
+## l_tmax : The estimated query cost for an tmax-HIBF, compared to an 64-HIBF
+## m_tmax : The estimated memory consumption for an tmax-HIBF, compared to an 64-HIBF
+## (l*m)_tmax : Computed by l_tmax * m_tmax
+## size : The expected total size of an tmax-HIBF
+#tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size
+64	1.00	1.00	1.00	1.00	17KiB
+#Best t_max (regarding expected query runtime):64
+)expected_cout");
+
     EXPECT_EQ(testing::internal::GetCapturedStderr(), "[CHOPPER LAYOUT WARNING]: Your requested number of technical "
                                                       "bins was not a multiple of 64. Due to the architecture of the "
                                                       "HIBF, it will use up space equal to the next multiple of 64 "
@@ -69,9 +87,27 @@ TEST(execute_estimation_test, many_ubs)
     testing::internal::CaptureStdout();
     chopper::layout::execute(layout_parser);
 
-    EXPECT_EQ(testing::internal::GetCapturedStdout(), "T_Max\tC_{T_Max}\trelative expected HIBF query cost\n64\t1.00"
-                                                      "\t1.26\n128\t0.96\t0.98\n256\t1.20\t1.20\n#Best t_max "
-                                                      "(regarding expected query runtime):128\n");
+    EXPECT_EQ(testing::internal::GetCapturedStdout(),
+R"expected_cout(## ### Parameters ###
+## number of user bins = 96
+## number of hash functions = 2
+## false positive rate = 0.05
+## ### Notation ###
+## X-IBF = An IBF with X number of bins.
+## X-HIBF = An HIBF with tmax = X, e.g a maximum of X technical bins on each level.
+## ### Column Description ###
+## tmax : The maximum number of technical bin on each level
+## c_tmax : The technical extra cost of querying an tmax-IBF, compared to 64-IBF
+## l_tmax : The estimated query cost for an tmax-HIBF, compared to an 64-HIBF
+## m_tmax : The estimated memory consumption for an tmax-HIBF, compared to an 64-HIBF
+## (l*m)_tmax : Computed by l_tmax * m_tmax
+## size : The expected total size of an tmax-HIBF
+#tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size
+64	1.00	1.26	1.00	1.26	85KiB
+128	0.96	0.98	0.59	0.58	50KiB
+256	1.20	1.20	0.70	0.83	59KiB
+#Best t_max (regarding expected query runtime):128
+)expected_cout");
 }
 
 TEST(execute_estimation_test, many_ubs_force_all)
@@ -98,9 +134,27 @@ TEST(execute_estimation_test, many_ubs_force_all)
     testing::internal::CaptureStdout();
     chopper::layout::execute(layout_parser);
 
-    EXPECT_EQ(testing::internal::GetCapturedStdout(), "T_Max\tC_{T_Max}\trelative expected HIBF query cost\n64\t1.00"
-                                                      "\t1.26\n128\t0.96\t0.98\n256\t1.20\t1.20\n#Best t_max "
-                                                      "(regarding expected query runtime):128\n");
+    EXPECT_EQ(testing::internal::GetCapturedStdout(),
+R"expected_cout(## ### Parameters ###
+## number of user bins = 96
+## number of hash functions = 2
+## false positive rate = 0.05
+## ### Notation ###
+## X-IBF = An IBF with X number of bins.
+## X-HIBF = An HIBF with tmax = X, e.g a maximum of X technical bins on each level.
+## ### Column Description ###
+## tmax : The maximum number of technical bin on each level
+## c_tmax : The technical extra cost of querying an tmax-IBF, compared to 64-IBF
+## l_tmax : The estimated query cost for an tmax-HIBF, compared to an 64-HIBF
+## m_tmax : The estimated memory consumption for an tmax-HIBF, compared to an 64-HIBF
+## (l*m)_tmax : Computed by l_tmax * m_tmax
+## size : The expected total size of an tmax-HIBF
+#tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size
+64	1.00	1.26	1.00	1.26	85KiB
+128	0.96	0.98	0.59	0.58	50KiB
+256	1.20	1.20	0.70	0.83	59KiB
+#Best t_max (regarding expected query runtime):128
+)expected_cout");
 }
 
 TEST(execute_estimation_test, with_rearrangement)
@@ -154,7 +208,25 @@ TEST(execute_estimation_test, with_rearrangement)
     testing::internal::CaptureStdout();
     chopper::layout::execute(layout_parser);
 
-    EXPECT_EQ(testing::internal::GetCapturedStdout(), "T_Max\tC_{T_Max}\trelative expected HIBF query cost\n64\t1.00"
-                                                      "\t1.69\n128\t0.96\t1.50\n256\t1.20\t1.39\n#Best t_max "
-                                                      "(regarding expected query runtime):256\n");
+    EXPECT_EQ(testing::internal::GetCapturedStdout(),
+R"expected_cout(## ### Parameters ###
+## number of user bins = 196
+## number of hash functions = 2
+## false positive rate = 0.05
+## ### Notation ###
+## X-IBF = An IBF with X number of bins.
+## X-HIBF = An HIBF with tmax = X, e.g a maximum of X technical bins on each level.
+## ### Column Description ###
+## tmax : The maximum number of technical bin on each level
+## c_tmax : The technical extra cost of querying an tmax-IBF, compared to 64-IBF
+## l_tmax : The estimated query cost for an tmax-HIBF, compared to an 64-HIBF
+## m_tmax : The estimated memory consumption for an tmax-HIBF, compared to an 64-HIBF
+## (l*m)_tmax : Computed by l_tmax * m_tmax
+## size : The expected total size of an tmax-HIBF
+#tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size
+64	1.00	1.69	1.00	1.69	116KiB
+128	0.96	1.50	1.15	1.73	134KiB
+256	1.20	1.39	1.19	1.66	138KiB
+#Best t_max (regarding expected query runtime):256
+)expected_cout");
 }

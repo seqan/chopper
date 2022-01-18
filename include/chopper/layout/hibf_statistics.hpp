@@ -99,8 +99,53 @@ public:
         expected_HIBF_query_cost = total_query_cost / total_kmer_count;
     }
 
+    //!\brief Prints a column names of the summary to the command line.
+    static void print_header(bool const verbose = true)
+    {
+        // print column names explanation in header
+        std::cout << "## ### Notation ###\n"
+                  << "## X-IBF = An IBF with X number of bins.\n"
+                  << "## X-HIBF = An HIBF with tmax = X, e.g a maximum of X technical bins on each level.\n";
+
+        std::cout << "## ### Column Description ###\n"
+                     "## tmax : The maximum number of technical bin on each level\n"
+                     "## c_tmax : The technical extra cost of querying an tmax-IBF, compared to 64-IBF\n"
+                     "## l_tmax : The estimated query cost for an tmax-HIBF, compared to an 64-HIBF\n"
+                     "## m_tmax : The estimated memory consumption for an tmax-HIBF, compared to an 64-HIBF\n"
+                     "## (l*m)_tmax : Computed by l_tmax * m_tmax\n"
+                     "## size : The expected total size of an tmax-HIBF\n"
+                  << ((verbose) ? "## uncorr_size : The expected size of an tmax-HIBF without FPR correction\n" : "");
+
+        // print column names
+        std::cout << "#tmax"      << '\t'
+                  << "c_tmax"     << '\t'
+                  << "l_tmax"     << '\t'
+                  << "m_tmax"     << '\t'
+                  << "(l*m)_tmax" << '\t'
+                  << "size";
+
+        if (verbose) // uncorrected size and add level statistics
+        {
+            std::cout << '\t'
+                      << "uncorr_size"         << '\t'
+                      << "level"               << '\t'
+                      << "num_ibfs"            << '\t'
+                      << "level_size"          << '\t'
+                      << "level_size_no_corr"  << '\t'
+                      << "total_num_tbs"       << '\t'
+                      << "avg_num_tbs"         << '\t'
+                      << "split_tb_percentage" << '\t'
+                      << "max_split_tb"        << '\t'
+                      << "avg_split_tb"        << '\t'
+                      << "max_factor"          << '\t'
+                      << "avg_factor";
+        }
+
+        std::cout << '\n';
+    }
+
     //!\brief Prints a tab-separated summary of the statistics of this HIBF to the command line.
-    void print_summary(size_t & t_max_64_memory, bool verbose = true)
+    void print_summary(size_t & t_max_64_memory, bool const verbose = true)
     {
         if (summaries.empty())
             finalize();
@@ -114,28 +159,20 @@ public:
 
         std::cout << std::fixed << std::setprecision(2);
 
-        if (!verbose)
-        {
-            std::cout << config.tmax << '\t'
-                      << chopper::layout::ibf_query_cost::interpolated(config.tmax, config.false_positive_rate) << '\t'
-                      << expected_HIBF_query_cost << '\n';
-            return;
-        }
-
-        std::cout << "#T_Max:" << config.tmax << '\n'
-                  << "#C_{T_Max}:" << chopper::layout::ibf_query_cost::interpolated(config.tmax, config.false_positive_rate) << '\n'
-                  << "#relative expected HIBF query time cost (l):" << expected_HIBF_query_cost << '\n' /*relative to a 64 bin IBF*/
-                  << "#relative HIBF memory usage (m):" << relative_memory_size << '\n' /*relative to the 64 T_Max HIBF*/
-                  << "#l*m:" << query_time_memory_usage_prod << '\n';
-
-        // print column names
-        std::cout << "level\tnum_ibfs\tlevel_size\tlevel_size_no_corr\ttotal_num_tbs"
-                     "\tavg_num_tbs\tsplit_tb_percentage\tmax_split_tb\tavg_split_tb\tmax_factor\tavg_factor\n";
+        std::string level_str, num_ibfs_str, level_size_str, level_size_no_corr_str, total_num_tbs_str, avg_num_tbs_str,
+                    split_tb_percentage_str, max_split_tb_str, avg_split_tb_str, max_factor_str, avg_factor_str;
 
         size_t total_size{};
         size_t total_size_no_corr{};
 
         // go through each level and collect and output the statistics
+        auto to_string_with_precision = [] (auto num)
+        {
+            std::stringstream ss;
+            ss << std::fixed << std::setprecision(2) << num;
+            return ss.str();
+        };
+
         for (auto const & [level, s] : summaries)
         {
             size_t const level_size = std::reduce(s.ibf_mem_size.begin(), s.ibf_mem_size.end());
@@ -151,13 +188,13 @@ public:
 
             size_t const max_split_bin_span = *std::max_element(s.max_split_tb_span.begin(), s.max_split_tb_span.end());
 
-            std::cout << level << '\t'
-                      << s.num_ibfs << '\t'
-                      << to_formatted_BF_size(level_size) << '\t'
-                      << to_formatted_BF_size(level_size_no_corr) << '\t'
-                      << total_num_tbs << '\t'
-                      << total_num_tbs / s.num_ibfs << '\t'
-                      << split_tb_percentage << '\t';
+            level_str               += ":" + to_string_with_precision(level);
+            num_ibfs_str            += ":" + to_string_with_precision(s.num_ibfs);
+            level_size_str          += ":" + to_formatted_BF_size(level_size);
+            level_size_no_corr_str  += ":" + to_formatted_BF_size(level_size_no_corr);
+            total_num_tbs_str       += ":" + to_string_with_precision(total_num_tbs);
+            avg_num_tbs_str         += ":" + to_string_with_precision(total_num_tbs / s.num_ibfs);
+            split_tb_percentage_str += ":" + to_string_with_precision(split_tb_percentage);
 
             // if there are no split bins on this level, the following statistics don't make sense
             if (max_split_bin_span != 0)
@@ -170,19 +207,47 @@ public:
                                                                           s.split_tb_corr_kmers.end()))
                                         / static_cast<double>(total_split_tb_kmers);
 
-                std::cout << max_split_bin_span << '\t'
-                          << avg_split_bin << '\t'
-                          << (*fp_correction)[max_split_bin_span] << '\t'
-                          << avg_factor << '\n';
+                max_split_tb_str += ":" + to_string_with_precision(max_split_bin_span);
+                avg_split_tb_str += ":" + to_string_with_precision(avg_split_bin);
+                max_factor_str   += ":" + to_string_with_precision((*fp_correction)[max_split_bin_span]);
+                avg_factor_str   += ":" + to_string_with_precision(avg_factor);
             }
             else
             {
-                std::cout << "-\t-\t-\t-\n";
+                max_split_tb_str += ":-";
+                avg_split_tb_str += ":-";
+                max_factor_str   += ":-";
+                avg_factor_str   += ":-";
             }
         }
 
-        std::cout << "#Total HIBF size:" << to_formatted_BF_size(total_size) << '\n'
-                  << "#Total HIBF size no correction:" << to_formatted_BF_size(total_size_no_corr) << "\n\n";
+        std::cout << std::fixed << std::setprecision(2);
+
+        std::cout /*        tmax */ << config.tmax << '\t'
+                  /*      c_tmax */ << chopper::layout::ibf_query_cost::interpolated(config.tmax, config.false_positive_rate) << '\t'
+                  /*      l_tmax */ << expected_HIBF_query_cost << '\t' /*relative to a 64 bin IBF*/
+                  /*      m_tmax */ << relative_memory_size << '\t' /*relative to the 64 T_Max HIBF*/
+                  /*   (l*m)tmax */ << query_time_memory_usage_prod << '\t'
+                  /*  corr. size */ << to_formatted_BF_size(total_size) << ((verbose) ? '\t' : '\n');
+
+        if (verbose)
+        {
+            // uncorrected FPR
+            std::cout /*uncorr. size */ << to_formatted_BF_size(total_size_no_corr) << '\t';
+
+            // per level statistics:
+            std::cout /* level               */ << level_str << '\t'
+                      /* num_ibfs            */ << num_ibfs_str << '\t'
+                      /* level_size          */ << level_size_str << '\t'
+                      /* level_size_no_corr  */ << level_size_no_corr_str << '\t'
+                      /* total_num_tbs       */ << total_num_tbs_str << '\t'
+                      /* avg_num_tbs         */ << avg_num_tbs_str << '\t'
+                      /* split_tb_percentage */ << split_tb_percentage_str << '\t'
+                      /* max_split_tb        */ << max_split_tb_str << '\t'
+                      /* avg_split_tb        */ << avg_split_tb_str << '\t'
+                      /* max_factor          */ << max_factor_str << '\t'
+                      /* avg_factor          */ << avg_factor_str << '\n';
+        }
     }
 
     //!\brief Return the total corrected size of the HIBF in bytes

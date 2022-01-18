@@ -45,23 +45,26 @@ TEST(hibf_statistics, only_merged_on_top_level)
 
     testing::internal::CaptureStdout();
 
+    stats.print_header();
     size_t max_64{};
     stats.print_summary(max_64);
     std::cout.flush();
 
     std::string summary = testing::internal::GetCapturedStdout();
     std::string expected_cout =
-R"expected_cout(#T_Max:64
-#C_{T_Max}:1.00
-#relative expected HIBF query time cost (l):16.00
-#relative HIBF memory usage (m):1.00
-#l*m:16.00
-level	num_ibfs	level_size	level_size_no_corr	total_num_tbs	avg_num_tbs	split_tb_percentage	max_split_tb	avg_split_tb	max_factor	avg_factor
-0	1	395 Bytes	395 Bytes	4	4	0.00	-	-	-	-
-1	4	790 Bytes	790 Bytes	8	2	100.00	1	1.00	1.00	1.00
-#Total HIBF size:1 KiB
-#Total HIBF size no correction:1 KiB
-
+R"expected_cout(## ### Notation ###
+## X-IBF = An IBF with X number of bins.
+## X-HIBF = An HIBF with tmax = X, e.g a maximum of X technical bins on each level.
+## ### Column Description ###
+## tmax : The maximum number of technical bin on each level
+## c_tmax : The technical extra cost of querying an tmax-IBF, compared to 64-IBF
+## l_tmax : The estimated query cost for an tmax-HIBF, compared to an 64-HIBF
+## m_tmax : The estimated memory consumption for an tmax-HIBF, compared to an 64-HIBF
+## (l*m)_tmax : Computed by l_tmax * m_tmax
+## size : The expected total size of an tmax-HIBF
+## uncorr_size : The expected size of an tmax-HIBF without FPR correction
+#tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size	uncorr_size	level	num_ibfs	level_size	level_size_no_corr	total_num_tbs	avg_num_tbs	split_tb_percentage	max_split_tb	avg_split_tb	max_factor	avg_factor
+64	1.00	16.00	1.00	16.00	1KiB	1KiB	:0:1	:1:4	:395Bytes:790Bytes	:395Bytes:790Bytes	:4:8	:4:2	:0.00:100.00	:-:1	:-:1.00	:-:1.00	:-:1.00
 )expected_cout";
 
     EXPECT_EQ(summary, expected_cout);

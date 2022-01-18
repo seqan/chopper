@@ -203,10 +203,13 @@ size_t determine_best_number_of_technical_bins(chopper::layout::data_store & dat
     }();
 
     // with -determine-best-tmax the algorithm is executed multiple times and result with the minimum
-    // expected query costs is written to the output
-    std::cout << std::fixed << std::setprecision(2);
-    if (!config.output_statistics)
-        std::cout << "T_Max\tC_{T_Max}\trelative expected HIBF query cost\n";
+    // expected query costs are written to the standard output
+
+    std::cout << "## ### Parameters ###\n"
+              << "## number of user bins = " << data.filenames.size() << '\n'
+              << "## number of hash functions = " << config.num_hash_functions << '\n'
+              << "## false positive rate = " << config.false_positive_rate << "\n";
+    hibf_statistics::print_header(config.output_verbose_statistics);
 
     double best_expected_HIBF_query_cost{std::numeric_limits<double>::infinity()};
     size_t best_t_max{};
@@ -298,14 +301,6 @@ int execute(seqan3::argument_parser & parser)
 
     size_t max_hibf_id;
 
-    // print some important parameters of the user configuration and data input
-    if (config.output_statistics)
-    {
-        std::cout << "#number of user bins:" << data.filenames.size() << '\n'
-                  << "#number of hash functions:" << config.num_hash_functions << '\n'
-                  << "#false positive rate:" << config.false_positive_rate << "\n\n";
-    }
-
     if (config.determine_best_tmax)
     {
         max_hibf_id = determine_best_number_of_technical_bins(data, config);
@@ -319,7 +314,10 @@ int execute(seqan3::argument_parser & parser)
         max_hibf_id = chopper::layout::hierarchical_binning{data, config}.execute(); // just execute once
 
         if (config.output_statistics)
+        {
+            global_stats.print_header();
             global_stats.print_summary(dummy);
+        }
     }
 
     // brief Write the output to the layout file.
