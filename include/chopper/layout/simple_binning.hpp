@@ -9,7 +9,6 @@
 
 #include <chopper/helper.hpp>
 #include <chopper/layout/data_store.hpp>
-#include <chopper/layout/ibf_query_cost.hpp>
 #include <chopper/layout/previous_level.hpp>
 #include <chopper/layout/print_matrix.hpp>
 #include <chopper/layout/print_result_line.hpp>
@@ -206,9 +205,6 @@ public:
         // print_matrix(trace, num_technical_bins, num_user_bins, std::numeric_limits<size_t>::max());
 
         // backtracking
-        if (data->stats)
-            data->stats->current_query_cost += ibf_query_cost::interpolated(num_technical_bins, data->false_positive_rate);
-
         size_t trace_i = num_technical_bins - 1;
         size_t trace_j = num_user_bins - 1;
 
@@ -229,10 +225,9 @@ public:
             if (data->stats)
             {
                 data->stats->bins.emplace_back(hibf_statistics::bin_kind::split,
-                                               kmer_count_per_bin,
+                                               kmer_count,
                                                1ul,
-                                               number_of_bins,
-                                               data->stats->current_query_cost * kmer_count);
+                                               number_of_bins);
             }
 
             if (!debug)
@@ -259,10 +254,9 @@ public:
         if (data->stats)
         {
             data->stats->bins.emplace_back(hibf_statistics::bin_kind::split,
-                                           kmer_count_per_bin,
+                                           kmer_count,
                                            1ul,
-                                           trace_i,
-                                           data->stats->current_query_cost * kmer_count);
+                                           trace_i);
         }
 
         if (kmer_count_per_bin > max_size)

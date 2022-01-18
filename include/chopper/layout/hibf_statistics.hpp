@@ -65,7 +65,6 @@ public:
         size_t const cardinality; //!< The size/weight of the bin (either a kmer count or hll sketch estimation).
         size_t const num_contained_ubs; //!< [MERGED] How many UBs are merged within this TB.
         size_t const num_spanning_tbs; //!< [SPLIT] How many TBs are used for this sindle UB.
-        double const estimated_query_cost; //!< [SPLIT] Whats the estimated query cost of querying all kmers of this UB.
 
         level child_level; //!< [MERGED] The lower level ibf statistics.
 
@@ -79,13 +78,11 @@ public:
         bin(bin_kind const kind_,
             size_t const card,
             size_t const contained_ubs,
-            size_t const spanning_tbs,
-            double const cost = 0.0) :
+            size_t const spanning_tbs) :
             kind{kind_},
             cardinality{card},
             num_contained_ubs{contained_ubs},
-            num_spanning_tbs{spanning_tbs},
-            estimated_query_cost{cost}
+            num_spanning_tbs{spanning_tbs}
         {
             assert((kind == bin_kind::split  && num_contained_ubs == 1u) ||
                    (kind == bin_kind::merged && num_spanning_tbs  == 1u));
@@ -95,6 +92,8 @@ public:
     //!\brief Gather all statistics to have all members ready.
     void finalize()
     {
+        compute_total_query_cost(top_level_ibf);
+
         gather_statistics(top_level_ibf, 0);
 
         expected_HIBF_query_cost = total_query_cost / total_kmer_count;
@@ -182,7 +181,7 @@ public:
     size_t total_hibf_size_in_byte()
     {
         if (summaries.empty())
-            gather_statistics(top_level_ibf, 0);
+            finalize();
 
         size_t total_size{};
 
@@ -268,6 +267,44 @@ private:
         return byte_size_to_formatted_str(size_in_bytes);
     }
 
+    //!\brief Computes the estimated query cost
+    void compute_total_query_cost(level & curr_level)
+    {
+        // Compute number of technical bins in current level (<= tmax)
+        size_t number_of_tbs{0};
+        size_t level_kmer_count{0};
+        for (bin const & current_bin : curr_level.bins)
+        {
+            if (current_bin.kind == bin_kind::merged)
+            {
+                ++number_of_tbs;
+            }
+            else if (current_bin.kind == bin_kind::split) // bin_kind::split
+            {
+                number_of_tbs += current_bin.num_spanning_tbs;
+                level_kmer_count += current_bin.cardinality;
+            }
+        }
+        assert(number_of_tbs <= config.tmax);
+
+        // Add cost of querying the current IBF
+        // (how costly is querying number_of_tbs (e.g. 128 tbs) compared to 64 tbs given the current FPR)
+        curr_level.current_query_cost += ibf_query_cost::interpolated(number_of_tbs, config.false_positive_rate);
+
+        // Add costs of querying the HIBF for each kmer in this level.
+        total_query_cost += curr_level.current_query_cost * level_kmer_count;
+
+        // call function recursively for each merged bin and pass on current_query_cost
+        for (bin & current_bin : curr_level.bins)
+        {
+            if (current_bin.kind == bin_kind::merged)
+            {
+                current_bin.child_level.current_query_cost = curr_level.current_query_cost;
+                compute_total_query_cost(current_bin.child_level);
+            }
+        }
+    }
+
     /*!\brief Recursively gather all the statistics from the bins.
      * \param[in] curr_level The current IBF from which the statistics will be extracted.
      * \param[in] level_summary_index The index of `curr_level` in `summeries`.
@@ -283,10 +320,12 @@ private:
 
         for (bin const & current_bin : curr_level.bins)
         {
-            size_t const corrected_cardinality = std::ceil(current_bin.cardinality *
+            size_t const cardinality_per_split_bin = (current_bin.cardinality + current_bin.num_spanning_tbs - 1) /
+                                                     current_bin.num_spanning_tbs; // round up
+            size_t const corrected_cardinality = std::ceil(cardinality_per_split_bin *
                                                            (*fp_correction)[current_bin.num_spanning_tbs]);
             max_cardinality = std::max(max_cardinality, corrected_cardinality);
-            max_cardinality_no_corr = std::max(max_cardinality_no_corr, current_bin.cardinality);
+            max_cardinality_no_corr = std::max(max_cardinality_no_corr, cardinality_per_split_bin);
 
             num_tbs += current_bin.num_spanning_tbs;
             num_ubs += current_bin.num_contained_ubs;
@@ -296,9 +335,8 @@ private:
                 num_split_tbs += current_bin.num_spanning_tbs;
                 num_split_ubs += 1;
                 split_tb_corr_kmers += corrected_cardinality * current_bin.num_spanning_tbs;
-                split_tb_kmers += current_bin.cardinality * current_bin.num_spanning_tbs;
+                split_tb_kmers += cardinality_per_split_bin * current_bin.num_spanning_tbs;
                 max_split_tb_span = std::max(max_split_tb_span, current_bin.num_spanning_tbs);
-                total_query_cost += current_bin.estimated_query_cost;
             }
             else
             {
