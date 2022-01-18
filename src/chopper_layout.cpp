@@ -230,16 +230,7 @@ size_t determine_best_number_of_technical_bins(chopper::layout::data_store & dat
 
         global_stats.finalize();
 
-        if (config.output_statistics)
-        {
-            global_stats.print_summary(t_max_64_memory);
-        }
-        else
-        {
-            std::cout << t_max << '\t'
-                      << chopper::layout::ibf_query_cost::interpolated(t_max, config.false_positive_rate) << '\t'
-                      << global_stats.expected_HIBF_query_cost << '\n';
-        }
+        global_stats.print_summary(t_max_64_memory, config.output_statistics);
 
         // Use result if better than previous one.
         if (global_stats.expected_HIBF_query_cost < best_expected_HIBF_query_cost)

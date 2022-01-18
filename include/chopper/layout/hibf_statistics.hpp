@@ -100,7 +100,7 @@ public:
     }
 
     //!\brief Prints a tab-separated summary of the statistics of this HIBF to the command line.
-    void print_summary(size_t & t_max_64_memory)
+    void print_summary(size_t & t_max_64_memory, bool verbose = true)
     {
         if (summaries.empty())
             finalize();
@@ -113,6 +113,14 @@ public:
         double const query_time_memory_usage_prod = expected_HIBF_query_cost * relative_memory_size;
 
         std::cout << std::fixed << std::setprecision(2);
+
+        if (!verbose)
+        {
+            std::cout << config.tmax << '\t'
+                      << chopper::layout::ibf_query_cost::interpolated(config.tmax, config.false_positive_rate) << '\t'
+                      << expected_HIBF_query_cost << '\n';
+            return;
+        }
 
         std::cout << "#T_Max:" << config.tmax << '\n'
                   << "#C_{T_Max}:" << chopper::layout::ibf_query_cost::interpolated(config.tmax, config.false_positive_rate) << '\n'
