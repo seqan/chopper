@@ -20,7 +20,7 @@ TEST_F(cli_test, chopper_layout_statistics)
                                               "--tmax", "64",
                                               "--input-prefix", input_prefix.get_path().c_str(),
                                               "--output-filename", layout_file.get_path().c_str(),
-                                              "--output-statistics");
+                                              "--output-verbose-statistics");
 
     std::string expected_cout =
 R"expected_cout(## ### Notation ###
@@ -67,7 +67,7 @@ TEST_F(cli_test, chopper_layout_statistics_determine_best_bins)
                                               "--tmax", "128",
                                               "--input-prefix", input_prefixname.get_path().c_str(),
                                               "--output-filename", binning_filename.get_path().c_str(),
-                                              "--output-statistics",
+                                              "--output-verbose-statistics",
                                               "--determine-best-tmax",
                                               "--force-all-binnings");
 

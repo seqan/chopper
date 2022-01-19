@@ -136,12 +136,12 @@ void set_up_subparser_layout(seqan3::argument_parser & parser, chopper::layout::
                     "regardless of the layout quality. If the flag --determine-best-tmax is not set, this flag is "
                     "ignored and has no effect.");
 
-    parser.add_flag(config.output_statistics,
-                    '\0', "output-statistics",
+    parser.add_flag(config.output_verbose_statistics,
+                    '\0', "output-verbose-statistics",
                     "Enable verbose statistics to be "
                     "printed to std::cout. If the flag --determine-best-tmax is not set, this flag is ignored "
                     "and has no effect.",
-                    seqan3::option_spec::advanced);
+                    seqan3::option_spec::hidden);
 
     parser.add_flag(config.debug,
                     '\0', "debug",
@@ -233,7 +233,7 @@ size_t determine_best_number_of_technical_bins(chopper::layout::data_store & dat
 
         global_stats.finalize();
 
-        global_stats.print_summary(t_max_64_memory, config.output_statistics);
+        global_stats.print_summary(t_max_64_memory, config.output_verbose_statistics);
 
         // Use result if better than previous one.
         if (global_stats.expected_HIBF_query_cost < best_expected_HIBF_query_cost)
@@ -313,7 +313,7 @@ int execute(seqan3::argument_parser & parser)
 
         max_hibf_id = chopper::layout::hierarchical_binning{data, config}.execute(); // just execute once
 
-        if (config.output_statistics)
+        if (config.output_verbose_statistics)
         {
             global_stats.print_header();
             global_stats.print_summary(dummy);

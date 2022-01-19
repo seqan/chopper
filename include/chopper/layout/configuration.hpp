@@ -40,7 +40,7 @@ struct configuration
     bool determine_best_tmax{false};
     //!\brief Whether the programm should compute all binnings up to the given t_max
     bool force_all_binnings{false};
-    bool output_statistics{false};
+    bool output_verbose_statistics{false};
     bool debug{false};
 
 private:
@@ -67,7 +67,6 @@ private:
         archive(CEREAL_NVP(rearrange_user_bins));
         archive(CEREAL_NVP(determine_best_tmax));
         archive(CEREAL_NVP(force_all_binnings));
-        archive(CEREAL_NVP(output_statistics));
     }
 };
 
