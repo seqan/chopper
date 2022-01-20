@@ -160,6 +160,9 @@ public:
         assert(data->output_buffer != nullptr);
         assert(data->header_buffer != nullptr);
 
+        if (data->stats)
+            data->stats->filenames = data->filenames;
+
         std::vector<std::vector<size_t>> matrix(num_technical_bins); // rows
         for (auto & v : matrix)
             v.resize(num_user_bins, std::numeric_limits<size_t>::max()); // columns

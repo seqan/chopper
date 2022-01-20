@@ -224,8 +224,8 @@ R"expected_cout(## ### Parameters ###
 ## (l*m)_tmax : Computed by l_tmax * m_tmax
 ## size : The expected total size of an tmax-HIBF
 #tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size
-64	1.00	1.69	1.00	1.69	116KiB
-128	0.96	1.50	1.15	1.73	134KiB
+64	1.00	2.23	1.00	2.23	116KiB
+128	0.96	1.57	1.15	1.81	134KiB
 256	1.20	1.39	1.19	1.66	138KiB
 #Best t_max (regarding expected query runtime):256
 )expected_cout");
