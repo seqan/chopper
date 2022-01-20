@@ -52,6 +52,11 @@ inline void count_kmers(robin_hood::unordered_map<std::string, std::vector<std::
     {
         chopper::sketch::hyperloglog sketch(config.sketch_bits);
 
+        // temporary variables when .minimizer files are read
+        uint64_t hash{};
+        char * const hash_data{reinterpret_cast<char*>(&hash)};
+        size_t const hash_bytes{sizeof(hash)};
+
         // read files
         for (auto const & filename : cluster_vector[i].second)
         {
@@ -59,17 +64,15 @@ inline void count_kmers(robin_hood::unordered_map<std::string, std::vector<std::
             {
                 std::ifstream infile{filename, std::ios::binary};
 
-                uint64_t hash;
-                while (infile.read(reinterpret_cast<char*>(&hash), sizeof(hash)))
-                    sketch.add(reinterpret_cast<char*>(&hash), sizeof(hash));
+                while (infile.read(hash_data, hash_bytes))
+                    sketch.add(hash_data, hash_bytes);
             }
             else
             {
                 for (auto && [seq] : sequence_file_type{filename})
-                    for (auto && hash : seq | seqan3::views::kmer_hash(seqan3::ungapped{config.k}))
-                        sketch.add(reinterpret_cast<char*>(&hash), sizeof(hash));
+                    for (auto && k_hash : seq | seqan3::views::kmer_hash(seqan3::ungapped{config.k}))
+                        sketch.add(reinterpret_cast<char*>(&k_hash), sizeof(k_hash));
             }
-
         }
 
         // print either the exact or the approximate count, depending on exclusively_hlls
