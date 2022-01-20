@@ -106,20 +106,32 @@ public:
     void read_hll_files(std::filesystem::path const & hll_dir)
     {
         assert(filenames != nullptr);
+        read_hll_files_into(hll_dir, *filenames, sketches);
+    }
+
+    /*!\brief Restore the HLL sketches from the files in hll_dir and target_filenames into target container.
+    */
+    static void read_hll_files_into(std::filesystem::path const & hll_dir,
+                                    std::vector<std::string> const & target_filenames,
+                                    std::vector<hyperloglog> & target)
+    {
         assert(std::filesystem::exists(hll_dir) && !std::filesystem::is_empty(hll_dir)); // checked in chopper_layout
 
-        sketches.reserve(filenames->size());
+        target.reserve(target_filenames.size());
 
         try
         {
-            for (auto const & filename : *filenames)
+            for (auto const & filename : target_filenames)
             {
                 std::filesystem::path path = hll_dir / std::filesystem::path(filename).stem();
                 path += ".hll";
                 std::ifstream hll_fin(path, std::ios::binary);
 
+                if (!hll_fin.good())
+                    throw std::runtime_error{"Could not open file " + path.string()};
+
                 // the sketch bits will be automatically read from the files
-                sketches.emplace_back().restore(hll_fin);
+                target.emplace_back().restore(hll_fin);
             }
         }
         catch (std::runtime_error const & err)
