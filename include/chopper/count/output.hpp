@@ -31,11 +31,11 @@ inline void write_sketch_file(std::pair<std::string, std::vector<std::string>> c
     auto & [key, filepaths] = cluster;
     // For more than one file in the cluster, Felix doesn't know how to name the file
     // and what exactly is supposed to happen.
-    if (filepaths.size() > 1)
+    if (filepaths.size() != 1)
         throw std::runtime_error("This mode is not implemented yet for multiple files grouped together.");
 
     // For one file in the cluster, the file stem is used with the .hll ending
-    std::filesystem::path path = config.sketch_directory / std::filesystem::path(key).stem();
+    std::filesystem::path path = config.sketch_directory / std::filesystem::path(filepaths[0]).stem();
     path += ".hll";
     std::ofstream hll_fout(path, std::ios::binary);
     sketch.dump(hll_fout);
