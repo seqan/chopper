@@ -2,6 +2,7 @@
 #include <seqan3/core/debug_stream.hpp>
 
 #include <chopper/prefixes.hpp>
+#include <chopper/count/check_filenames.hpp>
 #include <chopper/count/configuration.hpp>
 #include <chopper/count/count_kmers.hpp>
 #include <chopper/count/read_data_file.hpp>
@@ -106,6 +107,8 @@ int execute(seqan3::argument_parser & parser)
     auto filename_clusters = chopper::count::read_data_file(config);
 
     detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
+
+    chopper::count::check_filenames(filename_clusters, config);
 
     chopper::count::count_kmers(filename_clusters, config);
 

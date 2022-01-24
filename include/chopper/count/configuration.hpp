@@ -17,6 +17,8 @@ struct configuration
     uint8_t k{19};
     uint8_t sketch_bits{12};
     bool disable_sketch_output{false};
+    //!\brief Whether the input files are precomputed files instead of sequence files.
+    bool precomputed_files{false};
 };
 
 } // namespace chopper::count

@@ -85,6 +85,7 @@ TEST(count_kmers_test, read_in_precomputed_binary_files)
     config.k = 15;
     config.threads = 1;
     config.output_prefix = output_prefix.get_path().string();
+    config.precomputed_files = true;
     chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
     std::string input_file = data("small.minimizer");
