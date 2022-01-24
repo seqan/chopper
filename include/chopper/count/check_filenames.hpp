@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cassert>
+
 #include <robin_hood.h>
 
 #include <chopper/count/configuration.hpp>
