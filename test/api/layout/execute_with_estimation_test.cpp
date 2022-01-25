@@ -4,6 +4,7 @@
 #include <sstream>
 #include <vector>
 
+#include <chopper/count/execute.hpp>
 #include <chopper/layout/execute.hpp>
 
 #include "../api_test.hpp"
@@ -100,4 +101,60 @@ TEST(execute_estimation_test, many_ubs_force_all)
     EXPECT_EQ(testing::internal::GetCapturedStdout(), "T_Max\tC_{T_Max}\trelative expected HIBF query cost\n64\t1.00"
                                                       "\t1.26\n128\t0.96\t0.98\n256\t1.20\t1.20\n#Best t_max "
                                                       "(regarding expected query runtime):128\n");
+}
+
+TEST(execute_estimation_test, with_rearrangement)
+{
+    seqan3::test::tmp_filename const prefix{"test"};
+    seqan3::test::tmp_filename const input_file{"test.tsv"};
+    seqan3::test::tmp_filename const layout_file{"layout.tsv"};
+
+    {
+        std::ofstream fout{input_file.get_path()};
+        for (size_t i{0}; i < 196u; )
+        {
+            fout << data("seq1.fa").string() << '\t' << (i++) << '\n';
+            fout << data("seq2.fa").string() << '\t' << (i++) << '\n';
+            fout << data("seq3.fa").string() << '\t' << (i++) << '\n';
+            fout << data("small.fa").string() << '\t' << (i++) << '\n';
+        }
+    }
+
+    {
+        char const * const argv[] = {"./chopper-count",
+                                    "--kmer-size", "15",
+                                    "--threads", "1",
+                                    "--column-index", "2",
+                                    "--input-file", input_file.get_path().c_str(),
+                                    "--output-prefix", prefix.get_path().c_str()};
+        int const argc = sizeof(argv) / sizeof(*argv);
+        seqan3::argument_parser count_parser{"chopper-count", argc, argv, seqan3::update_notifications::off};
+        chopper::count::execute(count_parser);
+    }
+
+    ASSERT_TRUE(std::filesystem::exists(prefix.get_path().string() + ".count"));
+    ASSERT_TRUE(std::filesystem::exists(prefix.get_path().string() + "_sketches"));
+    ASSERT_TRUE(std::filesystem::exists(prefix.get_path().string() + "_sketches/seq1.hll"));
+    ASSERT_TRUE(std::filesystem::exists(prefix.get_path().string() + "_sketches/seq2.hll"));
+    ASSERT_TRUE(std::filesystem::exists(prefix.get_path().string() + "_sketches/seq3.hll"));
+    ASSERT_TRUE(std::filesystem::exists(prefix.get_path().string() + "_sketches/small.hll"));
+
+    char const * const argv[] = {"./chopper-layout",
+                                 "--tmax", "256",
+                                 "--rearrange-user-bins",
+                                 "--determine-best-tmax",
+                                 "--force-all-binnings",
+                                //  "--output-statistics",
+                                 "--input-prefix", prefix.get_path().c_str(),
+                                 "--output-filename", layout_file.get_path().c_str()};
+    int const argc = sizeof(argv) / sizeof(*argv);
+
+    seqan3::argument_parser layout_parser{"chopper-layout", argc, argv, seqan3::update_notifications::off};
+
+    testing::internal::CaptureStdout();
+    chopper::layout::execute(layout_parser);
+
+    EXPECT_EQ(testing::internal::GetCapturedStdout(), "T_Max\tC_{T_Max}\trelative expected HIBF query cost\n64\t1.00"
+                                                      "\t1.69\n128\t0.96\t1.50\n256\t1.20\t1.39\n#Best t_max "
+                                                      "(regarding expected query runtime):256\n");
 }
