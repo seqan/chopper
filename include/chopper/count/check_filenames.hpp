@@ -9,7 +9,7 @@
 namespace chopper::count
 {
 
-//!\brief Checks the `filename_clusters` for consistent files, wither precomputed or sequence files.
+//!\brief Checks the `filename_clusters` for consistent files, either precomputed or sequence files.
 inline void check_filenames(robin_hood::unordered_map<std::string, std::vector<std::string>> const & filename_clusters,
                             configuration & config)
 {

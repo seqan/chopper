@@ -30,15 +30,13 @@ using sequence_file_type = seqan3::sequence_file_input<mytraits,
                                                        seqan3::type_list<seqan3::format_fasta, seqan3::format_fastq>>;
 
 inline void process_sequence_files(std::vector<std::string> const & filenames,
-                            configuration const & config,
-                            sketch::hyperloglog & sketch)
+                                   configuration const & config,
+                                   sketch::hyperloglog & sketch)
 {
     for (auto const & filename : filenames)
-    {
         for (auto && [seq] : sequence_file_type{filename})
             for (auto && k_hash : seq | seqan3::views::kmer_hash(seqan3::ungapped{config.k}))
                 sketch.add(reinterpret_cast<char*>(&k_hash), sizeof(k_hash));
-    }
 }
 
 inline void process_minimizer_files(std::vector<std::string> const & filenames, sketch::hyperloglog & sketch)
