@@ -29,16 +29,16 @@ namespace chopper
     switch (iterations)
     {
         case 0:
-            result += " Bytes";
+            result += "Bytes";
             break;
         case 1:
-            result += " KiB";
+            result += "KiB";
             break;
         case 2:
-            result += " MiB";
+            result += "MiB";
             break;
         case 3:
-            result += " GiB";
+            result += "GiB";
             break;
     }
 
