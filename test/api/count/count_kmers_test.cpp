@@ -76,3 +76,35 @@ TEST(count_kmers_test, small_example_parallel_2_threads)
 
     EXPECT_EQ(expected_components.size(), line_count);
 }
+
+TEST(count_kmers_test, read_in_precomputed_binary_files)
+{
+    seqan3::test::tmp_filename output_prefix{"small"};
+
+    chopper::count::configuration config;
+    config.k = 15;
+    config.threads = 1;
+    config.output_prefix = output_prefix.get_path().string();
+    config.precomputed_files = true;
+    chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
+
+    std::string input_file = data("small.minimizer");
+
+    robin_hood::unordered_map<std::string, std::vector<std::string>> filename_clusters
+    {
+        {"TAX1", {input_file}}
+    };
+
+    std::string expected
+    {
+        input_file + "\t571\tTAX1\n"
+    };
+
+    count_kmers(filename_clusters, config);
+
+    ASSERT_TRUE(std::filesystem::exists(config.count_filename));
+    std::ifstream output_file{config.count_filename};
+    std::string const output_file_str((std::istreambuf_iterator<char>(output_file)), std::istreambuf_iterator<char>());
+
+    EXPECT_EQ(expected, output_file_str);
+}

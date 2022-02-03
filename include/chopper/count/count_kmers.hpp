@@ -29,6 +29,33 @@ using sequence_file_type = seqan3::sequence_file_input<mytraits,
                                                        seqan3::fields<seqan3::field::seq>,
                                                        seqan3::type_list<seqan3::format_fasta, seqan3::format_fastq>>;
 
+inline void process_sequence_files(std::vector<std::string> const & filenames,
+                                   configuration const & config,
+                                   sketch::hyperloglog & sketch)
+{
+    for (auto const & filename : filenames)
+        for (auto && [seq] : sequence_file_type{filename})
+            for (auto && k_hash : seq | seqan3::views::kmer_hash(seqan3::ungapped{config.k}))
+                sketch.add(reinterpret_cast<char*>(&k_hash), sizeof(k_hash));
+}
+
+inline void process_minimizer_files(std::vector<std::string> const & filenames, sketch::hyperloglog & sketch)
+{
+    // temporary variables when .minimizer files are read
+    uint64_t hash{};
+    char * const hash_data{reinterpret_cast<char*>(&hash)};
+    size_t const hash_bytes{sizeof(hash)};
+
+    // read files
+    for (auto const & filename : filenames)
+    {
+        std::ifstream infile{filename, std::ios::binary};
+
+        while (infile.read(hash_data, hash_bytes))
+            sketch.add(hash_data, hash_bytes);
+    }
+}
+
 inline void count_kmers(robin_hood::unordered_map<std::string, std::vector<std::string>> const & filename_clusters,
                         configuration const & config)
 {
@@ -52,11 +79,10 @@ inline void count_kmers(robin_hood::unordered_map<std::string, std::vector<std::
     {
         chopper::sketch::hyperloglog sketch(config.sketch_bits);
 
-        // read files
-        for (auto const & filename : cluster_vector[i].second)
-            for (auto && [seq] : sequence_file_type{filename})
-                for (auto && hash : seq | seqan3::views::kmer_hash(seqan3::ungapped{config.k}))
-                    sketch.add(reinterpret_cast<char*>(&hash), sizeof(hash));
+        if (config.precomputed_files)
+            process_minimizer_files(cluster_vector[i].second, sketch);
+        else
+            process_sequence_files(cluster_vector[i].second, config, sketch);
 
         // print either the exact or the approximate count, depending on exclusively_hlls
         uint64_t const weight = sketch.estimate();

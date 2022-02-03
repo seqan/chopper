@@ -2,6 +2,7 @@
 #include <seqan3/core/debug_stream.hpp>
 
 #include <chopper/prefixes.hpp>
+#include <chopper/count/check_filenames.hpp>
 #include <chopper/count/configuration.hpp>
 #include <chopper/count/count_kmers.hpp>
 #include <chopper/count/read_data_file.hpp>
@@ -31,6 +32,10 @@ void initialize_argument_parser(seqan3::argument_parser & parser, chopper::count
                       "per line. If your file contains auxiliary information (e.g. species IDs), your file must be tab-"
                       "separated.",
                       seqan3::option_spec::required);
+    parser.add_list_item("", "The paths must either lead to sequence files, in which case the sequences are read "
+                             "and hash values are computed using the seqan3::views::kmer_hash or have the extension "
+                             ".minimizer, in which case it considered a binary encoded file containing hash values.",
+                             seqan3::option_spec::advanced);
     parser.add_list_item("", "Example file:");
     parser.add_list_item("", "```");
     parser.add_list_item("", "/absolute/path/to/file1.fasta");
@@ -102,6 +107,8 @@ int execute(seqan3::argument_parser & parser)
     auto filename_clusters = chopper::count::read_data_file(config);
 
     detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
+
+    chopper::count::check_filenames(filename_clusters, config);
 
     chopper::count::count_kmers(filename_clusters, config);
 
