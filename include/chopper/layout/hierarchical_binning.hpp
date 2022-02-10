@@ -298,6 +298,9 @@ private:
                 *data->output_buffer << prefix::header << "FILES\tBIN_INDICES\tNUMBER_OF_BINS" << std::endl;
         }
 
+        if (data->stats)
+            data->stats->filenames = data->filenames;
+
         // backtracking starts at the bottom right corner:
         size_t trace_i = num_technical_bins - 1;
         size_t trace_j = num_user_bins - 1;

@@ -114,6 +114,17 @@ TEST_F(user_bin_sequence_test, read_hll_files_empty_dir)
 #endif
 }
 
+TEST_F(user_bin_sequence_test, read_hll_files_file_is_missing)
+{
+    seqan3::test::tmp_filename const tmp_file{"other.hll"};
+    {
+        std::ofstream os{tmp_file.get_path()};
+        os << "Doesn't matter I just need to exist\n";
+    }
+
+    EXPECT_THROW(this->read_hll_files(tmp_file.get_path().parent_path()), std::runtime_error);
+}
+
 TEST_F(user_bin_sequence_test, read_hll_files_faulty_file)
 {
     seqan3::test::tmp_filename const tmp_file{"small.hll"};

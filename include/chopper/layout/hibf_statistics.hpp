@@ -11,6 +11,8 @@
 #include <chopper/helper.hpp>
 #include <chopper/layout/configuration.hpp>
 #include <chopper/layout/ibf_query_cost.hpp>
+#include <chopper/sketch/hyperloglog.hpp>
+#include <chopper/sketch/user_bin_sequence.hpp>
 
 namespace chopper::layout
 {
@@ -48,6 +50,9 @@ public:
 
         //!\brief The query cost to arrive at this IBF (updated before backtracking respective DP).
         double current_query_cost{0.0};
+
+        //!\brief A pointer to the filenames of the user input sequences.
+        std::vector<std::string> filenames;
     };
 
     //!\brief The kind of bin that is stored.
@@ -346,17 +351,38 @@ private:
         // Compute number of technical bins in current level (<= tmax)
         size_t number_of_tbs{0};
         size_t level_kmer_count{0};
+        size_t index{0};
+        std::vector<size_t> merged_bin_indices{};
+        std::vector<sketch::hyperloglog> merged_bin_sketches{};
+
         for (bin const & current_bin : curr_level.bins)
         {
             if (current_bin.kind == bin_kind::merged)
             {
                 ++number_of_tbs;
+                merged_bin_indices.push_back(index);
+
+                if (config.estimate_union)
+                {
+                    // compute merged_bin_sketch
+                    assert(!current_bin.child_level.filenames.empty());
+                    std::vector<sketch::hyperloglog> sketches;
+                    sketch::user_bin_sequence::read_hll_files_into(config.sketch_directory,
+                                                                   current_bin.child_level.filenames,
+                                                                   sketches);
+                    sketch::hyperloglog hll = sketches[0];
+                    for (size_t i = 1; i < sketches.size(); ++i)
+                        hll.merge(sketches[i]);
+
+                    merged_bin_sketches.push_back(std::move(hll));
+                }
             }
             else if (current_bin.kind == bin_kind::split) // bin_kind::split
             {
                 number_of_tbs += current_bin.num_spanning_tbs;
                 level_kmer_count += current_bin.cardinality;
             }
+            ++index;
         }
         assert(number_of_tbs <= config.tmax);
 
@@ -367,15 +393,38 @@ private:
         // Add costs of querying the HIBF for each kmer in this level.
         total_query_cost += curr_level.current_query_cost * level_kmer_count;
 
-        // call function recursively for each merged bin and pass on current_query_cost
-        for (bin & current_bin : curr_level.bins)
+        // update query cost of all merged bins
+        for (size_t i = 0; i < merged_bin_indices.size(); ++i)
         {
-            if (current_bin.kind == bin_kind::merged)
+            auto & current_bin = curr_level.bins[merged_bin_indices[i]];
+
+            // Pass on cost of querying the current level
+            current_bin.child_level.current_query_cost = curr_level.current_query_cost;
+
+            // If merged bins share kmers, we need to penalize this
+            // because querying a kmer will result in multi level look-ups.
+            if (config.estimate_union)
             {
-                current_bin.child_level.current_query_cost = curr_level.current_query_cost;
-                compute_total_query_cost(current_bin.child_level);
+                double const current_estimate = merged_bin_sketches[i].estimate();
+
+                for (size_t j = i + 1; j < merged_bin_indices.size(); ++j)
+                {
+                    sketch::hyperloglog tmp = merged_bin_sketches[i]; // copy needed, s.t. current is not modified
+                    double union_estimate = tmp.merge_and_estimate_SIMD(merged_bin_sketches[j]);
+                    // Jaccard distance estimate
+                    double distance = 2.0 - (current_estimate + merged_bin_sketches[j].estimate()) / union_estimate;
+                    // Since the sizes are estimates, the distance might be slighlty above 1.0 or below 0.0
+                    // but we need to avoid nagetive numbers
+                    distance = std::min(std::max(distance, 0.0), 1.0);
+
+                    current_bin.child_level.current_query_cost += (1.0 - distance);
+                }
             }
         }
+
+        // call function recursively for each merged bin
+        for (size_t i : merged_bin_indices)
+            compute_total_query_cost(curr_level.bins[i].child_level);
     }
 
     /*!\brief Recursively gather all the statistics from the bins.
