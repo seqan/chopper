@@ -21,7 +21,7 @@ inline void arrange_user_bins(data_store & data, configuration const & config)
             if (config.rearrange_user_bins)
                 bin_sequence.rearrange_bins(config.max_rearrangement_ratio, config.threads);
 
-            bin_sequence.estimate_interval_unions(data.union_estimates, config.threads);
+            bin_sequence.precompute_interval_union_estimations(data.union_estimates, config.threads);
         }
 
         data.user_bins_arranged = true;

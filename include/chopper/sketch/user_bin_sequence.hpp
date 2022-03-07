@@ -149,7 +149,7 @@ public:
      * \param[in] num_threads the number of threads to use
      * \param[out] estimates output table
      */
-    void estimate_interval_unions(std::vector<std::vector<uint64_t>> & estimates, size_t const num_threads) const
+    void precompute_interval_union_estimations(std::vector<std::vector<uint64_t>> & estimates, size_t const num_threads) const
     {
         assert(user_bin_kmer_counts != nullptr);
         assert(filenames != nullptr);

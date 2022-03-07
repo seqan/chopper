@@ -136,31 +136,31 @@ TEST_F(user_bin_sequence_test, read_hll_files_faulty_file)
     EXPECT_THROW(this->read_hll_files(tmp_file.get_path().parent_path()), std::runtime_error);
 }
 
-TEST_F(user_bin_sequence_test, estimate_interval_unions_error_no_sketches)
+TEST_F(user_bin_sequence_test, precompute_interval_union_estimations_error_no_sketches)
 {
     std::vector<std::vector<uint64_t>> estimates{};
 
-    EXPECT_THROW(this->estimate_interval_unions(estimates, 1u), std::runtime_error);
+    EXPECT_THROW(this->precompute_interval_union_estimations(estimates, 1u), std::runtime_error);
 }
 
-TEST_F(user_bin_sequence_test, estimate_interval_unions_one_thread)
+TEST_F(user_bin_sequence_test, precompute_interval_union_estimations_one_thread)
 {
     std::vector<std::vector<uint64_t>> expected{{{500},{670,600},{670,670,700},{670,670,670,800}}};
 
     std::vector<std::vector<uint64_t>> estimates{};
     this->read_hll_files(data("")); // load hll files for test_filenames from data directory
-    this->estimate_interval_unions(estimates, 1u);
+    this->precompute_interval_union_estimations(estimates, 1u);
 
     EXPECT_RANGE_EQ(estimates, expected);
 }
 
-TEST_F(user_bin_sequence_test, estimate_interval_unions_two_threads)
+TEST_F(user_bin_sequence_test, precompute_interval_union_estimations_two_threads)
 {
     std::vector<std::vector<uint64_t>> expected{{{500},{670,600},{670,670,700},{670,670,670,800}}};
 
     std::vector<std::vector<uint64_t>> estimates{};
     this->read_hll_files(data("")); // load hll files for test_filenames from data directory
-    this->estimate_interval_unions(estimates, 2u);
+    this->precompute_interval_union_estimations(estimates, 2u);
 
     EXPECT_RANGE_EQ(estimates, expected);
 }
