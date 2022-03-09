@@ -2,7 +2,6 @@
 
 #include <chopper/layout/configuration.hpp>
 #include <chopper/layout/data_store.hpp>
-#include <chopper/sketch/user_bin_sequence.hpp>
 
 namespace chopper::layout
 {
@@ -12,16 +11,16 @@ inline void arrange_user_bins(data_store & data, configuration const & config)
 {
     if (!data.user_bins_arranged)
     {
-        chopper::sketch::user_bin_sequence bin_sequence{data.filenames, data.kmer_counts};
-        bin_sequence.sort_by_cardinalities();
+        data.sketch_toolbox = sketch::user_bin_sequence{data.filenames, data.kmer_counts};
+        data.sketch_toolbox.sort_by_cardinalities();
 
         if (config.estimate_union)
         {
-            bin_sequence.read_hll_files(config.sketch_directory);
+            data.sketch_toolbox.read_hll_files(config.sketch_directory);
             if (config.rearrange_user_bins)
-                bin_sequence.rearrange_bins(config.max_rearrangement_ratio, config.threads);
+                data.sketch_toolbox.rearrange_bins(config.max_rearrangement_ratio, config.threads);
 
-            bin_sequence.precompute_interval_union_estimations(data.union_estimates, config.threads);
+            data.sketch_toolbox.precompute_interval_union_estimations(data.union_estimates, config.threads);
         }
 
         data.user_bins_arranged = true;

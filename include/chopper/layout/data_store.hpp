@@ -8,6 +8,7 @@
 #include <chopper/layout/configuration.hpp>
 #include <chopper/layout/hibf_statistics.hpp>
 #include <chopper/layout/previous_level.hpp>
+#include <chopper/sketch/user_bin_sequence.hpp>
 
 namespace chopper::layout
 {
@@ -20,6 +21,9 @@ struct data_store
     std::vector<size_t> kmer_counts{};
     std::vector<std::vector<std::string>> extra_information{};
     std::vector<double> fp_correction{};
+
+    //!\brief Stores sketches if needed and provides utility functions for user bin rearrangement or union estimation.
+    sketch::user_bin_sequence sketch_toolbox;
 
     //!\brief The desired maximum false positive rate of the resulting index.
     double false_positive_rate{};
