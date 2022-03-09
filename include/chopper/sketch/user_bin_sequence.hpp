@@ -53,10 +53,10 @@ protected:
     using distance_matrix = std::vector<entry>;
 
     //!\brief A pointer to the filenames of the user input sequences.
-    std::vector<std::string> * const filenames{nullptr};
+    std::vector<std::string> * filenames{nullptr};
 
     //!\brief A pointer to kmer counts associated with the above files used to layout user bin into technical bins.
-    std::vector<size_t> * const user_bin_kmer_counts{nullptr};
+    std::vector<size_t> * user_bin_kmer_counts{nullptr};
 
     //!\brief HyperLogLog sketches on the k-mer sets of the sequences from the files of filenames.
     std::vector<hyperloglog> sketches;

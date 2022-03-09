@@ -41,10 +41,8 @@ TEST_F(user_bin_sequence_test, construction)
     EXPECT_TRUE(std::is_copy_constructible<chopper::sketch::user_bin_sequence>::value);
     EXPECT_TRUE(std::is_move_constructible<chopper::sketch::user_bin_sequence>::value);
     EXPECT_TRUE(std::is_destructible<chopper::sketch::user_bin_sequence>::value);
-
-    // class has a const pointer
-    EXPECT_FALSE(std::is_copy_assignable<chopper::sketch::user_bin_sequence>::value);
-    EXPECT_FALSE(std::is_move_assignable<chopper::sketch::user_bin_sequence>::value);
+    EXPECT_TRUE(std::is_copy_assignable<chopper::sketch::user_bin_sequence>::value);
+    EXPECT_TRUE(std::is_move_assignable<chopper::sketch::user_bin_sequence>::value);
 
     // construction from filenames and kmer_counts
     std::vector<std::string> filenames{"small.fa", "small.fa"};
