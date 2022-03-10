@@ -187,6 +187,27 @@ public:
         }
     }
 
+    /*!\brief Estimate the cardinality of the union for a signle user bin j with all prior ones j' < j.
+     * \param[in] j The current user bin (column in the DP matrix)
+     * \param[out] estimates output row
+     *
+     * estimates[j_prime] will be the union cardinality estimate of the interval {j_prime, ..., j}.
+     */
+    void precompute_interval_union_estimations(std::vector<uint64_t> & estimates, int64_t const j) const
+    {
+        assert(user_bin_kmer_counts != nullptr);
+        assert(filenames->size() == sketches.size())
+        assert(estimates.capacity() > j);
+
+        estimates.clear();
+
+        hyperloglog temp_hll = sketches[j];
+        estimates[j] = (*user_bin_kmer_counts)[j];
+
+        for (int64_t j_prime = j - 1; j_prime >= 0; --j_prime)
+            estimates[j_prime] = static_cast<uint64_t>(temp_hll.merge_and_estimate_SIMD(sketches[j_prime]));
+    }
+
     /*!\brief Rearrange filenames, sketches and counts such that similar bins are close to each other
      * \param[in] max_ratio the maximal cardinality ratio in the clustering intervals (must be <= 1 and >= 0)
      * \param[in] num_threads the number of threads to use
