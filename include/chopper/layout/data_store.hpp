@@ -29,7 +29,7 @@ struct data_store
     double false_positive_rate{};
 
     //!\brief Matrix of estimates of merged bin cardinalites
-    std::vector<std::vector<uint64_t>> union_estimates{};
+    std::vector<uint64_t> union_estimates{};
     bool user_bins_arranged{false};
 
     //!\brief A reference to the output stream to cache the results to.
