@@ -8,6 +8,7 @@
 #include <chopper/layout/configuration.hpp>
 #include <chopper/layout/hibf_statistics.hpp>
 #include <chopper/layout/previous_level.hpp>
+#include <chopper/sketch/user_bin_sequence.hpp>
 
 namespace chopper::layout
 {
@@ -21,11 +22,14 @@ struct data_store
     std::vector<std::vector<std::string>> extra_information{};
     std::vector<double> fp_correction{};
 
+    //!\brief Stores sketches if needed and provides utility functions for user bin rearrangement or union estimation.
+    sketch::user_bin_sequence sketch_toolbox;
+
     //!\brief The desired maximum false positive rate of the resulting index.
     double false_positive_rate{};
 
     //!\brief Matrix of estimates of merged bin cardinalites
-    std::vector<std::vector<uint64_t>> union_estimates{};
+    std::vector<uint64_t> union_estimates{};
     bool user_bins_arranged{false};
 
     //!\brief A reference to the output stream to cache the results to.

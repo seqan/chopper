@@ -138,10 +138,12 @@ private:
         size_t sum = data->kmer_counts[0];
         if (config.estimate_union)
         {
+            data->sketch_toolbox.precompute_initial_union_estimates(data->union_estimates);
+
             for (size_t j = 1; j < num_user_bins; ++j)
             {
                 sum += data->kmer_counts[j];
-                matrix[0][j] = data->union_estimates[j][0];
+                matrix[0][j] = data->union_estimates[j];
                 ll_matrix[0][j] = max_merge_levels(j + 1) * sum;
                 trace[0][j] = {0u, j - 1}; // unnecessary?
             }
@@ -208,6 +210,9 @@ private:
             size_t const current_weight = data->kmer_counts[j];
             double const ub_cardinality = static_cast<double>(current_weight);
 
+            if (config.estimate_union)
+                data->sketch_toolbox.precompute_union_estimates_for(data->union_estimates, j);
+
             for (size_t i = 1; i < num_technical_bins; ++i)
             {
                 size_t minimum{std::numeric_limits<size_t>::max()};
@@ -245,9 +250,9 @@ private:
                 auto get_weight = [&] ()
                 {
                     // if we use the union estimate we plug in that value instead of the sum (weight)
-                    // union_estimates[i][j] is the union of {j, ..., i}
+                    // union_estimates[j_prime] is the union of {j_prime, ..., j}
                     // the + 1 is necessary because j_prime is decremented directly after weight is updated
-                    return config.estimate_union ? data->union_estimates[j][j_prime + 1] : weight;
+                    return config.estimate_union ? data->union_estimates[j_prime + 1] : weight;
                 };
 
                 // if the user bin j-1 was not split into multiple technical bins!
@@ -473,7 +478,9 @@ private:
         // add merged bin to ibf statistics
         if (data->stats)
         {
-            uint64_t const cardinality = config.estimate_union ? data->union_estimates[j][trace_j + 1] : kmer_count;
+            uint64_t const cardinality = config.estimate_union
+                                         ? data->sketch_toolbox.estimate_interval(trace_j + 1, j)
+                                         : kmer_count;
             hibf_statistics::bin & bin_stats = data->stats->bins.emplace_back(hibf_statistics::bin_kind::merged,
                                                 cardinality, num_contained_ubs, 1ul);
             libf_data.stats = &bin_stats.child_level;

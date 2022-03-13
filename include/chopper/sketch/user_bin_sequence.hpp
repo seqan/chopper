@@ -53,10 +53,10 @@ protected:
     using distance_matrix = std::vector<entry>;
 
     //!\brief A pointer to the filenames of the user input sequences.
-    std::vector<std::string> * const filenames{nullptr};
+    std::vector<std::string> * filenames{nullptr};
 
     //!\brief A pointer to kmer counts associated with the above files used to layout user bin into technical bins.
-    std::vector<size_t> * const user_bin_kmer_counts{nullptr};
+    std::vector<size_t> * user_bin_kmer_counts{nullptr};
 
     //!\brief HyperLogLog sketches on the k-mer sets of the sequences from the files of filenames.
     std::vector<hyperloglog> sketches;
@@ -142,49 +142,65 @@ public:
         }
     }
 
-    /*!\brief For all intervals of filenames: estimate the cardinality of the union
-     * of k-mer sets of all sequences in the files of the interval.
-     * estimates[i][j] will be the union cardinality estimate of the interval j, ..., i.
-     * This unintuitive convention is chosen for cache efficiency in the hierarchical binning.
-     * \param[in] num_threads the number of threads to use
-     * \param[out] estimates output table
+    /*!\brief Estimate the cardinality of the union for a single user bin j with all prior ones j' < j.
+     * \param[in] j The current user bin (column in the DP matrix)
+     * \param[out] estimates output row
+     *
+     * estimates[j_prime] will be the union cardinality estimate of the interval {j_prime, ..., j}.
      */
-    void estimate_interval_unions(std::vector<std::vector<uint64_t>> & estimates, size_t const num_threads) const
+    void precompute_union_estimates_for(std::vector<uint64_t> & estimates, int64_t const j) const
     {
         assert(user_bin_kmer_counts != nullptr);
-        assert(filenames != nullptr);
+        assert(filenames->size() == user_bin_kmer_counts->size());
+        assert(filenames->size() == sketches.size());
+        assert(filenames->size() > static_cast<size_t>(j));
+        assert(estimates.size() == sketches.size()); // Resize happens in precompute_init_interval_union_estimations
 
-        if (filenames->size() > sketches.size())
-            throw std::runtime_error{"You need to compute or load sketches before you can estimate intervals."};
+        hyperloglog temp_hll = sketches[j];
+        estimates[j] = (*user_bin_kmer_counts)[j];
 
-        estimates.clear();
-        size_t const n = filenames->size();
-        estimates.resize(n);
+        for (int64_t j_prime = j - 1; j_prime >= 0; --j_prime)
+            estimates[j_prime] = static_cast<uint64_t>(temp_hll.merge_and_estimate_SIMD(sketches[j_prime]));
+    }
 
-        size_t const chunk_size = std::floor(std::sqrt(n));
+    /*!\brief Estimate the cardinality of the union for each interval [0, j] for all user bins j.
+     * \param[out] estimates output row
+     *
+     * estimates[j] will be the union cardinality estimate of the interval {0, ..., j}.
+     */
+    void precompute_initial_union_estimates(std::vector<uint64_t> & estimates) const
+    {
+        assert(user_bin_kmer_counts != nullptr);
+        assert(filenames->size() == user_bin_kmer_counts->size());
+        assert(filenames->size() == sketches.size());
+        assert(filenames->size() > 0u);
+        estimates.resize(sketches.size());
 
-        #pragma omp parallel num_threads(num_threads)
-        {
-            // initialize estimates
-            #pragma omp for
-            for (size_t i = 0; i < n; ++i)
-            {
-                estimates[i].resize(i + 1);
-            }
+        hyperloglog temp_hll = sketches[0];
+        estimates[0] = (*user_bin_kmer_counts)[0];
 
-            // fill estimates
-            #pragma omp for schedule(nonmonotonic: dynamic, chunk_size)
-            for (size_t i = 0; i < n; ++i)
-            {
-                hyperloglog temp_hll = sketches[i];
-                estimates[i][i] = (*user_bin_kmer_counts)[i];
+        for (size_t j = 1; j < sketches.size(); ++j)
+            estimates[j] = static_cast<uint64_t>(temp_hll.merge_and_estimate_SIMD(sketches[j]));
+    }
 
-                for (size_t j = i + 1; j < n; ++j)
-                {
-                    estimates[j][i] = static_cast<uint64_t>(temp_hll.merge_and_estimate_SIMD(sketches[j]));
-                }
-            }
-        }
+    /*!\brief Estimate the cardinality of the union for a single interval.
+     * \param[in] start The start of the interval.
+     * \param[in] end   The end of the interval (end >= start);
+     */
+    uint64_t estimate_interval(size_t const start, size_t const end) const
+    {
+        assert(user_bin_kmer_counts != nullptr);
+        assert(filenames->size() == user_bin_kmer_counts->size());
+        assert(filenames->size() == sketches.size());
+        assert(start <= end);
+        assert(end < sketches.size());
+
+        hyperloglog temp_hll = sketches[start];
+
+        for (size_t i = start + 1; i <= end; ++i)
+            temp_hll.merge(sketches[i]);
+
+        return temp_hll.estimate();
     }
 
     /*!\brief Rearrange filenames, sketches and counts such that similar bins are close to each other

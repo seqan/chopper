@@ -41,10 +41,8 @@ TEST_F(user_bin_sequence_test, construction)
     EXPECT_TRUE(std::is_copy_constructible<chopper::sketch::user_bin_sequence>::value);
     EXPECT_TRUE(std::is_move_constructible<chopper::sketch::user_bin_sequence>::value);
     EXPECT_TRUE(std::is_destructible<chopper::sketch::user_bin_sequence>::value);
-
-    // class has a const pointer
-    EXPECT_FALSE(std::is_copy_assignable<chopper::sketch::user_bin_sequence>::value);
-    EXPECT_FALSE(std::is_move_assignable<chopper::sketch::user_bin_sequence>::value);
+    EXPECT_TRUE(std::is_copy_assignable<chopper::sketch::user_bin_sequence>::value);
+    EXPECT_TRUE(std::is_move_assignable<chopper::sketch::user_bin_sequence>::value);
 
     // construction from filenames and kmer_counts
     std::vector<std::string> filenames{"small.fa", "small.fa"};
@@ -136,33 +134,25 @@ TEST_F(user_bin_sequence_test, read_hll_files_faulty_file)
     EXPECT_THROW(this->read_hll_files(tmp_file.get_path().parent_path()), std::runtime_error);
 }
 
-TEST_F(user_bin_sequence_test, estimate_interval_unions_error_no_sketches)
+TEST_F(user_bin_sequence_test, precompute_union_estimates_for)
 {
-    std::vector<std::vector<uint64_t>> estimates{};
+    using vt = std::vector<uint64_t>;
 
-    EXPECT_THROW(this->estimate_interval_unions(estimates, 1u), std::runtime_error);
-}
-
-TEST_F(user_bin_sequence_test, estimate_interval_unions_one_thread)
-{
-    std::vector<std::vector<uint64_t>> expected{{{500},{670,600},{670,670,700},{670,670,670,800}}};
-
-    std::vector<std::vector<uint64_t>> estimates{};
     this->read_hll_files(data("")); // load hll files for test_filenames from data directory
-    this->estimate_interval_unions(estimates, 1u);
 
-    EXPECT_RANGE_EQ(estimates, expected);
-}
+    std::vector<uint64_t> estimates(4);
 
-TEST_F(user_bin_sequence_test, estimate_interval_unions_two_threads)
-{
-    std::vector<std::vector<uint64_t>> expected{{{500},{670,600},{670,670,700},{670,670,670,800}}};
+    this->precompute_union_estimates_for(estimates, 0);
+    EXPECT_RANGE_EQ(estimates, (vt{500, 0, 0, 0}));
 
-    std::vector<std::vector<uint64_t>> estimates{};
-    this->read_hll_files(data("")); // load hll files for test_filenames from data directory
-    this->estimate_interval_unions(estimates, 2u);
+    this->precompute_union_estimates_for(estimates, 1);
+    EXPECT_RANGE_EQ(estimates, (vt{670, 600, 0, 0}));
 
-    EXPECT_RANGE_EQ(estimates, expected);
+    this->precompute_union_estimates_for(estimates, 2);
+    EXPECT_RANGE_EQ(estimates, (vt{670, 670, 700, 0}));
+
+    this->precompute_union_estimates_for(estimates, 3);
+    EXPECT_RANGE_EQ(estimates, (vt{670, 670, 670, 800}));
 }
 
 TEST_F(user_bin_sequence_test, random_shuffle)
