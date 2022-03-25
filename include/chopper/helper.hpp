@@ -19,7 +19,7 @@ namespace chopper
 [[nodiscard]] inline std::string byte_size_to_formatted_str(size_t bytes)
 {
     size_t iterations{};
-    while (bytes >> 10 && iterations < 3)
+    while (bytes >> 10 && iterations < 5)
     {
         bytes >>= 10;
         ++iterations;
@@ -39,6 +39,12 @@ namespace chopper
             break;
         case 3:
             result += "GiB";
+            break;
+        case 4:
+            result += "TiB";
+            break;
+        case 5:
+            result += "PiB";
             break;
     }
 
