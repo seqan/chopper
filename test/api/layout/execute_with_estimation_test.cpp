@@ -108,6 +108,9 @@ R"expected_cout(## ### Parameters ###
 256	1.20	1.20	0.70	0.83	59KiB
 # Best t_max (regarding expected query runtime): 128
 )expected_cout");
+
+    std::string const layout_string{string_from_file(layout_file.get_path())};
+    EXPECT_NE(layout_string.find("\"tmax\": 128,"), std::string::npos);
 }
 
 TEST(execute_estimation_test, many_ubs_force_all)
@@ -155,6 +158,9 @@ R"expected_cout(## ### Parameters ###
 256	1.20	1.20	0.70	0.83	59KiB
 # Best t_max (regarding expected query runtime): 128
 )expected_cout");
+
+    std::string const layout_string{string_from_file(layout_file.get_path())};
+    EXPECT_NE(layout_string.find("\"tmax\": 128,"), std::string::npos);
 }
 
 TEST(execute_estimation_test, with_rearrangement)
@@ -229,4 +235,7 @@ R"expected_cout(## ### Parameters ###
 256	1.20	1.39	1.19	1.66	138KiB
 # Best t_max (regarding expected query runtime): 256
 )expected_cout");
+
+    std::string const layout_string{string_from_file(layout_file.get_path())};
+    EXPECT_NE(layout_string.find("\"tmax\": 256,"), std::string::npos);
 }

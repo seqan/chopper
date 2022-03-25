@@ -251,6 +251,7 @@ size_t determine_best_number_of_technical_bins(chopper::layout::data_store & dat
     }
 
     std::cout << "# Best t_max (regarding expected query runtime): " << best_t_max << '\n';
+    config.tmax = best_t_max;
     return max_hibf_id;
 }
 
