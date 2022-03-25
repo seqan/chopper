@@ -53,9 +53,9 @@ R"expected_cout(## ### Parameters ###
 ## m_tmax : The estimated memory consumption for an tmax-HIBF, compared to an 64-HIBF
 ## (l*m)_tmax : Computed by l_tmax * m_tmax
 ## size : The expected total size of an tmax-HIBF
-#tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size
+# tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size
 64	1.00	1.00	1.00	1.00	17KiB
-#Best t_max (regarding expected query runtime):64
+# Best t_max (regarding expected query runtime): 64
 )expected_cout");
 
     EXPECT_EQ(testing::internal::GetCapturedStderr(), "[CHOPPER LAYOUT WARNING]: Your requested number of technical "
@@ -102,11 +102,11 @@ R"expected_cout(## ### Parameters ###
 ## m_tmax : The estimated memory consumption for an tmax-HIBF, compared to an 64-HIBF
 ## (l*m)_tmax : Computed by l_tmax * m_tmax
 ## size : The expected total size of an tmax-HIBF
-#tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size
+# tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size
 64	1.00	1.26	1.00	1.26	85KiB
 128	0.96	0.98	0.59	0.58	50KiB
 256	1.20	1.20	0.70	0.83	59KiB
-#Best t_max (regarding expected query runtime):128
+# Best t_max (regarding expected query runtime): 128
 )expected_cout");
 }
 
@@ -149,11 +149,11 @@ R"expected_cout(## ### Parameters ###
 ## m_tmax : The estimated memory consumption for an tmax-HIBF, compared to an 64-HIBF
 ## (l*m)_tmax : Computed by l_tmax * m_tmax
 ## size : The expected total size of an tmax-HIBF
-#tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size
+# tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size
 64	1.00	1.26	1.00	1.26	85KiB
 128	0.96	0.98	0.59	0.58	50KiB
 256	1.20	1.20	0.70	0.83	59KiB
-#Best t_max (regarding expected query runtime):128
+# Best t_max (regarding expected query runtime): 128
 )expected_cout");
 }
 
@@ -223,10 +223,10 @@ R"expected_cout(## ### Parameters ###
 ## m_tmax : The estimated memory consumption for an tmax-HIBF, compared to an 64-HIBF
 ## (l*m)_tmax : Computed by l_tmax * m_tmax
 ## size : The expected total size of an tmax-HIBF
-#tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size
+# tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size
 64	1.00	2.23	1.00	2.23	116KiB
 128	0.96	1.57	1.15	1.81	134KiB
 256	1.20	1.39	1.19	1.66	138KiB
-#Best t_max (regarding expected query runtime):256
+# Best t_max (regarding expected query runtime): 256
 )expected_cout");
 }
