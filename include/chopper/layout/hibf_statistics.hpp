@@ -122,7 +122,7 @@ public:
                   << ((verbose) ? "## uncorr_size : The expected size of an tmax-HIBF without FPR correction\n" : "");
 
         // print column names
-        std::cout << "#tmax"      << '\t'
+        std::cout << "# tmax"     << '\t'
                   << "c_tmax"     << '\t'
                   << "l_tmax"     << '\t'
                   << "m_tmax"     << '\t'
