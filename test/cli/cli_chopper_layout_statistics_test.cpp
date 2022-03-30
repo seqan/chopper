@@ -35,7 +35,7 @@ R"expected_cout(## ### Notation ###
 ## size : The expected total size of an tmax-HIBF
 ## uncorr_size : The expected size of an tmax-HIBF without FPR correction
 # tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size	uncorr_size	level	num_ibfs	level_size	level_size_no_corr	total_num_tbs	avg_num_tbs	split_tb_percentage	max_split_tb	avg_split_tb	max_factor	avg_factor
-64	1.00	1.26	1.00	1.26	85KiB	45KiB	:0:1	:1:12	:37KiB:48KiB	:37KiB:8KiB	:64:768	:64:64	:81.25:100.00	:1:32	:1.00:17.45	:1.00:9.02	:1.00:6.50
+64	1.00	1.26	1.00	1.26	85.2KiB	45.4KiB	:0:1	:1:12	:37.0KiB:48.2KiB	:37.0KiB:8.3KiB	:64:768	:64:64	:81.25:100.00	:1:32	:1.00:17.45	:1.00:9.02	:1.00:6.50
 )expected_cout";
 
     EXPECT_EQ(layout_result.exit_code, 0);
@@ -89,8 +89,8 @@ R"expected_cout(## ### Parameters ###
 ## size : The expected total size of an tmax-HIBF
 ## uncorr_size : The expected size of an tmax-HIBF without FPR correction
 # tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size	uncorr_size	level	num_ibfs	level_size	level_size_no_corr	total_num_tbs	avg_num_tbs	split_tb_percentage	max_split_tb	avg_split_tb	max_factor	avg_factor
-64	1.00	1.00	1.00	1.00	1MiB	1MiB	:0	:1	:1MiB	:1MiB	:64	:64	:100.00	:20	:6.40	:6.38	:3.62
-128	0.96	0.96	1.63	1.56	3MiB	2MiB	:0	:1	:3MiB	:2MiB	:128	:128	:100.00	:47	:12.80	:12.17	:5.96
+64	1.00	1.00	1.00	1.00	1.9MiB	1.8MiB	:0	:1	:1.9MiB	:1.8MiB	:64	:64	:100.00	:20	:6.40	:6.38	:3.62
+128	0.96	0.96	1.63	1.56	3.1MiB	2.4MiB	:0	:1	:3.1MiB	:2.4MiB	:128	:128	:100.00	:47	:12.80	:12.17	:5.96
 # Best t_max (regarding expected query runtime): 128
 )expected_cout";
 
