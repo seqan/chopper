@@ -10,6 +10,7 @@
  * Modified a lot for a bugfix, improvements and functional changes (64 bit hashes)
  */
 
+#include <array>
 #include <cassert>
 #include <iostream>
 #include <vector>

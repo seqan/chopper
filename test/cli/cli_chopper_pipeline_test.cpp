@@ -1,5 +1,5 @@
 #include <fstream>
-#include <seqan3/std/ranges>     // range comparisons
+#include <ranges>     // range comparisons
 #include <string>                // strings
 #include <vector>                // vectors
 
@@ -9,7 +9,7 @@
 #include <seqan3/test/tmp_directory.hpp>
 #include <seqan3/test/tmp_filename.hpp>
 #include <seqan3/utility/views/join_with.hpp>
-#include <seqan3/utility/views/to.hpp>
+#include <seqan3/utility/range/to.hpp>
 
 #include "cli_test.hpp"
 
@@ -54,8 +54,12 @@ TEST_F(cli_test, chopper_pipeline)
     std::string const count_file_str((std::istreambuf_iterator<char>(count_file)), std::istreambuf_iterator<char>());
 
     size_t line_count{};
-    for (auto && line : count_file_str | std::views::split('\n') | seqan3::views::to<std::vector<std::string>>)
+    for (auto && line : count_file_str | std::views::split('\n') | seqan3::ranges::to<std::vector<std::string>>())
     {
+#if defined(__GNUC__) && (__GNUC__ == 12)
+        if (line.empty())
+            continue;
+#endif
         EXPECT_TRUE(std::ranges::find(expected_components, line) != expected_components.end()) << "missing:" << line;
         ++line_count;
     }
@@ -65,7 +69,7 @@ TEST_F(cli_test, chopper_pipeline)
     // Overwrite result file with expected order of elements.
     {
         std::ofstream fout{sketch_prefix.get_path().string() + ".count"};
-        fout << (expected_components | seqan3::views::join_with(std::string{'\n'}) | seqan3::views::to<std::string>);
+        fout << (expected_components | seqan3::views::join_with(std::string{'\n'}) | seqan3::ranges::to<std::string>());
     }
 
     // CHOPPER LAYOUT
@@ -169,8 +173,12 @@ TEST_F(cli_test, chopper_pipeline2)
     std::string const count_file_str((std::istreambuf_iterator<char>(count_file)), std::istreambuf_iterator<char>());
 
     size_t line_count{};
-    for (auto && line : count_file_str | std::views::split('\n') | seqan3::views::to<std::vector<std::string>>)
+    for (auto && line : count_file_str | std::views::split('\n') | seqan3::ranges::to<std::vector<std::string>>())
     {
+#if defined(__GNUC__) && (__GNUC__ == 12)
+        if (line.empty())
+            continue;
+#endif
         EXPECT_TRUE(std::ranges::find(expected_components, line) != expected_components.end()) << "Missing:" << line;
         ++line_count;
     }
@@ -180,7 +188,7 @@ TEST_F(cli_test, chopper_pipeline2)
     // Overwrite result file with expected order of elements.
     {
         std::ofstream fout{sketch_prefix.get_path().string() + ".count"};
-        fout << (expected_components | seqan3::views::join_with(std::string{'\n'}) | seqan3::views::to<std::string>);
+        fout << (expected_components | seqan3::views::join_with(std::string{'\n'}) | seqan3::ranges::to<std::string>());
     }
 
     // CHOPPER layout

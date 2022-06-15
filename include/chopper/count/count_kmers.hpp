@@ -11,7 +11,7 @@
 #include <seqan3/io/views/async_input_buffer.hpp>
 #include <seqan3/search/views/kmer_hash.hpp>
 #include <seqan3/search/views/minimiser_hash.hpp>
-#include <seqan3/utility/views/to.hpp>
+#include <seqan3/utility/range/to.hpp>
 
 #include <chopper/count/configuration.hpp>
 #include <chopper/count/output.hpp>

@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.11)
+cmake_minimum_required (VERSION 3.15)
 
 ## CUSTOMISE
 
@@ -51,6 +51,7 @@ find_package (SeqAn3 REQUIRED QUIET HINTS ${CHOPPER_SUBMODULES_DIR}/seqan3/build
 
 # Allow to include CMake scripts from seqan3.
 list (APPEND CMAKE_MODULE_PATH "${SEQAN3_CLONE_DIR}/test/cmake/")
+list (APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/test/cmake/")
 
 # Define cmake configuration flags to configure and build external projects with the same flags as specified for
 # this project.
@@ -96,8 +97,8 @@ target_include_directories (xxhash INTERFACE "${PROJECT_BINARY_DIR}/include")
 # Use ccache.
 set (CHOPPER_USE_CCACHE ON CACHE BOOL "Use ccache if available.")
 if (CHOPPER_USE_CCACHE)
-     include (seqan3_require_ccache)
-     seqan3_require_ccache ()
+     include (chopper_require_ccache)
+     chopper_require_ccache ()
 endif ()
 
 # Add the application.

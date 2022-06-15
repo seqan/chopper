@@ -68,8 +68,12 @@ TEST(count_kmers_test, small_example_parallel_2_threads)
     std::string const output_file_str((std::istreambuf_iterator<char>(output_file)), std::istreambuf_iterator<char>());
 
     size_t line_count{};
-    for (auto && line : output_file_str | std::views::split('\n') | seqan3::views::to<std::vector<std::string>>)
+    for (auto && line : output_file_str | std::views::split('\n') | seqan3::ranges::to<std::vector<std::string>>())
     {
+#if defined(__GNUC__) && (__GNUC__ == 12)
+        if (line.empty())
+            continue;
+#endif
         EXPECT_TRUE(std::ranges::find(expected_components, line) != expected_components.end()) << "missing: " << line;
         ++line_count;
     }

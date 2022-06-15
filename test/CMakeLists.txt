@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.11)
+cmake_minimum_required (VERSION 3.15)
 
 # Set directories for test output files, input data and binaries.
 file (MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/output)
@@ -6,9 +6,8 @@ add_definitions (-DOUTPUTDIR=\"${CMAKE_CURRENT_BINARY_DIR}/output/\")
 add_definitions (-DDATADIR=\"${CMAKE_CURRENT_BINARY_DIR}/data/\")
 add_definitions (-DBINDIR=\"${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/\")
 
-set (SEQAN3_TEST_CLONE_DIR "${PROJECT_BINARY_DIR}/vendor/googletest")
-include (seqan3_require_test)
-seqan3_require_test ()
+include (chopper_require_test)
+chopper_require_test ()
 
 # Build tests just before their execution, because they have not been built with "all" target.
 # The trick is here to provide a cmake file as a directory property that executes the build command.

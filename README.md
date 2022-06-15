@@ -7,8 +7,8 @@
 
 ## System requirements
 
-* GCC Version >= 9
-* CMake Version >= 3.11
+* GCC Version >= 10
+* CMake Version >= 3.15
 
 ## General setup
 

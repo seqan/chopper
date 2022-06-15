@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.11)
+cmake_minimum_required (VERSION 3.15)
 
 add_cli_test (cli_chopper_basic_test.cpp)
 

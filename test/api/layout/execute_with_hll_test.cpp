@@ -101,8 +101,12 @@ TEST(execute_hll_test, few_ubs)
     std::string const actual_file{string_from_file(layout_file.get_path())};
 
     size_t line_count{};
-    for (auto && line : actual_file | std::views::split('\n') | seqan3::views::to<std::vector<std::string>>)
+    for (auto && line : actual_file | std::views::split('\n') | seqan3::ranges::to<std::vector<std::string>>())
     {
+#if defined(__GNUC__) && (__GNUC__ == 12)
+        if (line.empty())
+            continue;
+#endif
         EXPECT_TRUE(std::ranges::find(expected_components, line) != expected_components.end()) << "Did not find " + line;
         ++line_count;
     }
@@ -400,8 +404,12 @@ TEST(execute_hll_test, many_ubs)
     std::string const actual_file{string_from_file(layout_file.get_path())};
 
     size_t line_count{};
-    for (auto && line : actual_file | std::views::split('\n') | seqan3::views::to<std::vector<std::string>>)
+    for (auto && line : actual_file | std::views::split('\n') | seqan3::ranges::to<std::vector<std::string>>())
     {
+#if defined(__GNUC__) && (__GNUC__ == 12)
+        if (line.empty())
+            continue;
+#endif
         EXPECT_TRUE(std::ranges::find(expected_components, line) != expected_components.end()) << "Did not find " + line;
         ++line_count;
     }
