@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.11)
+cmake_minimum_required (VERSION 3.15)
 
 add_api_test (filenames_data_input_test.cpp)
 target_use_datasources (filenames_data_input_test FILES only_filenames.tsv)

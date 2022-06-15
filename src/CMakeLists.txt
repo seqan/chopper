@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.11)
+cmake_minimum_required (VERSION 3.15)
 
 add_library (chopper_interface INTERFACE)
 target_link_libraries (chopper_interface INTERFACE seqan3::seqan3)

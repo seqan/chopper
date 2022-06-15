@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.11)
+cmake_minimum_required (VERSION 3.15)
 
 # Set directories for test output files, input data and binaries.
 file (MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/output)
