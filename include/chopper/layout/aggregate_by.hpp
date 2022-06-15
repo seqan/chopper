@@ -3,7 +3,7 @@
 #include <seqan3/std/ranges>
 #include <vector>
 
-#include <seqan3/utility/views/to.hpp>
+#include <seqan3/utility/range/to.hpp>
 
 #include <chopper/layout/data_store.hpp>
 
@@ -15,7 +15,7 @@ inline void sort_by(data_store & data, int8_t column_to_sort_by)
     // Note: We may only sort by extra information
 
     // generate permutation of indices sorted in descinding order by the sequence lengths
-    auto permutation = std::views::iota(0u, data.filenames.size()) | seqan3::views::to<std::vector>;
+    auto permutation = std::views::iota(0u, data.filenames.size()) | seqan3::ranges::to<std::vector>();
     assert(permutation.size() == data.filenames.size());
 
     auto const & info = data.extra_information;
