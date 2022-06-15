@@ -1,7 +1,7 @@
 #pragma once
 
 #include <array>
-#include <seqan3/std/bit>
+#include <bit>
 #include <cassert>
 #include <map>
 #include <stdexcept>
