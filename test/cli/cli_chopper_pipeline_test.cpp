@@ -1,5 +1,5 @@
 #include <fstream>
-#include <seqan3/std/ranges>     // range comparisons
+#include <ranges>     // range comparisons
 #include <string>                // strings
 #include <vector>                // vectors
 
