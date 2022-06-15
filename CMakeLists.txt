@@ -97,8 +97,8 @@ target_include_directories (xxhash INTERFACE "${PROJECT_BINARY_DIR}/include")
 # Use ccache.
 set (CHOPPER_USE_CCACHE ON CACHE BOOL "Use ccache if available.")
 if (CHOPPER_USE_CCACHE)
-     include (seqan3_require_ccache)
-     seqan3_require_ccache ()
+     include (chopper_require_ccache)
+     chopper_require_ccache ()
 endif ()
 
 # Add the application.
