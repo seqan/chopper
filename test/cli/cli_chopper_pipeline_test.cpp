@@ -56,6 +56,10 @@ TEST_F(cli_test, chopper_pipeline)
     size_t line_count{};
     for (auto && line : count_file_str | std::views::split('\n') | seqan3::ranges::to<std::vector<std::string>>())
     {
+#if defined(__GNUC__) && (__GNUC__ == 12)
+        if (line.empty())
+            continue;
+#endif
         EXPECT_TRUE(std::ranges::find(expected_components, line) != expected_components.end()) << "missing:" << line;
         ++line_count;
     }
@@ -171,6 +175,10 @@ TEST_F(cli_test, chopper_pipeline2)
     size_t line_count{};
     for (auto && line : count_file_str | std::views::split('\n') | seqan3::ranges::to<std::vector<std::string>>())
     {
+#if defined(__GNUC__) && (__GNUC__ == 12)
+        if (line.empty())
+            continue;
+#endif
         EXPECT_TRUE(std::ranges::find(expected_components, line) != expected_components.end()) << "Missing:" << line;
         ++line_count;
     }
