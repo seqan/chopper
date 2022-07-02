@@ -28,7 +28,7 @@ TEST_F(cli_test, chopper_cmd_error)
     std::string expected
     {
         "[CHOPPER ERROR] You either forgot or misspelled the subcommand! "
-        "Please specify which sub-program you want to use: one of [count,layout]. "
+        "Please specify which sub-program you want to use: one of [count, layout]. "
         "Use -h/--help for more information.\n"
     };
     EXPECT_EQ(result.exit_code, 65280);

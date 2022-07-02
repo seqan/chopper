@@ -33,7 +33,7 @@ TEST(execute_estimation_test, few_ubs)
                                  "--output-filename", layout_file.get_path().c_str()};
     int const argc = sizeof(argv) / sizeof(*argv);
 
-    seqan3::argument_parser layout_parser{"chopper-layout", argc, argv, seqan3::update_notifications::off};
+    sharg::parser layout_parser{"chopper-layout", argc, argv, sharg::update_notifications::off};
     testing::internal::CaptureStdout();
     testing::internal::CaptureStderr();
     chopper::layout::execute(layout_parser);
@@ -83,7 +83,7 @@ TEST(execute_estimation_test, many_ubs)
                                  "--output-filename", layout_file.get_path().c_str()};
     int const argc = sizeof(argv) / sizeof(*argv);
 
-    seqan3::argument_parser layout_parser{"chopper-layout", argc, argv, seqan3::update_notifications::off};
+    sharg::parser layout_parser{"chopper-layout", argc, argv, sharg::update_notifications::off};
     testing::internal::CaptureStdout();
     chopper::layout::execute(layout_parser);
 
@@ -133,7 +133,7 @@ TEST(execute_estimation_test, many_ubs_force_all)
                                  "--output-filename", layout_file.get_path().c_str()};
     int const argc = sizeof(argv) / sizeof(*argv);
 
-    seqan3::argument_parser layout_parser{"chopper-layout", argc, argv, seqan3::update_notifications::off};
+    sharg::parser layout_parser{"chopper-layout", argc, argv, sharg::update_notifications::off};
     testing::internal::CaptureStdout();
     chopper::layout::execute(layout_parser);
 
@@ -188,7 +188,7 @@ TEST(execute_estimation_test, with_rearrangement)
                                     "--input-file", input_file.get_path().c_str(),
                                     "--output-prefix", prefix.get_path().c_str()};
         int const argc = sizeof(argv) / sizeof(*argv);
-        seqan3::argument_parser count_parser{"chopper-count", argc, argv, seqan3::update_notifications::off};
+        sharg::parser count_parser{"chopper-count", argc, argv, sharg::update_notifications::off};
         chopper::count::execute(count_parser);
     }
 
@@ -209,7 +209,7 @@ TEST(execute_estimation_test, with_rearrangement)
                                  "--output-filename", layout_file.get_path().c_str()};
     int const argc = sizeof(argv) / sizeof(*argv);
 
-    seqan3::argument_parser layout_parser{"chopper-layout", argc, argv, seqan3::update_notifications::off};
+    sharg::parser layout_parser{"chopper-layout", argc, argv, sharg::update_notifications::off};
 
     testing::internal::CaptureStdout();
     chopper::layout::execute(layout_parser);
