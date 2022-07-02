@@ -32,7 +32,7 @@ TEST(execute_test, small_example_parallel_2_threads)
                            "--input-file", data_filename.get_path().c_str(),
                            "--output-prefix", output_prefix.get_path().c_str()};
     int argc = 12;
-    seqan3::argument_parser count_parser{"chopper-count", argc, argv, seqan3::update_notifications::off};
+    sharg::parser count_parser{"chopper-count", argc, argv, sharg::update_notifications::off};
 
     std::vector<std::string> expected_components
     {
@@ -81,7 +81,7 @@ TEST(execute_test, some_test)
                            "--input-file", data_filename.get_path().c_str(),
                            "--output-prefix", output_prefix.get_path().c_str()};
     int argc = 12;
-    seqan3::argument_parser count_parser{"chopper-count", argc, argv, seqan3::update_notifications::off};
+    sharg::parser count_parser{"chopper-count", argc, argv, sharg::update_notifications::off};
 
     std::vector<std::string> expected_components
     {

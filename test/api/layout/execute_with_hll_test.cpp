@@ -57,7 +57,7 @@ TEST(execute_hll_test, few_ubs)
                                  "--output-filename", layout_file.get_path().c_str()};
     int const argc = sizeof(argv) / sizeof(*argv);
 
-    seqan3::argument_parser layout_parser{"chopper-layout", argc, argv, seqan3::update_notifications::off};
+    sharg::parser layout_parser{"chopper-layout", argc, argv, sharg::update_notifications::off};
     chopper::layout::execute(layout_parser);
 
     std::vector<std::string> const expected_components
@@ -254,7 +254,7 @@ TEST(execute_hll_test, many_ubs)
                                  "--output-filename", layout_file.get_path().c_str()};
     int const argc = sizeof(argv) / sizeof(*argv);
 
-    seqan3::argument_parser layout_parser{"chopper-layout", argc, argv, seqan3::update_notifications::off};
+    sharg::parser layout_parser{"chopper-layout", argc, argv, sharg::update_notifications::off};
     chopper::layout::execute(layout_parser);
 
     std::vector<std::string> const expected_components
