@@ -3,10 +3,10 @@
 /**
  * @file hyperloglog.hpp
  * @brief HyperLogLog cardinality estimator
- * @date Created 2013/3/20
+ * @date Created 2013/3/20, Adjusted 2021/01
  * @author Hideaki Ohno
  *
- * Copied to this location from github by Felix Droop - Jan 5 2021
+ * Copied from Hideaki Ohno (https://github.com/hideo55/cpp-HyperLogLog) and adjusted/improved by Felix Droop
  * Modified a lot for a bugfix, improvements and functional changes (64 bit hashes)
  */
 
@@ -26,6 +26,8 @@ namespace chopper::sketch
 
 /** @class hyperloglog
  *  @brief Implement of 'HyperLogLog' estimate cardinality algorithm
+ *
+ * Copied from Hideaki Ohno (https://github.com/hideo55/cpp-HyperLogLog) and adjusted/improved by Felix Droop
  */
 class hyperloglog
 {
@@ -34,21 +36,21 @@ public:
      * Constructor
      *
      * @param[in] b bit width (register size will be 2 to the b power).
-     *            This value must be in the range[4,30].Default value is 4.
+     *            This value must be in the range[4,30].Default value is 5.
      *
-     * @exception std::invalid_argument the argument is out of range.
+     * @exception std::invalid_argument the argument b is out of range.
      */
     hyperloglog(uint8_t b = 5) :
-            m_(1 << b), b_(b), M_(m_, 0) {
-
+        m_(1 << b),
+        b_(b),
+        M_(m_, 0)
+    {
         if (b < 4 || 32 < b)
-        {
-            throw std::invalid_argument(std::string{"bit width must be in the range [4,32] and it is "} +
-                                        std::to_string(b));
-        }
+            throw std::invalid_argument("bit width must be in the range [4,32] and it is " + std::to_string(b));
 
         M_.shrink_to_fit();
         double alpha;
+
         switch (m_)
         {
             case 16:
@@ -64,6 +66,7 @@ public:
                 alpha = 0.7213 / (1.0 + 1.079 / m_);
                 break;
         }
+
         alphaMM_ = alpha * m_ * m_;
         alphaMM_float_ = static_cast<float>(alphaMM_);
         // 64 bits where the last b are ones and the rest zeroes
