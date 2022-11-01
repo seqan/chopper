@@ -41,7 +41,7 @@ public:
         }
         else if (t_max > maximum_t_max)
         {
-            throw std::invalid_argument("No data availabe for a t_max this large.");
+            throw std::invalid_argument("No data available for a t_max this large.");
         }
         else if (contains(t_max))
         {
