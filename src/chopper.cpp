@@ -5,7 +5,7 @@
 #include <chopper/layout/execute.hpp>
 
 int main(int argc, const char *argv [])
-{ //test myrthe 2
+{
     seqan3::argument_parser top_level_parser{"chopper", argc, argv, seqan3::update_notifications::off,
                                              {"count", "layout"}};
     top_level_parser.info.version = "1.0.0";
