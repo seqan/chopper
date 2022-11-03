@@ -16,6 +16,7 @@ int main(int argc, char const * argv[])
     chopper::configuration config;
     set_up_parser(parser, config);
 
+
     try
     {
         parser.parse();
