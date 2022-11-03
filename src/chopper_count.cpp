@@ -10,7 +10,7 @@ namespace chopper::count
 {
 
 void initialize_argument_parser(seqan3::argument_parser & parser, chopper::count::configuration & config)
-{
+{ //myrthe test 3
     parser.info.author = "Avenja";
     parser.info.short_description = "Count all kmers of each file in a directory.";
     parser.info.version = "1.0.0";
