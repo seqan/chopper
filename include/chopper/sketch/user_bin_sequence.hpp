@@ -97,6 +97,28 @@ public:
         apply_permutation(permutation);
     }
 
+
+    void insert_empty_bins(double percentage, bool hll)
+    {
+        //evenly among sorted kmer counts, according to a certain percentage
+//        auto kmer_counts_copy = kmer_counts;
+//        sort(kmer_counts_copy.begin(), kmer_counts_copy.end()); // data is not sorted, sort a copy. you cannot sort the real kmer_counts, because then you have to sort the associate filenames list.
+        int stepsize = 1/percentage; //this way, it works uptill 100%...
+//        if (stepsize < 1){stepsize = 1;} // alternatively:
+        assert(stepsize > 0);
+        size_t original_size = user_bin_kmer_counts -> size();
+        for (double idx=0; idx < original_size; idx = idx+stepsize){
+            size_t idx_round = std::round(idx);
+            user_bin_kmer_counts -> insert(user_bin_kmer_counts -> begin() + idx_round, user_bin_kmer_counts -> at(idx_round)); // insert in the back of the list. or kmer_counts[idx] - kmer_counts[idx+1] to interpolate.
+            filenames -> push_back("empty_bin"); // +size of UB?
+            if (hll){
+                sketches.insert(sketches.begin() + idx_round, sketches[idx_round]); //sketches is a protected member.
+            }  // maybe you can make a pointer to the original sketch?
+
+            // Perhaps also push back to extra_information: std::vector{"empty_bin"}
+        }
+    }
+
     /*!\brief Restore the HLL sketches from the files in hll_dir
     * \param[in] hll_dir path to the directory where hll caches will be found
     */

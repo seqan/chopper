@@ -349,6 +349,7 @@ private:
 
         std::vector<size_t> ibf_mem_size{};
         std::vector<size_t> ibf_mem_size_no_corr{};
+
     };
 
     //!\brief The gathered summary of statistics for each level of this HIBF.
