@@ -8,8 +8,8 @@ namespace chopper::layout
 {
 
 struct configuration
-{   double &update_ubs;
-    double &update_seqs;
+{   double update_ubs{0};
+    bool update_seqs{false};
     std::filesystem::path data_file;
     std::filesystem::path output_filename{"binning.out"};
     uint16_t t_max{64};
