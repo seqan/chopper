@@ -109,13 +109,13 @@ public:
         size_t original_size = user_bin_kmer_counts -> size();
         for (double idx=0; idx < original_size; idx = idx+stepsize){
             size_t idx_round = std::round(idx);
+            filenames -> insert(filenames -> begin() + idx_round, std::to_string(user_bin_kmer_counts -> at(idx_round)) + ".empty_bin"); // +size of UB?
             user_bin_kmer_counts -> insert(user_bin_kmer_counts -> begin() + idx_round, user_bin_kmer_counts -> at(idx_round)); // insert in the back of the list. or kmer_counts[idx] - kmer_counts[idx+1] to interpolate.
-            filenames -> push_back("empty_bin"); // +size of UB?
             if (hll){
                 sketches.insert(sketches.begin() + idx_round, sketches[idx_round]); //sketches is a protected member.
             }  // maybe you can make a pointer to the original sketch?
 
-            // Perhaps also push back to extra_information: std::vector{"empty_bin"}
+            // Perhaps also push back to to the extra_information vector: std::vector{"empty_bin"}
         }
     }
 
@@ -151,6 +151,7 @@ public:
 
                 // the sketch bits will be automatically read from the files
                 target.emplace_back().restore(hll_fin);
+
             }
         }
         catch (std::runtime_error const & err)
