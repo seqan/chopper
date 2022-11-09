@@ -106,20 +106,6 @@ void set_up_subparser_layout(seqan3::argument_parser & parser, chopper::layout::
                     "=" );
 }
 
-void add_empty_bins(std::vector<size_t> & kmer_counts, std::vector<std::string> & filenames, double percentage)
-    {
-        //evenly among sorted kmer counts, according to a certain percentage
-        auto kmer_counts_copy = kmer_counts;
-        sort(kmer_counts_copy.begin(), kmer_counts_copy.end()); // data is not sorted, sort a copy. you cannot sort the real kmer_counts, because then you have to sort the associate filenames list.
-        int stepsize = std::round(1/percentage); //this way, it works uptill 100%...
-        if (stepsize < 1){stepsize = 1;}
-        for (uint64_t idx=0; idx < kmer_counts_copy.size(); idx = idx+stepsize){
-            kmer_counts.push_back(kmer_counts[idx]); // insert in the back of the list.
-            filenames.push_back("empty_bin"); // +size of UB?
-            // Perhaps also push back to extra_information: std::vector{"empty_bin"}
-        }
-    }
-// (data.filenames.empty() > add filename markers.
 
 void sanity_checks(seqan3::argument_parser const & parser, chopper::layout::data_store const & data, chopper::layout::configuration & config)
 {
