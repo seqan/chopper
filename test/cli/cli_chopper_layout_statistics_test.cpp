@@ -16,11 +16,11 @@ TEST_F(cli_test, chopper_layout_statistics)
             fout << seqan3::detail::to_string("seq", i, '\t', 100 * ((i + 20) / 20), '\n');
     }
 
-    cli_test_result layout_result = execute_app("chopper", "layout",
-                                              "--tmax", "64",
-                                              "--input-prefix", input_prefix.get_path().c_str(),
-                                              "--output-filename", layout_file.get_path().c_str(),
-                                              "--output-verbose-statistics");
+    cli_test_result layout_result = execute_app("chopper"
+                                                "--tmax", "64",
+                                                "--input-prefix", input_prefix.get_path().c_str(),
+                                                "--output-filename", layout_file.get_path().c_str(),
+                                                "--output-verbose-statistics");
 
     std::string expected_cout =
 R"expected_cout(## ### Notation ###

@@ -14,13 +14,12 @@
 #include "cli_test.hpp"
 
 // check if each chopper submodule can work with the output of the other
-TEST_F(cli_test, chopper_pipeline)
+TEST_F(cli_test, chopper_layout)
 {
-    // CHOPPER COUNT
-    // =========================================================================
     std::string const seq_filename = data("small.fa");
+    std::filesystem::path const sketch_prefix = "chopper_sketch";
     seqan3::test::tmp_filename const taxa_filename{"data.tsv"};
-    seqan3::test::tmp_filename const sketch_prefix{"small_sketch"};
+    seqan3::test::tmp_filename const binning_filename{"output.binning"};
 
     // we need to have tax ids from the user
     {
@@ -31,17 +30,18 @@ TEST_F(cli_test, chopper_pipeline)
              << seq_filename << '\t' << "TAX3\n";
     }
 
-    cli_test_result count_result = execute_app("chopper", "count",
-                                               "--kmer-size", "15",
-                                               "--threads", "2",
-                                               "--column-index", "2",
-                                               "--disable-sketch-output",
-                                               "--input-file", taxa_filename.get_path().c_str(),
-                                               "--output-prefix", sketch_prefix.get_path().c_str());
+    cli_test_result result = execute_app("chopper",
+                                         "--kmer-size", "15",
+                                         "--threads", "2",
+                                         "--column-index", "2",
+                                         "--disable-sketch-output",
+                                         "--input-file", taxa_filename.get_path().c_str(),
+                                         "--tmax", "64",
+                                         "--output-filename", binning_filename.get_path().c_str());
 
-    EXPECT_EQ(count_result.exit_code, 0);
-    EXPECT_EQ(count_result.out, std::string{});
-    EXPECT_EQ(count_result.err, std::string{});
+    EXPECT_EQ(result.exit_code, 0);
+    EXPECT_EQ(result.out, std::string{});
+    EXPECT_EQ(result.err, std::string{});
 
     std::vector<std::string> expected_components
     {
@@ -50,7 +50,7 @@ TEST_F(cli_test, chopper_pipeline)
         seq_filename + "\t571\tTAX1"
     };
 
-    std::ifstream count_file{sketch_prefix.get_path().string() + ".count"};
+    std::ifstream count_file{sketch_prefix/* .get_path() */.string() + ".count"};
     std::string const count_file_str((std::istreambuf_iterator<char>(count_file)), std::istreambuf_iterator<char>());
 
     size_t line_count{};
@@ -68,22 +68,9 @@ TEST_F(cli_test, chopper_pipeline)
 
     // Overwrite result file with expected order of elements.
     {
-        std::ofstream fout{sketch_prefix.get_path().string() + ".count"};
+        std::ofstream fout{sketch_prefix/* .get_path() */.string() + ".count"};
         fout << (expected_components | seqan3::views::join_with(std::string{'\n'}) | seqan3::ranges::to<std::string>());
     }
-
-    // CHOPPER LAYOUT
-    // =========================================================================
-    seqan3::test::tmp_filename const binning_filename{"output.binning"};
-
-    cli_test_result layout_result = execute_app("chopper", "layout",
-                                                "--tmax", "64",
-                                                "--input-prefix", sketch_prefix.get_path().c_str(),
-                                                "--output-filename", binning_filename.get_path().c_str());
-
-    EXPECT_EQ(layout_result.exit_code, 0);
-    EXPECT_EQ(layout_result.out, std::string{});
-    EXPECT_EQ(layout_result.err, std::string{});
 
     std::string expected_file
     {
@@ -91,12 +78,12 @@ TEST_F(cli_test, chopper_pipeline)
         "##{\n"
         "##    \"config\": {\n"
         "##        \"version\": 1,\n"
-        "##        \"input_prefix\": \"" + sketch_prefix.get_path().string() + "\",\n"
+        "##        \"input_prefix\": \"" + sketch_prefix/* .get_path() */.string() + "\",\n"
         "##        \"count_filename\": {\n"
-        "##            \"value0\": \"" + sketch_prefix.get_path().string() + ".count\"\n"
+        "##            \"value0\": \"" + sketch_prefix/* .get_path() */.string() + ".count\"\n"
         "##        },\n"
         "##        \"sketch_directory\": {\n"
-        "##            \"value0\": \"" + sketch_prefix.get_path().string() + "_sketches\"\n"
+        "##            \"value0\": \"" + sketch_prefix/* .get_path() */.string() + "_sketches\"\n"
         "##        },\n"
         "##        \"output_filename\": {\n"
         "##            \"value0\": \"" + binning_filename.get_path().string() + "\"\n"
@@ -106,7 +93,7 @@ TEST_F(cli_test, chopper_pipeline)
         "##        \"false_positive_rate\": 0.05,\n"
         "##        \"alpha\": 1.2,\n"
         "##        \"max_rearrangement_ratio\": 0.5,\n"
-        "##        \"threads\": 1,\n"
+        "##        \"threads\": 2,\n"
         "##        \"estimate_union\": false,\n"
         "##        \"rearrange_user_bins\": false,\n"
         "##        \"determine_best_tmax\": false,\n"
@@ -131,16 +118,16 @@ TEST_F(cli_test, chopper_pipeline)
 }
 
 // check if each chopper submodule can work with the output of the other
-TEST_F(cli_test, chopper_pipeline2)
+TEST_F(cli_test, chopper_layout2)
 {
-    // CHOPPER COUNT
-    // =========================================================================
     std::string const seq1_filename = data("seq1.fa");
     std::string const seq2_filename = data("seq2.fa");
     std::string const seq3_filename = data("seq3.fa");
     std::string const seq4_filename = data("small.fa");
     seqan3::test::tmp_filename const taxa_filename{"data.tsv"};
-    seqan3::test::tmp_filename const sketch_prefix{"small_sketch"};
+    // seqan3::test::tmp_filename const sketch_prefix{"small_sketch"};
+    std::filesystem::path const sketch_prefix = "chopper_sketch";
+    seqan3::test::tmp_filename const binning_filename{"output.binning"};
 
     // we need to have filenames from the user
     {
@@ -151,15 +138,17 @@ TEST_F(cli_test, chopper_pipeline2)
              << seq4_filename << '\n';
     }
 
-    cli_test_result count_result = execute_app("chopper", "count",
-                                               "--threads", "2",
-                                               "--sketch-bits", "12",
-                                               "--input-file", taxa_filename.get_path().c_str(),
-                                               "--output-prefix", sketch_prefix.get_path().c_str());
+    cli_test_result result = execute_app("chopper",
+                                         "--threads", "2",
+                                         "--sketch-bits", "12",
+                                         "--input-file", taxa_filename.get_path().c_str(),
+                                         "--tmax", "64",
+                                         "--rearrange-user-bins",
+                                         "--output-filename", binning_filename.get_path().c_str());
 
-    EXPECT_EQ(count_result.exit_code, 0);
-    EXPECT_EQ(count_result.out, std::string{});
-    EXPECT_EQ(count_result.err, std::string{});
+    EXPECT_EQ(result.exit_code, 0);
+    EXPECT_EQ(result.out, std::string{});
+    EXPECT_EQ(result.err, std::string{});
 
     std::vector<std::string> expected_components
     {
@@ -169,7 +158,7 @@ TEST_F(cli_test, chopper_pipeline2)
         seq3_filename + "\t468\t" + seq3_filename
     };
 
-    std::ifstream count_file{sketch_prefix.get_path().string() + ".count"};
+    std::ifstream count_file{sketch_prefix/* .get_path() */.string() + ".count"};
     std::string const count_file_str((std::istreambuf_iterator<char>(count_file)), std::istreambuf_iterator<char>());
 
     size_t line_count{};
@@ -187,24 +176,9 @@ TEST_F(cli_test, chopper_pipeline2)
 
     // Overwrite result file with expected order of elements.
     {
-        std::ofstream fout{sketch_prefix.get_path().string() + ".count"};
+        std::ofstream fout{sketch_prefix/* .get_path() */.string() + ".count"};
         fout << (expected_components | seqan3::views::join_with(std::string{'\n'}) | seqan3::ranges::to<std::string>());
     }
-
-    // CHOPPER layout
-    // =========================================================================
-    seqan3::test::tmp_filename const binning_filename{"output.binning"};
-
-    cli_test_result layout_result = execute_app("chopper", "layout",
-                                                "--tmax", "64",
-                                                "--threads", "2",
-                                                "--rearrange-user-bins",
-                                                "--input-prefix", sketch_prefix.get_path().c_str(),
-                                                "--output-filename", binning_filename.get_path().c_str());
-
-    EXPECT_EQ(layout_result.exit_code, 0);
-    EXPECT_EQ(layout_result.out, std::string{});
-    EXPECT_EQ(layout_result.err, std::string{});
 
     std::string expected_file
     {
@@ -212,12 +186,12 @@ TEST_F(cli_test, chopper_pipeline2)
         "##{\n"
         "##    \"config\": {\n"
         "##        \"version\": 1,\n"
-        "##        \"input_prefix\": \"" + sketch_prefix.get_path().string() + "\",\n"
+        "##        \"input_prefix\": \"" + sketch_prefix/* .get_path() */.string() + "\",\n"
         "##        \"count_filename\": {\n"
-        "##            \"value0\": \"" + sketch_prefix.get_path().string() + ".count\"\n"
+        "##            \"value0\": \"" + sketch_prefix/* .get_path() */.string() + ".count\"\n"
         "##        },\n"
         "##        \"sketch_directory\": {\n"
-        "##            \"value0\": \"" + sketch_prefix.get_path().string() + "_sketches\"\n"
+        "##            \"value0\": \"" + sketch_prefix/* .get_path() */.string() + "_sketches\"\n"
         "##        },\n"
         "##        \"output_filename\": {\n"
         "##            \"value0\": \"" + binning_filename.get_path().string() + "\"\n"

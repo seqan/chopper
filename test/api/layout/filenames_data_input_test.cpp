@@ -3,14 +3,14 @@
 #include <filesystem>
 
 #include <chopper/layout/filenames_data_input.hpp>
-#include <chopper/layout/configuration.hpp>
+#include <chopper/configuration.hpp>
 #include <chopper/layout/data_store.hpp>
 
 #include "../api_test.hpp"
 
 TEST(read_filename_data_file_test, file_open_error)
 {
-    chopper::layout::configuration config;
+    chopper::configuration config;
     chopper::layout::data_store data;
     config.count_filename = "non_existing.file";
 
@@ -19,7 +19,7 @@ TEST(read_filename_data_file_test, file_open_error)
 
 TEST(read_filename_data_file_test, only_filenames)
 {
-    chopper::layout::configuration config;
+    chopper::configuration config;
     config.count_filename = data("only_filenames.tsv");
 
     chopper::layout::data_store data;
@@ -28,7 +28,7 @@ TEST(read_filename_data_file_test, only_filenames)
 
 TEST(read_filename_data_file_test, filenames_and_counts)
 {
-    chopper::layout::configuration config;
+    chopper::configuration config;
     config.count_filename = data("filenames_and_counts.tsv");
 
     chopper::layout::data_store data;
@@ -51,7 +51,7 @@ TEST(read_filename_data_file_test, filenames_and_counts)
 
 TEST(read_filename_data_file_test, filenames_counts_and_extra_information)
 {
-    chopper::layout::configuration config;
+    chopper::configuration config;
     config.count_filename = data("filenames_counts_and_extra_information.tsv");
 
     chopper::layout::data_store data;

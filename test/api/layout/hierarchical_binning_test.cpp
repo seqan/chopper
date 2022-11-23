@@ -13,7 +13,7 @@
 
 TEST(hierarchical_binning_test, filenames_and_kmer_counts_size_differs)
 {
-    chopper::layout::configuration config;
+    chopper::configuration config;
     config.tmax = 4;
 
     std::stringstream output_buffer;
@@ -33,7 +33,7 @@ TEST(hierarchical_binning_test, filenames_and_kmer_counts_size_differs)
 
 TEST(hierarchical_binning_test, small_example)
 {
-    chopper::layout::configuration config;
+    chopper::configuration config;
     config.tmax = 4;
 
     std::stringstream output_buffer;
@@ -69,7 +69,7 @@ TEST(hierarchical_binning_test, small_example)
 
 TEST(hierarchical_binning_test, another_example)
 {
-    chopper::layout::configuration config;
+    chopper::configuration config;
     config.tmax = 5;
 
     std::stringstream output_buffer;
@@ -106,7 +106,7 @@ TEST(hierarchical_binning_test, another_example)
 
 TEST(hierarchical_binning_test, high_level_max_bin_id_is_0)
 {
-    chopper::layout::configuration config;
+    chopper::configuration config;
     config.tmax = 4;
 
     std::stringstream output_buffer;
@@ -137,7 +137,7 @@ TEST(hierarchical_binning_test, high_level_max_bin_id_is_0)
 
 TEST(hierarchical_binning_test, knuts_example)
 {
-    chopper::layout::configuration config;
+    chopper::configuration config;
     config.alpha = 1;
     config.tmax = 5;
 
@@ -171,7 +171,7 @@ TEST(hierarchical_binning_test, knuts_example)
 
 TEST(hierarchical_binning_test, four_level_hibf)
 {
-    chopper::layout::configuration config;
+    chopper::configuration config;
     config.tmax = 2;
     // config.debug = true;
 
@@ -209,7 +209,7 @@ TEST(hierarchical_binning_test, four_level_hibf)
 
 TEST(hierarchical_binning_test, tb0_is_a_merged_bin)
 {
-    chopper::layout::configuration config;
+    chopper::configuration config;
     config.alpha = 1;
     config.tmax = 2;
 
@@ -243,7 +243,7 @@ TEST(hierarchical_binning_test, tb0_is_a_merged_bin)
 
 TEST(hierarchical_binning_test, tb0_is_a_merged_bin_with_debug)
 {
-    chopper::layout::configuration config;
+    chopper::configuration config;
     config.alpha = 1;
     config.tmax = 2;
     config.debug = true;
@@ -278,7 +278,7 @@ TEST(hierarchical_binning_test, tb0_is_a_merged_bin_with_debug)
 
 TEST(hierarchical_binning_test, tb0_is_a_merged_bin_and_leads_to_recursive_call)
 {
-    chopper::layout::configuration config;
+    chopper::configuration config;
     config.alpha = 1;
     config.tmax = 2;
 

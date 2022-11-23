@@ -13,7 +13,7 @@
 #include <seqan3/search/views/minimiser_hash.hpp>
 #include <seqan3/utility/range/to.hpp>
 
-#include <chopper/count/configuration.hpp>
+#include <chopper/configuration.hpp>
 #include <chopper/count/output.hpp>
 #include <chopper/sketch/hyperloglog.hpp>
 

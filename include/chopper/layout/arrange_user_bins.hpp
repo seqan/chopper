@@ -1,6 +1,6 @@
 #pragma once
 
-#include <chopper/layout/configuration.hpp>
+#include <chopper/configuration.hpp>
 #include <chopper/layout/data_store.hpp>
 
 namespace chopper::layout

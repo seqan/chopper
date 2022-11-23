@@ -6,7 +6,7 @@
 
 #include <seqan3/utility/views/join_with.hpp>
 
-#include <chopper/count/configuration.hpp>
+#include <chopper/configuration.hpp>
 #include <chopper/sketch/hyperloglog.hpp>
 
 namespace chopper::count

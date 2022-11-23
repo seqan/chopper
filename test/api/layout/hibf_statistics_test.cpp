@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-#include <chopper/layout/configuration.hpp>
+#include <chopper/configuration.hpp>
 #include <chopper/layout/data_store.hpp>
 #include <chopper/layout/hibf_statistics.hpp>
 
@@ -16,7 +16,7 @@ TEST(hibf_statistics, only_merged_on_top_level)
     size_t const top_level_num_contained_user_bins = 2u;
     size_t const lower_level_split_bin_span = 1u;
 
-    chopper::layout::configuration config{}; // default config
+    chopper::configuration config{}; // default config
     chopper::layout::data_store data{};
     data.compute_fp_correction(config.false_positive_rate, config.num_hash_functions, lower_level_split_bin_span);
     std::vector<size_t> kmer_counts{50, 50};

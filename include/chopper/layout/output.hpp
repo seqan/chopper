@@ -2,7 +2,7 @@
 
 #include <cereal/archives/json.hpp>
 
-#include <chopper/layout/configuration.hpp>
+#include <chopper/configuration.hpp>
 #include <chopper/prefixes.hpp>
 
 namespace chopper::layout

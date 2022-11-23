@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <chopper/count/configuration.hpp>
+#include <chopper/configuration.hpp>
 #include <chopper/count/count_kmers.hpp>
 #include <chopper/detail_apply_prefix.hpp>
 
@@ -10,7 +10,7 @@ TEST(count_kmers_test, small_example)
 {
     seqan3::test::tmp_filename output_prefix{"small"};
 
-    chopper::count::configuration config;
+    chopper::configuration config;
     config.k = 15;
     config.threads = 1;
     config.output_prefix = output_prefix.get_path().string();
@@ -28,7 +28,7 @@ TEST(count_kmers_test, small_example)
         input_file + "\t571\tTAX1\n"
     };
 
-    count_kmers(filename_clusters, config);
+    chopper::count::count_kmers(filename_clusters, config);
 
     ASSERT_TRUE(std::filesystem::exists(config.count_filename));
     std::ifstream output_file{config.count_filename};
@@ -41,7 +41,7 @@ TEST(count_kmers_test, small_example_parallel_2_threads)
 {
     seqan3::test::tmp_filename output_prefix{"parallel"};
 
-    chopper::count::configuration config;
+    chopper::configuration config;
     config.k = 15;
     config.threads = 2;
     config.output_prefix = output_prefix.get_path().string();
@@ -85,7 +85,7 @@ TEST(count_kmers_test, read_in_precomputed_binary_files)
 {
     seqan3::test::tmp_filename output_prefix{"small"};
 
-    chopper::count::configuration config;
+    chopper::configuration config;
     config.k = 15;
     config.threads = 1;
     config.output_prefix = output_prefix.get_path().string();
@@ -104,7 +104,7 @@ TEST(count_kmers_test, read_in_precomputed_binary_files)
         input_file + "\t571\tTAX1\n"
     };
 
-    count_kmers(filename_clusters, config);
+    chopper::count::count_kmers(filename_clusters, config);
 
     ASSERT_TRUE(std::filesystem::exists(config.count_filename));
     std::ifstream output_file{config.count_filename};
