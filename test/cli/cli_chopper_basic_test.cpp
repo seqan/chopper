@@ -13,8 +13,8 @@ TEST_F(cli_test, no_options)
     cli_test_result result = execute_app("chopper");
     std::string expected
     {
-        "chopper\n"
-        "=======\n"
+        "chopper - Compute an HIBF layout\n"
+        "================================\n"
         "    Try -h or --help for more information.\n"
     };
     EXPECT_EQ(result.exit_code, 0);
@@ -39,7 +39,7 @@ TEST_F(cli_test, chopper_cmd_error_tmax_missing)
     cli_test_result result = execute_app("chopper", "--input-file", "foo.txt");
     std::string expected
     {
-        "[CHOPPER LAYOUT ERROR] Option --tmax is required but not set.\n"
+        "[CHOPPER ERROR] Option --tmax is required but not set.\n"
     };
     EXPECT_EQ(result.exit_code, 65280);
     EXPECT_EQ(result.out, std::string{});
@@ -48,31 +48,31 @@ TEST_F(cli_test, chopper_cmd_error_tmax_missing)
 
 TEST_F(cli_test, chopper_cmd_error_empty_file)
 {
-    seqan3::test::tmp_filename empty_file_prefix{"empty"};
+    seqan3::test::tmp_filename empty_file{"empty.count"};
 
     {
-        std::ofstream ofs{empty_file_prefix.get_path().string() + ".count"}; // opens file, s.t. it exists but is empty
+        std::ofstream ofs{empty_file.get_path().string()}; // opens file, s.t. it exists but is empty
     }
 
     cli_test_result result = execute_app("chopper",
                                          "--tmax", "64", /* required option */
-                                         "--input-file", empty_file_prefix.get_path().c_str());
+                                         "--input-file", empty_file.get_path().c_str());
 
     std::string expected
     {
-        "[CHOPPER LAYOUT ERROR] The file " + empty_file_prefix.get_path().string() +  ".count appears to be empty.\n"
+        "terminate called after throwing an instance of 'seqan3::argument_parser_error'\n"
+        "  what():  [CHOPPER ERROR] The file " + empty_file.get_path().string() +  " appears to be empty.\n"
     };
-    EXPECT_EQ(result.exit_code, 65280);
+    EXPECT_EQ(result.exit_code, 6);
     EXPECT_EQ(result.out, std::string{});
     EXPECT_EQ(result.err, expected);
 }
 
 TEST_F(cli_test, chopper_cmd_error_no_extra_information)
 {
-    seqan3::test::tmp_filename prefix{"no_extra_information"};
-
+    seqan3::test::tmp_filename prefix{"no_extra_information.count"};
     {
-        std::ofstream ofs{prefix.get_path().string() + ".count"};
+        std::ofstream ofs(prefix.get_path().string());
         ofs << "seq1\t500\n"
             << "seq2\t600\n";
     }
@@ -84,20 +84,20 @@ TEST_F(cli_test, chopper_cmd_error_no_extra_information)
 
     std::string expected
     {
-        "[CHOPPER LAYOUT ERROR] Aggregate Error: You want to aggregate by something but your "
+        "[CHOPPER ERROR] Aggregate Error: You want to aggregate by something but your "
         "file does not contain any extra information columns.\n"
     };
-    EXPECT_EQ(result.exit_code, 65280);
+    EXPECT_EQ(result.exit_code, 6);
     EXPECT_EQ(result.out, std::string{});
     EXPECT_EQ(result.err, expected);
 }
 
 TEST_F(cli_test, chopper_cmd_error_column_index_out_of_bounds)
 {
-    seqan3::test::tmp_filename prefix{"no_extra_information"};
+    seqan3::test::tmp_filename prefix{"no_extra_information.count"};
 
     {
-        std::ofstream ofs{prefix.get_path().string() + ".count"};
+        std::ofstream ofs{prefix.get_path().string()};
         ofs << "seq1\t500\tinformation1\n"
             << "seq2\t600\tinformation1\n";
     }
@@ -109,7 +109,7 @@ TEST_F(cli_test, chopper_cmd_error_column_index_out_of_bounds)
 
     std::string expected
     {
-        "[CHOPPER LAYOUT ERROR] Aggregate Error: You want to aggregate by a column index that is "
+        "[CHOPPER ERROR] Aggregate Error: You want to aggregate by a column index that is "
         "larger than the number of extra information columns.\n"
     };
     EXPECT_EQ(result.exit_code, 65280);
@@ -119,10 +119,10 @@ TEST_F(cli_test, chopper_cmd_error_column_index_out_of_bounds)
 
 TEST_F(cli_test, chopper_cmd_error_no_hll_dir)
 {
-    seqan3::test::tmp_filename prefix{"foo"};
+    seqan3::test::tmp_filename prefix{"foo.count"};
 
     {
-        std::ofstream ofs{prefix.get_path().string() + ".count"};
+        std::ofstream ofs{prefix.get_path().string()};
         ofs << "seq1\t500\n"
             << "seq2\t600\n";
     }
@@ -134,7 +134,7 @@ TEST_F(cli_test, chopper_cmd_error_no_hll_dir)
 
     std::string expected
     {
-        "[CHOPPER LAYOUT ERROR] The directory " + prefix.get_path().string() + "_sketches must be present and not "
+        "[CHOPPER ERROR] The directory " + prefix.get_path().string() + "_sketches must be present and not "
         "empty in order to enable --estimate-union or --rearrange-user-bins (created with chopper count).\n"
     };
     EXPECT_EQ(result.exit_code, 65280);

@@ -1,10 +1,10 @@
 #include <seqan3/argument_parser/all.hpp>
 #include <seqan3/core/debug_stream.hpp>
 
+#include <chopper/configuration.hpp>
 #include <chopper/count/execute.hpp>
 #include <chopper/detail_apply_prefix.hpp>
 #include <chopper/layout/execute.hpp>
-#include <chopper/configuration.hpp>
 
 void set_up_parser(seqan3::argument_parser & parser, chopper::configuration & config)
 {
