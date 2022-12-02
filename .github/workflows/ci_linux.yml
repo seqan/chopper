@@ -136,6 +136,7 @@ jobs:
                 ${{ github.workspace }}/build \
                 --filter ${{ github.workspace }}/chopper/include \
                 --filter ${{ github.workspace }}/chopper/src \
+                --exclude ${{ github.workspace }}/chopper/src/measure_hyperloglog.cpp \
                 --exclude-lines-by-pattern '^\s*$' \
                 --exclude-lines-by-pattern '^\s*};$' \
                 --exclude-lines-by-pattern '^.*GCOVR_EXCL_LINE.*$' \
