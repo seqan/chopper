@@ -13,7 +13,7 @@
 namespace chopper::count
 {
 
-int execute(configuration & config)
+inline int execute(configuration & config)
 {
     auto filename_clusters = read_data_file(config);
 
