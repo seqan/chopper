@@ -18,31 +18,9 @@ void sanity_checks(layout::data_store const & data, chopper::configuration & con
     if (config.rearrange_user_bins)
         config.estimate_union = true;
 
-    if (config.estimate_union &&
-        (!std::filesystem::exists(config.sketch_directory) || std::filesystem::is_empty(config.sketch_directory)))
-    {
-        throw seqan3::argument_parser_error{"The directory " + config.sketch_directory.string() + " must be present "
-                                            "and not empty in order to enable --estimate-union or "
-                                            "--rearrange-user-bins (created with chopper count)."};
-    }
-
     if (data.filenames.empty())
         throw seqan3::argument_parser_error{seqan3::detail::to_string("The file ", config.count_filename.string(),
                                                                       " appears to be empty.")};
-
-    if (config.aggregate_by_column != -1 && data.extra_information[0].empty())
-    {
-        throw seqan3::argument_parser_error{"Aggregate Error: You want to aggregate by something but your "
-                                            "file does not contain any extra information columns."};
-    }
-
-    // note that config.aggregate_by_column cannot be 0 or 1 because the parser check the valid range [2, max]
-    assert(config.aggregate_by_column == -1 || config.aggregate_by_column > 1);
-    if ((config.aggregate_by_column - 2/*extrainfo starts at 2*/) > static_cast<int>(data.extra_information[0].size()))
-    {
-        throw seqan3::argument_parser_error{"Aggregate Error: You want to aggregate by a column index that "
-                                            "is larger than the number of extra information columns."};
-    }
 }
 
 size_t determine_best_number_of_technical_bins(chopper::layout::data_store & data, chopper::configuration & config)
@@ -138,9 +116,10 @@ int execute(chopper::configuration & config)
 
     data.compute_fp_correction(config.false_positive_rate, config.num_hash_functions, config.tmax);
 
+    // TODO aggregating is outdated. Has to be reworked when needed
     // If requested, aggregate the data before layouting them
-    if (config.aggregate_by_column != -1)
-        aggregate_by(data, config.aggregate_by_column - 2/*user index includes first two columns (filename, count)*/);
+    // if (config.aggregate_by_column != -1)
+    //     aggregate_by(data, config.aggregate_by_column - 2/*user index includes first two columns (filename, count)*/);
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;

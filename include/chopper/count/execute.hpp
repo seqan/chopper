@@ -13,19 +13,19 @@
 namespace chopper::count
 {
 
-int execute(chopper::configuration & config)
+int execute(configuration & config)
 {
-    auto filename_clusters = chopper::count::read_data_file(config);
+    auto filename_clusters = read_data_file(config);
 
     if (filename_clusters.empty())
-        throw seqan3::argument_parser_error{seqan3::detail::to_string("[CHOPPER ERROR] The file ", config.data_file.string(),
-                                                                      " appears to be empty.")};
+        throw seqan3::argument_parser_error{seqan3::detail::to_string("[CHOPPER ERROR] The file ",
+                                            config.data_file.string(), " appears to be empty.")};
 
     chopper::count::check_filenames(filename_clusters, config);
 
-    chopper::count::count_kmers(filename_clusters, config);
+    count_kmers(filename_clusters, config);
 
-    chopper::print_peak_memory_usage();
+    print_peak_memory_usage();
 
     return 0;
 }

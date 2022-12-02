@@ -70,13 +70,13 @@ void set_up_parser(seqan3::argument_parser & parser, chopper::configuration & co
 
     parser.add_option(config.output_filename, '\0', "output-filename", "A file name for the resulting layout.");
 
-    using aggregate_by_type = std::remove_cvref_t<decltype(config.aggregate_by_column)>;
-    parser.add_option(config.aggregate_by_column,
-                      '\0', "aggregate-by-column",
-                      "Which column do you want to aggregate your files by? Start counting your columns from 0!",
-                      seqan3::option_spec::hidden,
-                      seqan3::arithmetic_range_validator{aggregate_by_type{2},
-                                                         std::numeric_limits<aggregate_by_type>::max()});
+    // using aggregate_by_type = std::remove_cvref_t<decltype(config.aggregate_by_column)>;
+    // parser.add_option(config.aggregate_by_column,
+    //                   '\0', "aggregate-by-column",
+    //                   "Which column do you want to aggregate your files by? Start counting your columns from 0!",
+    //                   seqan3::option_spec::hidden,
+    //                   seqan3::arithmetic_range_validator{aggregate_by_type{2},
+    //                                                      std::numeric_limits<aggregate_by_type>::max()});
 
     parser.add_option(config.threads,
                       '\0', "threads",
@@ -188,9 +188,9 @@ int main(int argc, const char *argv [])
         return -1;
     }
 
-    chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
-
     config.input_prefix = config.output_prefix;
+
+    chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
     int exit_code{};
 
