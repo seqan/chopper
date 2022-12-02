@@ -86,14 +86,16 @@ IncludeCategories:
     Priority:        2
   - Regex:           '<sdsl/'
     Priority:        3
-  - Regex:           '<seqan3/'
+  - Regex:           '<sharg/'
     Priority:        4
-  - Regex:           '<cereal/'
+  - Regex:           '<seqan3/'
     Priority:        5
-  - Regex:           '<lemon/'
+  - Regex:           '<cereal/'
     Priority:        6
-  - Regex:           '.*'
+  - Regex:           '<lemon/'
     Priority:        7
+  - Regex:           '.*'
+    Priority:        8
 IncludeIsMainRegex: '(Test)?$'
 IncludeIsMainSourceRegex: ''
 IndentAccessModifiers: false

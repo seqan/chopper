@@ -2,6 +2,7 @@ cmake_minimum_required (VERSION 3.15)
 
 add_library (chopper_interface INTERFACE)
 target_link_libraries (chopper_interface INTERFACE seqan3::seqan3)
+target_link_libraries (chopper_interface INTERFACE sharg::sharg)
 target_include_directories (chopper_interface INTERFACE ../include)
 target_include_directories (chopper_interface INTERFACE ${CHOPPER_SUBMODULES_DIR}/lemon/include)
 target_include_directories (chopper_interface INTERFACE ${CHOPPER_SUBMODULES_DIR}/robin-hood-hashing/src/include)

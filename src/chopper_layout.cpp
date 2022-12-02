@@ -1,6 +1,8 @@
 #include <iostream>
+#include <set>
 
-#include <seqan3/argument_parser/all.hpp>
+#include <sharg/detail/to_string.hpp>
+#include <sharg/exceptions.hpp>
 
 #include <chopper/configuration.hpp>
 #include <chopper/layout/aggregate_by.hpp>
@@ -19,8 +21,8 @@ void sanity_checks(layout::data_store const & data, chopper::configuration & con
         config.estimate_union = true;
 
     if (data.filenames.empty())
-        throw seqan3::argument_parser_error{
-            seqan3::detail::to_string("The file ", config.count_filename.string(), " appears to be empty.")};
+        throw sharg::parser_error{
+            sharg::detail::to_string("The file ", config.count_filename.string(), " appears to be empty.")};
 }
 
 size_t determine_best_number_of_technical_bins(chopper::layout::data_store & data, chopper::configuration & config)
