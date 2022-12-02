@@ -34,14 +34,16 @@ void set_up_parser(seqan3::argument_parser & parser, chopper::configuration & co
     parser.add_list_item("", "/absolute/path/to/file2.fa.gz");
     parser.add_list_item("", "```");
 
-    parser.add_option(config.column_index_to_cluster,
-                      '\0', "column-index",
-                      "The column index by which to cluster. Clustering is not supported at the moment",
-                      seqan3::option_spec::hidden);
+    // clustering (==aggregating is not selectable at the moment)
+    // parser.add_option(config.column_index_to_cluster,
+    //                   '\0', "column-index",
+    //                   "The column index by which to cluster. Clustering is not supported at the moment",
+    //                   seqan3::option_spec::hidden);
 
     parser.add_option(config.k,
                       '\0', "kmer-size",
-                      "The k-mer size influences the estimated counts. Choosing a k-mer size that is too small for "
+                      "The k-mer size influences the size estimates of the input. "
+                      "Choosing a k-mer size that is too small for "
                       "your data will result in files appearing more similar than they really are. Likewise, a large "
                       "k-mer size might miss out on certain similarities. For DNA sequences, a k-mer size between "
                       "[16,32] has proven to work well.");
@@ -118,13 +120,13 @@ void set_up_parser(seqan3::argument_parser & parser, chopper::configuration & co
                       "algorithm. The algorithm only rearranges the order of user bins in fixed intervals. The higher "
                       "--max-rearrangement-ratio, the larger the intervals. This potentially improves the layout, but "
                       "increases the runtime of the layout algorithm.",
-                      seqan3::option_spec::standard,
+                      seqan3::option_spec::advanced,
                       seqan3::arithmetic_range_validator{0.0, 1.0});
 
     parser.add_option(config.sketch_bits,
                       '\0', "sketch-bits",
                       "The number of bits the HyperLogLog sketch should use to distribute the values into bins.",
-                      seqan3::option_spec::standard,
+                      seqan3::option_spec::advanced,
                       seqan3::arithmetic_range_validator{5, 32});
 
     parser.add_subsection("Special options");
