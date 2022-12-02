@@ -1,9 +1,9 @@
 #pragma once
 
-#include <seqan3/std/charconv>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <seqan3/std/charconv>
 
 #include <chopper/configuration.hpp>
 #include <chopper/layout/data_store.hpp>
@@ -19,7 +19,8 @@ inline auto read_filename_data_file(data_store & data, configuration const & con
         throw std::runtime_error{"[CHOPPER LAYOUT ERROR] Could not open file " + config.count_filename.string()};
 
     std::string line;
-    while (std::getline(file_in, line) && line[0] == '#'); // skip comments
+    while (std::getline(file_in, line) && line[0] == '#')
+        ; // skip comments
 
     do
     {
@@ -31,12 +32,14 @@ inline auto read_filename_data_file(data_store & data, configuration const & con
         if (line.empty())
             continue;
 
-        while (ptr != buffer_end && *ptr != '\t') ++ptr;
+        while (ptr != buffer_end && *ptr != '\t')
+            ++ptr;
         data.filenames.push_back(std::string(&buffer[0], ptr));
 
         if (ptr == buffer_end) // only file info, no kmer info
             throw std::runtime_error{"[CHOPPER LAYOUT ERROR] Your file only contains sequence names but no kmer counts."
-                                     "Offending line: '" + line + "'."};
+                                     "Offending line: '"
+                                     + line + "'."};
 
         // read kmer_count
         ++ptr; // skip tab
@@ -50,7 +53,8 @@ inline auto read_filename_data_file(data_store & data, configuration const & con
         {
             ++ptr; // skip tab
             auto start = ptr;
-            while (ptr != buffer_end && *ptr != '\t') ++ptr;
+            while (ptr != buffer_end && *ptr != '\t')
+                ++ptr;
             data.extra_information.back().push_back(std::string(start, ptr));
         }
     }

@@ -53,13 +53,12 @@ function (declare_datasource)
         DOWNLOAD_NAME "${ARG_FILE}"
         CONFIGURE_COMMAND ""
         BUILD_COMMAND ""
-        INSTALL_COMMAND
-            ${CMAKE_COMMAND} -E create_symlink <DOWNLOADED_FILE> ${CMAKE_CURRENT_BINARY_DIR}/data/${ARG_FILE}
+        INSTALL_COMMAND ${CMAKE_COMMAND} -E create_symlink <DOWNLOADED_FILE>
+                        ${CMAKE_CURRENT_BINARY_DIR}/data/${ARG_FILE}
         TEST_COMMAND ""
         PREFIX "${CMAKE_CURRENT_BINARY_DIR}/_datasources"
         DOWNLOAD_NO_EXTRACT TRUE # don't extract archive files like .tar.gz.
-        ${ARG_UNPARSED_ARGUMENTS}
-    )
+        ${ARG_UNPARSED_ARGUMENTS})
 endfunction ()
 
 # Example call:

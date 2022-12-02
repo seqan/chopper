@@ -4,8 +4,8 @@
 #include <string>
 #include <vector>
 
-#include <chopper/helper.hpp>
 #include <chopper/configuration.hpp>
+#include <chopper/helper.hpp>
 #include <chopper/layout/hibf_statistics.hpp>
 #include <chopper/layout/previous_level.hpp>
 #include <chopper/sketch/user_bin_sequence.hpp>

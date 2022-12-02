@@ -12,7 +12,7 @@ namespace chopper::layout
 class ibf_query_cost
 {
 public:
-    constexpr static inline const size_t maximum_t_max{65536};
+    static inline constexpr const size_t maximum_t_max{65536};
 
     ibf_query_cost() = default;
     ibf_query_cost(ibf_query_cost const &) = default;
@@ -54,30 +54,28 @@ public:
             double const upper_value{it->second[position(upper_bound)]};
             double const lower_value{it->second[position(lower_bound)]};
 
-            double const interpolated_value{lower_value + (upper_value - lower_value) * (t_max - lower_bound)
-                                                                                      / lower_bound};
+            double const interpolated_value{lower_value
+                                            + (upper_value - lower_value) * (t_max - lower_bound) / lower_bound};
             assert(interpolated_value <= upper_value);
             return interpolated_value;
         }
     }
 
 private:
-
     /*!\brief The cost factor to penalize a search in an IBF with more then 64 bins.
      *
      * The table contains experimentally derived cost factors that were collected when measuring the runtime of an
      * (vanilla) IBF with 64/128/... technical bins given a specific FPR. Each measurement was normalized by the
      * runtime of an 64 bin IBF.
      */
-    static inline const std::map<double, std::array<double, 11>> cost_factors
-    {   /* FPR, cost factors relative to a 64 IBF */
+    static inline const std::map<double, std::array<double, 11>> cost_factors{
+        /* FPR, cost factors relative to a 64 IBF */
         {0.0001, {1.0, 0.87, 1.07, 1.58, 1.86, 2.3, 3.56, 4.78, 6.89, 11.61, 22.7}},
         {0.0005, {1.0, 1.2, 1.04, 1.39, 1.91, 2.87, 3.88, 7.28, 7.99, 14.3, 28.34}},
         {0.0025, {1.0, 0.9, 1.08, 1.29, 1.91, 2.46, 3.84, 5.49, 7.93, 14.17, 28.16}},
         {0.0125, {1.0, 1.2, 1.36, 2.01, 2.64, 3.37, 5.98, 9.92, 16.29, 30.17, 59.08}},
         {0.0625, {1.0, 0.96, 1.2, 1.71, 2.27, 3.54, 6.42, 10.69, 19.31, 37.12, 72.5}},
-        {0.3125, {1.0, 1.43, 1.83, 2.92, 4.68, 8.25, 16.58, 27.7, 52.3, 102.65, 202.55}}
-    };
+        {0.3125, {1.0, 1.43, 1.83, 2.92, 4.68, 8.25, 16.58, 27.7, 52.3, 102.65, 202.55}}};
 
     static std::map<double, std::array<double, 11>>::const_iterator find_closest_fpr(double const fpr)
     {
@@ -102,14 +100,14 @@ private:
             return upper_it;
     }
 
-    constexpr static bool contains(size_t const value)
+    static constexpr bool contains(size_t const value)
     {
         bool const is_power_of_two{std::has_single_bit(value)};
         int const trailing_zeros{std::countr_zero(value)};
         return is_power_of_two && trailing_zeros >= 6 && trailing_zeros <= 16;
     }
 
-    constexpr static size_t position(size_t const value)
+    static constexpr size_t position(size_t const value)
     {
         assert(contains(value));
         return std::countr_zero(value) - 6;

@@ -21,13 +21,10 @@ TEST(simple_binning_test, small_example)
     chopper::layout::simple_binning algo{data, 9};
     size_t max_bin = algo.execute();
 
-    std::string expected
-    {
-        "seq4\t0\t1\n"
-        "seq3\t1\t1\n"
-        "seq2\t2\t2\n"
-        "seq1\t4\t5\n"
-    };
+    std::string expected{"seq4\t0\t1\n"
+                         "seq3\t1\t1\n"
+                         "seq2\t2\t2\n"
+                         "seq1\t4\t5\n"};
 
     EXPECT_EQ(output_buffer.str(), expected);
     EXPECT_EQ(max_bin, 0u);
@@ -48,13 +45,10 @@ TEST(simple_binning_test, uniform_distribution)
     chopper::layout::simple_binning algo{data, 4u};
     size_t max_bin = algo.execute();
 
-    std::string expected
-    {
-        "seq4\t0\t1\n"
-        "seq3\t1\t1\n"
-        "seq2\t2\t1\n"
-        "seq1\t3\t1\n"
-    };
+    std::string expected{"seq4\t0\t1\n"
+                         "seq3\t1\t1\n"
+                         "seq2\t2\t1\n"
+                         "seq1\t3\t1\n"};
 
     EXPECT_EQ(output_buffer.str(), expected);
     EXPECT_EQ(max_bin, 0u);

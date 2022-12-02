@@ -11,7 +11,9 @@ cmake_minimum_required (VERSION 3.15)
 macro (chopper_require_test)
     enable_testing ()
 
-    set (CHOPPER_GTEST_GIT_TAG "8d51dc50eb7e7698427fed81b85edad0e032112e" CACHE STRING "googletest commit to use")
+    set (CHOPPER_GTEST_GIT_TAG
+         "8d51dc50eb7e7698427fed81b85edad0e032112e"
+         CACHE STRING "googletest commit to use")
 
     message (STATUS "Fetch Google Test:")
 

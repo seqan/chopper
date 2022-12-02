@@ -3,12 +3,12 @@
 #include <cassert>
 #include <cmath>
 
-#include <chopper/prefixes.hpp>
-#include <chopper/helper.hpp>
 #include <chopper/configuration.hpp>
-#include <chopper/layout/print_result_line.hpp>
+#include <chopper/helper.hpp>
 #include <chopper/layout/arrange_user_bins.hpp>
+#include <chopper/layout/print_result_line.hpp>
 #include <chopper/layout/simple_binning.hpp>
+#include <chopper/prefixes.hpp>
 
 namespace chopper::layout
 {
@@ -27,12 +27,12 @@ private:
     size_t const num_technical_bins{};
 
 public:
-    hierarchical_binning() = default; //!< Defaulted.
-    hierarchical_binning(hierarchical_binning const &) = delete; //!< Deleted. Would modify same data.
+    hierarchical_binning() = default;                                        //!< Defaulted.
+    hierarchical_binning(hierarchical_binning const &) = delete;             //!< Deleted. Would modify same data.
     hierarchical_binning & operator=(hierarchical_binning const &) = delete; //!< Deleted. Would modify same data.
-    hierarchical_binning(hierarchical_binning &&) = default; //!< Defaulted.
-    hierarchical_binning & operator=(hierarchical_binning &&) = default; //!< Defaulted.
-    ~hierarchical_binning() = default; //!< Defaulted.
+    hierarchical_binning(hierarchical_binning &&) = default;                 //!< Defaulted.
+    hierarchical_binning & operator=(hierarchical_binning &&) = default;     //!< Defaulted.
+    ~hierarchical_binning() = default;                                       //!< Defaulted.
 
     /*!\brief The constructor from user bin names, their kmer counts and a configuration.
      * \param[in, out] data_ The data input: filenames associated with the user bin and a kmer count per user bin.
@@ -73,17 +73,15 @@ public:
         arrange_user_bins(*data, config);
 
         // technical bins (outer) = rows; user bins (inner) = columns
-        std::vector<std::vector<size_t>> matrix(num_technical_bins,
-                                                std::vector<size_t>(num_user_bins, max_size_t));
+        std::vector<std::vector<size_t>> matrix(num_technical_bins, std::vector<size_t>(num_user_bins, max_size_t));
 
         // technical bins (outer) = rows; user bins (inner) = columns
-        std::vector<std::vector<size_t>> ll_matrix(num_technical_bins,
-                                                   std::vector<size_t>(num_user_bins, 0u));
+        std::vector<std::vector<size_t>> ll_matrix(num_technical_bins, std::vector<size_t>(num_user_bins, 0u));
 
         // technical bins (outer) = rows; user bins (inner) = columns
-        std::vector<std::vector<std::pair<size_t, size_t>>> trace(num_technical_bins,
-                                                                  std::vector<std::pair<size_t, size_t>>(
-                                                                      num_user_bins, {max_size_t, max_size_t}));
+        std::vector<std::vector<std::pair<size_t, size_t>>> trace(
+            num_technical_bins,
+            std::vector<std::pair<size_t, size_t>>(num_user_bins, {max_size_t, max_size_t}));
 
         initialization(matrix, ll_matrix, trace);
 
@@ -223,9 +221,10 @@ private:
                 {
                     // score: The current maximum technical bin size for the high-level IBF (score for the matrix M)
                     // full_score: The score to minimize -> score * #TB-high_level + low_level_memory footprint
-                    size_t const corrected_ub_cardinality = static_cast<size_t>(ub_cardinality * data->fp_correction[(i - i_prime)]);
-                    size_t score = std::max<size_t>(corrected_ub_cardinality / (i - i_prime), matrix[i_prime][j-1]);
-                    size_t full_score = score * (i + 1) /*#TBs*/ + config.alpha * ll_matrix[i_prime][j-1];
+                    size_t const corrected_ub_cardinality =
+                        static_cast<size_t>(ub_cardinality * data->fp_correction[(i - i_prime)]);
+                    size_t score = std::max<size_t>(corrected_ub_cardinality / (i - i_prime), matrix[i_prime][j - 1]);
+                    size_t full_score = score * (i + 1) /*#TBs*/ + config.alpha * ll_matrix[i_prime][j - 1];
 
                     // std::cout << " ++ j:" << j << " i:" << i << " i':" << i_prime << " score:" << score << std::endl;
 
@@ -247,7 +246,7 @@ private:
                 size_t j_prime{j - 1};
                 size_t weight{current_weight};
 
-                auto get_weight = [&] ()
+                auto get_weight = [&]()
                 {
                     // if we use the union estimate we plug in that value instead of the sum (weight)
                     // union_estimates[j_prime] is the union of {j_prime, ..., j}
@@ -298,7 +297,9 @@ private:
         if (data->output_buffer->tellp() == 0) // beginning of the file
         {
             if (config.debug)
-                *data->output_buffer << prefix::header << "FILES\tBIN_INDICES\tNUMBER_OF_BINS\tEST_MAX_TB_SIZES\tSCORE\tCORR\tT_MAX" << std::endl;
+                *data->output_buffer << prefix::header
+                                     << "FILES\tBIN_INDICES\tNUMBER_OF_BINS\tEST_MAX_TB_SIZES\tSCORE\tCORR\tT_MAX"
+                                     << std::endl;
             else
                 *data->output_buffer << prefix::header << "FILES\tBIN_INDICES\tNUMBER_OF_BINS" << std::endl;
         }
@@ -358,16 +359,19 @@ private:
                 // add split bin to ibf statistics
                 if (data->stats)
                 {
-                    data->stats->bins.emplace_back(hibf_statistics::bin_kind::split,
-                                                kmer_count,
-                                                1ul,
-                                                number_of_bins);
+                    data->stats->bins.emplace_back(hibf_statistics::bin_kind::split, kmer_count, 1ul, number_of_bins);
                 }
 
                 if (!config.debug)
                     print_result_line(*data, trace_j, bin_id, number_of_bins);
                 else
-                    print_debug_line(*data, trace_j, bin_id, number_of_bins, kmer_count_per_bin, optimal_score, num_technical_bins);
+                    print_debug_line(*data,
+                                     trace_j,
+                                     bin_id,
+                                     number_of_bins,
+                                     kmer_count_per_bin,
+                                     optimal_score,
+                                     num_technical_bins);
 
                 // std::cout << "split " << trace_j << " into " << number_of_bins << ": " << kmer_count_per_bin << std::endl;
 
@@ -420,10 +424,7 @@ private:
             // add split bin to ibf statistics
             if (data->stats)
             {
-                data->stats->bins.emplace_back(hibf_statistics::bin_kind::split,
-                                               kmer_count,
-                                               1ul,
-                                               number_of_tbs);
+                data->stats->bins.emplace_back(hibf_statistics::bin_kind::split, kmer_count, 1ul, number_of_tbs);
             }
 
             if (!config.debug)
@@ -478,11 +479,10 @@ private:
         // add merged bin to ibf statistics
         if (data->stats)
         {
-            uint64_t const cardinality = config.estimate_union
-                                         ? data->sketch_toolbox.estimate_interval(trace_j + 1, j)
-                                         : kmer_count;
-            hibf_statistics::bin & bin_stats = data->stats->bins.emplace_back(hibf_statistics::bin_kind::merged,
-                                                cardinality, num_contained_ubs, 1ul);
+            uint64_t const cardinality =
+                config.estimate_union ? data->sketch_toolbox.estimate_interval(trace_j + 1, j) : kmer_count;
+            hibf_statistics::bin & bin_stats =
+                data->stats->bins.emplace_back(hibf_statistics::bin_kind::merged, cardinality, num_contained_ubs, 1ul);
             libf_data.stats = &bin_stats.child_level;
         }
 
@@ -522,7 +522,7 @@ private:
         else
         {
             // use simple binning to distribute remaining UBs
-            return simple_binning{libf_data, 0, config.debug}.execute();  // return id of maximum technical bin
+            return simple_binning{libf_data, 0, config.debug}.execute(); // return id of maximum technical bin
         }
     }
 

@@ -4,11 +4,10 @@
 #include <sstream>
 #include <vector>
 
-#include <chopper/detail_apply_prefix.hpp>
-#include <chopper/count/execute.hpp>
-#include <chopper/layout/execute.hpp>
-
 #include "../api_test.hpp"
+#include <chopper/count/execute.hpp>
+#include <chopper/detail_apply_prefix.hpp>
+#include <chopper/layout/execute.hpp>
 
 TEST(execute_estimation_test, few_ubs)
 {
@@ -41,7 +40,7 @@ TEST(execute_estimation_test, few_ubs)
     chopper::layout::execute(config);
 
     EXPECT_EQ(testing::internal::GetCapturedStdout(),
-R"expected_cout(## ### Parameters ###
+              R"expected_cout(## ### Parameters ###
 ## number of user bins = 8
 ## number of hash functions = 2
 ## false positive rate = 0.05
@@ -60,10 +59,11 @@ R"expected_cout(## ### Parameters ###
 # Best t_max (regarding expected query runtime): 64
 )expected_cout");
 
-    EXPECT_EQ(testing::internal::GetCapturedStderr(), "[CHOPPER LAYOUT WARNING]: Your requested number of technical "
-                                                      "bins was not a multiple of 64. Due to the architecture of the "
-                                                      "HIBF, it will use up space equal to the next multiple of 64 "
-                                                      "anyway, so we increased your number of technical bins to 64.\n");
+    EXPECT_EQ(testing::internal::GetCapturedStderr(),
+              "[CHOPPER LAYOUT WARNING]: Your requested number of technical "
+              "bins was not a multiple of 64. Due to the architecture of the "
+              "HIBF, it will use up space equal to the next multiple of 64 "
+              "anyway, so we increased your number of technical bins to 64.\n");
 }
 
 TEST(execute_estimation_test, many_ubs)
@@ -91,7 +91,7 @@ TEST(execute_estimation_test, many_ubs)
     chopper::layout::execute(config);
 
     EXPECT_EQ(testing::internal::GetCapturedStdout(),
-R"expected_cout(## ### Parameters ###
+              R"expected_cout(## ### Parameters ###
 ## number of user bins = 96
 ## number of hash functions = 2
 ## false positive rate = 0.05
@@ -142,7 +142,7 @@ TEST(execute_estimation_test, many_ubs_force_all)
     chopper::layout::execute(config);
 
     EXPECT_EQ(testing::internal::GetCapturedStdout(),
-R"expected_cout(## ### Parameters ###
+              R"expected_cout(## ### Parameters ###
 ## number of user bins = 96
 ## number of hash functions = 2
 ## false positive rate = 0.05
@@ -175,7 +175,7 @@ TEST(execute_estimation_test, with_rearrangement)
 
     {
         std::ofstream fout{input_file.get_path()};
-        for (size_t i{0}; i < 196u; )
+        for (size_t i{0}; i < 196u;)
         {
             fout << data("seq1.fa").string() << '\t' << (i++) << '\n';
             fout << data("seq2.fa").string() << '\t' << (i++) << '\n';
@@ -219,7 +219,7 @@ TEST(execute_estimation_test, with_rearrangement)
     chopper::layout::execute(config);
 
     EXPECT_EQ(testing::internal::GetCapturedStdout(),
-R"expected_cout(## ### Parameters ###
+              R"expected_cout(## ### Parameters ###
 ## number of user bins = 196
 ## number of hash functions = 2
 ## false positive rate = 0.05

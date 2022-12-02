@@ -2,11 +2,10 @@
 
 #include <filesystem>
 
-#include <chopper/layout/filenames_data_input.hpp>
+#include "../api_test.hpp"
 #include <chopper/configuration.hpp>
 #include <chopper/layout/data_store.hpp>
-
-#include "../api_test.hpp"
+#include <chopper/layout/filenames_data_input.hpp>
 
 TEST(read_filename_data_file_test, file_open_error)
 {

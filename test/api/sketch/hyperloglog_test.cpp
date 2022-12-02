@@ -4,9 +4,8 @@
 
 #include <seqan3/io/sequence_file/input.hpp>
 
-#include <chopper/sketch/hyperloglog.hpp>
-
 #include "../api_test.hpp"
+#include <chopper/sketch/hyperloglog.hpp>
 
 struct input_traits : public seqan3::sequence_file_input_default_traits_dna
 {
@@ -72,7 +71,7 @@ TEST(hyperloglog, add_and_estimate_small)
 
 TEST(hyperloglog, add_and_estimate_large)
 {
-    std::string input_file = DATADIR"small.fa";
+    std::string input_file = DATADIR "small.fa";
     size_t const k = 16;
 
     size_t const b = 4; // m = 1 << b
@@ -86,10 +85,10 @@ TEST(hyperloglog, add_and_estimate_large)
     for (auto && [seq] : seq_file)
     {
         // we have to go C-style here for the HyperLogLog Interface
-        char* c_seq_it = &*seq.begin();
-        char* end = c_seq_it + seq.size();
+        char * c_seq_it = &*seq.begin();
+        char * end = c_seq_it + seq.size();
 
-        while(c_seq_it + k <= end)
+        while (c_seq_it + k <= end)
         {
             control.insert(std::string(c_seq_it, k));
             sketch.add(c_seq_it, k);
@@ -132,7 +131,7 @@ TEST(hyperloglog, add_and_estimate_small_SIMD)
 
 TEST(hyperloglog, merge_and_merge_SIMD)
 {
-    std::string input_file = DATADIR"small.fa";
+    std::string input_file = DATADIR "small.fa";
     size_t const k = 16;
 
     size_t const b = 5; // m = 1 << b
@@ -151,10 +150,10 @@ TEST(hyperloglog, merge_and_merge_SIMD)
         partial_sketches.emplace_back(b);
 
         // we have to go C-style here for the HyperLogLog Interface
-        char* c_seq_it = &*seq.begin();
-        char* end = c_seq_it + seq.size();
+        char * c_seq_it = &*seq.begin();
+        char * end = c_seq_it + seq.size();
 
-        while(c_seq_it + k <= end)
+        while (c_seq_it + k <= end)
         {
             partial_sketches.back().add(c_seq_it, k);
             full_sketch.add(c_seq_it, k);
@@ -188,7 +187,7 @@ TEST(hyperloglog, fail_restore)
     {
         uint8_t b{4u};
         std::ofstream ostrm{file_name.get_path()};
-        ostrm.write((char*)&b, sizeof(b));
+        ostrm.write((char *)&b, sizeof(b));
     }
     chopper::sketch::hyperloglog sketch{};
     std::ifstream istrm{file_name.get_path()};
@@ -201,7 +200,7 @@ TEST(hyperloglog, fail_restore_bit_width)
     {
         uint8_t b{3u};
         std::ofstream ostrm{file_name.get_path()};
-        ostrm.write((char*)&b, sizeof(b));
+        ostrm.write((char *)&b, sizeof(b));
     }
     chopper::sketch::hyperloglog sketch{};
     std::ifstream istrm{file_name.get_path()};
@@ -210,7 +209,7 @@ TEST(hyperloglog, fail_restore_bit_width)
 
 TEST(hyperloglog, dump_and_restore)
 {
-    std::string input_file = DATADIR"small.fa";
+    std::string input_file = DATADIR "small.fa";
     size_t const k = 16;
 
     size_t const b = 4; // m = 1 << b
@@ -223,10 +222,10 @@ TEST(hyperloglog, dump_and_restore)
     for (auto && [seq] : seq_file)
     {
         // we have to go C-style here for the HyperLogLog Interface
-        char* c_seq_it = &*seq.begin();
-        char* end = c_seq_it + seq.size();
+        char * c_seq_it = &*seq.begin();
+        char * end = c_seq_it + seq.size();
 
-        while(c_seq_it + k <= end)
+        while (c_seq_it + k <= end)
         {
             dump_sketch.add(c_seq_it, k);
             ++c_seq_it;

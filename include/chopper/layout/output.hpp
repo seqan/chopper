@@ -24,7 +24,10 @@ inline void write_config_to(configuration const & config, std::ostream & stream)
            << prefix::header << prefix::header_config << "ENDCONFIG\n";
 }
 
-inline void write_layout_header_to(configuration const & config, size_t const max_hibf_id, std::string_view const header, std::ostream & stream)
+inline void write_layout_header_to(configuration const & config,
+                                   size_t const max_hibf_id,
+                                   std::string_view const header,
+                                   std::ostream & stream)
 {
     write_config_to(config, stream);
     stream << prefix::header << prefix::high_level << " max_bin_id:" << max_hibf_id << '\n';

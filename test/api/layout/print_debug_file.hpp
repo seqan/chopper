@@ -11,7 +11,7 @@ inline void print_debug_file(std::filesystem::path const & path, size_t const co
 
     std::string buffer{};
     buffer.reserve(column_width);
-    auto flush_buffer = [&buffer, &column_width] ()
+    auto flush_buffer = [&buffer, &column_width]()
     {
         std::cout.width(column_width);
         std::cout << buffer;
@@ -23,16 +23,16 @@ inline void print_debug_file(std::filesystem::path const & path, size_t const co
         char const letter{*it};
         switch (letter)
         {
-            case '\n':
-                flush_buffer();
-                std::cout << '\n';
-                break;
-            case '\t':
-                flush_buffer();
-                break;
-            default:
-                buffer += letter;
-                break;
+        case '\n':
+            flush_buffer();
+            std::cout << '\n';
+            break;
+        case '\t':
+            flush_buffer();
+            break;
+        default:
+            buffer += letter;
+            break;
         }
     }
 

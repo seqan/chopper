@@ -41,5 +41,4 @@ inline void write_sketch_file(std::pair<std::string, std::vector<std::string>> c
     sketch.dump(hll_fout);
 }
 
-
 } // namespace chopper::count

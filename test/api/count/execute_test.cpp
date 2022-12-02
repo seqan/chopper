@@ -6,10 +6,9 @@
 
 #include <seqan3/utility/range/to.hpp>
 
-#include <chopper/detail_apply_prefix.hpp>
-#include <chopper/count/execute.hpp>
-
 #include "../api_test.hpp"
+#include <chopper/count/execute.hpp>
+#include <chopper/detail_apply_prefix.hpp>
 
 TEST(execute_test, small_example_parallel_2_threads)
 {
@@ -22,7 +21,7 @@ TEST(execute_test, small_example_parallel_2_threads)
         std::ofstream fout{data_filename.get_path()};
         fout << input_filename << '\t' << "TAX1\n"
              << input_filename << '\t' << "TAX2\n"
-             /* << input_filename << '\t' << "TAX2\n" */;
+            /* << input_filename << '\t' << "TAX2\n" */;
     }
 
     chopper::configuration config{};
@@ -34,11 +33,8 @@ TEST(execute_test, small_example_parallel_2_threads)
     config.output_prefix = output_prefix.get_path();
     chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
-    std::vector<std::string> expected_components
-    {
-        input_filename + "\t571\tTAX1",
-        input_filename + /* ";" + input_filename */ + "\t571\tTAX2"
-    };
+    std::vector<std::string> expected_components{input_filename + "\t571\tTAX1",
+                                                 input_filename + /* ";" + input_filename */ +"\t571\tTAX2"};
 
     EXPECT_NO_THROW(chopper::count::execute(config));
 
@@ -56,7 +52,7 @@ TEST(execute_test, small_example_parallel_2_threads)
         ++line_count;
     }
 
-    EXPECT_EQ(expected_components.size(), line_count) << "File: " <<  output_file_str;
+    EXPECT_EQ(expected_components.size(), line_count) << "File: " << output_file_str;
 }
 
 TEST(execute_test, some_test)
@@ -70,7 +66,7 @@ TEST(execute_test, some_test)
         std::ofstream fout{data_filename.get_path()};
         fout << input_filename << '\t' << "TAX1\n"
              << input_filename << '\t' << "TAX2\n"
-             /* << input_filename << '\t' << "TAX2\n" */;
+            /* << input_filename << '\t' << "TAX2\n" */;
     }
 
     chopper::configuration config{};
@@ -82,11 +78,8 @@ TEST(execute_test, some_test)
     config.output_prefix = output_prefix.get_path();
     chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
-    std::vector<std::string> expected_components
-    {
-        input_filename + "\t590\tTAX1",
-        input_filename + /* ";" + input_filename */ + "\t590\tTAX2"
-    };
+    std::vector<std::string> expected_components{input_filename + "\t590\tTAX1",
+                                                 input_filename + /* ";" + input_filename */ +"\t590\tTAX2"};
 
     chopper::count::execute(config);
 
@@ -104,5 +97,5 @@ TEST(execute_test, some_test)
         ++line_count;
     }
 
-    EXPECT_EQ(expected_components.size(), line_count) << "File: " <<  output_file_str;
+    EXPECT_EQ(expected_components.size(), line_count) << "File: " << output_file_str;
 }

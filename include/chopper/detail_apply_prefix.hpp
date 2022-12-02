@@ -17,9 +17,8 @@ namespace chopper::detail
  * path/   -> path/chopper.count, path/chopper_sketches
  * ```
  */
-inline void apply_prefix(std::string_view const & prefix,
-                         std::filesystem::path & filename,
-                         std::filesystem::path & directory)
+inline void
+apply_prefix(std::string_view const & prefix, std::filesystem::path & filename, std::filesystem::path & directory)
 {
     // remove trailing slash if given
     std::filesystem::path safe_prefix{prefix};

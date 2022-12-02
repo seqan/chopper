@@ -12,9 +12,9 @@ chopper_require_test ()
 # Build tests just before their execution, because they have not been built with "all" target.
 # The trick is here to provide a cmake file as a directory property that executes the build command.
 file (WRITE "${CMAKE_CURRENT_BINARY_DIR}/build_test_targets.cmake"
-            "execute_process (COMMAND ${CMAKE_COMMAND} --build . --target api_test)\n"
-            "execute_process (COMMAND ${CMAKE_COMMAND} --build . --target cli_test)\n"
-            "execute_process (COMMAND ${CMAKE_COMMAND} --build ./header --target header_test)\n")
+      "execute_process (COMMAND ${CMAKE_COMMAND} --build . --target api_test)\n"
+      "execute_process (COMMAND ${CMAKE_COMMAND} --build . --target cli_test)\n"
+      "execute_process (COMMAND ${CMAKE_COMMAND} --build ./header --target header_test)\n")
 set_directory_properties (PROPERTIES TEST_INCLUDE_FILE "${CMAKE_CURRENT_BINARY_DIR}/build_test_targets.cmake")
 
 # Define the test targets. All depending targets are built just before the test execution.
@@ -72,7 +72,9 @@ macro (add_cli_test test_filename)
     add_app_test (${test_filename} CLI_TEST)
 endmacro ()
 
-set (CHOPPER_HEADER_TEST_ONLY OFF CACHE BOOL "Only build header test.")
+set (CHOPPER_HEADER_TEST_ONLY
+     OFF
+     CACHE BOOL "Only build header test.")
 
 if (CHOPPER_HEADER_TEST_ONLY)
     add_subdirectory (header)

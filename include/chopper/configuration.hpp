@@ -3,8 +3,9 @@
 #include <filesystem>
 
 #include <cereal/cereal.hpp>
-#include <cereal/types/vector.hpp>
 #include <cereal/types/string.hpp>
+#include <cereal/types/vector.hpp>
+
 #include <chopper/cereal/path.hpp>
 
 namespace chopper
@@ -134,4 +135,4 @@ private:
     }
 };
 
-} // namespace chopper::layout
+} // namespace chopper

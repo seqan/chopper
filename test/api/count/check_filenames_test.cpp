@@ -4,8 +4,7 @@
 
 TEST(check_filenames_test, sequence_filenames)
 {
-    robin_hood::unordered_map<std::string, std::vector<std::string>> const & filename_clusters
-    {
+    robin_hood::unordered_map<std::string, std::vector<std::string>> const & filename_clusters{
         {"key1", {"/path/to/file1.fa"}},
         {"key2", {"/path/to/file2.fasta", "/path/to/file3.fq"}},
     };
@@ -19,8 +18,7 @@ TEST(check_filenames_test, sequence_filenames)
 
 TEST(check_filenames_test, minimizer_filenames)
 {
-    robin_hood::unordered_map<std::string, std::vector<std::string>> const & filename_clusters
-    {
+    robin_hood::unordered_map<std::string, std::vector<std::string>> const & filename_clusters{
         {"key1", {"/path/to/file1.minimizer"}},
         {"key2", {"/path/to/file2.minimizer", "/path/to/file3.minimizer"}},
     };
@@ -34,8 +32,7 @@ TEST(check_filenames_test, minimizer_filenames)
 
 TEST(check_filenames_test, mixed_filenames_sequence_files)
 {
-    robin_hood::unordered_map<std::string, std::vector<std::string>> const & filename_clusters
-    {
+    robin_hood::unordered_map<std::string, std::vector<std::string>> const & filename_clusters{
         {"key2", {"/path/to/file2.fa"}},
         {"key1", {"/path/to/file1.minimizer"}},
     };
@@ -47,8 +44,7 @@ TEST(check_filenames_test, mixed_filenames_sequence_files)
 
 TEST(check_filenames_test, mixed_filenames_minimizer_files)
 {
-    robin_hood::unordered_map<std::string, std::vector<std::string>> const & filename_clusters
-    {
+    robin_hood::unordered_map<std::string, std::vector<std::string>> const & filename_clusters{
         {"key1", {"/path/to/file1.minimizer"}},
         {"key2", {"f.fa"}},
     };

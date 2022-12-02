@@ -33,9 +33,9 @@ namespace chopper
     {
         assert(iterations > 0u);
         size_t decimal{bytes};
-        decimal -= integer << (iterations * 10u); // Substract bytes represented by integer, e.g. -5GiB
-        decimal >>= (iterations - 1u) * 10u; // Shift to next smallest unit, e.g. 800MiB
-        decimal = decimal * 1000u / 1024u; // Account for using decimal system, i.e. 800MiB != 0.8GiB
+        decimal -= integer << (iterations * 10u);             // Substract bytes represented by integer, e.g. -5GiB
+        decimal >>= (iterations - 1u) * 10u;                  // Shift to next smallest unit, e.g. 800MiB
+        decimal = decimal * 1000u / 1024u;                    // Account for using decimal system, i.e. 800MiB != 0.8GiB
         size_t const diff{decimal - (decimal / 100u) * 100u}; // We want to round up to 1 decimal position
         uint32_t const round_up{diff >= 50u};
         decimal += round_up * 100u - diff;
@@ -69,27 +69,27 @@ namespace chopper
     std::string result{formatted_string()};
     switch (iterations)
     {
-        case 0:
-            result += "Bytes";
-            break;
-        case 1:
-            result += "KiB";
-            break;
-        case 2:
-            result += "MiB";
-            break;
-        case 3:
-            result += "GiB";
-            break;
-        case 4:
-            result += "TiB";
-            break;
-        case 5:
-            result += "PiB";
-            break;
-        default:
-            result += "EiB";
-            break;
+    case 0:
+        result += "Bytes";
+        break;
+    case 1:
+        result += "KiB";
+        break;
+    case 2:
+        result += "MiB";
+        break;
+    case 3:
+        result += "GiB";
+        break;
+    case 4:
+        result += "TiB";
+        break;
+    case 5:
+        result += "PiB";
+        break;
+    default:
+        result += "EiB";
+        break;
     }
 
     return result;
