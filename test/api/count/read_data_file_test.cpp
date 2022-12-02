@@ -3,21 +3,21 @@
 #include <sstream>
 #include <vector>
 
-#include <chopper/count/configuration.hpp>
+#include <chopper/configuration.hpp>
 #include <chopper/count/read_data_file.hpp>
 
 #include "../api_test.hpp"
 
 TEST(read_data_file_test, file_open_error)
 {
-    chopper::count::configuration config;
+    chopper::configuration config;
     config.data_file = data("non_existing.file");
     EXPECT_THROW(chopper::count::read_data_file(config), std::runtime_error);
 }
 
 TEST(read_data_file_test, small_example)
 {
-    chopper::count::configuration config;
+    chopper::configuration config;
     config.data_file = data("seqinfo.tsv");
 
     {

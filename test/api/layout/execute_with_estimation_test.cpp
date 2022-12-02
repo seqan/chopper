@@ -4,6 +4,7 @@
 #include <sstream>
 #include <vector>
 
+#include <chopper/detail_apply_prefix.hpp>
 #include <chopper/count/execute.hpp>
 #include <chopper/layout/execute.hpp>
 
@@ -26,17 +27,18 @@ TEST(execute_estimation_test, few_ubs)
              << "seq7\t500\n";
     }
 
-    char const * const argv[] = {"./chopper-layout",
-                                 "--tmax", "4",
-                                 "--determine-best-tmax",
-                                 "--input-prefix", input_prefix.get_path().c_str(),
-                                 "--output-filename", layout_file.get_path().c_str()};
-    int const argc = sizeof(argv) / sizeof(*argv);
+    chopper::configuration config{};
+    config.tmax = 4;
+    config.determine_best_tmax = true;
+    config.input_prefix = input_prefix.get_path();
+    config.output_prefix = config.input_prefix;
+    config.output_filename = layout_file.get_path();
+    chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
-    seqan3::argument_parser layout_parser{"chopper-layout", argc, argv, seqan3::update_notifications::off};
     testing::internal::CaptureStdout();
     testing::internal::CaptureStderr();
-    chopper::layout::execute(layout_parser);
+
+    chopper::layout::execute(config);
 
     EXPECT_EQ(testing::internal::GetCapturedStdout(),
 R"expected_cout(## ### Parameters ###
@@ -76,16 +78,17 @@ TEST(execute_estimation_test, many_ubs)
             fout << seqan3::detail::to_string("seq", i, '\t', 100 * ((i + 20) / 20), '\n');
     }
 
-    char const * const argv[] = {"./chopper-layout",
-                                 "--tmax", "1024",
-                                 "--determine-best-tmax",
-                                 "--input-prefix", input_prefix.get_path().c_str(),
-                                 "--output-filename", layout_file.get_path().c_str()};
-    int const argc = sizeof(argv) / sizeof(*argv);
+    chopper::configuration config{};
+    config.tmax = 1024;
+    config.determine_best_tmax = true;
+    config.input_prefix = input_prefix.get_path();
+    config.output_prefix = config.input_prefix;
+    config.output_filename = layout_file.get_path();
+    chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
-    seqan3::argument_parser layout_parser{"chopper-layout", argc, argv, seqan3::update_notifications::off};
     testing::internal::CaptureStdout();
-    chopper::layout::execute(layout_parser);
+
+    chopper::layout::execute(config);
 
     EXPECT_EQ(testing::internal::GetCapturedStdout(),
 R"expected_cout(## ### Parameters ###
@@ -125,17 +128,18 @@ TEST(execute_estimation_test, many_ubs_force_all)
             fout << seqan3::detail::to_string("seq", i, '\t', 100 * ((i + 20) / 20), '\n');
     }
 
-    char const * const argv[] = {"./chopper-layout",
-                                 "--tmax", "256",
-                                 "--determine-best-tmax",
-                                 "--force-all-binnings",
-                                 "--input-prefix", input_prefix.get_path().c_str(),
-                                 "--output-filename", layout_file.get_path().c_str()};
-    int const argc = sizeof(argv) / sizeof(*argv);
+    chopper::configuration config{};
+    config.tmax = 256;
+    config.determine_best_tmax = true;
+    config.force_all_binnings = true;
+    config.input_prefix = input_prefix.get_path();
+    config.output_prefix = config.input_prefix;
+    config.output_filename = layout_file.get_path();
+    chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
-    seqan3::argument_parser layout_parser{"chopper-layout", argc, argv, seqan3::update_notifications::off};
     testing::internal::CaptureStdout();
-    chopper::layout::execute(layout_parser);
+
+    chopper::layout::execute(config);
 
     EXPECT_EQ(testing::internal::GetCapturedStdout(),
 R"expected_cout(## ### Parameters ###
@@ -181,15 +185,15 @@ TEST(execute_estimation_test, with_rearrangement)
     }
 
     {
-        char const * const argv[] = {"./chopper-count",
-                                    "--kmer-size", "15",
-                                    "--threads", "1",
-                                    "--column-index", "2",
-                                    "--input-file", input_file.get_path().c_str(),
-                                    "--output-prefix", prefix.get_path().c_str()};
-        int const argc = sizeof(argv) / sizeof(*argv);
-        seqan3::argument_parser count_parser{"chopper-count", argc, argv, seqan3::update_notifications::off};
-        chopper::count::execute(count_parser);
+        chopper::configuration config{};
+        config.threads = 1;
+        config.k = 15;
+        config.column_index_to_cluster = 2;
+        config.data_file = input_file.get_path();
+        config.output_prefix = prefix.get_path();
+        chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
+
+        chopper::count::execute(config);
     }
 
     ASSERT_TRUE(std::filesystem::exists(prefix.get_path().string() + ".count"));
@@ -199,20 +203,20 @@ TEST(execute_estimation_test, with_rearrangement)
     ASSERT_TRUE(std::filesystem::exists(prefix.get_path().string() + "_sketches/seq3.hll"));
     ASSERT_TRUE(std::filesystem::exists(prefix.get_path().string() + "_sketches/small.hll"));
 
-    char const * const argv[] = {"./chopper-layout",
-                                 "--tmax", "256",
-                                 "--rearrange-user-bins",
-                                 "--determine-best-tmax",
-                                 "--force-all-binnings",
-                                //  "--output-statistics",
-                                 "--input-prefix", prefix.get_path().c_str(),
-                                 "--output-filename", layout_file.get_path().c_str()};
-    int const argc = sizeof(argv) / sizeof(*argv);
-
-    seqan3::argument_parser layout_parser{"chopper-layout", argc, argv, seqan3::update_notifications::off};
+    chopper::configuration config{};
+    config.tmax = 256;
+    config.rearrange_user_bins = true;
+    config.determine_best_tmax = true;
+    config.force_all_binnings = true;
+    // config.output_verbose_statistics = true;
+    config.input_prefix = prefix.get_path();
+    config.output_prefix = config.input_prefix;
+    config.output_filename = layout_file.get_path();
+    chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
     testing::internal::CaptureStdout();
-    chopper::layout::execute(layout_parser);
+
+    chopper::layout::execute(config);
 
     EXPECT_EQ(testing::internal::GetCapturedStdout(),
 R"expected_cout(## ### Parameters ###

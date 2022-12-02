@@ -9,7 +9,7 @@
 #include <vector>
 
 #include <chopper/helper.hpp>
-#include <chopper/layout/configuration.hpp>
+#include <chopper/configuration.hpp>
 #include <chopper/layout/ibf_query_cost.hpp>
 #include <chopper/sketch/hyperloglog.hpp>
 #include <chopper/sketch/user_bin_sequence.hpp>

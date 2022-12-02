@@ -4,7 +4,7 @@
 #include <sstream>
 #include <vector>
 
-#include <chopper/count/configuration.hpp>
+#include <chopper/configuration.hpp>
 #include <chopper/count/count_kmers.hpp>
 #include <chopper/detail_apply_prefix.hpp>
 #include <chopper/layout/execute.hpp>
@@ -25,7 +25,7 @@ TEST(execute_hll_test, few_ubs)
     std::string const small2_filename = data("small2.fa");
 
     {
-        chopper::count::configuration config{.data_file{data_file.get_path()},
+        chopper::configuration config{.data_file{data_file.get_path()},
                                              .output_prefix{io_prefix.get_path().string()}};
         chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
@@ -51,22 +51,34 @@ TEST(execute_hll_test, few_ubs)
              << seq1_filename << "\t1\t" << seq1_filename << '\n';
     }
 
-    char const * const argv[] = {"./chopper-layout",
-                                 "--tmax", "64",
-                                 "--input-prefix", io_prefix.get_path().c_str(),
-                                 "--output-filename", layout_file.get_path().c_str()};
-    int const argc = sizeof(argv) / sizeof(*argv);
+    chopper::configuration config{};
+    config.tmax = 64;
+    config.input_prefix = io_prefix.get_path();
+    config.output_prefix = config.input_prefix;
+    config.output_filename = layout_file.get_path();
+    chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
-    seqan3::argument_parser layout_parser{"chopper-layout", argc, argv, seqan3::update_notifications::off};
-    chopper::layout::execute(layout_parser);
+    // char const * const argv[] = {"./chopper-layout",
+    //                              "--tmax", "64",
+    //                              "--input-prefix", io_prefix.get_path().c_str(),
+    //                              "--output-filename", layout_file.get_path().c_str()};
+
+    chopper::layout::execute(config);
 
     std::vector<std::string> const expected_components
     {
         {"##CONFIG:"},
         {"##{"},
         {"##    \"config\": {"},
-        {"##        \"version\": 1,"},
-        {"##        \"input_prefix\": \"" + io_prefix.get_path().string() + "\","},
+        {"##        \"version\": 2,"},
+        {"##        \"data_file\": {"},
+        {"##            \"value0\": \"\""},
+        {"##        },"},
+        {"##        \"debug\": false,"},
+        {"##        \"k\": 19,"},
+        {"##        \"sketch_bits\": 12,"},
+        {"##        \"disable_sketch_output\": false,"},
+        {"##        \"precomputed_files\": false,"},
         {"##        \"count_filename\": {"},
         {"##            \"value0\": \"" + io_prefix.get_path().string() + ".count\""},
         {"##        },"},
@@ -127,7 +139,7 @@ TEST(execute_hll_test, many_ubs)
     std::string const small2_filename = data("small2.fa");
 
     {
-        chopper::count::configuration config{.data_file{data_file.get_path()},
+        chopper::configuration config{.data_file{data_file.get_path()},
                                              .output_prefix{io_prefix.get_path().string()}};
         chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
@@ -248,22 +260,29 @@ TEST(execute_hll_test, many_ubs)
              << small2_filename << "\t2\tcluster29\n";
     }
 
-    char const * const argv[] = {"./chopper-layout",
-                                 "--tmax", "4",
-                                 "--input-prefix", io_prefix.get_path().c_str(),
-                                 "--output-filename", layout_file.get_path().c_str()};
-    int const argc = sizeof(argv) / sizeof(*argv);
+    chopper::configuration config{};
+    config.tmax = 4;
+    config.input_prefix = io_prefix.get_path();
+    config.output_prefix = config.input_prefix;
+    config.output_filename = layout_file.get_path();
+    chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
-    seqan3::argument_parser layout_parser{"chopper-layout", argc, argv, seqan3::update_notifications::off};
-    chopper::layout::execute(layout_parser);
+    chopper::layout::execute(config);
 
     std::vector<std::string> const expected_components
     {
         {"##CONFIG:"},
         {"##{"},
         {"##    \"config\": {"},
-        {"##        \"version\": 1,"},
-        {"##        \"input_prefix\": \"" + io_prefix.get_path().string() + "\","},
+        {"##        \"version\": 2,"},
+        {"##        \"data_file\": {"},
+        {"##            \"value0\": \"\""},
+        {"##        },"},
+        {"##        \"debug\": false,"},
+        {"##        \"k\": 19,"},
+        {"##        \"sketch_bits\": 12,"},
+        {"##        \"disable_sketch_output\": false,"},
+        {"##        \"precomputed_files\": false,"},
         {"##        \"count_filename\": {"},
         {"##            \"value0\": \"" + io_prefix.get_path().string() + ".count\""},
         {"##        },"},

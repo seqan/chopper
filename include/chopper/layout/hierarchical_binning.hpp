@@ -5,7 +5,7 @@
 
 #include <chopper/prefixes.hpp>
 #include <chopper/helper.hpp>
-#include <chopper/layout/configuration.hpp>
+#include <chopper/configuration.hpp>
 #include <chopper/layout/print_result_line.hpp>
 #include <chopper/layout/arrange_user_bins.hpp>
 #include <chopper/layout/simple_binning.hpp>

@@ -6,6 +6,7 @@
 
 #include <seqan3/utility/range/to.hpp>
 
+#include <chopper/detail_apply_prefix.hpp>
 #include <chopper/count/execute.hpp>
 
 #include "../api_test.hpp"
@@ -24,15 +25,14 @@ TEST(execute_test, small_example_parallel_2_threads)
              /* << input_filename << '\t' << "TAX2\n" */;
     }
 
-    const char * argv[] = {"./chopper-count",
-                           "--kmer-size", "15",
-                           "--threads", "2",
-                           "--column-index", "2",
-                           "--disable-sketch-output",
-                           "--input-file", data_filename.get_path().c_str(),
-                           "--output-prefix", output_prefix.get_path().c_str()};
-    int argc = 12;
-    seqan3::argument_parser count_parser{"chopper-count", argc, argv, seqan3::update_notifications::off};
+    chopper::configuration config{};
+    config.threads = 2;
+    config.k = 15;
+    config.column_index_to_cluster = 2;
+    config.disable_sketch_output = true;
+    config.data_file = data_filename.get_path();
+    config.output_prefix = output_prefix.get_path();
+    chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
     std::vector<std::string> expected_components
     {
@@ -40,7 +40,7 @@ TEST(execute_test, small_example_parallel_2_threads)
         input_filename + /* ";" + input_filename */ + "\t571\tTAX2"
     };
 
-    EXPECT_NO_THROW(chopper::count::execute(count_parser));
+    EXPECT_NO_THROW(chopper::count::execute(config));
 
     std::ifstream output_file{output_prefix.get_path().string() + ".count"};
     std::string const output_file_str((std::istreambuf_iterator<char>(output_file)), std::istreambuf_iterator<char>());
@@ -73,15 +73,14 @@ TEST(execute_test, some_test)
              /* << input_filename << '\t' << "TAX2\n" */;
     }
 
-    const char * argv[] = {"./chopper-count",
-                           "--kmer-size", "25",
-                           "--threads", "1",
-                           "--column-index", "2",
-                           "--disable-sketch-output",
-                           "--input-file", data_filename.get_path().c_str(),
-                           "--output-prefix", output_prefix.get_path().c_str()};
-    int argc = 12;
-    seqan3::argument_parser count_parser{"chopper-count", argc, argv, seqan3::update_notifications::off};
+    chopper::configuration config{};
+    config.threads = 1;
+    config.k = 25;
+    config.column_index_to_cluster = 2;
+    config.disable_sketch_output = true;
+    config.data_file = data_filename.get_path();
+    config.output_prefix = output_prefix.get_path();
+    chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
     std::vector<std::string> expected_components
     {
@@ -89,7 +88,7 @@ TEST(execute_test, some_test)
         input_filename + /* ";" + input_filename */ + "\t590\tTAX2"
     };
 
-    chopper::count::execute(count_parser);
+    chopper::count::execute(config);
 
     std::ifstream output_file{output_prefix.get_path().string() + ".count"};
     std::string const output_file_str((std::istreambuf_iterator<char>(output_file)), std::istreambuf_iterator<char>());

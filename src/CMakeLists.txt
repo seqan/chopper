@@ -10,14 +10,11 @@ target_link_libraries (chopper_interface INTERFACE xxhash)
 target_compile_options (chopper_interface INTERFACE "-pedantic" "-Wall" "-Wextra")
 add_dependencies (chopper_interface xxhash)
 
-add_library (chopper_count_lib STATIC chopper_count.cpp)
-target_link_libraries (chopper_count_lib "chopper_interface")
-
 add_library (chopper_layout_lib STATIC chopper_layout.cpp)
 target_link_libraries (chopper_layout_lib "chopper_interface")
 
 add_library (chopper_lib INTERFACE)
-target_link_libraries (chopper_lib INTERFACE "chopper_interface" "chopper_count_lib" "chopper_layout_lib")
+target_link_libraries (chopper_lib INTERFACE "chopper_interface" "chopper_layout_lib")
 
 add_executable (chopper chopper.cpp)
 target_link_libraries (chopper "chopper_lib")
@@ -25,5 +22,5 @@ target_link_libraries (chopper "chopper_lib")
 add_executable (measure_hyperloglog EXCLUDE_FROM_ALL measure_hyperloglog.cpp)
 target_link_libraries (measure_hyperloglog "chopper_interface")
 
-install (TARGETS chopper_count_lib chopper_layout_lib ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install (TARGETS chopper_layout_lib ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 install (TARGETS chopper RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})

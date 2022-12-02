@@ -13,7 +13,7 @@
 #include <seqan3/search/views/minimiser_hash.hpp>
 #include <seqan3/utility/range/to.hpp>
 
-#include <chopper/count/configuration.hpp>
+#include <chopper/configuration.hpp>
 #include <chopper/count/output.hpp>
 #include <chopper/sketch/hyperloglog.hpp>
 
@@ -63,7 +63,7 @@ inline void count_kmers(robin_hood::unordered_map<std::string, std::vector<std::
     std::ofstream fout{config.count_filename};
 
     if (!fout.good())
-        throw std::runtime_error{"Could not open file" + config.count_filename.string() + " for reading."};
+        throw std::runtime_error{"Could not open file " + config.count_filename.string() + " for writing."};
 
     // create the hll dir if it doesn't already exist
     if (!config.disable_sketch_output)

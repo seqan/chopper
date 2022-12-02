@@ -4,7 +4,7 @@
 
 #include <robin_hood.h>
 
-#include <chopper/count/configuration.hpp>
+#include <chopper/configuration.hpp>
 
 namespace chopper::count
 {
@@ -13,10 +13,10 @@ inline auto read_data_file(configuration const & config)
 {
     robin_hood::unordered_map<std::string, std::vector<std::string>> filename_clusters; // result
 
-    std::ifstream fin{config.data_file};
+    std::ifstream fin{config.data_file.string()};
 
     if (!fin.good() || !fin.is_open())
-        throw std::runtime_error{"Could not open file " + config.data_file.string() + " for reading."};
+        throw std::runtime_error{"Could not open data file " + config.data_file.string() + " for reading."};
 
     std::string line;
     while (std::getline(fin, line))

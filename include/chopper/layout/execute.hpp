@@ -1,10 +1,10 @@
 #pragma once
 
-#include <seqan3/argument_parser/argument_parser.hpp>
+#include <chopper/configuration.hpp>
 
 namespace chopper::layout
 {
 
-int execute(seqan3::argument_parser & parser);
+int execute(chopper::configuration & config);
 
 } // namespace chopper::layout
