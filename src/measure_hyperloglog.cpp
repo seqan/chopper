@@ -5,8 +5,9 @@
 #include <unordered_set>
 #include <vector>
 
+#include <sharg/parser.hpp>
+
 #include <seqan3/alphabet/nucleotide/dna4.hpp>
-#include <seqan3/argument_parser/all.hpp>
 #include <seqan3/io/sequence_file/input.hpp>
 #include <seqan3/search/kmer_index/shape.hpp>
 #include <seqan3/search/views/kmer_hash.hpp>
@@ -29,31 +30,35 @@ struct input_traits : public seqan3::sequence_file_input_default_traits_dna
 
 int main(int argc, char const * argv[])
 {
-    seqan3::argument_parser parser{"measure_hyperloglog", argc, argv, seqan3::update_notifications::off};
+    sharg::parser parser{"measure_hyperloglog", argc, argv, sharg::update_notifications::off};
 
     cli_args args{};
 
     parser.add_option(args.input_path,
-                      'i',
-                      "input-file",
-                      "Fasta formatted file with sequences.",
-                      seqan3::option_spec::required);
+                      sharg::config{.short_id = 'i',
+                                    .long_id = "input-file",
+                                    .description = "Fasta formatted file with sequences.",
+                                    .required = true});
     parser.add_option(args.output_path,
-                      'o',
-                      "output-file",
-                      "File where the output is written to in tsv format.",
-                      seqan3::option_spec::required);
-    parser.add_option(args.hll_bits,
-                      'b',
-                      "hll-bits",
-                      "Adds an integer value which is tested as HyperLogLog bits parameter.");
-    parser.add_option(args.k, 'k', "kmer-size", "The size of the k-mers of which the hash values are computed.");
+                      sharg::config{.short_id = 'o',
+                                    .long_id = "output-file",
+                                    .description = "File where the output is written to in tsv format.",
+                                    .required = true});
+    parser.add_option(
+        args.hll_bits,
+        sharg::config{.short_id = 'b',
+                      .long_id = "hll-bits",
+                      .description = "Adds an integer value which is tested as HyperLogLog bits parameter."});
+    parser.add_option(args.k,
+                      sharg::config{.short_id = 'k',
+                                    .long_id = "kmer-size",
+                                    .description = "The size of the k-mers of which the hash values are computed."});
 
     try
     {
         parser.parse();
     }
-    catch (seqan3::argument_parser_error const & ext)
+    catch (sharg::parser_error const & ext)
     {
         std::cerr << "[COMMAND LINE INPUT ERROR] " << ext.what() << std::endl;
         return -1;

@@ -1,6 +1,7 @@
 #pragma once
 
-#include <seqan3/argument_parser/all.hpp>
+#include <sharg/detail/to_string.hpp>
+#include <sharg/exceptions.hpp>
 
 #include <chopper/configuration.hpp>
 #include <chopper/count/check_filenames.hpp>
@@ -18,8 +19,8 @@ inline int execute(configuration & config)
     auto filename_clusters = read_data_file(config);
 
     if (filename_clusters.empty())
-        throw seqan3::argument_parser_error{
-            seqan3::detail::to_string("The file ", config.data_file.string(), " appears to be empty.")};
+        throw sharg::parser_error{
+            sharg::detail::to_string("The file ", config.data_file.string(), " appears to be empty.")};
 
     chopper::count::check_filenames(filename_clusters, config);
 
