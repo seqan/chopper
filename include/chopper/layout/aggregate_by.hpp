@@ -19,8 +19,10 @@ inline void sort_by(data_store & data, int8_t column_to_sort_by)
     assert(permutation.size() == data.filenames.size());
 
     auto const & info = data.extra_information;
-    auto compare = [&info,column_to_sort_by] (auto const l, auto const r)
-        { return info[l][column_to_sort_by] < info[r][column_to_sort_by]; };
+    auto compare = [&info, column_to_sort_by](auto const l, auto const r)
+    {
+        return info[l][column_to_sort_by] < info[r][column_to_sort_by];
+    };
     std::sort(permutation.begin(), permutation.end(), compare);
 
     // apply permutation

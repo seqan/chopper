@@ -2,13 +2,12 @@
 
 #include <iostream>
 
+#include "../api_test.hpp"
 #include <chopper/configuration.hpp>
 #include <chopper/detail_apply_prefix.hpp>
 #include <chopper/layout/data_store.hpp>
 #include <chopper/layout/execute.hpp>
 #include <chopper/layout/hibf_statistics.hpp>
-
-#include "../api_test.hpp"
 
 TEST(hibf_statistics, only_merged_on_top_level)
 {
@@ -27,21 +26,19 @@ TEST(hibf_statistics, only_merged_on_top_level)
 
     for (size_t i = 0; i < num_top_level_bins; ++i)
     {
-        chopper::layout::hibf_statistics::bin & bin = stats.top_level_ibf.bins.emplace_back(
-            chopper::layout::hibf_statistics::bin_kind::merged,
-            cardinality,
-            top_level_num_contained_user_bins,
-            1u // merged bin always is a single technical bin
-        );
+        chopper::layout::hibf_statistics::bin & bin =
+            stats.top_level_ibf.bins.emplace_back(chopper::layout::hibf_statistics::bin_kind::merged,
+                                                  cardinality,
+                                                  top_level_num_contained_user_bins,
+                                                  1u // merged bin always is a single technical bin
+            );
 
         for (size_t j = 0; j < top_level_num_contained_user_bins; ++j)
         {
-            bin.child_level.bins.emplace_back(
-                chopper::layout::hibf_statistics::bin_kind::split,
-                cardinality,
-                1u, // split bin always contains only a single user bin
-                lower_level_split_bin_span
-            );
+            bin.child_level.bins.emplace_back(chopper::layout::hibf_statistics::bin_kind::split,
+                                              cardinality,
+                                              1u, // split bin always contains only a single user bin
+                                              lower_level_split_bin_span);
         }
     }
 
@@ -54,7 +51,7 @@ TEST(hibf_statistics, only_merged_on_top_level)
 
     std::string summary = testing::internal::GetCapturedStdout();
     std::string expected_cout =
-R"expected_cout(## ### Notation ###
+        R"expected_cout(## ### Notation ###
 ## X-IBF = An IBF with X number of bins.
 ## X-HIBF = An HIBF with tmax = X, e.g a maximum of X technical bins on each level.
 ## ### Column Description ###
@@ -84,8 +81,7 @@ TEST(execute_test, chopper_layout_statistics)
             fout << seqan3::detail::to_string("seq", i, '\t', 100 * ((i + 20) / 20), '\n');
     }
 
-    chopper::configuration config
-    {
+    chopper::configuration config{
         .data_file = "not needed",
         .output_prefix = input_prefix.get_path().string(),
         .input_prefix = input_prefix.get_path().string(),
@@ -102,7 +98,7 @@ TEST(execute_test, chopper_layout_statistics)
     std::string layout_result_stderr = testing::internal::GetCapturedStderr();
 
     std::string expected_cout =
-R"expected_cout(## ### Notation ###
+        R"expected_cout(## ### Notation ###
 ## X-IBF = An IBF with X number of bins.
 ## X-HIBF = An HIBF with tmax = X, e.g a maximum of X technical bins on each level.
 ## ### Column Description ###
@@ -141,17 +137,14 @@ TEST(execute_test, chopper_layout_statistics_determine_best_bins)
                 "seq9\t100000\n";
     }
 
-    chopper::configuration config
-    {
-        .data_file = "not needed",
-        .output_prefix = input_prefixname.get_path().string(),
-        .input_prefix = input_prefixname.get_path().string(),
-        .output_filename = binning_filename.get_path().c_str(),
-        .tmax = 128,
-        .determine_best_tmax = true,
-        .force_all_binnings = true,
-        .output_verbose_statistics = true
-    };
+    chopper::configuration config{.data_file = "not needed",
+                                  .output_prefix = input_prefixname.get_path().string(),
+                                  .input_prefix = input_prefixname.get_path().string(),
+                                  .output_filename = binning_filename.get_path().c_str(),
+                                  .tmax = 128,
+                                  .determine_best_tmax = true,
+                                  .force_all_binnings = true,
+                                  .output_verbose_statistics = true};
     chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
     testing::internal::CaptureStdout();
@@ -161,7 +154,7 @@ TEST(execute_test, chopper_layout_statistics_determine_best_bins)
     std::string layout_result_stderr = testing::internal::GetCapturedStderr();
 
     std::string expected_cout =
-R"expected_cout(## ### Parameters ###
+        R"expected_cout(## ### Parameters ###
 ## number of user bins = 10
 ## number of hash functions = 2
 ## false positive rate = 0.05

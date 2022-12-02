@@ -27,20 +27,27 @@ struct input_traits : public seqan3::sequence_file_input_default_traits_dna
     using sequence_alphabet = seqan3::dna4;
 };
 
-int main(int argc, const char *argv [])
+int main(int argc, char const * argv[])
 {
     seqan3::argument_parser parser{"measure_hyperloglog", argc, argv, seqan3::update_notifications::off};
 
     cli_args args{};
 
-    parser.add_option(args.input_path, 'i', "input-file", "Fasta formatted file with sequences.",
+    parser.add_option(args.input_path,
+                      'i',
+                      "input-file",
+                      "Fasta formatted file with sequences.",
                       seqan3::option_spec::required);
-    parser.add_option(args.output_path, 'o', "output-file", "File where the output is written to in tsv format.",
+    parser.add_option(args.output_path,
+                      'o',
+                      "output-file",
+                      "File where the output is written to in tsv format.",
                       seqan3::option_spec::required);
-    parser.add_option(args.hll_bits, 'b', "hll-bits",
+    parser.add_option(args.hll_bits,
+                      'b',
+                      "hll-bits",
                       "Adds an integer value which is tested as HyperLogLog bits parameter.");
-    parser.add_option(args.k, 'k', "kmer-size",
-                      "The size of the k-mers of which the hash values are computed.");
+    parser.add_option(args.k, 'k', "kmer-size", "The size of the k-mers of which the hash values are computed.");
 
     try
     {
@@ -79,17 +86,19 @@ int main(int argc, const char *argv [])
             control.insert(hash);
             for (auto & sketch : sketches)
             {
-                sketch.add(reinterpret_cast<char*>(&hash), sizeof(hash));
+                sketch.add(reinterpret_cast<char *>(&hash), sizeof(hash));
             }
         }
 
         for (auto & sketch : sketches)
         {
             double const expected_error = 1.04 / std::sqrt(sketch.registerSize());
-            double const actual_error = std::abs(1.0 - std::round(sketch.estimate()) / static_cast<double>(control.size()));
+            double const actual_error =
+                std::abs(1.0 - std::round(sketch.estimate()) / static_cast<double>(control.size()));
 
-            fout << id << '\t' << seq.size() << '\t' << sketch.registerSize() << '\t' << static_cast<uint64_t>(sketch.estimate())
-                 << '\t' << control.size() << '\t' << expected_error << '\t' << actual_error << '\n';
+            fout << id << '\t' << seq.size() << '\t' << sketch.registerSize() << '\t'
+                 << static_cast<uint64_t>(sketch.estimate()) << '\t' << control.size() << '\t' << expected_error << '\t'
+                 << actual_error << '\n';
         }
 
         // clear for the next sequence

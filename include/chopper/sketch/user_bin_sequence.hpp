@@ -2,11 +2,9 @@
 
 #include <filesystem>
 #include <fstream>
+#include <omp.h>
 #include <queue>
 #include <random>
-
-#include <omp.h>
-
 #include <robin_hood.h>
 
 #include <chopper/sketch/hyperloglog.hpp>
@@ -62,19 +60,18 @@ protected:
     std::vector<hyperloglog> sketches;
 
 public:
-    user_bin_sequence() = default; //!< Defaulted.
-    user_bin_sequence(user_bin_sequence const &) = default; //!< Defaulted.
+    user_bin_sequence() = default;                                      //!< Defaulted.
+    user_bin_sequence(user_bin_sequence const &) = default;             //!< Defaulted.
     user_bin_sequence & operator=(user_bin_sequence const &) = default; //!< Defaulted.
-    user_bin_sequence(user_bin_sequence &&) = default; //!< Defaulted.
-    user_bin_sequence & operator=(user_bin_sequence &&) = default; //!< Defaulted.
-    ~user_bin_sequence() = default; //!< Defaulted.
+    user_bin_sequence(user_bin_sequence &&) = default;                  //!< Defaulted.
+    user_bin_sequence & operator=(user_bin_sequence &&) = default;      //!< Defaulted.
+    ~user_bin_sequence() = default;                                     //!< Defaulted.
 
     /*!\brief A sequence of user bins for which filenames and counts are given.
      * \param[in] filenames_ filenames of the sequence files for the user bins
      * \param[in] user_bin_kmer_counts_ counts of the k-mer sets of the bins corresponding to filenames
      */
-    user_bin_sequence(std::vector<std::string> & filenames_,
-                      std::vector<size_t> & user_bin_kmer_counts_) :
+    user_bin_sequence(std::vector<std::string> & filenames_, std::vector<size_t> & user_bin_kmer_counts_) :
         filenames{std::addressof(filenames_)},
         user_bin_kmer_counts{std::addressof(user_bin_kmer_counts_)}
     {}
@@ -90,7 +87,7 @@ public:
         assert(filenames != nullptr);
         assert(permutation.size() == user_bin_kmer_counts->size());
 
-        auto cardinality_compare = [this] (size_t const index1, size_t const index2)
+        auto cardinality_compare = [this](size_t const index1, size_t const index2)
         {
             return (*user_bin_kmer_counts)[index1] > (*user_bin_kmer_counts)[index2];
         };
@@ -239,10 +236,8 @@ protected:
      * \param[in] num_threads the number of threads to use
      * \param[out] permutation append the new order to this
      */
-    void cluster_bins(std::vector<size_t> & permutation,
-                      size_t const first,
-                      size_t const last,
-                      size_t const num_threads)
+    void
+    cluster_bins(std::vector<size_t> & permutation, size_t const first, size_t const last, size_t const num_threads)
     {
         assert(num_threads >= 1);
         assert(filenames != nullptr);
@@ -322,14 +317,14 @@ protected:
             remaining_ids[id] = id - first;
         }
 
-        #pragma omp parallel num_threads(num_threads)
+#pragma omp parallel num_threads(num_threads)
         {
             double min_dist = std::numeric_limits<double>::max();
-            // minimum distance exclusively for this thread
+// minimum distance exclusively for this thread
 
-            // initialize all the priority queues of the distance matrix
-            // while doing that, compute the first min_id
-            #pragma omp for schedule(nonmonotonic: dynamic, chunk_size)
+// initialize all the priority queues of the distance matrix
+// while doing that, compute the first min_id
+#pragma omp for schedule(nonmonotonic : dynamic, chunk_size)
             for (size_t i = 0; i < clustering.size(); ++i)
             {
                 for (size_t j = 0; j < clustering.size(); ++j)
@@ -345,7 +340,8 @@ protected:
                         dist[i].pq.push({j + first, distance});
                     }
                 }
-                if (dist[i].pq.empty()) continue;
+                if (dist[i].pq.empty())
+                    continue;
 
                 // check if the just initialized priority queue contains the minimum value for this thread
                 neighbor const & curr = dist[i].pq.top();
@@ -356,19 +352,19 @@ protected:
                 }
             } // implicit barrier
 
-            // a single thread shuffles dist to approximately balance loads in static scheduling
-            #pragma omp single
+// a single thread shuffles dist to approximately balance loads in static scheduling
+#pragma omp single
             random_shuffle(dist, remaining_ids);
 
             // main loop of the clustering
             // keep merging nodes until we have a complete tree
             while (remaining_ids.size() > 1)
             {
-                // Wait for all threads to have evaluated remaining_ids.size() as remaining_ids
-                // may be modified by the following pragma omp single.
-                #pragma omp barrier
+// Wait for all threads to have evaluated remaining_ids.size() as remaining_ids
+// may be modified by the following pragma omp single.
+#pragma omp barrier
 
-                #pragma omp single
+#pragma omp single
                 {
                     // perform critical update
                     // increment id for the new cluster (must be done at the beginning)
@@ -380,7 +376,8 @@ protected:
                     for (auto candidate_id : min_ids)
                     {
                         // check if the thread saw any id
-                        if (candidate_id == none) continue;
+                        if (candidate_id == none)
+                            continue;
 
                         size_t const dist_index = remaining_ids.at(candidate_id);
                         neighbor const & curr = dist[dist_index].pq.top();
@@ -396,8 +393,8 @@ protected:
 
                     // merge the two nodes with minimal distance together insert the new node into the clustering
                     clustering.push_back({min_id, neighbor_id, std::move(clustering[min_id - first].hll)});
-                    estimates.emplace_back(clustering.back().hll
-                                                .merge_and_estimate_SIMD(clustering[neighbor_id - first].hll));
+                    estimates.emplace_back(
+                        clustering.back().hll.merge_and_estimate_SIMD(clustering[neighbor_id - first].hll));
 
                     // remove old ids
                     remaining_ids.erase(min_id);
@@ -422,13 +419,14 @@ protected:
 
                 hyperloglog const new_hll = clustering.back().hll;
 
-                // update distances in dist
-                // while doing that, compute the new min_id
-                #pragma omp for schedule(static)
+// update distances in dist
+// while doing that, compute the new min_id
+#pragma omp for schedule(static)
                 for (size_t i = 0; i < dist.size(); ++i)
                 {
                     size_t other_id = dist[i].id;
-                    if (other_id == new_id || !remaining_ids.contains(other_id)) continue;
+                    if (other_id == new_id || !remaining_ids.contains(other_id))
+                        continue;
 
                     // this must be a copy, because merge_and_estimate_SIMD() changes the hll
                     hyperloglog temp_hll = new_hll;
@@ -497,7 +495,8 @@ protected:
      */
     void prune(distance_matrix & dist, robin_hood::unordered_flat_map<size_t, size_t> & remaining_ids)
     {
-        if (dist.empty()) return;
+        if (dist.empty())
+            return;
 
         // index of the first entry after the valid range
         size_t valid_range_end = 0;
@@ -561,12 +560,12 @@ protected:
             return false;
         }
         // nothing to do if previous_rightmost is in the left subtree
-        else if(rotate(clustering, previous_rightmost, first, curr.left))
+        else if (rotate(clustering, previous_rightmost, first, curr.left))
         {
             return true;
         }
         // rotate if previous_rightmost is in the right subtree
-        else if(rotate(clustering, previous_rightmost, first, curr.right))
+        else if (rotate(clustering, previous_rightmost, first, curr.right))
         {
             std::swap(curr.left, curr.right);
             return true;
@@ -624,7 +623,7 @@ protected:
             std::swap((*filenames)[i], (*filenames)[swap_index]);
             std::swap((*user_bin_kmer_counts)[i], (*user_bin_kmer_counts)[swap_index]);
             if (swap_sketches)
-                    std::swap(sketches[i], sketches[swap_index]);
+                std::swap(sketches[i], sketches[swap_index]);
         }
     }
 };

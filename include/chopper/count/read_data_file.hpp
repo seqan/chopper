@@ -1,7 +1,6 @@
 #pragma once
 
 #include <fstream>
-
 #include <robin_hood.h>
 
 #include <chopper/configuration.hpp>
@@ -25,7 +24,8 @@ inline auto read_data_file(configuration const & config)
         auto column_end = line.begin();
 
         // first column is always the filename
-        while (column_end != line.end() && *column_end != '\t') ++column_end; // advance to next tab
+        while (column_end != line.end() && *column_end != '\t')
+            ++column_end; // advance to next tab
         std::string filename{column_begin, column_end};
 
         // TODO check file extension
@@ -35,11 +35,13 @@ inline auto read_data_file(configuration const & config)
             // advance to column of interest
             for (size_t i = 1; i < config.column_index_to_cluster; ++i)
             {
-                while (column_begin != line.end() && *column_begin != '\t') ++column_begin;
+                while (column_begin != line.end() && *column_begin != '\t')
+                    ++column_begin;
                 ++column_begin;
             }
             column_end = column_begin;
-            while (column_end != line.end() && *column_end != '\t') ++column_end;
+            while (column_end != line.end() && *column_end != '\t')
+                ++column_end;
 
             std::string key(column_begin, column_end);
 
@@ -50,7 +52,6 @@ inline auto read_data_file(configuration const & config)
             // use filename itself as key
             filename_clusters[filename].push_back(filename);
         }
-
     }
 
     return filename_clusters;

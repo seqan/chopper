@@ -2,8 +2,8 @@
 
 #include <seqan3/argument_parser/all.hpp>
 
-#include <chopper/layout/aggregate_by.hpp>
 #include <chopper/configuration.hpp>
+#include <chopper/layout/aggregate_by.hpp>
 #include <chopper/layout/filenames_data_input.hpp>
 #include <chopper/layout/hierarchical_binning.hpp>
 #include <chopper/layout/ibf_query_cost.hpp>
@@ -19,8 +19,8 @@ void sanity_checks(layout::data_store const & data, chopper::configuration & con
         config.estimate_union = true;
 
     if (data.filenames.empty())
-        throw seqan3::argument_parser_error{seqan3::detail::to_string("The file ", config.count_filename.string(),
-                                                                      " appears to be empty.")};
+        throw seqan3::argument_parser_error{
+            seqan3::detail::to_string("The file ", config.count_filename.string(), " appears to be empty.")};
 }
 
 size_t determine_best_number_of_technical_bins(chopper::layout::data_store & data, chopper::configuration & config)
@@ -28,7 +28,7 @@ size_t determine_best_number_of_technical_bins(chopper::layout::data_store & dat
     std::stringstream * const output_buffer_original = data.output_buffer;
     std::stringstream * const header_buffer_original = data.header_buffer;
 
-    std::set<size_t> potential_t_max = [&] ()
+    std::set<size_t> potential_t_max = [&]()
     {
         std::set<size_t> result;
 

@@ -106,12 +106,12 @@ private:
     bool const debug{false};
 
 public:
-    simple_binning() = default; //!< Defaulted.
-    simple_binning(simple_binning const &) = default; //!< Defaulted.
+    simple_binning() = default;                                   //!< Defaulted.
+    simple_binning(simple_binning const &) = default;             //!< Defaulted.
     simple_binning & operator=(simple_binning const &) = default; //!< Defaulted.
-    simple_binning(simple_binning &&) = default; //!< Defaulted.
-    simple_binning & operator=(simple_binning &&) = default; //!< Defaulted.
-    ~simple_binning() = default; //!< Defaulted.
+    simple_binning(simple_binning &&) = default;                  //!< Defaulted.
+    simple_binning & operator=(simple_binning &&) = default;      //!< Defaulted.
+    ~simple_binning() = default;                                  //!< Defaulted.
 
     /*!\brief The constructor from user bin names, their kmer counts and a configuration.
      * \param[in] data_ The filenames and kmer counts associated with the user bin, as well as the ostream buffer.
@@ -192,8 +192,9 @@ public:
 
                 for (size_t i_prime = j - 1; i_prime < i; ++i_prime)
                 {
-                    size_t const corrected_ub_cardinality = static_cast<size_t>(ub_cardinality * data->fp_correction[(i - i_prime)]);
-                    size_t score = std::max<size_t>(corrected_ub_cardinality / (i - i_prime), matrix[i_prime][j-1]);
+                    size_t const corrected_ub_cardinality =
+                        static_cast<size_t>(ub_cardinality * data->fp_correction[(i - i_prime)]);
+                    size_t score = std::max<size_t>(corrected_ub_cardinality / (i - i_prime), matrix[i_prime][j - 1]);
 
                     // std::cout << "j:" << j << " i:" << i << " i':" << i_prime << " score:" << score << std::endl;
 
@@ -227,16 +228,19 @@ public:
             // add split bin to ibf statistics
             if (data->stats)
             {
-                data->stats->bins.emplace_back(hibf_statistics::bin_kind::split,
-                                               kmer_count,
-                                               1ul,
-                                               number_of_bins);
+                data->stats->bins.emplace_back(hibf_statistics::bin_kind::split, kmer_count, 1ul, number_of_bins);
             }
 
             if (!debug)
                 print_result_line(*data, trace_j, bin_id, number_of_bins);
             else
-                print_debug_line(*data, trace_j, bin_id, number_of_bins, kmer_count_per_bin, optimal_score, num_technical_bins);
+                print_debug_line(*data,
+                                 trace_j,
+                                 bin_id,
+                                 number_of_bins,
+                                 kmer_count_per_bin,
+                                 optimal_score,
+                                 num_technical_bins);
 
             if (kmer_count_per_bin > max_size)
             {
@@ -251,15 +255,12 @@ public:
         }
         ++trace_i; // because we want the length not the index. Now trace_i == number_of_bins
         size_t const kmer_count = data->kmer_counts[0];
-        size_t const kmer_count_per_bin =  (kmer_count + trace_i - 1) / trace_i;
+        size_t const kmer_count_per_bin = (kmer_count + trace_i - 1) / trace_i;
 
         // add split bin to ibf statistics
         if (data->stats)
         {
-            data->stats->bins.emplace_back(hibf_statistics::bin_kind::split,
-                                           kmer_count,
-                                           1ul,
-                                           trace_i);
+            data->stats->bins.emplace_back(hibf_statistics::bin_kind::split, kmer_count, 1ul, trace_i);
         }
 
         if (kmer_count_per_bin > max_size)

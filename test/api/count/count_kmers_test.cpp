@@ -1,10 +1,9 @@
 #include <gtest/gtest.h>
 
+#include "../api_test.hpp"
 #include <chopper/configuration.hpp>
 #include <chopper/count/count_kmers.hpp>
 #include <chopper/detail_apply_prefix.hpp>
-
-#include "../api_test.hpp"
 
 TEST(count_kmers_test, small_example)
 {
@@ -18,15 +17,9 @@ TEST(count_kmers_test, small_example)
 
     std::string input_file = data("small.fa");
 
-    robin_hood::unordered_map<std::string, std::vector<std::string>> filename_clusters
-    {
-        {"TAX1", {input_file}}
-    };
+    robin_hood::unordered_map<std::string, std::vector<std::string>> filename_clusters{{"TAX1", {input_file}}};
 
-    std::string expected
-    {
-        input_file + "\t571\tTAX1\n"
-    };
+    std::string expected{input_file + "\t571\tTAX1\n"};
 
     chopper::count::count_kmers(filename_clusters, config);
 
@@ -49,19 +42,14 @@ TEST(count_kmers_test, small_example_parallel_2_threads)
 
     std::string input_file = data("small.fa");
 
-    robin_hood::unordered_map<std::string, std::vector<std::string>> filename_clusters
-    {
+    robin_hood::unordered_map<std::string, std::vector<std::string>> filename_clusters{
         {"TAX1", {input_file}},
-        {"TAX2", {input_file/* , input_file -- not supported by hll sketches yet*/}}
-    };
+        {"TAX2", {input_file /* , input_file -- not supported by hll sketches yet*/}}};
 
     chopper::count::count_kmers(filename_clusters, config);
 
-    std::vector<std::string> expected_components
-    {
-        input_file + "\t571\tTAX1",
-        input_file + /* ";" + input_file + */ "\t571\tTAX2"
-    };
+    std::vector<std::string> expected_components{input_file + "\t571\tTAX1",
+                                                 input_file + /* ";" + input_file + */ "\t571\tTAX2"};
 
     ASSERT_TRUE(std::filesystem::exists(config.count_filename));
     std::ifstream output_file{config.count_filename};
@@ -94,15 +82,9 @@ TEST(count_kmers_test, read_in_precomputed_binary_files)
 
     std::string input_file = data("small.minimizer");
 
-    robin_hood::unordered_map<std::string, std::vector<std::string>> filename_clusters
-    {
-        {"TAX1", {input_file}}
-    };
+    robin_hood::unordered_map<std::string, std::vector<std::string>> filename_clusters{{"TAX1", {input_file}}};
 
-    std::string expected
-    {
-        input_file + "\t571\tTAX1\n"
-    };
+    std::string expected{input_file + "\t571\tTAX1\n"};
 
     chopper::count::count_kmers(filename_clusters, config);
 

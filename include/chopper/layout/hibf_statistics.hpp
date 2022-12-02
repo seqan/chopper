@@ -8,8 +8,8 @@
 #include <numeric>
 #include <vector>
 
-#include <chopper/helper.hpp>
 #include <chopper/configuration.hpp>
+#include <chopper/helper.hpp>
 #include <chopper/layout/ibf_query_cost.hpp>
 #include <chopper/sketch/hyperloglog.hpp>
 #include <chopper/sketch/user_bin_sequence.hpp>
@@ -20,12 +20,12 @@ namespace chopper::layout
 class hibf_statistics
 {
 public:
-    hibf_statistics() = default; //!< Defaulted.
-    hibf_statistics(hibf_statistics const & b) = default; //!< Defaulted.
+    hibf_statistics() = default;                                    //!< Defaulted.
+    hibf_statistics(hibf_statistics const & b) = default;           //!< Defaulted.
     hibf_statistics & operator=(hibf_statistics const &) = default; //!< Defaulted.
-    hibf_statistics(hibf_statistics && b) = default; //!< Defaulted.
-    hibf_statistics & operator=(hibf_statistics &&) = default; //!< Defaulted.
-    ~hibf_statistics() = default; //!< Defaulted.
+    hibf_statistics(hibf_statistics && b) = default;                //!< Defaulted.
+    hibf_statistics & operator=(hibf_statistics &&) = default;      //!< Defaulted.
+    ~hibf_statistics() = default;                                   //!< Defaulted.
 
     /*!\brief Construct an empty HIBF with an empty top level IBF
      * \param[in] config_ User configuration for the HIBF.
@@ -66,31 +66,28 @@ public:
     class bin
     {
     public:
-        bin_kind const kind; //!< Either a split or merged bin.
-        size_t const cardinality; //!< The size/weight of the bin (either a kmer count or hll sketch estimation).
+        bin_kind const kind;            //!< Either a split or merged bin.
+        size_t const cardinality;       //!< The size/weight of the bin (either a kmer count or hll sketch estimation).
         size_t const num_contained_ubs; //!< [MERGED] How many UBs are merged within this TB.
-        size_t const num_spanning_tbs; //!< [SPLIT] How many TBs are used for this sindle UB.
+        size_t const num_spanning_tbs;  //!< [SPLIT] How many TBs are used for this sindle UB.
 
         level child_level; //!< [MERGED] The lower level ibf statistics.
 
-        bin() = default; //!< Defaulted.
-        bin(bin const & b) = default; //!< Defaulted.
+        bin() = default;                        //!< Defaulted.
+        bin(bin const & b) = default;           //!< Defaulted.
         bin & operator=(bin const &) = default; //!< Defaulted.
-        bin(bin && b) = default; //!< Defaulted.
-        bin & operator=(bin &&) = default; //!< Defaulted.
-        ~bin() = default; //!< Defaulted.
+        bin(bin && b) = default;                //!< Defaulted.
+        bin & operator=(bin &&) = default;      //!< Defaulted.
+        ~bin() = default;                       //!< Defaulted.
 
-        bin(bin_kind const kind_,
-            size_t const card,
-            size_t const contained_ubs,
-            size_t const spanning_tbs) :
+        bin(bin_kind const kind_, size_t const card, size_t const contained_ubs, size_t const spanning_tbs) :
             kind{kind_},
             cardinality{card},
             num_contained_ubs{contained_ubs},
             num_spanning_tbs{spanning_tbs}
         {
-            assert((kind == bin_kind::split  && num_contained_ubs == 1u) ||
-                   (kind == bin_kind::merged && num_spanning_tbs  == 1u));
+            assert((kind == bin_kind::split && num_contained_ubs == 1u)
+                   || (kind == bin_kind::merged && num_spanning_tbs == 1u));
         }
     };
 
@@ -122,28 +119,15 @@ public:
                   << ((verbose) ? "## uncorr_size : The expected size of an tmax-HIBF without FPR correction\n" : "");
 
         // print column names
-        std::cout << "# tmax"     << '\t'
-                  << "c_tmax"     << '\t'
-                  << "l_tmax"     << '\t'
-                  << "m_tmax"     << '\t'
-                  << "(l*m)_tmax" << '\t'
-                  << "size";
+        std::cout << "# tmax" << '\t' << "c_tmax" << '\t' << "l_tmax" << '\t' << "m_tmax" << '\t' << "(l*m)_tmax"
+                  << '\t' << "size";
 
         if (verbose) // uncorrected size and add level statistics
         {
-            std::cout << '\t'
-                      << "uncorr_size"         << '\t'
-                      << "level"               << '\t'
-                      << "num_ibfs"            << '\t'
-                      << "level_size"          << '\t'
-                      << "level_size_no_corr"  << '\t'
-                      << "total_num_tbs"       << '\t'
-                      << "avg_num_tbs"         << '\t'
-                      << "split_tb_percentage" << '\t'
-                      << "max_split_tb"        << '\t'
-                      << "avg_split_tb"        << '\t'
-                      << "max_factor"          << '\t'
-                      << "avg_factor";
+            std::cout << '\t' << "uncorr_size" << '\t' << "level" << '\t' << "num_ibfs" << '\t' << "level_size" << '\t'
+                      << "level_size_no_corr" << '\t' << "total_num_tbs" << '\t' << "avg_num_tbs" << '\t'
+                      << "split_tb_percentage" << '\t' << "max_split_tb" << '\t' << "avg_split_tb" << '\t'
+                      << "max_factor" << '\t' << "avg_factor";
         }
 
         std::cout << '\n';
@@ -158,20 +142,19 @@ public:
         if (t_max_64_memory == 0)
             t_max_64_memory = total_hibf_size_in_byte();
 
-        double const relative_memory_size = total_hibf_size_in_byte() /
-                                            static_cast<double>(t_max_64_memory);
+        double const relative_memory_size = total_hibf_size_in_byte() / static_cast<double>(t_max_64_memory);
         double const query_time_memory_usage_prod = expected_HIBF_query_cost * relative_memory_size;
 
         std::cout << std::fixed << std::setprecision(2);
 
         std::string level_str, num_ibfs_str, level_size_str, level_size_no_corr_str, total_num_tbs_str, avg_num_tbs_str,
-                    split_tb_percentage_str, max_split_tb_str, avg_split_tb_str, max_factor_str, avg_factor_str;
+            split_tb_percentage_str, max_split_tb_str, avg_split_tb_str, max_factor_str, avg_factor_str;
 
         size_t total_size{};
         size_t total_size_no_corr{};
 
         // go through each level and collect and output the statistics
-        auto to_string_with_precision = [] (auto num)
+        auto to_string_with_precision = [](auto num)
         {
             std::stringstream ss;
             ss << std::fixed << std::setprecision(2) << num;
@@ -193,47 +176,58 @@ public:
 
             size_t const max_split_bin_span = *std::max_element(s.max_split_tb_span.begin(), s.max_split_tb_span.end());
 
-            level_str               += ":" + to_string_with_precision(level);
-            num_ibfs_str            += ":" + to_string_with_precision(s.num_ibfs);
-            level_size_str          += ":" + to_formatted_BF_size(level_size);
-            level_size_no_corr_str  += ":" + to_formatted_BF_size(level_size_no_corr);
-            total_num_tbs_str       += ":" + to_string_with_precision(total_num_tbs);
-            avg_num_tbs_str         += ":" + to_string_with_precision(total_num_tbs / s.num_ibfs);
+            level_str += ":" + to_string_with_precision(level);
+            num_ibfs_str += ":" + to_string_with_precision(s.num_ibfs);
+            level_size_str += ":" + to_formatted_BF_size(level_size);
+            level_size_no_corr_str += ":" + to_formatted_BF_size(level_size_no_corr);
+            total_num_tbs_str += ":" + to_string_with_precision(total_num_tbs);
+            avg_num_tbs_str += ":" + to_string_with_precision(total_num_tbs / s.num_ibfs);
             split_tb_percentage_str += ":" + to_string_with_precision(split_tb_percentage);
 
             // if there are no split bins on this level, the following statistics don't make sense
             if (max_split_bin_span != 0)
             {
                 size_t const total_num_split_ubs = std::reduce(s.num_split_ubs.begin(), s.num_split_ubs.end());
-                double const avg_split_bin = static_cast<double>(total_num_split_tbs)
-                                           / static_cast<double>(total_num_split_ubs);
+                double const avg_split_bin =
+                    static_cast<double>(total_num_split_tbs) / static_cast<double>(total_num_split_ubs);
                 size_t const total_split_tb_kmers = std::reduce(s.split_tb_kmers.begin(), s.split_tb_kmers.end());
-                double const avg_factor = static_cast<double>(std::reduce(s.split_tb_corr_kmers.begin(),
-                                                                          s.split_tb_corr_kmers.end()))
-                                        / static_cast<double>(total_split_tb_kmers);
+                double const avg_factor =
+                    static_cast<double>(std::reduce(s.split_tb_corr_kmers.begin(), s.split_tb_corr_kmers.end()))
+                    / static_cast<double>(total_split_tb_kmers);
 
                 max_split_tb_str += ":" + to_string_with_precision(max_split_bin_span);
                 avg_split_tb_str += ":" + to_string_with_precision(avg_split_bin);
-                max_factor_str   += ":" + to_string_with_precision((*fp_correction)[max_split_bin_span]);
-                avg_factor_str   += ":" + to_string_with_precision(avg_factor);
+                max_factor_str += ":" + to_string_with_precision((*fp_correction)[max_split_bin_span]);
+                avg_factor_str += ":" + to_string_with_precision(avg_factor);
             }
             else
             {
                 max_split_tb_str += ":-";
                 avg_split_tb_str += ":-";
-                max_factor_str   += ":-";
-                avg_factor_str   += ":-";
+                max_factor_str += ":-";
+                avg_factor_str += ":-";
             }
         }
 
         std::cout << std::fixed << std::setprecision(2);
 
-        std::cout /*        tmax */ << config.tmax << '\t'
-                  /*      c_tmax */ << chopper::layout::ibf_query_cost::interpolated(config.tmax, config.false_positive_rate) << '\t'
-                  /*      l_tmax */ << expected_HIBF_query_cost << '\t' /*relative to a 64 bin IBF*/
-                  /*      m_tmax */ << relative_memory_size << '\t' /*relative to the 64 T_Max HIBF*/
-                  /*   (l*m)tmax */ << query_time_memory_usage_prod << '\t'
-                  /*  corr. size */ << to_formatted_BF_size(total_size) << ((verbose) ? '\t' : '\n');
+        std::cout /*        tmax */ << config.tmax
+                                    << '\t'
+                                    /*      c_tmax */
+                                    << chopper::layout::ibf_query_cost::interpolated(config.tmax,
+                                                                                     config.false_positive_rate)
+                                    << '\t'
+                                    /*      l_tmax */
+                                    << expected_HIBF_query_cost
+                                    << '\t' /*relative to a 64 bin IBF*/
+                                            /*      m_tmax */
+                                    << relative_memory_size
+                                    << '\t' /*relative to the 64 T_Max HIBF*/
+                                            /*   (l*m)tmax */
+                                    << query_time_memory_usage_prod
+                                    << '\t'
+                                    /*  corr. size */
+                                    << to_formatted_BF_size(total_size) << ((verbose) ? '\t' : '\n');
 
         if (verbose)
         {
@@ -241,17 +235,37 @@ public:
             std::cout /*uncorr. size */ << to_formatted_BF_size(total_size_no_corr) << '\t';
 
             // per level statistics:
-            std::cout /* level               */ << level_str << '\t'
-                      /* num_ibfs            */ << num_ibfs_str << '\t'
-                      /* level_size          */ << level_size_str << '\t'
-                      /* level_size_no_corr  */ << level_size_no_corr_str << '\t'
-                      /* total_num_tbs       */ << total_num_tbs_str << '\t'
-                      /* avg_num_tbs         */ << avg_num_tbs_str << '\t'
-                      /* split_tb_percentage */ << split_tb_percentage_str << '\t'
-                      /* max_split_tb        */ << max_split_tb_str << '\t'
-                      /* avg_split_tb        */ << avg_split_tb_str << '\t'
-                      /* max_factor          */ << max_factor_str << '\t'
-                      /* avg_factor          */ << avg_factor_str << '\n';
+            std::cout /* level               */ << level_str
+                                                << '\t'
+                                                /* num_ibfs            */
+                                                << num_ibfs_str
+                                                << '\t'
+                                                /* level_size          */
+                                                << level_size_str
+                                                << '\t'
+                                                /* level_size_no_corr  */
+                                                << level_size_no_corr_str
+                                                << '\t'
+                                                /* total_num_tbs       */
+                                                << total_num_tbs_str
+                                                << '\t'
+                                                /* avg_num_tbs         */
+                                                << avg_num_tbs_str
+                                                << '\t'
+                                                /* split_tb_percentage */
+                                                << split_tb_percentage_str
+                                                << '\t'
+                                                /* max_split_tb        */
+                                                << max_split_tb_str
+                                                << '\t'
+                                                /* avg_split_tb        */
+                                                << avg_split_tb_str
+                                                << '\t'
+                                                /* max_factor          */
+                                                << max_factor_str
+                                                << '\t'
+                                                /* avg_factor          */
+                                                << avg_factor_str << '\n';
         }
     }
 
@@ -266,7 +280,7 @@ public:
         // go through each level and collect the memory sizes
         for (auto const & [level, summary] : summaries)
         {
-            (void) level;
+            (void)level;
 
             total_size += std::reduce(summary.ibf_mem_size.begin(), summary.ibf_mem_size.end());
         }
@@ -282,6 +296,7 @@ public:
 
     //!\brief The estimated query cost relative to the total k-mer count in the data set.
     double expected_HIBF_query_cost{0.0};
+
 private:
     //!\brief Copy of the user configuration for this HIBF.
     configuration const config{};
@@ -331,8 +346,8 @@ private:
     */
     size_t compute_bin_size(size_t const number_of_kmers_to_be_stored) const
     {
-        return std::ceil( - static_cast<double>(number_of_kmers_to_be_stored * config.num_hash_functions) /
-               std::log(1 - std::exp(std::log(config.false_positive_rate) / config.num_hash_functions)));
+        return std::ceil(-static_cast<double>(number_of_kmers_to_be_stored * config.num_hash_functions)
+                         / std::log(1 - std::exp(std::log(config.false_positive_rate) / config.num_hash_functions)));
     }
 
     /*!\brief Compute the Bloom Filter size from `number_of_kmers_to_be_stored` and
@@ -436,16 +451,16 @@ private:
         level_summary & summary = summaries[level_summary_index];
         summary.num_ibfs += 1;
 
-        size_t max_cardinality{}, max_cardinality_no_corr{}, num_tbs{}, num_ubs{}, num_split_tbs{},
-               num_merged_tbs{}, num_split_ubs{}, num_merged_ubs{}, max_split_tb_span{},
-               split_tb_kmers{}, max_ubs_in_merged{}, split_tb_corr_kmers{};
+        size_t max_cardinality{}, max_cardinality_no_corr{}, num_tbs{}, num_ubs{}, num_split_tbs{}, num_merged_tbs{},
+            num_split_ubs{}, num_merged_ubs{}, max_split_tb_span{}, split_tb_kmers{}, max_ubs_in_merged{},
+            split_tb_corr_kmers{};
 
         for (bin const & current_bin : curr_level.bins)
         {
-            size_t const cardinality_per_split_bin = (current_bin.cardinality + current_bin.num_spanning_tbs - 1) /
-                                                     current_bin.num_spanning_tbs; // round up
-            size_t const corrected_cardinality = std::ceil(cardinality_per_split_bin *
-                                                           (*fp_correction)[current_bin.num_spanning_tbs]);
+            size_t const cardinality_per_split_bin =
+                (current_bin.cardinality + current_bin.num_spanning_tbs - 1) / current_bin.num_spanning_tbs; // round up
+            size_t const corrected_cardinality =
+                std::ceil(cardinality_per_split_bin * (*fp_correction)[current_bin.num_spanning_tbs]);
             max_cardinality = std::max(max_cardinality, corrected_cardinality);
             max_cardinality_no_corr = std::max(max_cardinality_no_corr, cardinality_per_split_bin);
 

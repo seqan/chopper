@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cassert>
-
 #include <robin_hood.h>
 
 #include <chopper/configuration.hpp>
@@ -16,7 +15,7 @@ inline void check_filenames(robin_hood::unordered_map<std::string, std::vector<s
     assert(!filename_clusters.empty());
     assert(!filename_clusters.begin()->second.empty());
 
-    auto case_insensitive_string_ends_with = [] (std::string_view str, std::string_view suffix)
+    auto case_insensitive_string_ends_with = [](std::string_view str, std::string_view suffix)
     {
         size_t const suffix_length{suffix.size()};
         size_t const str_length{str.size()};
@@ -40,15 +39,15 @@ inline void check_filenames(robin_hood::unordered_map<std::string, std::vector<s
         {
             if (config.precomputed_files && !case_insensitive_string_ends_with(filename, ".minimizer"))
             {
-                throw std::invalid_argument{"You are providing precomputed files but the file " + filename +
-                                            " does not have the correct file extension (.minimizer)."
-                                            " Mixing non-/precomputed files is not allowed."};
+                throw std::invalid_argument{"You are providing precomputed files but the file " + filename
+                                            + " does not have the correct file extension (.minimizer)."
+                                              " Mixing non-/precomputed files is not allowed."};
             }
             else if (!config.precomputed_files && case_insensitive_string_ends_with(filename, ".minimizer"))
             {
-                throw std::invalid_argument{"You are providing sequence files but the file " + filename +
-                                            " was identified as a precomputed file (.minimizer)."
-                                            " Mixing non-/precomputed files is not allowed."};
+                throw std::invalid_argument{"You are providing sequence files but the file " + filename
+                                            + " was identified as a precomputed file (.minimizer)."
+                                              " Mixing non-/precomputed files is not allowed."};
             }
         }
     }

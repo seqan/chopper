@@ -3,9 +3,8 @@
 #include <filesystem>
 #include <fstream>
 #include <future>
-#include <thread>
-
 #include <robin_hood.h>
+#include <thread>
 
 #include <seqan3/io/sequence_file/all.hpp>
 #include <seqan3/io/views/async_input_buffer.hpp>
@@ -36,14 +35,14 @@ inline void process_sequence_files(std::vector<std::string> const & filenames,
     for (auto const & filename : filenames)
         for (auto && [seq] : sequence_file_type{filename})
             for (auto && k_hash : seq | seqan3::views::kmer_hash(seqan3::ungapped{config.k}))
-                sketch.add(reinterpret_cast<char*>(&k_hash), sizeof(k_hash));
+                sketch.add(reinterpret_cast<char *>(&k_hash), sizeof(k_hash));
 }
 
 inline void process_minimizer_files(std::vector<std::string> const & filenames, sketch::hyperloglog & sketch)
 {
     // temporary variables when .minimizer files are read
     uint64_t hash{};
-    char * const hash_data{reinterpret_cast<char*>(&hash)};
+    char * const hash_data{reinterpret_cast<char *>(&hash)};
     size_t const hash_bytes{sizeof(hash)};
 
     // read files
@@ -59,7 +58,7 @@ inline void process_minimizer_files(std::vector<std::string> const & filenames, 
 inline void count_kmers(robin_hood::unordered_map<std::string, std::vector<std::string>> const & filename_clusters,
                         configuration const & config)
 {
-   // output file
+    // output file
     std::ofstream fout{config.count_filename};
 
     if (!fout.good())
@@ -74,7 +73,7 @@ inline void count_kmers(robin_hood::unordered_map<std::string, std::vector<std::
     for (auto const & cluster : filename_clusters)
         cluster_vector.emplace_back(cluster.first, cluster.second);
 
-    #pragma omp parallel for schedule(static) num_threads(config.threads)
+#pragma omp parallel for schedule(static) num_threads(config.threads)
     for (size_t i = 0; i < cluster_vector.size(); ++i)
     {
         chopper::sketch::hyperloglog sketch(config.sketch_bits);
@@ -87,7 +86,7 @@ inline void count_kmers(robin_hood::unordered_map<std::string, std::vector<std::
         // print either the exact or the approximate count, depending on exclusively_hlls
         uint64_t const weight = sketch.estimate();
 
-        #pragma omp critical
+#pragma omp critical
         write_count_file_line(cluster_vector[i], weight, fout);
 
         if (!config.disable_sketch_output)

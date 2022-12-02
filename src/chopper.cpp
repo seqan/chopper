@@ -23,7 +23,8 @@ void set_up_parser(seqan3::argument_parser & parser, chopper::configuration & co
     parser.add_subsection("Main options:");
     // -----------------------------------------------------------------------------------------------------------------
     parser.add_option(config.data_file,
-                      '\0', "input-file",
+                      '\0',
+                      "input-file",
                       "The input must be a file containing paths to sequence data you wish to estimate; one filepath "
                       "per line. If your file contains auxiliary information (e.g. species IDs), your file must be tab-"
                       "separated.",
@@ -36,12 +37,14 @@ void set_up_parser(seqan3::argument_parser & parser, chopper::configuration & co
 
     // clustering (==aggregating is not selectable at the moment)
     parser.add_option(config.column_index_to_cluster,
-                      '\0', "column-index",
+                      '\0',
+                      "column-index",
                       "The column index by which to cluster. Clustering is not supported at the moment",
                       seqan3::option_spec::hidden);
 
     parser.add_option(config.k,
-                      '\0', "kmer-size",
+                      '\0',
+                      "kmer-size",
                       "The k-mer size influences the size estimates of the input. "
                       "Choosing a k-mer size that is too small for "
                       "your data will result in files appearing more similar than they really are. Likewise, a large "
@@ -49,7 +52,8 @@ void set_up_parser(seqan3::argument_parser & parser, chopper::configuration & co
                       "[16,32] has proven to work well.");
 
     parser.add_option(config.tmax,
-                      '\0', "tmax",
+                      '\0',
+                      "tmax",
                       "Limits the number of technical bins on each level of the HIBF. Choosing a good tmax is not "
                       "trivial. The smaller tmax, the more levels the layout needs to represent the data. This results "
                       "in a higher space consumption of the index. While querying each individual level is cheap, "
@@ -61,12 +65,14 @@ void set_up_parser(seqan3::argument_parser & parser, chopper::configuration & co
                       seqan3::option_spec::required);
 
     parser.add_option(config.num_hash_functions,
-                      '\0', "num-hash-functions",
+                      '\0',
+                      "num-hash-functions",
                       "The number of hash functions to use when building the HIBF from the resulting layout. "
                       "This parameter is needed to correctly estimate the index size when computing the layout.");
 
     parser.add_option(config.false_positive_rate,
-                      '\0', "false-positive-rate",
+                      '\0',
+                      "false-positive-rate",
                       "The false positive rate you aim for when building the HIBF from the resulting layout. "
                       "This parameter is needed to correctly estimate the index size when computing the layout.");
 
@@ -81,7 +87,8 @@ void set_up_parser(seqan3::argument_parser & parser, chopper::configuration & co
     //                                                      std::numeric_limits<aggregate_by_type>::max()});
 
     parser.add_option(config.threads,
-                      '\0', "threads",
+                      '\0',
+                      "threads",
                       "The number of threads to use. Currently, only merging of sketches is parallelized, so if option "
                       "--rearrange-user-bins is not set, --threads will have no effect.",
                       seqan3::option_spec::standard,
@@ -91,13 +98,15 @@ void set_up_parser(seqan3::argument_parser & parser, chopper::configuration & co
     parser.add_line("To improve the layout, you can estimate the sequence similarities using HyperLogLog sketches.");
 
     parser.add_flag(config.estimate_union,
-                    '\0', "estimate-union",
+                    '\0',
+                    "estimate-union",
                     "Use sketches to estimate the sequence similarity among a set of user bins. This will improve the "
                     "layout computation as merging user bins that do not increase technical bin sizes will be "
                     "preferred. Attention: Only possible if the directory [INPUT-PREFIX]_sketches is present.");
 
     parser.add_flag(config.rearrange_user_bins,
-                    '\0', "rearrange-user-bins",
+                    '\0',
+                    "rearrange-user-bins",
                     "As a preprocessing step, rearranging the order of the given user bins based on their sequence "
                     "similarity may lead to favourable small unions and thus a smaller index. "
                     "Attention: Also enables --estimate-union and is only possible if the directory "
@@ -106,7 +115,8 @@ void set_up_parser(seqan3::argument_parser & parser, chopper::configuration & co
     parser.add_subsection("Parameter Tweaking:");
     // -----------------------------------------------------------------------------------------------------------------
     parser.add_option(config.alpha,
-                      '\0', "alpha",
+                      '\0',
+                      "alpha",
                       "The layout algorithm optimizes the space consumption of the resulting HIBF but currently has no "
                       "means of optimizing the runtime for querying such an HIBF. In general, the ratio of merged bins "
                       "and split bins influences the query time because a merged bin always triggers another search on "
@@ -115,7 +125,8 @@ void set_up_parser(seqan3::argument_parser & parser, chopper::configuration & co
                       seqan3::option_spec::advanced);
 
     parser.add_option(config.max_rearrangement_ratio,
-                      '\0', "max-rearrangement-ratio",
+                      '\0',
+                      "max-rearrangement-ratio",
                       "When the option --rearrange-user-bins is set, this option can influence the rearrangement "
                       "algorithm. The algorithm only rearranges the order of user bins in fixed intervals. The higher "
                       "--max-rearrangement-ratio, the larger the intervals. This potentially improves the layout, but "
@@ -124,7 +135,8 @@ void set_up_parser(seqan3::argument_parser & parser, chopper::configuration & co
                       seqan3::arithmetic_range_validator{0.0, 1.0});
 
     parser.add_option(config.sketch_bits,
-                      '\0', "sketch-bits",
+                      '\0',
+                      "sketch-bits",
                       "The number of bits the HyperLogLog sketch should use to distribute the values into bins.",
                       seqan3::option_spec::advanced,
                       seqan3::arithmetic_range_validator{5, 32});
@@ -132,7 +144,8 @@ void set_up_parser(seqan3::argument_parser & parser, chopper::configuration & co
     parser.add_subsection("Special options");
     // -----------------------------------------------------------------------------------------------------------------
     parser.add_flag(config.determine_best_tmax,
-                    '\0', "determine-best-tmax",
+                    '\0',
+                    "determine-best-tmax",
                     "When this flag is set, the program will compute multiple layouts for tmax in "
                     "[64 , 128, 256, ... , tmax] as well as tmax=sqrt(number of user bins). "
                     "The layout algorithm itself only optimizes the space consumption. When determining the best "
@@ -142,37 +155,37 @@ void set_up_parser(seqan3::argument_parser & parser, chopper::configuration & co
                     "computation is stopped. To run all layout computations, pass the flag --force-all-binnings.");
 
     parser.add_flag(config.force_all_binnings,
-                    '\0', "force-all-binnings",
+                    '\0',
+                    "force-all-binnings",
                     "Forces all layouts up to --tmax to be computed, "
                     "regardless of the layout quality. If the flag --determine-best-tmax is not set, this flag is "
                     "ignored and has no effect.");
 
     parser.add_flag(config.output_verbose_statistics,
-                    '\0', "output-verbose-statistics",
+                    '\0',
+                    "output-verbose-statistics",
                     "Enable verbose statistics to be "
                     "printed to std::cout. If the flag --determine-best-tmax is not set, this flag is ignored "
                     "and has no effect.",
                     seqan3::option_spec::hidden);
 
-    parser.add_flag(config.disable_sketch_output, '\0', "disable-sketch-output",
+    parser.add_flag(config.disable_sketch_output,
+                    '\0',
+                    "disable-sketch-output",
                     "Although the sketches will improve the layout, you might want to disable "
                     "writing the sketch files to disk. Doing so will save disk space. However, you cannot use either "
                     "--estimate-unions or --rearrange-user-bins in chopper layout without the sketches. Note that "
                     "this option does not decrease run time as sketches have to be computed either way.");
 
-    parser.add_flag(config.debug,
-                    '\0', "debug",
-                    "Enables debug output in layout file.",
-                    seqan3::option_spec::hidden);
+    parser.add_flag(config.debug, '\0', "debug", "Enables debug output in layout file.", seqan3::option_spec::hidden);
 
     parser.add_section("References");
     parser.add_line("[1] Philippe Flajolet, Éric Fusy, Olivier Gandouet, Frédéric Meunier. HyperLogLog: the analysis "
                     "of a near-optimal cardinality estimation algorithm. AofA: Analysis of Algorithms, Jun 2007, Juan "
                     "les Pins, France. pp.137-156. hal-00406166v2, https://doi.org/10.46298/dmtcs.3545");
-
 }
 
-int main(int argc, const char *argv [])
+int main(int argc, char const * argv[])
 {
     seqan3::argument_parser parser{"chopper", argc, argv, seqan3::update_notifications::off};
     parser.info.version = "1.0.0";

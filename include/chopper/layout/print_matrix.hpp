@@ -6,7 +6,7 @@ namespace chopper::layout
 {
 
 // helper function to print a matrix when debugging
-template <typename matrix_type,typename matrix_value_type>
+template <typename matrix_type, typename matrix_value_type>
 void print_matrix(matrix_type const & matrix,
                   size_t const row_bound,
                   size_t const column_bound,

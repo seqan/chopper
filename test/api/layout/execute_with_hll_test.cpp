@@ -4,13 +4,12 @@
 #include <sstream>
 #include <vector>
 
+#include "../api_test.hpp"
+#include "print_debug_file.hpp"
 #include <chopper/configuration.hpp>
 #include <chopper/count/count_kmers.hpp>
 #include <chopper/detail_apply_prefix.hpp>
 #include <chopper/layout/execute.hpp>
-
-#include "../api_test.hpp"
-#include "print_debug_file.hpp"
 
 TEST(execute_hll_test, few_ubs)
 {
@@ -25,8 +24,7 @@ TEST(execute_hll_test, few_ubs)
     std::string const small2_filename = data("small2.fa");
 
     {
-        chopper::configuration config{.data_file{data_file.get_path()},
-                                             .output_prefix{io_prefix.get_path().string()}};
+        chopper::configuration config{.data_file{data_file.get_path()}, .output_prefix{io_prefix.get_path().string()}};
         chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
         std::vector<std::string> const files{seq1_filename,
@@ -65,8 +63,7 @@ TEST(execute_hll_test, few_ubs)
 
     chopper::layout::execute(config);
 
-    std::vector<std::string> const expected_components
-    {
+    std::vector<std::string> const expected_components{
         {"##CONFIG:"},
         {"##{"},
         {"##    \"config\": {"},
@@ -107,8 +104,7 @@ TEST(execute_hll_test, few_ubs)
         {seq2_filename + "\t50\t2"},
         {seq3_filename + "\t48\t2"},
         {small_filename + "\t58\t6"},
-        {small2_filename + "\t52\t6"}
-    };
+        {small2_filename + "\t52\t6"}};
 
     std::string const actual_file{string_from_file(layout_file.get_path())};
 
@@ -119,7 +115,8 @@ TEST(execute_hll_test, few_ubs)
         if (line.empty())
             continue;
 #endif
-        EXPECT_TRUE(std::ranges::find(expected_components, line) != expected_components.end()) << "Did not find " + line;
+        EXPECT_TRUE(std::ranges::find(expected_components, line) != expected_components.end())
+            << "Did not find " + line;
         ++line_count;
     }
 
@@ -139,8 +136,7 @@ TEST(execute_hll_test, many_ubs)
     std::string const small2_filename = data("small2.fa");
 
     {
-        chopper::configuration config{.data_file{data_file.get_path()},
-                                             .output_prefix{io_prefix.get_path().string()}};
+        chopper::configuration config{.data_file{data_file.get_path()}, .output_prefix{io_prefix.get_path().string()}};
         chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
         std::vector<std::string> const files{seq1_filename,
@@ -269,8 +265,7 @@ TEST(execute_hll_test, many_ubs)
 
     chopper::layout::execute(config);
 
-    std::vector<std::string> const expected_components
-    {
+    std::vector<std::string> const expected_components{
         {"##CONFIG:"},
         {"##{"},
         {"##    \"config\": {"},
@@ -418,8 +413,7 @@ TEST(execute_hll_test, many_ubs)
         {small2_filename + "\t60\t1"},
         {small_filename + "\t61\t1"},
         {small2_filename + "\t62\t1"},
-        {small2_filename + "\t63\t1"}
-    };
+        {small2_filename + "\t63\t1"}};
     std::string const actual_file{string_from_file(layout_file.get_path())};
 
     size_t line_count{};
@@ -429,7 +423,8 @@ TEST(execute_hll_test, many_ubs)
         if (line.empty())
             continue;
 #endif
-        EXPECT_TRUE(std::ranges::find(expected_components, line) != expected_components.end()) << "Did not find " + line;
+        EXPECT_TRUE(std::ranges::find(expected_components, line) != expected_components.end())
+            << "Did not find " + line;
         ++line_count;
     }
 

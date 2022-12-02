@@ -1,10 +1,9 @@
 #include <gtest/gtest.h>
 
-#include <chopper/sketch/user_bin_sequence.hpp>
+#include <seqan3/io/sequence_file/input.hpp>
 
 #include "../api_test.hpp"
-
-#include <seqan3/io/sequence_file/input.hpp>
+#include <chopper/sketch/user_bin_sequence.hpp>
 struct input_traits : public seqan3::sequence_file_input_default_traits_dna
 {
     using sequence_alphabet = char;
@@ -16,7 +15,6 @@ using sequence_file_type = seqan3::sequence_file_input<input_traits, seqan3::fie
 struct user_bin_sequence_test : public ::testing::Test, public chopper::sketch::user_bin_sequence
 {
 public:
-
     std::vector<std::string> test_filenames{"small.fa", "small.fa", "small2.fa", "small2.fa"};
     std::vector<size_t> test_kmer_counts{500, 600, 700, 800};
 
@@ -25,14 +23,13 @@ public:
         return this->sketches;
     }
 
-    user_bin_sequence_test() :
-        user_bin_sequence{test_filenames, test_kmer_counts}
+    user_bin_sequence_test() : user_bin_sequence{test_filenames, test_kmer_counts}
     {}
 
     using user_bin_sequence::apply_permutation;
+    using user_bin_sequence::clustering_node;
     using user_bin_sequence::distance_matrix;
     using user_bin_sequence::prio_queue;
-    using user_bin_sequence::clustering_node;
 };
 
 TEST_F(user_bin_sequence_test, construction)
@@ -81,7 +78,7 @@ TEST_F(user_bin_sequence_test, read_hll_files)
     for (auto && [seq] : seq_file)
     {
         // we have to go C-style here for the chopper::sketch::HyperLogLog Interface
-        const char * it = &(*seq.begin());
+        char const * it = &(*seq.begin());
         char const * const end = it + seq.size() - k + 1;
 
         for (; it != end; ++it)
@@ -158,8 +155,8 @@ TEST_F(user_bin_sequence_test, precompute_union_estimates_for)
 TEST_F(user_bin_sequence_test, random_shuffle)
 {
     prio_queue default_pq{};
-    distance_matrix dist{{0, default_pq},{1, default_pq},{2, default_pq},{3, default_pq},{4, default_pq}};
-    robin_hood::unordered_flat_map<size_t, size_t> ids{{0,0},{1,1},{2,2},{3,3},{4,4}};
+    distance_matrix dist{{0, default_pq}, {1, default_pq}, {2, default_pq}, {3, default_pq}, {4, default_pq}};
+    robin_hood::unordered_flat_map<size_t, size_t> ids{{0, 0}, {1, 1}, {2, 2}, {3, 3}, {4, 4}};
 
     this->random_shuffle(dist, ids);
 
@@ -182,8 +179,8 @@ TEST_F(user_bin_sequence_test, random_shuffle)
 TEST_F(user_bin_sequence_test, prune)
 {
     prio_queue default_pq{};
-    distance_matrix dist{{0, default_pq},{1, default_pq},{2, default_pq},{3, default_pq},{4, default_pq}};
-    robin_hood::unordered_flat_map<size_t, size_t> remaining_ids{{0,0},{1,1},{2,2},{3,3},{4,4}};
+    distance_matrix dist{{0, default_pq}, {1, default_pq}, {2, default_pq}, {3, default_pq}, {4, default_pq}};
+    robin_hood::unordered_flat_map<size_t, size_t> remaining_ids{{0, 0}, {1, 1}, {2, 2}, {3, 3}, {4, 4}};
 
     // since remaining_ids contains all_ids, prune shouldn't do anything. All ids are valid.
     this->prune(dist, remaining_ids);
@@ -231,11 +228,16 @@ TEST_F(user_bin_sequence_test, rotate)
      *       /    \     /    \
      *   (f,f)  (f,f) (f,f) (f,f) the leaves are the UBs to be clustered
      */
-    std::vector<clustering_node> clustering{{f,f,s}, {f,f,s}, {f,f,s}, {f,f,s}, // the leaves come first
-                                            {5,6,s}, {0,1,s}, {2,3,s}};
+    std::vector<clustering_node> clustering{{f, f, s},
+                                            {f, f, s},
+                                            {f, f, s},
+                                            {f, f, s}, // the leaves come first
+                                            {5, 6, s},
+                                            {0, 1, s},
+                                            {2, 3, s}};
 
     // previous_rightmost is already at the very left. Nothing has to be rotated.
-    rotate(clustering, 0/*previous_rightmost*/, 0/*interval_start*/, 4/*root_id*/);
+    rotate(clustering, 0 /*previous_rightmost*/, 0 /*interval_start*/, 4 /*root_id*/);
 
     EXPECT_EQ(std::tie(clustering[0].left, clustering[0].right), std::tie(f, f));
     EXPECT_EQ(std::tie(clustering[1].left, clustering[1].right), std::tie(f, f));
@@ -246,7 +248,7 @@ TEST_F(user_bin_sequence_test, rotate)
     EXPECT_EQ(std::tie(clustering[6].left, clustering[6].right), std::make_tuple(2u, 3u));
 
     // now the previous_rightmost is within the tree. Rotation should take place
-    rotate(clustering, 2/*previous_rightmost*/, 0/*interval_start*/, 4/*root_id*/);
+    rotate(clustering, 2 /*previous_rightmost*/, 0 /*interval_start*/, 4 /*root_id*/);
 
     EXPECT_EQ(std::tie(clustering[0].left, clustering[0].right), std::tie(f, f));
     EXPECT_EQ(std::tie(clustering[1].left, clustering[1].right), std::tie(f, f));
@@ -270,12 +272,17 @@ TEST_F(user_bin_sequence_test, trace)
      *       /    \     /    \
      *   (f,f)  (f,f) (f,f) (f,f) the leaves are the UBs to be clustered
      */
-    std::vector<clustering_node> clustering{{f,f,s}, {f,f,s}, {f,f,s}, {f,f,s}, // the leaves come first
-                                            {5,6,s}, {1,3,s}, {2,0,s}};
+    std::vector<clustering_node> clustering{{f, f, s},
+                                            {f, f, s},
+                                            {f, f, s},
+                                            {f, f, s}, // the leaves come first
+                                            {5, 6, s},
+                                            {1, 3, s},
+                                            {2, 0, s}};
 
     std::vector<size_t> permutation{};
 
-    this->trace(clustering, permutation, 2/*previous_rightmost*/, 0/*interval_start*/, 4/*root_id*/);
+    this->trace(clustering, permutation, 2 /*previous_rightmost*/, 0 /*interval_start*/, 4 /*root_id*/);
 
     EXPECT_RANGE_EQ(permutation, (std::vector<size_t>{1, 3, 0}));
 }
@@ -286,16 +293,16 @@ TEST_F(user_bin_sequence_test, cluster_bins)
 
     { // whole range
         std::vector<size_t> permutation{};
-        this->cluster_bins(permutation, 0/*interval start*/, 3/*interval_end*/, 1/*number of threads*/);
+        this->cluster_bins(permutation, 0 /*interval start*/, 3 /*interval_end*/, 1 /*number of threads*/);
         // index 3 is not part of current permutation so it can participate in "the next interval"
-        EXPECT_RANGE_EQ(permutation, (std::vector<size_t>{2,0,1}));
+        EXPECT_RANGE_EQ(permutation, (std::vector<size_t>{2, 0, 1}));
     }
 
     { // intervals
         std::vector<size_t> permutation{};
-        this->cluster_bins(permutation, 0/*interval start*/, 1/*interval_end*/, 1/*number of threads*/);
+        this->cluster_bins(permutation, 0 /*interval start*/, 1 /*interval_end*/, 1 /*number of threads*/);
         EXPECT_RANGE_EQ(permutation, (std::vector<size_t>{0}));
-        this->cluster_bins(permutation, 1/*interval start*/, 3/*interval_end*/, 1/*number of threads*/);
-        EXPECT_RANGE_EQ(permutation, (std::vector<size_t>{0,1,2}));
+        this->cluster_bins(permutation, 1 /*interval start*/, 3 /*interval_end*/, 1 /*number of threads*/);
+        EXPECT_RANGE_EQ(permutation, (std::vector<size_t>{0, 1, 2}));
     }
 }
