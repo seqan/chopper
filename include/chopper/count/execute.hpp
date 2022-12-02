@@ -18,7 +18,7 @@ inline int execute(configuration & config)
     auto filename_clusters = read_data_file(config);
 
     if (filename_clusters.empty())
-        throw seqan3::argument_parser_error{seqan3::detail::to_string("[CHOPPER ERROR] The file ",
+        throw seqan3::argument_parser_error{seqan3::detail::to_string("The file ",
                                             config.data_file.string(), " appears to be empty.")};
 
     chopper::count::check_filenames(filename_clusters, config);

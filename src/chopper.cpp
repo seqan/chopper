@@ -196,8 +196,16 @@ int main(int argc, const char *argv [])
 
     int exit_code{};
 
-    exit_code |= chopper::count::execute(config);
-    exit_code |= chopper::layout::execute(config);
+    try
+    {
+        exit_code |= chopper::count::execute(config);
+        exit_code |= chopper::layout::execute(config);
+    }
+    catch (seqan3::argument_parser_error const & ext)
+    {
+        std::cerr << "[CHOPPER ERROR] " << ext.what() << '\n';
+        return -1;
+    }
 
     return exit_code;
 }

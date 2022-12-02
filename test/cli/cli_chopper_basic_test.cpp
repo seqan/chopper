@@ -60,11 +60,9 @@ TEST_F(cli_test, chopper_cmd_error_empty_file)
 
     std::string expected
     {
-        "terminate called after throwing an instance of 'seqan3::argument_parser_error'\n"
-        "  what():  [CHOPPER ERROR] The file " + empty_file.get_path().string() +  " appears to be empty.\n"
-        "Aborted (core dumped)\n"
+        "[CHOPPER ERROR] The file " + empty_file.get_path().string() +  " appears to be empty.\n"
     };
-    EXPECT_EQ(result.exit_code, 34304);
+    EXPECT_EQ(result.exit_code, 65280);
     EXPECT_EQ(result.out, std::string{});
     EXPECT_EQ(result.err, expected);
 }
