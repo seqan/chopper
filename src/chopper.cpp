@@ -35,10 +35,10 @@ void set_up_parser(seqan3::argument_parser & parser, chopper::configuration & co
     parser.add_list_item("", "```");
 
     // clustering (==aggregating is not selectable at the moment)
-    // parser.add_option(config.column_index_to_cluster,
-    //                   '\0', "column-index",
-    //                   "The column index by which to cluster. Clustering is not supported at the moment",
-    //                   seqan3::option_spec::hidden);
+    parser.add_option(config.column_index_to_cluster,
+                      '\0', "column-index",
+                      "The column index by which to cluster. Clustering is not supported at the moment",
+                      seqan3::option_spec::hidden);
 
     parser.add_option(config.k,
                       '\0', "kmer-size",
