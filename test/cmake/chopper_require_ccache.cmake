@@ -13,7 +13,9 @@ cmake_minimum_required (VERSION 3.15)
 # * https://ccache.dev/
 # * https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_COMPILER_LAUNCHER.html
 macro (chopper_require_ccache)
-    set (CHOPPER_USE_CCACHE ON CACHE BOOL "Use ccache if available.")
+    set (CHOPPER_USE_CCACHE
+         ON
+         CACHE BOOL "Use ccache if available.")
     set (CHOPPER_FPROFILE_ABS_PATH "-fprofile-abs-path")
     if (CHOPPER_USE_CCACHE)
         find_program (CCACHE_PROGRAM ccache)
@@ -37,17 +39,17 @@ macro (chopper_require_ccache)
 
             # use ccache in external cmake projects
             list (APPEND APP_TEMPLATE_EXTERNAL_PROJECT_CMAKE_ARGS
-                  "-DCMAKE_CXX_COMPILER_LAUNCHER=${CMAKE_CXX_COMPILER_LAUNCHER}"
-            )
-            list (APPEND APP_TEMPLATE_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_C_COMPILER_LAUNCHER=${CMAKE_C_COMPILER_LAUNCHER}")
+                  "-DCMAKE_CXX_COMPILER_LAUNCHER=${CMAKE_CXX_COMPILER_LAUNCHER}")
+            list (APPEND APP_TEMPLATE_EXTERNAL_PROJECT_CMAKE_ARGS
+                  "-DCMAKE_C_COMPILER_LAUNCHER=${CMAKE_C_COMPILER_LAUNCHER}")
 
             if (NOT CMAKE_VERSION VERSION_LESS 3.21) # cmake >= 3.21
                 list (PREPEND CMAKE_CXX_LINKER_LAUNCHER "${CCACHE_PROGRAM}")
                 list (PREPEND CMAKE_C_LINKER_LAUNCHER "${CCACHE_PROGRAM}")
                 list (APPEND APP_TEMPLATE_EXTERNAL_PROJECT_CMAKE_ARGS
-                      "-DCMAKE_CXX_LINKER_LAUNCHER=${CMAKE_CXX_LINKER_LAUNCHER}"
-                )
-                list (APPEND APP_TEMPLATE_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_C_LINKER_LAUNCHER=${CMAKE_C_LINKER_LAUNCHER}")
+                      "-DCMAKE_CXX_LINKER_LAUNCHER=${CMAKE_CXX_LINKER_LAUNCHER}")
+                list (APPEND APP_TEMPLATE_EXTERNAL_PROJECT_CMAKE_ARGS
+                      "-DCMAKE_C_LINKER_LAUNCHER=${CMAKE_C_LINKER_LAUNCHER}")
             else ()
                 set_property (GLOBAL PROPERTY RULE_LAUNCH_LINK "${CCACHE_PROGRAM}")
             endif ()

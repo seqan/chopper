@@ -9,12 +9,14 @@ project (chopper VERSION 1.0.0)
 
 # Make Release default build type
 if (NOT CMAKE_BUILD_TYPE)
-    set (CMAKE_BUILD_TYPE Release CACHE STRING
-         "Choose the type of build, options are: Debug Release Coverage RelWithDebInfo MinSizeRel."
-         FORCE)
+    set (CMAKE_BUILD_TYPE
+         Release
+         CACHE STRING "Choose the type of build, options are: Debug Release Coverage RelWithDebInfo MinSizeRel." FORCE)
 endif ()
 
-set (CHOPPER_SUBMODULES_DIR "${CMAKE_CURRENT_LIST_DIR}/lib" CACHE STRING "Directory containing submodules.")
+set (CHOPPER_SUBMODULES_DIR
+     "${CMAKE_CURRENT_LIST_DIR}/lib"
+     CACHE STRING "Directory containing submodules.")
 
 # Flag checks
 include (CheckCXXCompilerFlag)
@@ -38,8 +40,12 @@ endif ()
 set (CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set (CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
-set (CMAKE_INSTALL_LIBDIR "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}" CACHE STRING "")
-set (CMAKE_INSTALL_BINDIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}" CACHE STRING "")
+set (CMAKE_INSTALL_LIBDIR
+     "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}"
+     CACHE STRING "")
+set (CMAKE_INSTALL_BINDIR
+     "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+     CACHE STRING "")
 
 # Messages
 string (ASCII 27 Esc)
@@ -85,8 +91,7 @@ else ()
         CMAKE_ARGS "${CHOPPER_XXHASH_ARGS}"
         SOURCE_SUBDIR cmake_unofficial
         BUILD_BYPRODUCTS "${CHOPPER_XXHASH_PATH}"
-        UPDATE_DISCONNECTED 1
-    )
+        UPDATE_DISCONNECTED 1)
 endif ()
 
 add_library (xxhash STATIC IMPORTED)
@@ -95,10 +100,12 @@ set_target_properties (xxhash PROPERTIES IMPORTED_LOCATION "${CHOPPER_XXHASH_PAT
 target_include_directories (xxhash INTERFACE "${PROJECT_BINARY_DIR}/include")
 
 # Use ccache.
-set (CHOPPER_USE_CCACHE ON CACHE BOOL "Use ccache if available.")
+set (CHOPPER_USE_CCACHE
+     ON
+     CACHE BOOL "Use ccache if available.")
 if (CHOPPER_USE_CCACHE)
-     include (chopper_require_ccache)
-     chopper_require_ccache ()
+    include (chopper_require_ccache)
+    chopper_require_ccache ()
 endif ()
 
 # Add the application.
@@ -107,14 +114,18 @@ message (STATUS "${FontBold}You can run `make` to build the application.${FontRe
 
 ## DOCUMENTATION
 
-set (CHOPPER_BUILD_DOC ON CACHE BOOL "Build chopper documentation.")
+set (CHOPPER_BUILD_DOC
+     ON
+     CACHE BOOL "Build chopper documentation.")
 if (CHOPPER_BUILD_DOC)
     add_subdirectory (doc EXCLUDE_FROM_ALL)
 endif ()
 
 ## TEST
 
-set (CHOPPER_BUILD_TEST ON CACHE BOOL "Build chopper tests.")
+set (CHOPPER_BUILD_TEST
+     ON
+     CACHE BOOL "Build chopper tests.")
 if (CHOPPER_BUILD_TEST)
     enable_testing ()
     add_subdirectory (test EXCLUDE_FROM_ALL)
