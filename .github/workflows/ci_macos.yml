@@ -91,7 +91,7 @@ jobs:
           mkdir build
           cd build
           cmake ../chopper -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-                           -DCMAKE_CXX_FLAGS="-Werror -Wno-interference-size ${{ matrix.cxx_flags }}" \
+                           -DCMAKE_CXX_FLAGS="-Wno-interference-size ${{ matrix.cxx_flags }}" \
 
       - name: Build tests
         env:

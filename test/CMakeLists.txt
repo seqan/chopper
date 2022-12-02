@@ -35,6 +35,7 @@ macro (add_app_test test_filename test_alternative)
     # Create the test target.
     add_executable (${target} ${test_filename})
     target_link_libraries (${target} "${PROJECT_NAME}_lib" seqan3::seqan3 gtest gtest_main)
+    target_compile_options (${target} PRIVATE "-Werror")
 
     # Make seqan3::test available for both cli and api tests.
     target_include_directories (${target} PUBLIC "${SEQAN3_CLONE_DIR}/test/include")
@@ -85,5 +86,7 @@ else ()
     add_subdirectory (cli)
     add_subdirectory (coverage)
 endif ()
+
+add_dependencies (cli_test measure_hyperloglog)
 
 message (STATUS "${FontBold}You can run `make test` to build and run tests.${FontReset}")

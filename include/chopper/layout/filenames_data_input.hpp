@@ -43,7 +43,7 @@ inline auto read_filename_data_file(data_store & data, configuration const & con
 
         // read kmer_count
         ++ptr; // skip tab
-        size_t tmp;
+        size_t tmp{};
         auto res = std::from_chars(ptr, buffer_end, tmp);
         data.kmer_counts.push_back(tmp);
         ptr = res.ptr;

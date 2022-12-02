@@ -14,6 +14,17 @@
 #include <chopper/sketch/hyperloglog.hpp>
 #include <chopper/sketch/user_bin_sequence.hpp>
 
+/*!\brief Workaround bogus memcpy errors in GCC 12.1 and 12.2. (Wrestrict and Wstringop-overflow)
+ * \see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=105545
+ */
+#ifndef CHOPPER_WORKAROUND_GCC_BOGUS_MEMCPY
+#    if defined(__GNUC__) && !defined(__llvm__) && !defined(__INTEL_COMPILER) && (__GNUC__ == 12 && __GNUC_MINOR__ < 3)
+#        define CHOPPER_WORKAROUND_GCC_BOGUS_MEMCPY 1
+#    else
+#        define CHOPPER_WORKAROUND_GCC_BOGUS_MEMCPY 0
+#    endif
+#endif
+
 namespace chopper::layout
 {
 
@@ -176,6 +187,11 @@ public:
 
             size_t const max_split_bin_span = *std::max_element(s.max_split_tb_span.begin(), s.max_split_tb_span.end());
 
+#if CHOPPER_WORKAROUND_GCC_BOGUS_MEMCPY
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wrestrict"
+#endif // CHOPPER_WORKAROUND_GCC_BOGUS_MEMCPY
+
             level_str += ":" + to_string_with_precision(level);
             num_ibfs_str += ":" + to_string_with_precision(s.num_ibfs);
             level_size_str += ":" + to_formatted_BF_size(level_size);
@@ -183,6 +199,10 @@ public:
             total_num_tbs_str += ":" + to_string_with_precision(total_num_tbs);
             avg_num_tbs_str += ":" + to_string_with_precision(total_num_tbs / s.num_ibfs);
             split_tb_percentage_str += ":" + to_string_with_precision(split_tb_percentage);
+
+#if CHOPPER_WORKAROUND_GCC_BOGUS_MEMCPY
+#    pragma GCC diagnostic pop
+#endif // CHOPPER_WORKAROUND_GCC_BOGUS_MEMCPY
 
             // if there are no split bins on this level, the following statistics don't make sense
             if (max_split_bin_span != 0)
