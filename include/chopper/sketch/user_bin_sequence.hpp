@@ -141,7 +141,9 @@ public:
         try
         {
             for (auto const & filename : target_filenames)
-            {
+            {   if (std::filesystem::path(filename).extension() !=".empty_bin"){ //Myrthe
+
+
                 std::filesystem::path path = hll_dir / std::filesystem::path(filename).stem();
                 path += ".hll";
                 std::ifstream hll_fin(path, std::ios::binary);
@@ -151,6 +153,8 @@ public:
 
                 // the sketch bits will be automatically read from the files
                 target.emplace_back().restore(hll_fin);
+
+                }
 
             }
         }

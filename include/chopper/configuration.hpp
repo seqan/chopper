@@ -12,7 +12,8 @@ namespace chopper
 {
 
 struct configuration
-{
+{   double update_ubs{0}; //Myrthe, todo add defaults descriptions.
+    bool update_seqs{false};
     /*!\name General Configuration
      * \{
      */

@@ -20,6 +20,25 @@ inline void set_up_parser(sharg::parser & parser, chopper::configuration & confi
 
     parser.add_subsection("Main options:");
     // -----------------------------------------------------------------------------------------------------------------
+
+    parser.add_option(
+            config.update_ubs,
+            sharg::config{
+                    .short_id = '\0',
+                    .long_id = "update-UBs",
+                    .description =
+                    "Provide a percentage of how many extra UBs need to be sampled",
+            }); //myrthe
+
+    parser.add_flag(
+            config.update_seqs,
+            sharg::config{
+                    .short_id = '\0',
+                    .long_id = "update-sequences",
+                    .description =
+                    "", //todo
+                    }); //myrthe
+
     parser.add_option(
         config.data_file,
         sharg::config{

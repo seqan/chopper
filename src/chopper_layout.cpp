@@ -116,6 +116,11 @@ namespace chopper::layout
                       << "anyway, so we increased your number of technical bins to " << config.tmax << ".\n";
         }
 
+        if (config.update_seqs != 0) {
+            //todo myrthe
+            // also add extra space to existing ubs, if update_seqs, but this may better be done in building HIBF.
+        }
+
         data.compute_fp_correction(config.false_positive_rate, config.num_hash_functions, config.tmax);
 
         // TODO aggregating is outdated. Has to be reworked when needed
