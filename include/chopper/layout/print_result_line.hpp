@@ -2,7 +2,7 @@
 
 #include <fstream>
 
-#include <chopper/layout/data_store.hpp>
+#include <chopper/data_store.hpp>
 #include <chopper/layout/previous_level.hpp>
 
 namespace chopper::layout

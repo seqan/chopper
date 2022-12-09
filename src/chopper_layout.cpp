@@ -15,7 +15,7 @@
 namespace chopper::layout
 {
 
-void sanity_checks(layout::data_store const & data, chopper::configuration & config)
+void sanity_checks(data_store const & data, chopper::configuration & config)
 {
     if (config.rearrange_user_bins)
         config.estimate_union = true;
@@ -25,7 +25,7 @@ void sanity_checks(layout::data_store const & data, chopper::configuration & con
             sharg::detail::to_string("The file ", config.count_filename.string(), " appears to be empty.")};
 }
 
-size_t determine_best_number_of_technical_bins(chopper::layout::data_store & data, chopper::configuration & config)
+size_t determine_best_number_of_technical_bins(chopper::data_store & data, chopper::configuration & config)
 {
     std::stringstream * const output_buffer_original = data.output_buffer;
     std::stringstream * const header_buffer_original = data.header_buffer;
@@ -103,7 +103,7 @@ size_t determine_best_number_of_technical_bins(chopper::layout::data_store & dat
 
 int execute(chopper::configuration & config)
 {
-    chopper::layout::data_store data;
+    chopper::data_store data;
 
     // Read in the data file containing file paths, kmer counts and additional information.
     chopper::layout::read_filename_data_file(data, config);

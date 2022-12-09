@@ -5,7 +5,7 @@
 #include "../api_test.hpp"
 #include <chopper/configuration.hpp>
 #include <chopper/detail_apply_prefix.hpp>
-#include <chopper/layout/data_store.hpp>
+#include <chopper/data_store.hpp>
 #include <chopper/layout/execute.hpp>
 #include <chopper/layout/hibf_statistics.hpp>
 
@@ -18,7 +18,7 @@ TEST(hibf_statistics, only_merged_on_top_level)
     size_t const lower_level_split_bin_span = 1u;
 
     chopper::configuration config{}; // default config
-    chopper::layout::data_store data{};
+    chopper::data_store data{};
     data.compute_fp_correction(config.false_positive_rate, config.num_hash_functions, lower_level_split_bin_span);
     std::vector<size_t> kmer_counts{50, 50};
 

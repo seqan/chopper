@@ -1,7 +1,7 @@
 #pragma once
 
 #include <chopper/configuration.hpp>
-#include <chopper/layout/data_store.hpp>
+#include <chopper/data_store.hpp>
 
 namespace chopper::layout
 {

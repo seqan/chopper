@@ -10,7 +10,7 @@
 #include <chopper/layout/previous_level.hpp>
 #include <chopper/sketch/user_bin_sequence.hpp>
 
-namespace chopper::layout
+namespace chopper
 {
 
 struct data_store
@@ -37,10 +37,10 @@ struct data_store
     //!\brief A reference to the stream to cache the header to.
     std::stringstream * header_buffer{nullptr};
     //!\brief Information about previous levels of the IBF if the algorithm is called recursively.
-    previous_level previous{};
+    layout::previous_level previous{};
 
     //!\brief An object starting at the top level IBF to collecting statistics about the HIBF on the way.
-    hibf_statistics::level * stats{nullptr};
+    layout::hibf_statistics::level * stats{nullptr};
 
     //!\brief Precompute f_h factors that adjust the split bin size to prevent FPR inflation due to multiple testing.
     void compute_fp_correction(double const fp_rate, size_t const num_hash_functions, size_t const requested_max_tb)
@@ -61,4 +61,4 @@ struct data_store
     }
 };
 
-} // namespace chopper::layout
+} // namespace chopper

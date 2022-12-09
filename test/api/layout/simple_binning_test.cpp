@@ -9,7 +9,7 @@
 TEST(simple_binning_test, small_example)
 {
     std::stringstream output_buffer;
-    chopper::layout::data_store data;
+    chopper::data_store data;
     data.output_buffer = &output_buffer;
     data.header_buffer = &output_buffer;
     data.kmer_counts = {100, 40, 20, 20};
@@ -33,7 +33,7 @@ TEST(simple_binning_test, small_example)
 TEST(simple_binning_test, uniform_distribution)
 {
     std::stringstream output_buffer;
-    chopper::layout::data_store data;
+    chopper::data_store data;
     data.output_buffer = &output_buffer;
     data.header_buffer = &output_buffer;
     data.kmer_counts = {20, 20, 20, 20};
@@ -57,7 +57,7 @@ TEST(simple_binning_test, uniform_distribution)
 TEST(simple_binning_test, user_bins_must_be_smaller_than_technical_bins)
 {
     std::stringstream output_buffer;
-    chopper::layout::data_store data;
+    chopper::data_store data;
     data.output_buffer = &output_buffer;
     data.header_buffer = &output_buffer;
     data.kmer_counts = {100, 40, 20, 20};
