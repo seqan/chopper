@@ -15,6 +15,22 @@ namespace chopper
 
 struct data_store
 {
+    /*!\name References to global instances of the HIBF.
+     * \{
+     */
+    //!\brief The desired maximum false positive rate of the resulting index.
+    double const false_positive_rate{};
+
+    //!\brief A reference to the output stream to cache the results to.
+    std::stringstream * output_buffer{nullptr};
+
+    //!\brief A reference to the stream to cache the header to.
+    std::stringstream * header_buffer{nullptr};
+
+    //!\brief An object starting at the top level IBF to collecting statistics about the HIBF on the way.
+    layout::hibf_statistics::level * stats{nullptr};
+    //!\}
+
     /*!\name Local Storage one IBF in the HIBF.
      *
      * These member variables change on each IBF of the HIBF s.t. the current IBF can be constructed from
@@ -34,7 +50,7 @@ struct data_store
     std::vector<double> fp_correction{};
 
     //!\brief Stores sketches if needed and provides utility functions for user bin rearrangement or union estimation.
-    sketch::user_bin_sequence sketch_toolbox;
+    sketch::user_bin_sequence sketch_toolbox{};
 
     //!\brief Information about previous levels of the IBF if the algorithm is called recursively.
     layout::previous_level previous{};
@@ -43,22 +59,6 @@ struct data_store
     std::vector<uint64_t> union_estimates{};
 
     bool user_bins_arranged{false};
-    //!\}
-
-    /*!\name References to global instances of the HIBF.
-     * \{
-     */
-    //!\brief The desired maximum false positive rate of the resulting index.
-    double false_positive_rate{};
-
-    //!\brief A reference to the output stream to cache the results to.
-    std::stringstream * output_buffer{nullptr};
-
-    //!\brief A reference to the stream to cache the header to.
-    std::stringstream * header_buffer{nullptr};
-
-    //!\brief An object starting at the top level IBF to collecting statistics about the HIBF on the way.
-    layout::hibf_statistics::level * stats{nullptr};
     //!\}
 
     //!\brief Precompute f_h factors that adjust the split bin size to prevent FPR inflation due to multiple testing.

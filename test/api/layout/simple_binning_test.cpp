@@ -9,9 +9,7 @@
 TEST(simple_binning_test, small_example)
 {
     std::stringstream output_buffer;
-    chopper::data_store data;
-    data.output_buffer = &output_buffer;
-    data.header_buffer = &output_buffer;
+    chopper::data_store data{.output_buffer = &output_buffer, .header_buffer = &output_buffer};
     data.kmer_counts = {100, 40, 20, 20};
     data.filenames = {"seq1", "seq2", "seq3", "seq4"};
     data.fp_correction = std::vector<double>(65, 1.0);
@@ -33,9 +31,7 @@ TEST(simple_binning_test, small_example)
 TEST(simple_binning_test, uniform_distribution)
 {
     std::stringstream output_buffer;
-    chopper::data_store data;
-    data.output_buffer = &output_buffer;
-    data.header_buffer = &output_buffer;
+    chopper::data_store data{.output_buffer = &output_buffer, .header_buffer = &output_buffer};
     data.kmer_counts = {20, 20, 20, 20};
     data.filenames = {"seq1", "seq2", "seq3", "seq4"};
     data.fp_correction = std::vector<double>(65, 1.0);
@@ -57,14 +53,14 @@ TEST(simple_binning_test, uniform_distribution)
 TEST(simple_binning_test, user_bins_must_be_smaller_than_technical_bins)
 {
     std::stringstream output_buffer;
-    chopper::data_store data;
-    data.output_buffer = &output_buffer;
-    data.header_buffer = &output_buffer;
-    data.kmer_counts = {100, 40, 20, 20};
-    data.filenames = {"seq1", "seq2", "seq3", "seq4"};
-    data.fp_correction = std::vector<double>(65, 1.0);
     chopper::layout::hibf_statistics global_stats_dummy{};
-    data.stats = &global_stats_dummy.top_level_ibf;
+
+    chopper::data_store data{.output_buffer = &output_buffer,
+                             .header_buffer = &output_buffer,
+                             .stats = &global_stats_dummy.top_level_ibf,
+                             .filenames = {"seq1", "seq2", "seq3", "seq4"},
+                             .kmer_counts = {100, 40, 20, 20},
+                             .fp_correction = std::vector<double>(65, 1.0)};
 
     EXPECT_THROW((chopper::layout::simple_binning{data, 2}), std::runtime_error);
 }
