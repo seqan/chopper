@@ -91,9 +91,16 @@ TEST(execute_test, chopper_layout_statistics)
     };
     chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
+    std::stringstream output_buffer;
+    std::stringstream header_buffer;
+
+    chopper::data_store data{.false_positive_rate = config.false_positive_rate,
+                             .output_buffer = &output_buffer,
+                             .header_buffer = &header_buffer};
+
     testing::internal::CaptureStdout();
     testing::internal::CaptureStderr();
-    chopper::layout::execute(config);
+    chopper::layout::execute(config, data);
     std::string layout_result_stdout = testing::internal::GetCapturedStdout();
     std::string layout_result_stderr = testing::internal::GetCapturedStderr();
 
@@ -148,7 +155,14 @@ TEST(execute_test, chopper_layout_statistics_determine_best_bins)
                                   .output_verbose_statistics = true};
     chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
-    chopper::layout::execute(config);
+    std::stringstream output_buffer;
+    std::stringstream header_buffer;
+
+    chopper::data_store data{.false_positive_rate = config.false_positive_rate,
+                             .output_buffer = &output_buffer,
+                             .header_buffer = &header_buffer};
+
+    chopper::layout::execute(config, data);
 
     std::string expected_cout =
         R"expected_cout(## ### Parameters ###

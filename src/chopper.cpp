@@ -4,6 +4,7 @@
 
 #include <chopper/configuration.hpp>
 #include <chopper/count/execute.hpp>
+#include <chopper/data_store.hpp>
 #include <chopper/detail_apply_prefix.hpp>
 #include <chopper/layout/execute.hpp>
 #include <chopper/set_up_parser.hpp>
@@ -32,10 +33,18 @@ int main(int argc, char const * argv[])
 
     int exit_code{};
 
+
+    std::stringstream output_buffer;
+    std::stringstream header_buffer;
+
+    chopper::data_store data{.false_positive_rate = config.false_positive_rate,
+                             .output_buffer = &output_buffer,
+                             .header_buffer = &header_buffer};
+
     try
     {
         exit_code |= chopper::count::execute(config);
-        exit_code |= chopper::layout::execute(config);
+        exit_code |= chopper::layout::execute(config, data);
     }
     catch (sharg::parser_error const & ext)
     {

@@ -33,7 +33,14 @@ TEST(execute_test, few_ubs)
     config.output_filename = layout_file.get_path();
     chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
-    chopper::layout::execute(config);
+    std::stringstream output_buffer;
+    std::stringstream header_buffer;
+
+    chopper::data_store data{.false_positive_rate = config.false_positive_rate,
+                             .output_buffer = &output_buffer,
+                             .header_buffer = &header_buffer};
+
+    chopper::layout::execute(config, data);
 
     std::string const expected_file{"##CONFIG:\n"
                                     "##{\n"
@@ -115,7 +122,14 @@ TEST(execute_test, few_ubs_debug)
     config.debug = true;
     chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
-    chopper::layout::execute(config);
+    std::stringstream output_buffer;
+    std::stringstream header_buffer;
+
+    chopper::data_store data{.false_positive_rate = config.false_positive_rate,
+                             .output_buffer = &output_buffer,
+                             .header_buffer = &header_buffer};
+
+    chopper::layout::execute(config, data);
 
     std::string const expected_file{
 
@@ -273,7 +287,14 @@ TEST(execute_test, many_ubs_debug)
     config.debug = true;
     chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
-    chopper::layout::execute(config);
+    std::stringstream output_buffer;
+    std::stringstream header_buffer;
+
+    chopper::data_store data{.false_positive_rate = config.false_positive_rate,
+                             .output_buffer = &output_buffer,
+                             .header_buffer = &header_buffer};
+
+    chopper::layout::execute(config, data);
 
     std::string const expected_file{"##CONFIG:\n"
                                     "##{\n"

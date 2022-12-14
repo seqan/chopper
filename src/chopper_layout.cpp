@@ -101,15 +101,8 @@ size_t determine_best_number_of_technical_bins(chopper::data_store & data, chopp
     return max_hibf_id;
 }
 
-int execute(chopper::configuration & config)
+int execute(chopper::configuration & config, chopper::data_store & data)
 {
-    std::stringstream output_buffer;
-    std::stringstream header_buffer;
-
-    chopper::data_store data{.false_positive_rate = config.false_positive_rate,
-                             .output_buffer = &output_buffer,
-                             .header_buffer = &header_buffer};
-
     // Read in the data file containing file paths, kmer counts and additional information.
     chopper::layout::read_filename_data_file(data, config);
 
@@ -153,8 +146,8 @@ int execute(chopper::configuration & config)
 
     // brief Write the output to the layout file.
     std::ofstream fout{config.output_filename};
-    write_layout_header_to(config, max_hibf_id, header_buffer.str(), fout);
-    fout << output_buffer.str();
+    write_layout_header_to(config, max_hibf_id, data.header_buffer->str(), fout);
+    fout << data.output_buffer->str();
 
     return 0;
 }

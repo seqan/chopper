@@ -56,12 +56,14 @@ TEST(execute_hll_test, few_ubs)
     config.output_filename = layout_file.get_path();
     chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
-    // char const * const argv[] = {"./chopper-layout",
-    //                              "--tmax", "64",
-    //                              "--input-prefix", io_prefix.get_path().c_str(),
-    //                              "--output-filename", layout_file.get_path().c_str()};
+    std::stringstream output_buffer;
+    std::stringstream header_buffer;
 
-    chopper::layout::execute(config);
+    chopper::data_store data{.false_positive_rate = config.false_positive_rate,
+                             .output_buffer = &output_buffer,
+                             .header_buffer = &header_buffer};
+
+    chopper::layout::execute(config, data);
 
     std::vector<std::string> const expected_components{
         {"##CONFIG:"},
@@ -263,7 +265,14 @@ TEST(execute_hll_test, many_ubs)
     config.output_filename = layout_file.get_path();
     chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
-    chopper::layout::execute(config);
+    std::stringstream output_buffer;
+    std::stringstream header_buffer;
+
+    chopper::data_store data{.false_positive_rate = config.false_positive_rate,
+                             .output_buffer = &output_buffer,
+                             .header_buffer = &header_buffer};
+
+    chopper::layout::execute(config, data);
 
     std::vector<std::string> const expected_components{
         {"##CONFIG:"},

@@ -35,7 +35,14 @@ TEST(execute_estimation_test, few_ubs)
     config.output_filename = layout_file.get_path();
     chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
-    chopper::layout::execute(config);
+    std::stringstream output_buffer;
+    std::stringstream header_buffer;
+
+    chopper::data_store data{.false_positive_rate = config.false_positive_rate,
+                             .output_buffer = &output_buffer,
+                             .header_buffer = &header_buffer};
+
+    chopper::layout::execute(config, data);
 
     ASSERT_TRUE(std::filesystem::exists(stats_file));
 
@@ -60,6 +67,10 @@ TEST(execute_estimation_test, few_ubs)
 64	1.00	1.00	1.00	1.00	17.5KiB
 # Best t_max (regarding expected query runtime): 64
 )expected_cout");
+<<<<<<< HEAD
+=======
+
+>>>>>>> [MISC] Move data outside of chopper layout.
 }
 
 TEST(execute_estimation_test, many_ubs)
@@ -83,7 +94,14 @@ TEST(execute_estimation_test, many_ubs)
     config.output_filename = layout_file.get_path();
     chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
-    chopper::layout::execute(config);
+    std::stringstream output_buffer;
+    std::stringstream header_buffer;
+
+    chopper::data_store data{.false_positive_rate = config.false_positive_rate,
+                             .output_buffer = &output_buffer,
+                             .header_buffer = &header_buffer};
+
+    chopper::layout::execute(config, data);
 
     ASSERT_TRUE(std::filesystem::exists(stats_file));
 
@@ -137,7 +155,14 @@ TEST(execute_estimation_test, many_ubs_force_all)
     config.output_filename = layout_file.get_path();
     chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
-    chopper::layout::execute(config);
+    std::stringstream output_buffer;
+    std::stringstream header_buffer;
+
+    chopper::data_store data{.false_positive_rate = config.false_positive_rate,
+                             .output_buffer = &output_buffer,
+                             .header_buffer = &header_buffer};
+
+    chopper::layout::execute(config, data);
 
     ASSERT_TRUE(std::filesystem::exists(stats_file));
 
@@ -217,7 +242,14 @@ TEST(execute_estimation_test, with_rearrangement)
     config.output_filename = layout_file.get_path();
     chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
-    chopper::layout::execute(config);
+    std::stringstream output_buffer;
+    std::stringstream header_buffer;
+
+    chopper::data_store data{.false_positive_rate = config.false_positive_rate,
+                             .output_buffer = &output_buffer,
+                             .header_buffer = &header_buffer};
+
+    chopper::layout::execute(config, data);
 
     ASSERT_TRUE(std::filesystem::exists(stats_file));
 
