@@ -7,6 +7,7 @@
 #include <chopper/data_store.hpp>
 #include <chopper/detail_apply_prefix.hpp>
 #include <chopper/layout/execute.hpp>
+#include <chopper/sketch/estimate_kmer_counts.hpp>
 #include <chopper/set_up_parser.hpp>
 
 int main(int argc, char const * argv[])
@@ -37,14 +38,15 @@ int main(int argc, char const * argv[])
     std::stringstream output_buffer;
     std::stringstream header_buffer;
 
-    chopper::data_store data{.false_positive_rate = config.false_positive_rate,
-                             .output_buffer = &output_buffer,
-                             .header_buffer = &header_buffer};
+    chopper::data_store store{.false_positive_rate = config.false_positive_rate,
+                              .output_buffer = &output_buffer,
+                              .header_buffer = &header_buffer};
 
     try
     {
-        exit_code |= chopper::count::execute(config);
-        exit_code |= chopper::layout::execute(config, data);
+        exit_code |= chopper::count::execute(config, store);
+        chopper::sketch::estimate_kmer_counts(store);
+        exit_code |= chopper::layout::execute(config, store);
     }
     catch (sharg::parser_error const & ext)
     {

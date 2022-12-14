@@ -21,6 +21,11 @@ struct data_store
     //!\brief The desired maximum false positive rate of the resulting index.
     double const false_positive_rate{};
 
+    //!\brief The desired maximum false positive rate of the resulting index.
+    std::vector<sketch::hyperloglog> all_sketches{};
+
+    robin_hood::unordered_map<std::string, size_t> all_sketches_map{};
+
     //!\brief A reference to the output stream to cache the results to.
     std::stringstream * output_buffer{nullptr};
 
@@ -42,6 +47,9 @@ struct data_store
 
     //!\brief The kmer counts associated with the above files used to layout user bin into technical bins.
     std::vector<size_t> kmer_counts{};
+
+    //!\brief Extra information in given in the input file
+    std::vector<std::string> extra_information_strings{};
 
     //!\brief Extra information in given in the input file
     std::vector<std::vector<std::string>> extra_information{};

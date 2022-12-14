@@ -103,9 +103,6 @@ size_t determine_best_number_of_technical_bins(chopper::data_store & data, chopp
 
 int execute(chopper::configuration & config, chopper::data_store & data)
 {
-    // Read in the data file containing file paths, kmer counts and additional information.
-    chopper::layout::read_filename_data_file(data, config);
-
     sanity_checks(data, config);
 
     if (config.tmax % 64 != 0)

@@ -25,8 +25,7 @@ TEST_F(cli_test, chopper_layout)
     {
         std::ofstream fout{taxa_filename.get_path()};
         fout << seq_filename << '\t' << "TAX1\n"
-             << seq_filename << '\t'
-             << "TAX2\n"
+             << seq_filename << '\t' << "TAX2\n"
              /* << seq_filename << '\t' << "TAX2\n" */
              << seq_filename << '\t' << "TAX3\n";
     }
@@ -35,8 +34,6 @@ TEST_F(cli_test, chopper_layout)
                                          "--kmer-size",
                                          "15",
                                          "--threads",
-                                         "2",
-                                         "--column-index",
                                          "2",
                                          "--disable-sketch-output",
                                          "--input-file",
@@ -49,32 +46,6 @@ TEST_F(cli_test, chopper_layout)
     EXPECT_EQ(result.exit_code, 0);
     EXPECT_EQ(result.out, std::string{});
     EXPECT_EQ(result.err, std::string{});
-
-    std::vector<std::string> expected_components{seq_filename + "\t571\tTAX3",
-                                                 seq_filename + /* ";" + seq_filename + */ "\t571\tTAX2",
-                                                 seq_filename + "\t571\tTAX1"};
-
-    std::ifstream count_file{sketch_prefix /* .get_path() */.string() + ".count"};
-    std::string const count_file_str((std::istreambuf_iterator<char>(count_file)), std::istreambuf_iterator<char>());
-
-    size_t line_count{};
-    for (auto && line : count_file_str | std::views::split('\n') | seqan3::ranges::to<std::vector<std::string>>())
-    {
-#if defined(__GNUC__) && (__GNUC__ == 12)
-        if (line.empty())
-            continue;
-#endif
-        EXPECT_TRUE(std::ranges::find(expected_components, line) != expected_components.end()) << "missing:" << line;
-        ++line_count;
-    }
-
-    EXPECT_EQ(expected_components.size(), line_count);
-
-    // Overwrite result file with expected order of elements.
-    {
-        std::ofstream fout{sketch_prefix /* .get_path() */.string() + ".count"};
-        fout << (expected_components | seqan3::views::join_with(std::string{'\n'}) | seqan3::ranges::to<std::string>());
-    }
 
     std::string expected_file{"##CONFIG:\n"
                               "##{\n"
@@ -167,33 +138,6 @@ TEST_F(cli_test, chopper_layout2)
     EXPECT_EQ(result.exit_code, 0);
     EXPECT_EQ(result.out, std::string{});
     EXPECT_EQ(result.err, std::string{});
-
-    std::vector<std::string> expected_components{seq4_filename + "\t588\t" + seq4_filename,
-                                                 seq1_filename + "\t383\t" + seq1_filename,
-                                                 seq2_filename + "\t467\t" + seq2_filename,
-                                                 seq3_filename + "\t468\t" + seq3_filename};
-
-    std::ifstream count_file{sketch_prefix /* .get_path() */.string() + ".count"};
-    std::string const count_file_str((std::istreambuf_iterator<char>(count_file)), std::istreambuf_iterator<char>());
-
-    size_t line_count{};
-    for (auto && line : count_file_str | std::views::split('\n') | seqan3::ranges::to<std::vector<std::string>>())
-    {
-#if defined(__GNUC__) && (__GNUC__ == 12)
-        if (line.empty())
-            continue;
-#endif
-        EXPECT_TRUE(std::ranges::find(expected_components, line) != expected_components.end()) << "Missing:" << line;
-        ++line_count;
-    }
-
-    EXPECT_EQ(expected_components.size(), line_count);
-
-    // Overwrite result file with expected order of elements.
-    {
-        std::ofstream fout{sketch_prefix /* .get_path() */.string() + ".count"};
-        fout << (expected_components | seqan3::views::join_with(std::string{'\n'}) | seqan3::ranges::to<std::string>());
-    }
 
     std::string expected_file{"##CONFIG:\n"
                               "##{\n"
