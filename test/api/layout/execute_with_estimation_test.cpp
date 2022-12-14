@@ -28,14 +28,12 @@ TEST(execute_estimation_test, few_ubs)
     }
 
     chopper::configuration config{};
-    config.tmax = 4;
+    config.tmax = 64;
     config.determine_best_tmax = true;
     config.input_prefix = input_prefix.get_path();
     config.output_prefix = config.input_prefix;
     config.output_filename = layout_file.get_path();
     chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
-
-    testing::internal::CaptureStderr();
 
     chopper::layout::execute(config);
 
@@ -62,12 +60,6 @@ TEST(execute_estimation_test, few_ubs)
 64	1.00	1.00	1.00	1.00	17.5KiB
 # Best t_max (regarding expected query runtime): 64
 )expected_cout");
-
-    EXPECT_EQ(testing::internal::GetCapturedStderr(),
-              "[CHOPPER LAYOUT WARNING]: Your requested number of technical "
-              "bins was not a multiple of 64. Due to the architecture of the "
-              "HIBF, it will use up space equal to the next multiple of 64 "
-              "anyway, so we increased your number of technical bins to 64.\n");
 }
 
 TEST(execute_estimation_test, many_ubs)
