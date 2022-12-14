@@ -121,6 +121,7 @@ TEST(execute_test, chopper_layout_statistics_determine_best_bins)
 {
     seqan3::test::tmp_filename const input_prefixname{"test"};
     seqan3::test::tmp_filename const binning_filename{"output.binning"};
+    std::filesystem::path const stats_file{binning_filename.get_path().string() + ".stats"};
 
     // Write count data to file.
     {
@@ -147,11 +148,7 @@ TEST(execute_test, chopper_layout_statistics_determine_best_bins)
                                   .output_verbose_statistics = true};
     chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
-    testing::internal::CaptureStdout();
-    testing::internal::CaptureStderr();
     chopper::layout::execute(config);
-    std::string layout_result_stdout = testing::internal::GetCapturedStdout();
-    std::string layout_result_stderr = testing::internal::GetCapturedStderr();
 
     std::string expected_cout =
         R"expected_cout(## ### Parameters ###
@@ -175,6 +172,9 @@ TEST(execute_test, chopper_layout_statistics_determine_best_bins)
 # Best t_max (regarding expected query runtime): 128
 )expected_cout";
 
-    EXPECT_EQ(layout_result_stdout, expected_cout) << layout_result_stdout;
-    EXPECT_EQ(layout_result_stderr, std::string{});
+    ASSERT_TRUE(std::filesystem::exists(stats_file));
+
+    std::string const written_file{string_from_file(stats_file)};
+
+    EXPECT_EQ(written_file, expected_cout) << written_file;
 }

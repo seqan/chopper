@@ -13,6 +13,7 @@ TEST(execute_estimation_test, few_ubs)
 {
     seqan3::test::tmp_filename const input_prefix{"test"};
     seqan3::test::tmp_filename const layout_file{"layout.tsv"};
+    std::filesystem::path const stats_file{layout_file.get_path().string() + ".stats"};
 
     {
         std::ofstream fout{input_prefix.get_path().string() + ".count"};
@@ -34,12 +35,15 @@ TEST(execute_estimation_test, few_ubs)
     config.output_filename = layout_file.get_path();
     chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
-    testing::internal::CaptureStdout();
     testing::internal::CaptureStderr();
 
     chopper::layout::execute(config);
 
-    EXPECT_EQ(testing::internal::GetCapturedStdout(),
+    ASSERT_TRUE(std::filesystem::exists(stats_file));
+
+    std::string const written_file{string_from_file(stats_file)};
+
+    EXPECT_EQ(written_file,
               R"expected_cout(## ### Parameters ###
 ## number of user bins = 8
 ## number of hash functions = 2
@@ -70,6 +74,7 @@ TEST(execute_estimation_test, many_ubs)
 {
     seqan3::test::tmp_filename const input_prefix{"test"};
     seqan3::test::tmp_filename const layout_file{"layout.tsv"};
+    std::filesystem::path const stats_file{layout_file.get_path().string() + ".stats"};
 
     {
         // There are 20 files with a count of {100,200,300,400} each. There are 16 files with count 500.
@@ -86,11 +91,13 @@ TEST(execute_estimation_test, many_ubs)
     config.output_filename = layout_file.get_path();
     chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
-    testing::internal::CaptureStdout();
-
     chopper::layout::execute(config);
 
-    EXPECT_EQ(testing::internal::GetCapturedStdout(),
+    ASSERT_TRUE(std::filesystem::exists(stats_file));
+
+    std::string const written_file{string_from_file(stats_file)};
+
+    EXPECT_EQ(written_file,
               R"expected_cout(## ### Parameters ###
 ## number of user bins = 96
 ## number of hash functions = 2
@@ -120,6 +127,7 @@ TEST(execute_estimation_test, many_ubs_force_all)
 {
     seqan3::test::tmp_filename const input_prefix{"test"};
     seqan3::test::tmp_filename const layout_file{"layout.tsv"};
+    std::filesystem::path const stats_file{layout_file.get_path().string() + ".stats"};
 
     {
         // There are 20 files with a count of {100,200,300,400} each. There are 16 files with count 500.
@@ -137,11 +145,13 @@ TEST(execute_estimation_test, many_ubs_force_all)
     config.output_filename = layout_file.get_path();
     chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
-    testing::internal::CaptureStdout();
-
     chopper::layout::execute(config);
 
-    EXPECT_EQ(testing::internal::GetCapturedStdout(),
+    ASSERT_TRUE(std::filesystem::exists(stats_file));
+
+    std::string const written_file{string_from_file(stats_file)};
+
+    EXPECT_EQ(written_file,
               R"expected_cout(## ### Parameters ###
 ## number of user bins = 96
 ## number of hash functions = 2
@@ -172,6 +182,7 @@ TEST(execute_estimation_test, with_rearrangement)
     seqan3::test::tmp_filename const prefix{"test"};
     seqan3::test::tmp_filename const input_file{"test.tsv"};
     seqan3::test::tmp_filename const layout_file{"layout.tsv"};
+    std::filesystem::path const stats_file{layout_file.get_path().string() + ".stats"};
 
     {
         std::ofstream fout{input_file.get_path()};
@@ -214,11 +225,13 @@ TEST(execute_estimation_test, with_rearrangement)
     config.output_filename = layout_file.get_path();
     chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
-    testing::internal::CaptureStdout();
-
     chopper::layout::execute(config);
 
-    EXPECT_EQ(testing::internal::GetCapturedStdout(),
+    ASSERT_TRUE(std::filesystem::exists(stats_file));
+
+    std::string const written_file{string_from_file(stats_file)};
+
+    EXPECT_EQ(written_file,
               R"expected_cout(## ### Parameters ###
 ## number of user bins = 196
 ## number of hash functions = 2
