@@ -113,14 +113,14 @@ public:
     }
 
     //!\brief Prints a column names of the summary to the command line.
-    static void print_header(bool const verbose = true)
+    static void print_header_to(std::ostream & stream, bool const verbose = true)
     {
         // print column names explanation in header
-        std::cout << "## ### Notation ###\n"
+        stream << "## ### Notation ###\n"
                   << "## X-IBF = An IBF with X number of bins.\n"
                   << "## X-HIBF = An HIBF with tmax = X, e.g a maximum of X technical bins on each level.\n";
 
-        std::cout << "## ### Column Description ###\n"
+        stream << "## ### Column Description ###\n"
                      "## tmax : The maximum number of technical bin on each level\n"
                      "## c_tmax : The technical extra cost of querying an tmax-IBF, compared to 64-IBF\n"
                      "## l_tmax : The estimated query cost for an tmax-HIBF, compared to an 64-HIBF\n"
@@ -130,22 +130,22 @@ public:
                   << ((verbose) ? "## uncorr_size : The expected size of an tmax-HIBF without FPR correction\n" : "");
 
         // print column names
-        std::cout << "# tmax" << '\t' << "c_tmax" << '\t' << "l_tmax" << '\t' << "m_tmax" << '\t' << "(l*m)_tmax"
+        stream << "# tmax" << '\t' << "c_tmax" << '\t' << "l_tmax" << '\t' << "m_tmax" << '\t' << "(l*m)_tmax"
                   << '\t' << "size";
 
         if (verbose) // uncorrected size and add level statistics
         {
-            std::cout << '\t' << "uncorr_size" << '\t' << "level" << '\t' << "num_ibfs" << '\t' << "level_size" << '\t'
+            stream << '\t' << "uncorr_size" << '\t' << "level" << '\t' << "num_ibfs" << '\t' << "level_size" << '\t'
                       << "level_size_no_corr" << '\t' << "total_num_tbs" << '\t' << "avg_num_tbs" << '\t'
                       << "split_tb_percentage" << '\t' << "max_split_tb" << '\t' << "avg_split_tb" << '\t'
                       << "max_factor" << '\t' << "avg_factor";
         }
 
-        std::cout << '\n';
+        stream << '\n';
     }
 
     //!\brief Prints a tab-separated summary of the statistics of this HIBF to the command line.
-    void print_summary(size_t & t_max_64_memory, bool const verbose = true)
+    void print_summary_to(size_t & t_max_64_memory, std::ostream & stream, bool const verbose = true)
     {
         if (summaries.empty())
             finalize();
@@ -156,7 +156,7 @@ public:
         double const relative_memory_size = total_hibf_size_in_byte() / static_cast<double>(t_max_64_memory);
         double const query_time_memory_usage_prod = expected_HIBF_query_cost * relative_memory_size;
 
-        std::cout << std::fixed << std::setprecision(2);
+        stream << std::fixed << std::setprecision(2);
 
         std::string level_str, num_ibfs_str, level_size_str, level_size_no_corr_str, total_num_tbs_str, avg_num_tbs_str,
             split_tb_percentage_str, max_split_tb_str, avg_split_tb_str, max_factor_str, avg_factor_str;
@@ -229,9 +229,9 @@ public:
             }
         }
 
-        std::cout << std::fixed << std::setprecision(2);
+        stream << std::fixed << std::setprecision(2);
 
-        std::cout /*        tmax */ << config.tmax
+        stream /*        tmax */ << config.tmax
                                     << '\t'
                                     /*      c_tmax */
                                     << chopper::layout::ibf_query_cost::interpolated(config.tmax,
@@ -252,10 +252,10 @@ public:
         if (verbose)
         {
             // uncorrected FPR
-            std::cout /*uncorr. size */ << to_formatted_BF_size(total_size_no_corr) << '\t';
+            stream /*uncorr. size */ << to_formatted_BF_size(total_size_no_corr) << '\t';
 
             // per level statistics:
-            std::cout /* level               */ << level_str
+            stream /* level               */ << level_str
                                                 << '\t'
                                                 /* num_ibfs            */
                                                 << num_ibfs_str

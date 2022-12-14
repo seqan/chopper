@@ -49,11 +49,13 @@ size_t determine_best_number_of_technical_bins(chopper::layout::data_store & dat
     // with -determine-best-tmax the algorithm is executed multiple times and result with the minimum
     // expected query costs are written to the standard output
 
-    std::cout << "## ### Parameters ###\n"
+    std::ofstream file_out{config.output_filename.string() + ".stats"};
+
+    file_out << "## ### Parameters ###\n"
               << "## number of user bins = " << data.filenames.size() << '\n'
               << "## number of hash functions = " << config.num_hash_functions << '\n'
               << "## false positive rate = " << config.false_positive_rate << '\n';
-    hibf_statistics::print_header(config.output_verbose_statistics);
+    hibf_statistics::print_header_to(file_out, config.output_verbose_statistics);
 
     double best_expected_HIBF_query_cost{std::numeric_limits<double>::infinity()};
     size_t best_t_max{};
@@ -77,7 +79,7 @@ size_t determine_best_number_of_technical_bins(chopper::layout::data_store & dat
 
         global_stats.finalize();
 
-        global_stats.print_summary(t_max_64_memory, config.output_verbose_statistics);
+        global_stats.print_summary_to(t_max_64_memory, file_out, config.output_verbose_statistics);
 
         // Use result if better than previous one.
         if (global_stats.expected_HIBF_query_cost < best_expected_HIBF_query_cost)
@@ -94,7 +96,7 @@ size_t determine_best_number_of_technical_bins(chopper::layout::data_store & dat
         }
     }
 
-    std::cout << "# Best t_max (regarding expected query runtime): " << best_t_max << '\n';
+    file_out << "# Best t_max (regarding expected query runtime): " << best_t_max << '\n';
     config.tmax = best_t_max;
     return max_hibf_id;
 }
@@ -146,8 +148,8 @@ int execute(chopper::configuration & config)
 
         if (config.output_verbose_statistics)
         {
-            global_stats.print_header();
-            global_stats.print_summary(dummy);
+            global_stats.print_header_to(std::cout);
+            global_stats.print_summary_to(dummy, std::cout);
         }
     }
 
