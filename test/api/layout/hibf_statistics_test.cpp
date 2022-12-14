@@ -44,9 +44,9 @@ TEST(hibf_statistics, only_merged_on_top_level)
 
     testing::internal::CaptureStdout();
 
-    stats.print_header();
+    stats.print_header_to(std::cout);
     size_t max_64{};
-    stats.print_summary(max_64);
+    stats.print_summary_to(max_64, std::cout);
     std::cout.flush();
 
     std::string summary = testing::internal::GetCapturedStdout();

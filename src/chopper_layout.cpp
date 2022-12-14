@@ -53,7 +53,7 @@ size_t determine_best_number_of_technical_bins(chopper::layout::data_store & dat
               << "## number of user bins = " << data.filenames.size() << '\n'
               << "## number of hash functions = " << config.num_hash_functions << '\n'
               << "## false positive rate = " << config.false_positive_rate << '\n';
-    hibf_statistics::print_header(config.output_verbose_statistics);
+    hibf_statistics::print_header_to(std::cout, config.output_verbose_statistics);
 
     double best_expected_HIBF_query_cost{std::numeric_limits<double>::infinity()};
     size_t best_t_max{};
@@ -77,7 +77,7 @@ size_t determine_best_number_of_technical_bins(chopper::layout::data_store & dat
 
         global_stats.finalize();
 
-        global_stats.print_summary(t_max_64_memory, config.output_verbose_statistics);
+        global_stats.print_summary_to(t_max_64_memory, std::cout, config.output_verbose_statistics);
 
         // Use result if better than previous one.
         if (global_stats.expected_HIBF_query_cost < best_expected_HIBF_query_cost)
@@ -146,8 +146,8 @@ int execute(chopper::configuration & config)
 
         if (config.output_verbose_statistics)
         {
-            global_stats.print_header();
-            global_stats.print_summary(dummy);
+            global_stats.print_header_to(std::cout);
+            global_stats.print_summary_to(dummy, std::cout);
         }
     }
 
