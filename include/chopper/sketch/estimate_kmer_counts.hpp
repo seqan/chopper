@@ -7,7 +7,7 @@
 namespace chopper::sketch
 {
 
-void estimate_kmer_counts(data_store & store)
+inline void estimate_kmer_counts(data_store & store)
 {
     assert(!store.filenames.empty());
     assert(store.filenames.size() == store.all_sketches.size());
