@@ -75,7 +75,7 @@ TEST(execute_test, chopper_layout_statistics)
     seqan3::test::tmp_filename const layout_file{"layout.tsv"};
 
     std::vector<std::string> many_filenames;
-    std::vector<uint64_t> many_kmer_counts;
+    std::vector<size_t> many_kmer_counts;
 
     // There are 20 files with a count of {100,200,300,400} each. There are 16 files with count 500.
     for (size_t i{0}; i < 96u; ++i)
