@@ -98,6 +98,8 @@ size_t determine_best_number_of_technical_bins(chopper::data_store & data, chopp
 
     file_out << "# Best t_max (regarding expected query runtime): " << best_t_max << '\n';
     config.tmax = best_t_max;
+    data.output_buffer = output_buffer_original; // reset data buffers
+    data.header_buffer = header_buffer_original; // reset data buffers
     return max_hibf_id;
 }
 
