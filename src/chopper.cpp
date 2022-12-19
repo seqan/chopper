@@ -34,7 +34,8 @@ int main(int argc, char const * argv[])
 
     int exit_code{};
 
-
+    // The output streams facilitate writing the layout file in hierarchical structure.
+    // chopper::layout::execute currently writes the filled buffers to the output file.
     std::stringstream output_buffer;
     std::stringstream header_buffer;
 
