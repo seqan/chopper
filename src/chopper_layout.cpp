@@ -6,7 +6,6 @@
 
 #include <chopper/configuration.hpp>
 #include <chopper/layout/aggregate_by.hpp>
-#include <chopper/layout/filenames_data_input.hpp>
 #include <chopper/layout/hierarchical_binning.hpp>
 #include <chopper/layout/ibf_query_cost.hpp>
 #include <chopper/layout/output.hpp>
