@@ -28,10 +28,6 @@ int main(int argc, char const * argv[])
         return -1;
     }
 
-    config.input_prefix = config.output_prefix;
-
-    chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
-
     int exit_code{};
 
     // The output streams facilitate writing the layout file in hierarchical structure.

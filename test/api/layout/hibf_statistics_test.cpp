@@ -71,7 +71,6 @@ TEST(hibf_statistics, only_merged_on_top_level)
 
 TEST(execute_test, chopper_layout_statistics)
 {
-    seqan3::test::tmp_filename const input_prefix{"test"};
     seqan3::test::tmp_filename const layout_file{"layout.tsv"};
 
     std::vector<std::string> many_filenames;
@@ -86,13 +85,11 @@ TEST(execute_test, chopper_layout_statistics)
 
     chopper::configuration config{
         .data_file = "not needed",
-        .output_prefix = input_prefix.get_path().string(),
-        .input_prefix = input_prefix.get_path().string(),
+        .disable_sketch_output = true,
         .output_filename = layout_file.get_path().c_str(),
         .tmax = 64,
-        .output_verbose_statistics = true,
+        .output_verbose_statistics = true
     };
-    chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
@@ -131,19 +128,16 @@ TEST(execute_test, chopper_layout_statistics)
 
 TEST(execute_test, chopper_layout_statistics_determine_best_bins)
 {
-    seqan3::test::tmp_filename const input_prefixname{"test"};
     seqan3::test::tmp_filename const binning_filename{"output.binning"};
     std::filesystem::path const stats_file{binning_filename.get_path().string() + ".stats"};
 
     chopper::configuration config{.data_file = "not needed",
-                                  .output_prefix = input_prefixname.get_path().string(),
-                                  .input_prefix = input_prefixname.get_path().string(),
+                                  .disable_sketch_output = true,
                                   .output_filename = binning_filename.get_path().c_str(),
                                   .tmax = 128,
                                   .determine_best_tmax = true,
                                   .force_all_binnings = true,
                                   .output_verbose_statistics = true};
-    chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;

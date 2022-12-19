@@ -57,15 +57,8 @@ TEST_F(cli_test, chopper_layout)
                               + "\"\n"
                                 "##        },\n"
                                 "##        \"debug\": false,\n"
-                                "##        \"count_filename\": {\n"
-                                "##            \"value0\": \""
-                              + sketch_prefix /* .get_path() */.string()
-                              + ".count\"\n"
-                                "##        },\n"
                                 "##        \"sketch_directory\": {\n"
-                                "##            \"value0\": \""
-                              + sketch_prefix /* .get_path() */.string()
-                              + "_sketches\"\n"
+                                "##            \"value0\": \"sketches\"\n"
                                 "##        },\n"
                                 "##        \"k\": 15,\n"
                                 "##        \"sketch_bits\": 12,\n"
@@ -149,15 +142,8 @@ TEST_F(cli_test, chopper_layout2)
                               + "\"\n"
                                 "##        },\n"
                                 "##        \"debug\": false,\n"
-                                "##        \"count_filename\": {\n"
-                                "##            \"value0\": \""
-                              + sketch_prefix /* .get_path() */.string()
-                              + ".count\"\n"
-                                "##        },\n"
                                 "##        \"sketch_directory\": {\n"
-                                "##            \"value0\": \""
-                              + sketch_prefix /* .get_path() */.string()
-                              + "_sketches\"\n"
+                                "##            \"value0\": \"sketches\"\n"
                                 "##        },\n"
                                 "##        \"k\": 19,\n"
                                 "##        \"sketch_bits\": 12,\n"

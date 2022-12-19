@@ -18,10 +18,6 @@ void sanity_checks(data_store const & data, chopper::configuration & config)
 {
     if (config.rearrange_user_bins)
         config.estimate_union = true;
-
-    if (data.filenames.empty())
-        throw sharg::parser_error{
-            sharg::detail::to_string("The file ", config.count_filename.string(), " appears to be empty.")};
 }
 
 size_t determine_best_number_of_technical_bins(chopper::data_store & data, chopper::configuration & config)
