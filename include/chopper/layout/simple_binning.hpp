@@ -8,7 +8,7 @@
 #include <vector>
 
 #include <chopper/helper.hpp>
-#include <chopper/layout/data_store.hpp>
+#include <chopper/data_store.hpp>
 #include <chopper/layout/previous_level.hpp>
 #include <chopper/layout/print_matrix.hpp>
 #include <chopper/layout/print_result_line.hpp>

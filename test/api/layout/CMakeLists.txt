@@ -1,10 +1,5 @@
 cmake_minimum_required (VERSION 3.15)
 
-add_api_test (filenames_data_input_test.cpp)
-target_use_datasources (filenames_data_input_test FILES only_filenames.tsv)
-target_use_datasources (filenames_data_input_test FILES filenames_and_counts.tsv)
-target_use_datasources (filenames_data_input_test FILES filenames_counts_and_extra_information.tsv)
-
 add_api_test (simple_binning_test.cpp)
 add_api_test (hierarchical_binning_test.cpp)
 add_api_test (ibf_query_cost_test.cpp)
@@ -17,11 +12,5 @@ target_use_datasources (execute_with_estimation_test FILES seq2.fa)
 target_use_datasources (execute_with_estimation_test FILES seq3.fa)
 target_use_datasources (execute_with_estimation_test FILES small.fa)
 
-add_api_test (execute_with_hll_test.cpp)
 add_api_test (fp_correction_test.cpp)
 add_api_test (hibf_statistics_test.cpp)
-target_use_datasources (execute_with_hll_test FILES seq1.fa)
-target_use_datasources (execute_with_hll_test FILES seq2.fa)
-target_use_datasources (execute_with_hll_test FILES seq3.fa)
-target_use_datasources (execute_with_hll_test FILES small.fa)
-target_use_datasources (execute_with_hll_test FILES small2.fa)

@@ -14,26 +14,24 @@ TEST(execute_test, few_ubs)
     seqan3::test::tmp_filename const input_prefix{"test"};
     seqan3::test::tmp_filename const layout_file{"layout.tsv"};
 
-    {
-        std::ofstream fout{input_prefix.get_path().string() + ".count"};
-        fout << "seq0\t500\n"
-             << "seq1\t1000\n"
-             << "seq2\t500\n"
-             << "seq3\t500\n"
-             << "seq4\t500\n"
-             << "seq5\t500\n"
-             << "seq6\t500\n"
-             << "seq7\t500\n";
-    }
-
     chopper::configuration config{};
     config.tmax = 64;
     config.input_prefix = input_prefix.get_path();
     config.output_prefix = config.input_prefix;
     config.output_filename = layout_file.get_path();
+    config.disable_sketch_output = true;
     chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
-    chopper::layout::execute(config);
+    std::stringstream output_buffer;
+    std::stringstream header_buffer;
+
+    chopper::data_store store{.false_positive_rate = config.false_positive_rate,
+                              .output_buffer = &output_buffer,
+                              .header_buffer = &header_buffer,
+                              .filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7"},
+                              .kmer_counts = {500, 1000, 500, 500, 500, 500, 500, 500}};
+
+    chopper::layout::execute(config, store);
 
     std::string const expected_file{"##CONFIG:\n"
                                     "##{\n"
@@ -55,7 +53,7 @@ TEST(execute_test, few_ubs)
                                       "##        },\n"
                                       "##        \"k\": 19,\n"
                                       "##        \"sketch_bits\": 12,\n"
-                                      "##        \"disable_sketch_output\": false,\n"
+                                      "##        \"disable_sketch_output\": true,\n"
                                       "##        \"precomputed_files\": false,\n"
                                       "##        \"output_filename\": {\n"
                                       "##            \"value0\": \""
@@ -95,27 +93,25 @@ TEST(execute_test, few_ubs_debug)
     seqan3::test::tmp_filename const input_prefix{"test"};
     seqan3::test::tmp_filename const layout_file{"layout.tsv"};
 
-    {
-        std::ofstream fout{input_prefix.get_path().string() + ".count"};
-        fout << "seq0\t500\n"
-             << "seq1\t1000\n"
-             << "seq2\t500\n"
-             << "seq3\t500\n"
-             << "seq4\t500\n"
-             << "seq5\t500\n"
-             << "seq6\t500\n"
-             << "seq7\t500\n";
-    }
-
     chopper::configuration config{};
     config.tmax = 64;
     config.input_prefix = input_prefix.get_path();
     config.output_prefix = config.input_prefix;
     config.output_filename = layout_file.get_path();
     config.debug = true;
+    config.disable_sketch_output = true;
     chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
-    chopper::layout::execute(config);
+    std::stringstream output_buffer;
+    std::stringstream header_buffer;
+
+    chopper::data_store store{.false_positive_rate = config.false_positive_rate,
+                              .output_buffer = &output_buffer,
+                              .header_buffer = &header_buffer,
+                              .filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7"},
+                              .kmer_counts = {500, 1000, 500, 500, 500, 500, 500, 500}};
+
+    chopper::layout::execute(config, store);
 
     std::string const expected_file{
 
@@ -139,7 +135,7 @@ TEST(execute_test, few_ubs_debug)
           "##        },\n"
           "##        \"k\": 19,\n"
           "##        \"sketch_bits\": 12,\n"
-          "##        \"disable_sketch_output\": false,\n"
+          "##        \"disable_sketch_output\": true,\n"
           "##        \"precomputed_files\": false,\n"
           "##        \"output_filename\": {\n"
           "##            \"value0\": \""
@@ -175,94 +171,19 @@ TEST(execute_test, few_ubs_debug)
     // print_debug_file(layout_file.get_path()); // Formatted output
 }
 
-// aggregation is out-of-date and needs to be reworked
-// TEST(execute_test, few_ubs_with_aggregatation)
-// {
-//     seqan3::test::tmp_filename const input_prefix{"test"};
-//     seqan3::test::tmp_filename const layout_file{"layout.tsv"};
-
-//     {
-//         std::ofstream fout{input_prefix.get_path().string() + ".count"};
-//         fout << "seq0\t500\tspecification-A\n"
-//              << "seq1.1\t250\tspecification-B\n"
-//              << "seq1.2\t250\tspecification-B\n"
-//              << "seq1.3\t250\tspecification-B\n"
-//              << "seq1.4\t250\tspecification-B\n"
-//              << "seq2\t500\tspecification-C\n"
-//              << "seq3\t500\tspecification-D\n"
-//              << "seq4.1\t250\tspecification-E\n"
-//              << "seq4.2\t250\tspecification-E\n"
-//              << "seq5\t500\tspecification-F\n"
-//              << "seq6\t500\tspecification-G\n"
-//              << "seq7\t500\tspecification-H\n";
-//     }
-
-//     chopper::configuration config{};
-//     config.tmax = 64;
-//     config.aggregate_by_column = 2;
-//     config.input_prefix = input_prefix.get_path();
-//     config.output_prefix = config.input_prefix;
-//     config.output_filename = layout_file.get_path();
-//     chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
-
-//     chopper::layout::execute(config);
-
-//     std::string const expected_file
-//     {
-
-//         "##CONFIG:\n"
-//         "##{\n"
-//         "##    \"config\": {\n"
-//         "##        \"version\": 1,\n"
-//         "##        \"input_prefix\": \"" + input_prefix.get_path().string() + "\",\n"
-//         "##        \"count_filename\": {\n"
-//         "##            \"value0\": \"" + input_prefix.get_path().string() + ".count\"\n"
-//         "##        },\n"
-//         "##        \"sketch_directory\": {\n"
-//         "##            \"value0\": \"" + input_prefix.get_path().string() + "_sketches\"\n"
-//         "##        },\n"
-//         "##        \"output_filename\": {\n"
-//         "##            \"value0\": \"" + layout_file.get_path().string() + "\"\n"
-//         "##        },\n"
-//         "##        \"tmax\": 64,\n"
-//         "##        \"num_hash_functions\": 2,\n"
-//         "##        \"false_positive_rate\": 0.05,\n"
-//         "##        \"alpha\": 1.2,\n"
-//         "##        \"max_rearrangement_ratio\": 0.5,\n"
-//         "##        \"threads\": 1,\n"
-//         "##        \"estimate_union\": false,\n"
-//         "##        \"rearrange_user_bins\": false,\n"
-//         "##        \"determine_best_tmax\": false,\n"
-//         "##        \"force_all_binnings\": false\n"
-//         "##    }\n"
-//         "##}\n"
-//         "##ENDCONFIG\n"
-//         "#HIGH_LEVEL_IBF max_bin_id:6\n"
-//         "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\n"
-//         "seq7\t0\t6\n"
-//         "seq6\t6\t4\n"
-//         "seq5\t10\t4\n"
-//         "seq4.1;seq4.2\t14\t4\n"
-//         "seq3\t18\t4\n"
-//         "seq2\t22\t4\n"
-//         "seq0\t26\t4\n"
-//         "seq1.1;seq1.2;seq1.3;seq1.4\t30\t34\n"
-//     };
-//     std::string const actual_file{string_from_file(layout_file.get_path())};
-
-//     EXPECT_EQ(actual_file, expected_file);
-// }
-
 TEST(execute_test, many_ubs_debug)
 {
     seqan3::test::tmp_filename const input_prefix{"test"};
     seqan3::test::tmp_filename const layout_file{"layout.tsv"};
 
+    std::vector<std::string> many_filenames;
+    std::vector<size_t> many_kmer_counts;
+
+    // There are 20 files with a count of {100,200,300,400} each. There are 16 files with count 500.
+    for (size_t i{0}; i < 96u; ++i)
     {
-        // There are 20 files with a count of {100,200,300,400} each. There are 16 files with count 500.
-        std::ofstream fout{input_prefix.get_path().string() + ".count"};
-        for (size_t i{0}; i < 96u; ++i)
-            fout << seqan3::detail::to_string("seq", i, '\t', 100 * ((i + 20) / 20), '\n');
+        many_filenames.push_back(seqan3::detail::to_string("seq", i));
+        many_kmer_counts.push_back(100 * ((i + 20) / 20));
     }
 
     chopper::configuration config{};
@@ -273,7 +194,16 @@ TEST(execute_test, many_ubs_debug)
     config.debug = true;
     chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
-    chopper::layout::execute(config);
+    std::stringstream output_buffer;
+    std::stringstream header_buffer;
+
+    chopper::data_store data{.false_positive_rate = config.false_positive_rate,
+                             .output_buffer = &output_buffer,
+                             .header_buffer = &header_buffer,
+                             .filenames = many_filenames,
+                             .kmer_counts = many_kmer_counts};
+
+    chopper::layout::execute(config, data);
 
     std::string const expected_file{"##CONFIG:\n"
                                     "##{\n"

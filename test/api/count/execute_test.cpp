@@ -33,26 +33,14 @@ TEST(execute_test, small_example_parallel_2_threads)
     config.output_prefix = output_prefix.get_path();
     chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
-    std::vector<std::string> expected_components{input_filename + "\t571\tTAX1",
-                                                 input_filename + /* ";" + input_filename */ +"\t571\tTAX2"};
+    chopper::data_store store{};
 
-    EXPECT_NO_THROW(chopper::count::execute(config));
+    EXPECT_NO_THROW(chopper::count::execute(config, store));
 
-    std::ifstream output_file{output_prefix.get_path().string() + ".count"};
-    std::string const output_file_str((std::istreambuf_iterator<char>(output_file)), std::istreambuf_iterator<char>());
-
-    size_t line_count{};
-    for (auto && line : output_file_str | std::views::split('\n') | seqan3::ranges::to<std::vector<std::string>>())
-    {
-#if defined(__GNUC__) && (__GNUC__ == 12)
-        if (line.empty())
-            continue;
-#endif
-        EXPECT_TRUE(std::ranges::find(expected_components, line) != expected_components.end()) << "missing:" << line;
-        ++line_count;
-    }
-
-    EXPECT_EQ(expected_components.size(), line_count) << "File: " << output_file_str;
+    EXPECT_RANGE_EQ(store.filenames, (std::vector<std::string>{input_filename, input_filename}));
+    ASSERT_EQ(store.all_sketches.size(), 2);
+    EXPECT_EQ(std::lround(store.all_sketches[0].estimate()), 571);
+    EXPECT_EQ(std::lround(store.all_sketches[1].estimate()), 571);
 }
 
 TEST(execute_test, some_test)
@@ -78,24 +66,12 @@ TEST(execute_test, some_test)
     config.output_prefix = output_prefix.get_path();
     chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
-    std::vector<std::string> expected_components{input_filename + "\t590\tTAX1",
-                                                 input_filename + /* ";" + input_filename */ +"\t590\tTAX2"};
+    chopper::data_store store{};
 
-    chopper::count::execute(config);
+    chopper::count::execute(config, store);
 
-    std::ifstream output_file{output_prefix.get_path().string() + ".count"};
-    std::string const output_file_str((std::istreambuf_iterator<char>(output_file)), std::istreambuf_iterator<char>());
-
-    size_t line_count{};
-    for (auto && line : output_file_str | std::views::split('\n') | seqan3::ranges::to<std::vector<std::string>>())
-    {
-#if defined(__GNUC__) && (__GNUC__ == 12)
-        if (line.empty())
-            continue;
-#endif
-        EXPECT_TRUE(std::ranges::find(expected_components, line) != expected_components.end()) << "missing:" << line;
-        ++line_count;
-    }
-
-    EXPECT_EQ(expected_components.size(), line_count) << "File: " << output_file_str;
+    EXPECT_RANGE_EQ(store.filenames, (std::vector<std::string>{input_filename, input_filename}));
+    ASSERT_EQ(store.all_sketches.size(), 2);
+    EXPECT_EQ(std::lround(store.all_sketches[0].estimate()), 591);
+    EXPECT_EQ(std::lround(store.all_sketches[1].estimate()), 591);
 }

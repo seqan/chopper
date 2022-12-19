@@ -8,12 +8,10 @@
 namespace chopper::count
 {
 
-//!\brief Checks the `filename_clusters` for consistent files, either precomputed or sequence files.
-inline void check_filenames(robin_hood::unordered_map<std::string, std::vector<std::string>> const & filename_clusters,
-                            configuration & config)
+//!\brief Checks the `filenames` for consistent files, either precomputed or sequence files.
+inline void check_filenames(std::vector<std::string> & filenames, configuration & config)
 {
-    assert(!filename_clusters.empty());
-    assert(!filename_clusters.begin()->second.empty());
+    assert(!filenames.empty());
 
     auto case_insensitive_string_ends_with = [](std::string_view str, std::string_view suffix)
     {
@@ -31,24 +29,21 @@ inline void check_filenames(robin_hood::unordered_map<std::string, std::vector<s
     };
 
     // If the first filename ends in .minimizer we expect all files to end in .minimizer
-    config.precomputed_files = case_insensitive_string_ends_with(filename_clusters.begin()->second[0], ".minimizer");
+    config.precomputed_files = case_insensitive_string_ends_with(filenames[0], ".minimizer");
 
-    for (auto const & [key, filenames] : filename_clusters)
+    for (auto const & filename : filenames)
     {
-        for (auto const & filename : filenames)
+        if (config.precomputed_files && !case_insensitive_string_ends_with(filename, ".minimizer"))
         {
-            if (config.precomputed_files && !case_insensitive_string_ends_with(filename, ".minimizer"))
-            {
-                throw std::invalid_argument{"You are providing precomputed files but the file " + filename
-                                            + " does not have the correct file extension (.minimizer)."
-                                              " Mixing non-/precomputed files is not allowed."};
-            }
-            else if (!config.precomputed_files && case_insensitive_string_ends_with(filename, ".minimizer"))
-            {
-                throw std::invalid_argument{"You are providing sequence files but the file " + filename
-                                            + " was identified as a precomputed file (.minimizer)."
-                                              " Mixing non-/precomputed files is not allowed."};
-            }
+            throw std::invalid_argument{"You are providing precomputed files but the file " + filename
+                                        + " does not have the correct file extension (.minimizer)."
+                                            " Mixing non-/precomputed files is not allowed."};
+        }
+        else if (!config.precomputed_files && case_insensitive_string_ends_with(filename, ".minimizer"))
+        {
+            throw std::invalid_argument{"You are providing sequence files but the file " + filename
+                                        + " was identified as a precomputed file (.minimizer)."
+                                            " Mixing non-/precomputed files is not allowed."};
         }
     }
 }

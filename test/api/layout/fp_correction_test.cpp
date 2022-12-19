@@ -1,11 +1,11 @@
 #include <gtest/gtest.h>
 
 #include "../api_test.hpp"
-#include <chopper/layout/data_store.hpp>
+#include <chopper/data_store.hpp>
 
 TEST(fp_correction_test, one_bin)
 {
-    chopper::layout::data_store data;
+    chopper::data_store data;
     data.compute_fp_correction(0.05, 2u, 8u); //fpr=0.05, #hash=2, t_max=8
 
     std::vector<size_t> const values{9123, 123, 12, 87123, 8123, 4660};

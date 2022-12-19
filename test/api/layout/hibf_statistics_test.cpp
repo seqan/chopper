@@ -5,7 +5,7 @@
 #include "../api_test.hpp"
 #include <chopper/configuration.hpp>
 #include <chopper/detail_apply_prefix.hpp>
-#include <chopper/layout/data_store.hpp>
+#include <chopper/data_store.hpp>
 #include <chopper/layout/execute.hpp>
 #include <chopper/layout/hibf_statistics.hpp>
 
@@ -18,7 +18,7 @@ TEST(hibf_statistics, only_merged_on_top_level)
     size_t const lower_level_split_bin_span = 1u;
 
     chopper::configuration config{}; // default config
-    chopper::layout::data_store data{};
+    chopper::data_store data{};
     data.compute_fp_correction(config.false_positive_rate, config.num_hash_functions, lower_level_split_bin_span);
     std::vector<size_t> kmer_counts{50, 50};
 
@@ -74,11 +74,14 @@ TEST(execute_test, chopper_layout_statistics)
     seqan3::test::tmp_filename const input_prefix{"test"};
     seqan3::test::tmp_filename const layout_file{"layout.tsv"};
 
+    std::vector<std::string> many_filenames;
+    std::vector<size_t> many_kmer_counts;
+
+    // There are 20 files with a count of {100,200,300,400} each. There are 16 files with count 500.
+    for (size_t i{0}; i < 96u; ++i)
     {
-        // There are 20 files with a count of {100,200,300,400} each. There are 16 files with count 500.
-        std::ofstream fout{input_prefix.get_path().string() + ".count"};
-        for (size_t i{0}; i < 96u; ++i)
-            fout << seqan3::detail::to_string("seq", i, '\t', 100 * ((i + 20) / 20), '\n');
+        many_filenames.push_back(seqan3::detail::to_string("seq", i));
+        many_kmer_counts.push_back(100 * ((i + 20) / 20));
     }
 
     chopper::configuration config{
@@ -91,9 +94,18 @@ TEST(execute_test, chopper_layout_statistics)
     };
     chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
+    std::stringstream output_buffer;
+    std::stringstream header_buffer;
+
+    chopper::data_store data{.false_positive_rate = config.false_positive_rate,
+                             .output_buffer = &output_buffer,
+                             .header_buffer = &header_buffer,
+                             .filenames = many_filenames,
+                             .kmer_counts = many_kmer_counts};
+
     testing::internal::CaptureStdout();
     testing::internal::CaptureStderr();
-    chopper::layout::execute(config);
+    chopper::layout::execute(config, data);
     std::string layout_result_stdout = testing::internal::GetCapturedStdout();
     std::string layout_result_stderr = testing::internal::GetCapturedStderr();
 
@@ -123,21 +135,6 @@ TEST(execute_test, chopper_layout_statistics_determine_best_bins)
     seqan3::test::tmp_filename const binning_filename{"output.binning"};
     std::filesystem::path const stats_file{binning_filename.get_path().string() + ".stats"};
 
-    // Write count data to file.
-    {
-        std::ofstream fout{input_prefixname.get_path().string() + ".count"};
-        fout << "seq0\t10000\n"
-                "seq1\t20000\n"
-                "seq2\t30000\n"
-                "seq3\t40000\n"
-                "seq4\t50000\n"
-                "seq5\t60000\n"
-                "seq6\t70000\n"
-                "seq7\t80000\n"
-                "seq8\t90000\n"
-                "seq9\t100000\n";
-    }
-
     chopper::configuration config{.data_file = "not needed",
                                   .output_prefix = input_prefixname.get_path().string(),
                                   .input_prefix = input_prefixname.get_path().string(),
@@ -148,7 +145,16 @@ TEST(execute_test, chopper_layout_statistics_determine_best_bins)
                                   .output_verbose_statistics = true};
     chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
-    chopper::layout::execute(config);
+    std::stringstream output_buffer;
+    std::stringstream header_buffer;
+
+    chopper::data_store data{.false_positive_rate = config.false_positive_rate,
+                             .output_buffer = &output_buffer,
+                             .header_buffer = &header_buffer,
+                             .filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7", "seq8", "seq9"},
+                             .kmer_counts = {10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000}};
+
+    chopper::layout::execute(config, data);
 
     std::string expected_cout =
         R"expected_cout(## ### Parameters ###

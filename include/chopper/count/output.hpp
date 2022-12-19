@@ -24,18 +24,12 @@ inline void write_count_file_line(std::pair<std::string, std::vector<std::string
     fout << '\t' << weight << '\t' << key << '\n';
 }
 
-inline void write_sketch_file(std::pair<std::string, std::vector<std::string>> const & cluster,
+inline void write_sketch_file(std::string const & filename,
                               chopper::sketch::hyperloglog const & sketch,
                               configuration const & config)
 {
-    auto & [key, filepaths] = cluster;
-    // For more than one file in the cluster, Felix doesn't know how to name the file
-    // and what exactly is supposed to happen.
-    if (filepaths.size() != 1)
-        throw std::runtime_error("This mode is not implemented yet for multiple files grouped together.");
-
     // For one file in the cluster, the file stem is used with the .hll ending
-    std::filesystem::path path = config.sketch_directory / std::filesystem::path(filepaths[0]).stem();
+    std::filesystem::path path = config.sketch_directory / std::filesystem::path(filename).stem();
     path += ".hll";
     std::ofstream hll_fout(path, std::ios::binary);
     sketch.dump(hll_fout);

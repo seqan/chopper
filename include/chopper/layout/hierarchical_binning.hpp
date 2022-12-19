@@ -449,14 +449,12 @@ private:
 
     data_store initialise_libf_data(size_t const kmer_count, size_t const trace_j) const
     {
-        data_store libf_data{};
-        libf_data.output_buffer = data->output_buffer;
-        libf_data.header_buffer = data->header_buffer;
-        libf_data.fp_correction = data->fp_correction;
-        libf_data.false_positive_rate = data->false_positive_rate;
-
-        libf_data.kmer_counts = {kmer_count};
-        libf_data.filenames = {data->filenames[trace_j]};
+        data_store libf_data{.false_positive_rate = data->false_positive_rate,
+                             .output_buffer = data->output_buffer,
+                             .header_buffer = data->header_buffer,
+                             .filenames = {data->filenames[trace_j]},
+                             .kmer_counts = {kmer_count},
+                             .fp_correction = data->fp_correction};
 
         return libf_data;
     }

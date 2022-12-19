@@ -6,7 +6,6 @@
 
 #include <chopper/configuration.hpp>
 #include <chopper/layout/aggregate_by.hpp>
-#include <chopper/layout/filenames_data_input.hpp>
 #include <chopper/layout/hierarchical_binning.hpp>
 #include <chopper/layout/ibf_query_cost.hpp>
 #include <chopper/layout/output.hpp>
@@ -15,7 +14,7 @@
 namespace chopper::layout
 {
 
-void sanity_checks(layout::data_store const & data, chopper::configuration & config)
+void sanity_checks(data_store const & data, chopper::configuration & config)
 {
     if (config.rearrange_user_bins)
         config.estimate_union = true;
@@ -25,7 +24,7 @@ void sanity_checks(layout::data_store const & data, chopper::configuration & con
             sharg::detail::to_string("The file ", config.count_filename.string(), " appears to be empty.")};
 }
 
-size_t determine_best_number_of_technical_bins(chopper::layout::data_store & data, chopper::configuration & config)
+size_t determine_best_number_of_technical_bins(chopper::data_store & data, chopper::configuration & config)
 {
     std::stringstream * const output_buffer_original = data.output_buffer;
     std::stringstream * const header_buffer_original = data.header_buffer;
@@ -98,16 +97,13 @@ size_t determine_best_number_of_technical_bins(chopper::layout::data_store & dat
 
     file_out << "# Best t_max (regarding expected query runtime): " << best_t_max << '\n';
     config.tmax = best_t_max;
+    data.output_buffer = output_buffer_original; // reset data buffers
+    data.header_buffer = header_buffer_original; // reset data buffers
     return max_hibf_id;
 }
 
-int execute(chopper::configuration & config)
+int execute(chopper::configuration & config, chopper::data_store & data)
 {
-    chopper::layout::data_store data;
-
-    // Read in the data file containing file paths, kmer counts and additional information.
-    chopper::layout::read_filename_data_file(data, config);
-
     sanity_checks(data, config);
 
     if (config.tmax % 64 != 0)
@@ -124,13 +120,6 @@ int execute(chopper::configuration & config)
     // If requested, aggregate the data before layouting them
     // if (config.aggregate_by_column != -1)
     //     aggregate_by(data, config.aggregate_by_column - 2/*user index includes first two columns (filename, count)*/);
-
-    std::stringstream output_buffer;
-    std::stringstream header_buffer;
-
-    data.output_buffer = &output_buffer;
-    data.header_buffer = &header_buffer;
-    data.false_positive_rate = config.false_positive_rate;
 
     size_t max_hibf_id;
 
@@ -155,8 +144,8 @@ int execute(chopper::configuration & config)
 
     // brief Write the output to the layout file.
     std::ofstream fout{config.output_filename};
-    write_layout_header_to(config, max_hibf_id, header_buffer.str(), fout);
-    fout << output_buffer.str();
+    write_layout_header_to(config, max_hibf_id, data.header_buffer->str(), fout);
+    fout << data.output_buffer->str();
 
     return 0;
 }

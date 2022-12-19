@@ -14,6 +14,7 @@
 
 #include <chopper/configuration.hpp>
 #include <chopper/count/output.hpp>
+#include <chopper/data_store.hpp>
 #include <chopper/sketch/hyperloglog.hpp>
 
 namespace chopper::count
@@ -28,17 +29,16 @@ using sequence_file_type = seqan3::sequence_file_input<mytraits,
                                                        seqan3::fields<seqan3::field::seq>,
                                                        seqan3::type_list<seqan3::format_fasta, seqan3::format_fastq>>;
 
-inline void process_sequence_files(std::vector<std::string> const & filenames,
+inline void process_sequence_file(std::string const & filename,
                                    configuration const & config,
                                    sketch::hyperloglog & sketch)
 {
-    for (auto const & filename : filenames)
-        for (auto && [seq] : sequence_file_type{filename})
-            for (auto && k_hash : seq | seqan3::views::kmer_hash(seqan3::ungapped{config.k}))
-                sketch.add(reinterpret_cast<char *>(&k_hash), sizeof(k_hash));
+    for (auto && [seq] : sequence_file_type{filename})
+        for (auto && k_hash : seq | seqan3::views::kmer_hash(seqan3::ungapped{config.k}))
+            sketch.add(reinterpret_cast<char *>(&k_hash), sizeof(k_hash));
 }
 
-inline void process_minimizer_files(std::vector<std::string> const & filenames, sketch::hyperloglog & sketch)
+inline void process_minimizer_file(std::string const & filename, sketch::hyperloglog & sketch)
 {
     // temporary variables when .minimizer files are read
     uint64_t hash{};
@@ -46,51 +46,35 @@ inline void process_minimizer_files(std::vector<std::string> const & filenames, 
     size_t const hash_bytes{sizeof(hash)};
 
     // read files
-    for (auto const & filename : filenames)
-    {
-        std::ifstream infile{filename, std::ios::binary};
+    std::ifstream infile{filename, std::ios::binary};
 
-        while (infile.read(hash_data, hash_bytes))
-            sketch.add(hash_data, hash_bytes);
-    }
+    while (infile.read(hash_data, hash_bytes))
+        sketch.add(hash_data, hash_bytes);
 }
 
-inline void count_kmers(robin_hood::unordered_map<std::string, std::vector<std::string>> const & filename_clusters,
-                        configuration const & config)
+inline void count_kmers(configuration const & config, data_store & data)
 {
-    // output file
-    std::ofstream fout{config.count_filename};
-
-    if (!fout.good())
-        throw std::runtime_error{"Could not open file " + config.count_filename.string() + " for writing."};
-
     // create the hll dir if it doesn't already exist
     if (!config.disable_sketch_output)
         std::filesystem::create_directory(config.sketch_directory);
 
-    // copy filename clusters to vector
-    std::vector<std::pair<std::string, std::vector<std::string>>> cluster_vector{};
-    for (auto const & cluster : filename_clusters)
-        cluster_vector.emplace_back(cluster.first, cluster.second);
+    data.all_sketches.resize(data.filenames.size());
 
 #pragma omp parallel for schedule(static) num_threads(config.threads)
-    for (size_t i = 0; i < cluster_vector.size(); ++i)
+    for (size_t i = 0; i < data.filenames.size(); ++i)
     {
         chopper::sketch::hyperloglog sketch(config.sketch_bits);
 
         if (config.precomputed_files)
-            process_minimizer_files(cluster_vector[i].second, sketch);
+            process_minimizer_file(data.filenames[i], sketch);
         else
-            process_sequence_files(cluster_vector[i].second, config, sketch);
-
-        // print either the exact or the approximate count, depending on exclusively_hlls
-        uint64_t const weight = sketch.estimate();
+            process_sequence_file(data.filenames[i], config, sketch);
 
 #pragma omp critical
-        write_count_file_line(cluster_vector[i], weight, fout);
+        data.all_sketches[i] = sketch;
 
         if (!config.disable_sketch_output)
-            write_sketch_file(cluster_vector[i], sketch, config);
+            write_sketch_file(data.filenames[i], sketch, config);
     }
 }
 

@@ -26,18 +26,6 @@ declare_datasource (FILE small2.fa
                     URL ${CMAKE_SOURCE_DIR}/test/data/small2.fa
                     URL_HASH SHA256=3a444c41f71586d62514eea8faf3c699ac5f2cfce94fd3fc7c3e47d3ff3a8383)
 
-declare_datasource (FILE only_filenames.tsv
-                    URL ${CMAKE_SOURCE_DIR}/test/data/only_filenames.tsv
-                    URL_HASH SHA256=581870b9c418bac44191ea967376c5b81d42a14d0d8aaf4e17dc700e146e714b)
-
-declare_datasource (FILE filenames_and_counts.tsv
-                    URL ${CMAKE_SOURCE_DIR}/test/data/filenames_and_counts.tsv
-                    URL_HASH SHA256=5ac6fbe4c30f9e7e4748e1af7aac45ceabba443561099e382edefdc4d4af5692)
-
-declare_datasource (FILE filenames_counts_and_extra_information.tsv
-                    URL ${CMAKE_SOURCE_DIR}/test/data/filenames_counts_and_extra_information.tsv
-                    URL_HASH SHA256=2df6817a35aa73b75e1c63fdaa09dcb554f5bedddff59404ab48fdeb48e32649)
-
 declare_datasource (FILE seqinfo.tsv
                     URL ${CMAKE_SOURCE_DIR}/test/data/seqinfo.tsv
                     URL_HASH SHA256=c6e28cc4ebf4902c41b1c237b1410665994e0fd0b8d8473c38a8107041d78172)
