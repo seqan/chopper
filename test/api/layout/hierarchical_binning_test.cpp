@@ -35,9 +35,11 @@ TEST(hierarchical_binning_test, small_example)
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
-    chopper::data_store data{.output_buffer = &output_buffer, .header_buffer = &header_buffer};
-    data.filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7"};
-    data.kmer_counts = {500, 1000, 500, 500, 500, 500, 500, 500};
+    chopper::data_store data{.output_buffer = &output_buffer,
+                             .header_buffer = &header_buffer,
+                             .filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7"},
+                             .kmer_counts = {500, 1000, 500, 500, 500, 500, 500, 500}};
+
     data.compute_fp_correction(0.05, 2, config.tmax);
     chopper::layout::hibf_statistics global_stats_dummy{};
     data.stats = &global_stats_dummy.top_level_ibf;
@@ -67,9 +69,11 @@ TEST(hierarchical_binning_test, another_example)
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
-    chopper::data_store data{.output_buffer = &output_buffer, .header_buffer = &header_buffer};
-    data.filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7"};
-    data.kmer_counts = {50, 1000, 1000, 50, 5, 10, 10, 5};
+    chopper::data_store data{.output_buffer = &output_buffer,
+                             .header_buffer = &header_buffer,
+                             .filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7"},
+                             .kmer_counts = {50, 1000, 1000, 50, 5, 10, 10, 5}};
+
     data.compute_fp_correction(0.05, 2, config.tmax);
     chopper::layout::hibf_statistics global_stats_dummy{};
     data.stats = &global_stats_dummy.top_level_ibf;
@@ -99,9 +103,11 @@ TEST(hierarchical_binning_test, high_level_max_bin_id_is_0)
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
-    chopper::data_store data{.output_buffer = &output_buffer, .header_buffer = &header_buffer};
-    data.filenames = {"seq0", "seq1", "seq2", "seq3"};
-    data.kmer_counts = {500, 500, 500, 500};
+    chopper::data_store data{.output_buffer = &output_buffer,
+                             .header_buffer = &header_buffer,
+                             .filenames = {"seq0", "seq1", "seq2", "seq3"},
+                             .kmer_counts = {500, 500, 500, 500}};
+
     data.compute_fp_correction(0.05, 2, config.tmax);
     chopper::layout::hibf_statistics global_stats_dummy{};
     data.stats = &global_stats_dummy.top_level_ibf;
@@ -126,7 +132,8 @@ TEST(hierarchical_binning_test, knuts_example)
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
-    chopper::data_store data{.output_buffer = &output_buffer, .header_buffer = &header_buffer};
+    chopper::data_store data{.output_buffer = &output_buffer,
+                             .header_buffer = &header_buffer};
     data.filenames = {"seq0", "seq1", "seq2", "seq3", "seq4"};
     data.kmer_counts = {60, 600, 1000, 800, 800};
     data.compute_fp_correction(0.05, 2, config.tmax);
@@ -155,9 +162,11 @@ TEST(hierarchical_binning_test, four_level_hibf)
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
-    chopper::data_store data{.output_buffer = &output_buffer, .header_buffer = &header_buffer};
-    data.filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5"};
-    data.kmer_counts = {11090, 5080, 3040, 1020, 510, 500};
+    chopper::data_store data{.output_buffer = &output_buffer,
+                             .header_buffer = &header_buffer,
+                             .filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5"},
+                             .kmer_counts = {11090, 5080, 3040, 1020, 510, 500}};
+
     data.compute_fp_correction(0.05, 2, config.tmax);
     chopper::layout::hibf_statistics global_stats_dummy{};
     data.stats = &global_stats_dummy.top_level_ibf;
@@ -188,9 +197,11 @@ TEST(hierarchical_binning_test, tb0_is_a_merged_bin)
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
-    chopper::data_store data{.output_buffer = &output_buffer, .header_buffer = &header_buffer};
-    data.filenames = {"seq0", "seq1", "seq2", "seq3"};
-    data.kmer_counts = {500, 500, 500, 500};
+    chopper::data_store data{.output_buffer = &output_buffer,
+                             .header_buffer = &header_buffer,
+                             .filenames = {"seq0", "seq1", "seq2", "seq3"},
+                             .kmer_counts = {500, 500, 500, 500}};
+
     data.compute_fp_correction(0.05, 2, config.tmax);
     chopper::layout::hibf_statistics global_stats_dummy{};
     data.stats = &global_stats_dummy.top_level_ibf;
@@ -218,9 +229,11 @@ TEST(hierarchical_binning_test, tb0_is_a_merged_bin_with_debug)
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
-    chopper::data_store data{.output_buffer = &output_buffer, .header_buffer = &header_buffer};
-    data.filenames = {"seq0", "seq1", "seq2", "seq3"};
-    data.kmer_counts = {500, 500, 500, 500};
+    chopper::data_store data{.output_buffer = &output_buffer,
+                             .header_buffer = &header_buffer,
+                             .filenames = {"seq0", "seq1", "seq2", "seq3"},
+                             .kmer_counts = {500, 500, 500, 500}};
+
     data.compute_fp_correction(0.05, 2, config.tmax);
     chopper::layout::hibf_statistics global_stats_dummy{};
     data.stats = &global_stats_dummy.top_level_ibf;
@@ -247,9 +260,11 @@ TEST(hierarchical_binning_test, tb0_is_a_merged_bin_and_leads_to_recursive_call)
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
-    chopper::data_store data{.output_buffer = &output_buffer, .header_buffer = &header_buffer};
-    data.filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7"};
-    data.kmer_counts = {500, 500, 500, 500, 500, 500, 500, 500};
+    chopper::data_store data{.output_buffer = &output_buffer,
+                             .header_buffer = &header_buffer,
+                             .filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7"},
+                             .kmer_counts = {500, 500, 500, 500, 500, 500, 500, 500}};
+
     data.compute_fp_correction(0.05, 2, config.tmax);
     chopper::layout::hibf_statistics global_stats_dummy{};
     data.stats = &global_stats_dummy.top_level_ibf;
