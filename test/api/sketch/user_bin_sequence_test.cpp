@@ -12,24 +12,17 @@ struct input_traits : public seqan3::sequence_file_input_default_traits_dna
 using sequence_file_type = seqan3::sequence_file_input<input_traits, seqan3::fields<seqan3::field::seq>>;
 
 // inherits from user_bin_sequence to test private members
-struct user_bin_sequence_test : public ::testing::Test, public chopper::sketch::user_bin_sequence
+struct user_bin_sequence_test : public ::testing::Test
 {
-public:
     std::vector<std::string> test_filenames{"small.fa", "small.fa", "small2.fa", "small2.fa"};
     std::vector<size_t> test_kmer_counts{500, 600, 700, 800};
-
-    std::vector<chopper::sketch::hyperloglog> const & get_sketches()
+    std::vector<chopper::sketch::hyperloglog> test_sketches = [] ()
     {
-        return this->sketches;
-    }
-
-    user_bin_sequence_test() : user_bin_sequence{test_filenames, test_kmer_counts}
-    {}
-
-    using user_bin_sequence::apply_permutation;
-    using user_bin_sequence::clustering_node;
-    using user_bin_sequence::distance_matrix;
-    using user_bin_sequence::prio_queue;
+        std::vector<std::string> test_filenames{"small.fa", "small.fa", "small2.fa", "small2.fa"};
+        std::vector<chopper::sketch::hyperloglog> result;
+        chopper::sketch::user_bin_sequence::read_hll_files_into(data(""), test_filenames, result);
+        return result;
+    }();
 };
 
 TEST_F(user_bin_sequence_test, construction)
@@ -41,17 +34,29 @@ TEST_F(user_bin_sequence_test, construction)
     EXPECT_TRUE(std::is_copy_assignable<chopper::sketch::user_bin_sequence>::value);
     EXPECT_TRUE(std::is_move_assignable<chopper::sketch::user_bin_sequence>::value);
 
-    // construction from filenames and kmer_counts
-    std::vector<std::string> filenames{"small.fa", "small.fa"};
-    std::vector<size_t> kmer_counts{500, 500};
-    chopper::sketch::user_bin_sequence ubs{filenames, kmer_counts};
+    // construction from filenames and kmer_counts and sketches
+    chopper::sketch::user_bin_sequence ubs{test_filenames, test_kmer_counts, test_sketches};
 }
 
 TEST_F(user_bin_sequence_test, apply_permutation)
 {
     std::vector<size_t> const permutation{2, 1, 3, 0};
 
-    this->apply_permutation(permutation);
+    chopper::sketch::user_bin_sequence ubs{test_filenames, test_kmer_counts, test_sketches};
+
+    ubs.apply_permutation(permutation);
+
+    EXPECT_RANGE_EQ(test_filenames, (std::vector<std::string>{"small2.fa", "small.fa", "small2.fa", "small.fa"}));
+    EXPECT_RANGE_EQ(test_kmer_counts, (std::vector<size_t>{700, 600, 800, 500}));
+}
+
+TEST_F(user_bin_sequence_test, apply_permutation_with_sketches)
+{
+    std::vector<size_t> const permutation{2, 1, 3, 0};
+
+    chopper::sketch::user_bin_sequence ubs{test_filenames, test_kmer_counts, test_sketches};
+
+    ubs.apply_permutation(permutation);
 
     EXPECT_RANGE_EQ(test_filenames, (std::vector<std::string>{"small2.fa", "small.fa", "small2.fa", "small.fa"}));
     EXPECT_RANGE_EQ(test_kmer_counts, (std::vector<size_t>{700, 600, 800, 500}));
@@ -59,17 +64,21 @@ TEST_F(user_bin_sequence_test, apply_permutation)
 
 TEST_F(user_bin_sequence_test, sort_by_cardinalities)
 {
-    this->sort_by_cardinalities();
+    chopper::sketch::user_bin_sequence ubs{test_filenames, test_kmer_counts, test_sketches};
+
+    ubs.sort_by_cardinalities();
 
     EXPECT_RANGE_EQ(test_filenames, (std::vector<std::string>{"small2.fa", "small2.fa", "small.fa", "small.fa"}));
     EXPECT_RANGE_EQ(test_kmer_counts, (std::vector<size_t>{800, 700, 600, 500}));
 }
 
-TEST_F(user_bin_sequence_test, read_hll_files)
+TEST_F(user_bin_sequence_test, read_hll_files_into)
 {
     size_t const k{16};
     size_t const b{5};
     chopper::sketch::hyperloglog expected{b};
+
+    std::vector<chopper::sketch::hyperloglog> target{};
 
     std::string const input_file{data("small.fa")};
     sequence_file_type seq_file{input_file};
@@ -85,14 +94,14 @@ TEST_F(user_bin_sequence_test, read_hll_files)
             expected.add(it, k);
     }
 
-    this->read_hll_files(data(""));
+    chopper::sketch::user_bin_sequence::read_hll_files_into(data(""), test_filenames, target);
 
-    EXPECT_EQ(this->get_sketches().size(), 4u);
-    for (auto const & sketch : this->get_sketches())
+    EXPECT_EQ(target.size(), 4u);
+    for (auto const & sketch : target)
         EXPECT_EQ(sketch.estimate(), expected.estimate());
 }
 
-TEST_F(user_bin_sequence_test, read_hll_files_empty_dir)
+TEST_F(user_bin_sequence_test, read_hll_files_into_empty_dir)
 {
     seqan3::test::tmp_filename const tmp_file{"some_file"};
     auto const parent_dir = tmp_file.get_path().parent_path();
@@ -101,15 +110,16 @@ TEST_F(user_bin_sequence_test, read_hll_files_empty_dir)
     ASSERT_TRUE(std::filesystem::exists(empty_dir));
     ASSERT_TRUE(std::filesystem::is_empty(empty_dir));
 
+    std::vector<chopper::sketch::hyperloglog> target{};
     // Will throw in Release, but assert in Debug
 #ifdef NDEBUG
-    EXPECT_THROW(this->read_hll_files(empty_dir), std::runtime_error);
+    EXPECT_THROW(chopper::sketch::user_bin_sequence::read_hll_files_into(empty_dir, test_filenames, target), std::runtime_error);
 #else
-    EXPECT_DEATH(this->read_hll_files(empty_dir), "");
+    EXPECT_DEATH(chopper::sketch::user_bin_sequence::read_hll_files_into(empty_dir, test_filenames, target), "");
 #endif
 }
 
-TEST_F(user_bin_sequence_test, read_hll_files_file_is_missing)
+TEST_F(user_bin_sequence_test, read_hll_files_into_file_is_missing)
 {
     seqan3::test::tmp_filename const tmp_file{"other.hll"};
     {
@@ -117,10 +127,12 @@ TEST_F(user_bin_sequence_test, read_hll_files_file_is_missing)
         os << "Doesn't matter I just need to exist\n";
     }
 
-    EXPECT_THROW(this->read_hll_files(tmp_file.get_path().parent_path()), std::runtime_error);
+    std::vector<chopper::sketch::hyperloglog> target{};
+
+    EXPECT_THROW(chopper::sketch::user_bin_sequence::read_hll_files_into(tmp_file.get_path().parent_path(), test_filenames, target), std::runtime_error);
 }
 
-TEST_F(user_bin_sequence_test, read_hll_files_faulty_file)
+TEST_F(user_bin_sequence_test, read_hll_files_into_faulty_file)
 {
     seqan3::test::tmp_filename const tmp_file{"small.hll"};
     {
@@ -128,37 +140,41 @@ TEST_F(user_bin_sequence_test, read_hll_files_faulty_file)
         os << "I am not what an hll file looks like\n";
     }
 
-    EXPECT_THROW(this->read_hll_files(tmp_file.get_path().parent_path()), std::runtime_error);
+    std::vector<chopper::sketch::hyperloglog> target{};
+
+    EXPECT_THROW(chopper::sketch::user_bin_sequence::read_hll_files_into(tmp_file.get_path().parent_path(), test_filenames, target), std::runtime_error);
 }
 
 TEST_F(user_bin_sequence_test, precompute_union_estimates_for)
 {
     using vt = std::vector<uint64_t>;
 
-    this->read_hll_files(data("")); // load hll files for test_filenames from data directory
-
     std::vector<uint64_t> estimates(4);
 
-    this->precompute_union_estimates_for(estimates, 0);
+    chopper::sketch::user_bin_sequence ubs{test_filenames, test_kmer_counts, test_sketches};
+
+    ubs.precompute_union_estimates_for(estimates, 0);
     EXPECT_RANGE_EQ(estimates, (vt{500, 0, 0, 0}));
 
-    this->precompute_union_estimates_for(estimates, 1);
+    ubs.precompute_union_estimates_for(estimates, 1);
     EXPECT_RANGE_EQ(estimates, (vt{670, 600, 0, 0}));
 
-    this->precompute_union_estimates_for(estimates, 2);
+    ubs.precompute_union_estimates_for(estimates, 2);
     EXPECT_RANGE_EQ(estimates, (vt{670, 670, 700, 0}));
 
-    this->precompute_union_estimates_for(estimates, 3);
+    ubs.precompute_union_estimates_for(estimates, 3);
     EXPECT_RANGE_EQ(estimates, (vt{670, 670, 670, 800}));
 }
 
 TEST_F(user_bin_sequence_test, random_shuffle)
 {
-    prio_queue default_pq{};
-    distance_matrix dist{{0, default_pq}, {1, default_pq}, {2, default_pq}, {3, default_pq}, {4, default_pq}};
+    chopper::sketch::user_bin_sequence::prio_queue default_pq{};
+    chopper::sketch::user_bin_sequence::distance_matrix dist{{0, default_pq}, {1, default_pq}, {2, default_pq}, {3, default_pq}, {4, default_pq}};
     robin_hood::unordered_flat_map<size_t, size_t> ids{{0, 0}, {1, 1}, {2, 2}, {3, 3}, {4, 4}};
 
-    this->random_shuffle(dist, ids);
+    chopper::sketch::user_bin_sequence ubs{test_filenames, test_kmer_counts, test_sketches};
+
+    ubs.random_shuffle(dist, ids);
 
     // since randomness is seeded, the output is deterministic
     auto [new_pos_0, new_pos_1, new_pos_2, new_pos_3, new_pos_4] = std::make_tuple(3u, 2u, 1u, 0u, 4u);
@@ -178,12 +194,14 @@ TEST_F(user_bin_sequence_test, random_shuffle)
 
 TEST_F(user_bin_sequence_test, prune)
 {
-    prio_queue default_pq{};
-    distance_matrix dist{{0, default_pq}, {1, default_pq}, {2, default_pq}, {3, default_pq}, {4, default_pq}};
+    chopper::sketch::user_bin_sequence::prio_queue default_pq{};
+    chopper::sketch::user_bin_sequence::distance_matrix dist{{0, default_pq}, {1, default_pq}, {2, default_pq}, {3, default_pq}, {4, default_pq}};
     robin_hood::unordered_flat_map<size_t, size_t> remaining_ids{{0, 0}, {1, 1}, {2, 2}, {3, 3}, {4, 4}};
 
+    chopper::sketch::user_bin_sequence ubs{test_filenames, test_kmer_counts, test_sketches};
+
     // since remaining_ids contains all_ids, prune shouldn't do anything. All ids are valid.
-    this->prune(dist, remaining_ids);
+    ubs.prune(dist, remaining_ids);
 
     EXPECT_EQ(remaining_ids[0], 0u);
     EXPECT_EQ(remaining_ids[1], 1u);
@@ -203,7 +221,7 @@ TEST_F(user_bin_sequence_test, prune)
 
     // distance entry 1 and 3 are now invalid, since they do not occur in remaining_ids
     // prune() should therefore remove them from dist.
-    this->prune(dist, remaining_ids);
+    ubs.prune(dist, remaining_ids);
 
     EXPECT_EQ(remaining_ids[0], 0u);
     EXPECT_EQ(remaining_ids[2], 2u);
@@ -220,6 +238,8 @@ TEST_F(user_bin_sequence_test, rotate)
     chopper::sketch::hyperloglog s{5}; // default sketch for every entry in the tree as it is not important for rotate
     auto f = std::numeric_limits<size_t>::max();
 
+    chopper::sketch::user_bin_sequence ubs{test_filenames, test_kmer_counts, test_sketches};
+
     /* test clustering tree
      * The root is at position 0. 'f' means infinity.
      *             (5,6)
@@ -228,16 +248,19 @@ TEST_F(user_bin_sequence_test, rotate)
      *       /    \     /    \
      *   (f,f)  (f,f) (f,f) (f,f) the leaves are the UBs to be clustered
      */
-    std::vector<clustering_node> clustering{{f, f, s},
-                                            {f, f, s},
-                                            {f, f, s},
-                                            {f, f, s}, // the leaves come first
-                                            {5, 6, s},
-                                            {0, 1, s},
-                                            {2, 3, s}};
+    std::vector<chopper::sketch::user_bin_sequence::clustering_node> clustering
+    {
+        {f, f, s},
+        {f, f, s},
+        {f, f, s},
+        {f, f, s}, // the leaves come first
+        {5, 6, s},
+        {0, 1, s},
+        {2, 3, s}
+    };
 
     // previous_rightmost is already at the very left. Nothing has to be rotated.
-    rotate(clustering, 0 /*previous_rightmost*/, 0 /*interval_start*/, 4 /*root_id*/);
+    ubs.rotate(clustering, 0 /*previous_rightmost*/, 0 /*interval_start*/, 4 /*root_id*/);
 
     EXPECT_EQ(std::tie(clustering[0].left, clustering[0].right), std::tie(f, f));
     EXPECT_EQ(std::tie(clustering[1].left, clustering[1].right), std::tie(f, f));
@@ -248,7 +271,7 @@ TEST_F(user_bin_sequence_test, rotate)
     EXPECT_EQ(std::tie(clustering[6].left, clustering[6].right), std::make_tuple(2u, 3u));
 
     // now the previous_rightmost is within the tree. Rotation should take place
-    rotate(clustering, 2 /*previous_rightmost*/, 0 /*interval_start*/, 4 /*root_id*/);
+    ubs.rotate(clustering, 2 /*previous_rightmost*/, 0 /*interval_start*/, 4 /*root_id*/);
 
     EXPECT_EQ(std::tie(clustering[0].left, clustering[0].right), std::tie(f, f));
     EXPECT_EQ(std::tie(clustering[1].left, clustering[1].right), std::tie(f, f));
@@ -264,6 +287,8 @@ TEST_F(user_bin_sequence_test, trace)
     chopper::sketch::hyperloglog s{5}; // default sketch for every entry in the tree as it is not important for rotate
     auto f = std::numeric_limits<size_t>::max();
 
+    chopper::sketch::user_bin_sequence ubs{test_filenames, test_kmer_counts, test_sketches};
+
     /* test clustering tree
      * The root is at position 0. 'f' means infinity.
      *             (5,6)
@@ -272,37 +297,40 @@ TEST_F(user_bin_sequence_test, trace)
      *       /    \     /    \
      *   (f,f)  (f,f) (f,f) (f,f) the leaves are the UBs to be clustered
      */
-    std::vector<clustering_node> clustering{{f, f, s},
-                                            {f, f, s},
-                                            {f, f, s},
-                                            {f, f, s}, // the leaves come first
-                                            {5, 6, s},
-                                            {1, 3, s},
-                                            {2, 0, s}};
+    std::vector<chopper::sketch::user_bin_sequence::clustering_node> clustering
+    {
+        {f, f, s},
+        {f, f, s},
+        {f, f, s},
+        {f, f, s}, // the leaves come first
+        {5, 6, s},
+        {1, 3, s},
+        {2, 0, s}
+    };
 
     std::vector<size_t> permutation{};
 
-    this->trace(clustering, permutation, 2 /*previous_rightmost*/, 0 /*interval_start*/, 4 /*root_id*/);
+    ubs.trace(clustering, permutation, 2 /*previous_rightmost*/, 0 /*interval_start*/, 4 /*root_id*/);
 
     EXPECT_RANGE_EQ(permutation, (std::vector<size_t>{1, 3, 0}));
 }
 
 TEST_F(user_bin_sequence_test, cluster_bins)
 {
-    this->read_hll_files(data("")); // load hll files for test_filenames from data directory
+    chopper::sketch::user_bin_sequence ubs{test_filenames, test_kmer_counts, test_sketches};
 
     { // whole range
         std::vector<size_t> permutation{};
-        this->cluster_bins(permutation, 0 /*interval start*/, 3 /*interval_end*/, 1 /*number of threads*/);
+        ubs.cluster_bins(permutation, 0 /*interval start*/, 3 /*interval_end*/, 1 /*number of threads*/);
         // index 3 is not part of current permutation so it can participate in "the next interval"
         EXPECT_RANGE_EQ(permutation, (std::vector<size_t>{2, 0, 1}));
     }
 
     { // intervals
         std::vector<size_t> permutation{};
-        this->cluster_bins(permutation, 0 /*interval start*/, 1 /*interval_end*/, 1 /*number of threads*/);
+        ubs.cluster_bins(permutation, 0 /*interval start*/, 1 /*interval_end*/, 1 /*number of threads*/);
         EXPECT_RANGE_EQ(permutation, (std::vector<size_t>{0}));
-        this->cluster_bins(permutation, 1 /*interval start*/, 3 /*interval_end*/, 1 /*number of threads*/);
+        ubs.cluster_bins(permutation, 1 /*interval start*/, 3 /*interval_end*/, 1 /*number of threads*/);
         EXPECT_RANGE_EQ(permutation, (std::vector<size_t>{0, 1, 2}));
     }
 }

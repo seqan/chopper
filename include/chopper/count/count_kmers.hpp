@@ -58,7 +58,7 @@ inline void count_kmers(configuration const & config, data_store & data)
     if (!config.disable_sketch_output)
         std::filesystem::create_directory(config.sketch_directory);
 
-    data.all_sketches.resize(data.filenames.size());
+    data.sketches.resize(data.filenames.size());
 
 #pragma omp parallel for schedule(static) num_threads(config.threads)
     for (size_t i = 0; i < data.filenames.size(); ++i)
@@ -71,7 +71,7 @@ inline void count_kmers(configuration const & config, data_store & data)
             process_sequence_file(data.filenames[i], config, sketch);
 
 #pragma omp critical
-        data.all_sketches[i] = sketch;
+        data.sketches[i] = sketch;
 
         if (!config.disable_sketch_output)
             write_sketch_file(data.filenames[i], sketch, config);

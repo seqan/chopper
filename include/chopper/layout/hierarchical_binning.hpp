@@ -67,6 +67,8 @@ public:
         assert(data != nullptr);
         assert(data->output_buffer != nullptr);
         assert(data->header_buffer != nullptr);
+        assert(data->filenames.size() == data->kmer_counts.size());
+        assert(data->sketches.empty() || data->filenames.size() == data->sketches.size());
 
         static constexpr size_t max_size_t{std::numeric_limits<size_t>::max()};
 
@@ -340,6 +342,8 @@ private:
                     kmer_count += data->kmer_counts[trace_j];
                     libf_data.kmer_counts.push_back(data->kmer_counts[trace_j]);
                     libf_data.filenames.push_back(data->filenames[trace_j]);
+                    if (!data->sketches.empty())
+                        libf_data.sketches.push_back(data->sketches[trace_j]);
                     ++num_contained_ubs;
                     // std::cout << "," << trace_j;
                     --trace_j;
@@ -400,6 +404,8 @@ private:
                 kmer_count += data->kmer_counts[trace_j];
                 libf_data.kmer_counts.push_back(data->kmer_counts[trace_j]);
                 libf_data.filenames.push_back(data->filenames[trace_j]);
+                if (!data->sketches.empty())
+                    libf_data.sketches.push_back(data->sketches[trace_j]);
                 ++num_contained_ubs;
                 // std::cout << "," << trace_j;
             }
@@ -455,6 +461,9 @@ private:
                              .filenames = {data->filenames[trace_j]},
                              .kmer_counts = {kmer_count},
                              .fp_correction = data->fp_correction};
+
+        if (!data->sketches.empty())
+            libf_data.sketches = {data->sketches[trace_j]};
 
         return libf_data;
     }

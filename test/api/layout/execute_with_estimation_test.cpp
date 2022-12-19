@@ -249,10 +249,10 @@ TEST(execute_estimation_test, with_rearrangement)
     ASSERT_TRUE(std::filesystem::exists(prefix.get_path().string() + "_sketches"));
 
     EXPECT_RANGE_EQ(store.filenames, expected_filenames);
-    ASSERT_EQ(store.all_sketches.size(), expected_kmer_counts.size());
-    for (size_t i = 0; i < store.all_sketches.size(); ++i)
+    ASSERT_EQ(store.sketches.size(), expected_kmer_counts.size());
+    for (size_t i = 0; i < store.sketches.size(); ++i)
     {
-        EXPECT_EQ(std::lround(store.all_sketches[i].estimate()), expected_kmer_counts[i]) << "failed at " << i;
+        EXPECT_EQ(std::lround(store.sketches[i].estimate()), expected_kmer_counts[i]) << "failed at " << i;
 
         std::filesystem::path const current_path{expected_filenames[i]};
         std::string const filename = prefix.get_path().string() + "_sketches/" + current_path.stem().string() + ".hll";

@@ -18,8 +18,8 @@ TEST(count_kmers_test, small_example)
 
     chopper::count::count_kmers(config, store);
 
-    ASSERT_EQ(store.all_sketches.size(), 1);
-    EXPECT_EQ(std::lround(store.all_sketches[0].estimate()), 571);
+    ASSERT_EQ(store.sketches.size(), 1);
+    EXPECT_EQ(std::lround(store.sketches[0].estimate()), 571);
 }
 
 TEST(count_kmers_test, with_file_output)
@@ -37,8 +37,8 @@ TEST(count_kmers_test, with_file_output)
 
     chopper::count::count_kmers(config, store);
 
-    ASSERT_EQ(store.all_sketches.size(), 1);
-    EXPECT_EQ(std::lround(store.all_sketches[0].estimate()), 571);
+    ASSERT_EQ(store.sketches.size(), 1);
+    EXPECT_EQ(std::lround(store.sketches[0].estimate()), 571);
 
     // check files
     ASSERT_TRUE(std::filesystem::exists(output_dir_name));
@@ -61,11 +61,11 @@ TEST(count_kmers_test, small_example_parallel_2_threads)
 
     chopper::count::count_kmers(config, store);
 
-    ASSERT_EQ(store.all_sketches.size(), 4);
-    EXPECT_EQ(std::lround(store.all_sketches[0].estimate()), 571);
-    EXPECT_EQ(std::lround(store.all_sketches[1].estimate()), 571);
-    EXPECT_EQ(std::lround(store.all_sketches[2].estimate()), 571);
-    EXPECT_EQ(std::lround(store.all_sketches[3].estimate()), 571);
+    ASSERT_EQ(store.sketches.size(), 4);
+    EXPECT_EQ(std::lround(store.sketches[0].estimate()), 571);
+    EXPECT_EQ(std::lround(store.sketches[1].estimate()), 571);
+    EXPECT_EQ(std::lround(store.sketches[2].estimate()), 571);
+    EXPECT_EQ(std::lround(store.sketches[3].estimate()), 571);
 }
 
 TEST(count_kmers_test, read_in_precomputed_binary_files)
@@ -80,6 +80,6 @@ TEST(count_kmers_test, read_in_precomputed_binary_files)
 
     chopper::count::count_kmers(config, store);
 
-    ASSERT_EQ(store.all_sketches.size(), 1);
-    EXPECT_EQ(std::lround(store.all_sketches[0].estimate()), 571);
+    ASSERT_EQ(store.sketches.size(), 1);
+    EXPECT_EQ(std::lround(store.sketches[0].estimate()), 571);
 }
