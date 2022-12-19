@@ -26,14 +26,8 @@ struct configuration
     /*!\name Configuration of size estimates (chopper::count)
      * \{
      */
-    //!\brief The output prefix for `count_filename` and `sketch_directory`.
-    std::string output_prefix{"chopper_sketch"};
-
-    //!\brief Set internally by chopper::detail::apply_prefix.
-    std::filesystem::path count_filename{};
-
-    //!\brief Set internally by chopper::detail::apply_prefix.
-    std::filesystem::path sketch_directory{};
+    //!\brief The name for the output directory when writing sketches to disk.
+    std::filesystem::path sketch_directory{"sketches"};
 
     //!\brief Size estimates used to be able to be clustered by additional info in the file. OUTDATED.
     size_t column_index_to_cluster{1u};
@@ -54,9 +48,6 @@ struct configuration
     /*!\name General Configuration
      * \{
      */
-    //!\brief Always has to be the same as output prefix.
-    std::string input_prefix{};
-
     //!\brief The name of the layout file to write.
     std::filesystem::path output_filename{"binning.out"};
 
@@ -112,7 +103,6 @@ private:
 
         archive(CEREAL_NVP(data_file));
         archive(CEREAL_NVP(debug));
-        archive(CEREAL_NVP(count_filename));
         archive(CEREAL_NVP(sketch_directory));
         // archive(CEREAL_NVP(column_index_to_cluster));
         archive(CEREAL_NVP(k));

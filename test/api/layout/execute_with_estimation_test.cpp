@@ -12,17 +12,14 @@
 
 TEST(execute_estimation_test, few_ubs)
 {
-    seqan3::test::tmp_filename const input_prefix{"test"};
     seqan3::test::tmp_filename const layout_file{"layout.tsv"};
     std::filesystem::path const stats_file{layout_file.get_path().string() + ".stats"};
 
     chopper::configuration config{};
     config.tmax = 64;
     config.determine_best_tmax = true;
-    config.input_prefix = input_prefix.get_path();
-    config.output_prefix = config.input_prefix;
+    config.disable_sketch_output = true;
     config.output_filename = layout_file.get_path();
-    chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
@@ -62,7 +59,6 @@ TEST(execute_estimation_test, few_ubs)
 
 TEST(execute_estimation_test, many_ubs)
 {
-    seqan3::test::tmp_filename const input_prefix{"test"};
     seqan3::test::tmp_filename const layout_file{"layout.tsv"};
     std::filesystem::path const stats_file{layout_file.get_path().string() + ".stats"};
 
@@ -79,10 +75,8 @@ TEST(execute_estimation_test, many_ubs)
     chopper::configuration config{};
     config.tmax = 1024;
     config.determine_best_tmax = true;
-    config.input_prefix = input_prefix.get_path();
-    config.output_prefix = config.input_prefix;
     config.output_filename = layout_file.get_path();
-    chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
+    config.disable_sketch_output = true;
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
@@ -127,7 +121,6 @@ TEST(execute_estimation_test, many_ubs)
 
 TEST(execute_estimation_test, many_ubs_force_all)
 {
-    seqan3::test::tmp_filename const input_prefix{"test"};
     seqan3::test::tmp_filename const layout_file{"layout.tsv"};
     std::filesystem::path const stats_file{layout_file.get_path().string() + ".stats"};
 
@@ -145,10 +138,8 @@ TEST(execute_estimation_test, many_ubs_force_all)
     config.tmax = 256;
     config.determine_best_tmax = true;
     config.force_all_binnings = true;
-    config.input_prefix = input_prefix.get_path();
-    config.output_prefix = config.input_prefix;
+    config.disable_sketch_output = true;
     config.output_filename = layout_file.get_path();
-    chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
@@ -193,7 +184,7 @@ TEST(execute_estimation_test, many_ubs_force_all)
 
 TEST(execute_estimation_test, with_rearrangement)
 {
-    seqan3::test::tmp_filename const prefix{"test"};
+    seqan3::test::tmp_filename const sketches_dir{"test"};
     seqan3::test::tmp_filename const input_file{"test.tsv"};
     seqan3::test::tmp_filename const layout_file{"layout.tsv"};
     std::filesystem::path const stats_file{layout_file.get_path().string() + ".stats"};
@@ -227,10 +218,8 @@ TEST(execute_estimation_test, with_rearrangement)
     config.k = 15;
     config.column_index_to_cluster = 2;
     config.data_file = input_file.get_path();
-    config.input_prefix = prefix.get_path();
-    config.output_prefix = prefix.get_path();
-    chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
     config.tmax = 256;
+    config.sketch_directory = sketches_dir.get_path();
     config.rearrange_user_bins = true;
     config.determine_best_tmax = true;
     config.force_all_binnings = true;
@@ -246,7 +235,7 @@ TEST(execute_estimation_test, with_rearrangement)
 
     chopper::count::execute(config, store);
 
-    ASSERT_TRUE(std::filesystem::exists(prefix.get_path().string() + "_sketches"));
+    ASSERT_TRUE(std::filesystem::exists(sketches_dir.get_path()));
 
     EXPECT_RANGE_EQ(store.filenames, expected_filenames);
     ASSERT_EQ(store.sketches.size(), expected_kmer_counts.size());
@@ -255,7 +244,7 @@ TEST(execute_estimation_test, with_rearrangement)
         EXPECT_EQ(std::lround(store.sketches[i].estimate()), expected_kmer_counts[i]) << "failed at " << i;
 
         std::filesystem::path const current_path{expected_filenames[i]};
-        std::string const filename = prefix.get_path().string() + "_sketches/" + current_path.stem().string() + ".hll";
+        std::string const filename = sketches_dir.get_path() / current_path.stem().string() += ".hll";
         EXPECT_TRUE(std::filesystem::exists(filename));
     }
 

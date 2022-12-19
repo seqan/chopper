@@ -11,16 +11,12 @@
 
 TEST(execute_test, few_ubs)
 {
-    seqan3::test::tmp_filename const input_prefix{"test"};
     seqan3::test::tmp_filename const layout_file{"layout.tsv"};
 
     chopper::configuration config{};
     config.tmax = 64;
-    config.input_prefix = input_prefix.get_path();
-    config.output_prefix = config.input_prefix;
     config.output_filename = layout_file.get_path();
     config.disable_sketch_output = true;
-    chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
@@ -41,15 +37,8 @@ TEST(execute_test, few_ubs)
                                     "##            \"value0\": \"\"\n"
                                     "##        },\n"
                                     "##        \"debug\": false,\n"
-                                    "##        \"count_filename\": {\n"
-                                    "##            \"value0\": \""
-                                    + input_prefix.get_path().string()
-                                    + ".count\"\n"
-                                      "##        },\n"
                                       "##        \"sketch_directory\": {\n"
-                                      "##            \"value0\": \""
-                                    + input_prefix.get_path().string()
-                                    + "_sketches\"\n"
+                                      "##            \"value0\": \"sketches\"\n"
                                       "##        },\n"
                                       "##        \"k\": 19,\n"
                                       "##        \"sketch_bits\": 12,\n"
@@ -90,17 +79,13 @@ TEST(execute_test, few_ubs)
 
 TEST(execute_test, few_ubs_debug)
 {
-    seqan3::test::tmp_filename const input_prefix{"test"};
     seqan3::test::tmp_filename const layout_file{"layout.tsv"};
 
     chopper::configuration config{};
     config.tmax = 64;
-    config.input_prefix = input_prefix.get_path();
-    config.output_prefix = config.input_prefix;
     config.output_filename = layout_file.get_path();
     config.debug = true;
     config.disable_sketch_output = true;
-    chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
@@ -123,15 +108,8 @@ TEST(execute_test, few_ubs_debug)
         "##            \"value0\": \"\"\n"
         "##        },\n"
         "##        \"debug\": true,\n"
-        "##        \"count_filename\": {\n"
-        "##            \"value0\": \""
-        + input_prefix.get_path().string()
-        + ".count\"\n"
-          "##        },\n"
           "##        \"sketch_directory\": {\n"
-          "##            \"value0\": \""
-        + input_prefix.get_path().string()
-        + "_sketches\"\n"
+          "##            \"value0\": \"sketches\"\n"
           "##        },\n"
           "##        \"k\": 19,\n"
           "##        \"sketch_bits\": 12,\n"
@@ -173,7 +151,6 @@ TEST(execute_test, few_ubs_debug)
 
 TEST(execute_test, many_ubs_debug)
 {
-    seqan3::test::tmp_filename const input_prefix{"test"};
     seqan3::test::tmp_filename const layout_file{"layout.tsv"};
 
     std::vector<std::string> many_filenames;
@@ -188,11 +165,9 @@ TEST(execute_test, many_ubs_debug)
 
     chopper::configuration config{};
     config.tmax = 64;
-    config.input_prefix = input_prefix.get_path();
-    config.output_prefix = config.input_prefix;
     config.output_filename = layout_file.get_path();
     config.debug = true;
-    chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
+    config.disable_sketch_output = true;
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
@@ -213,19 +188,12 @@ TEST(execute_test, many_ubs_debug)
                                     "##            \"value0\": \"\"\n"
                                     "##        },\n"
                                     "##        \"debug\": true,\n"
-                                    "##        \"count_filename\": {\n"
-                                    "##            \"value0\": \""
-                                    + input_prefix.get_path().string()
-                                    + ".count\"\n"
-                                      "##        },\n"
                                       "##        \"sketch_directory\": {\n"
-                                      "##            \"value0\": \""
-                                    + input_prefix.get_path().string()
-                                    + "_sketches\"\n"
+                                      "##            \"value0\": \"sketches\"\n"
                                       "##        },\n"
                                       "##        \"k\": 19,\n"
                                       "##        \"sketch_bits\": 12,\n"
-                                      "##        \"disable_sketch_output\": false,\n"
+                                      "##        \"disable_sketch_output\": true,\n"
                                       "##        \"precomputed_files\": false,\n"
                                       "##        \"output_filename\": {\n"
                                       "##            \"value0\": \""

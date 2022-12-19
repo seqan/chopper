@@ -14,7 +14,6 @@ TEST(execute_test, small_example_parallel_2_threads)
 {
     std::string input_filename = data("small.fa");
     seqan3::test::tmp_filename data_filename{"data.tsv"};
-    seqan3::test::tmp_filename output_prefix{"small_example"};
 
     // generate data filename
     {
@@ -30,8 +29,6 @@ TEST(execute_test, small_example_parallel_2_threads)
     config.column_index_to_cluster = 2;
     config.disable_sketch_output = true;
     config.data_file = data_filename.get_path();
-    config.output_prefix = output_prefix.get_path();
-    chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
     chopper::data_store store{};
 
@@ -47,7 +44,6 @@ TEST(execute_test, some_test)
 {
     std::string input_filename = data("small.fa");
     seqan3::test::tmp_filename data_filename{"data.tsv"};
-    seqan3::test::tmp_filename output_prefix{"small_example"};
 
     // generate data filename
     {
@@ -63,8 +59,6 @@ TEST(execute_test, some_test)
     config.column_index_to_cluster = 2;
     config.disable_sketch_output = true;
     config.data_file = data_filename.get_path();
-    config.output_prefix = output_prefix.get_path();
-    chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
 
     chopper::data_store store{};
 

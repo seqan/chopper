@@ -24,14 +24,12 @@ TEST(count_kmers_test, small_example)
 
 TEST(count_kmers_test, with_file_output)
 {
-    seqan3::test::tmp_filename output_prefix{"small"};
-    std::string output_dir_name{output_prefix.get_path().string() + "_sketches"};
+    seqan3::test::tmp_filename sketch_dir{"small"};
 
     chopper::configuration config;
     config.k = 15;
     config.threads = 1;
-    config.output_prefix = output_prefix.get_path().string();
-    chopper::detail::apply_prefix(config.output_prefix, config.count_filename, config.sketch_directory);
+    config.sketch_directory = sketch_dir.get_path().string();
 
     chopper::data_store store{.filenames = {data("small.fa")}};
 
@@ -41,10 +39,10 @@ TEST(count_kmers_test, with_file_output)
     EXPECT_EQ(std::lround(store.sketches[0].estimate()), 571);
 
     // check files
-    ASSERT_TRUE(std::filesystem::exists(output_dir_name));
-    ASSERT_TRUE(std::filesystem::exists(output_dir_name + "/small.hll"));
+    ASSERT_TRUE(std::filesystem::exists(config.sketch_directory));
+    ASSERT_TRUE(std::filesystem::exists(config.sketch_directory / "small.hll"));
 
-    std::ifstream hll_file(output_dir_name + "/small.hll", std::ios::binary);
+    std::ifstream hll_file(config.sketch_directory / "small.hll", std::ios::binary);
     chopper::sketch::hyperloglog sketch;
     sketch.restore(hll_file); // the sketch bits will be automatically read from the files
     EXPECT_EQ(std::lround(sketch.estimate()), 571);
