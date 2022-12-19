@@ -72,8 +72,6 @@ inline void count_kmers(configuration const & config, data_store & data)
 
 #pragma omp critical
         data.all_sketches[i] = sketch;
-#pragma omp critical
-        data.all_sketches_map[data.filenames[i]] = i;
 
         if (!config.disable_sketch_output)
             write_sketch_file(data.filenames[i], sketch, config);

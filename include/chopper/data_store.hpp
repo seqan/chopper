@@ -24,8 +24,6 @@ struct data_store
     //!\brief The desired maximum false positive rate of the resulting index.
     std::vector<sketch::hyperloglog> all_sketches{};
 
-    robin_hood::unordered_map<std::string, size_t> all_sketches_map{};
-
     //!\brief A reference to the output stream to cache the results to.
     std::stringstream * output_buffer{nullptr};
 
