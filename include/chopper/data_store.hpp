@@ -21,7 +21,7 @@ struct data_store
     //!\brief The desired maximum false positive rate of the resulting index.
     double const false_positive_rate{};
 
-    //!\brief The desired maximum false positive rate of the resulting index.
+    //!\brief The hyperloglog sketches of all input files to estimate their size and similarities.
     std::vector<sketch::hyperloglog> all_sketches{};
 
     //!\brief A reference to the output stream to cache the results to.
