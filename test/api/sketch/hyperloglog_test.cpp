@@ -6,7 +6,6 @@
 
 #include "../api_test.hpp"
 #include <chopper/sketch/hyperloglog.hpp>
-#include <chopper/sketch/user_bin_sequence.hpp>
 
 struct input_traits : public seqan3::sequence_file_input_default_traits_dna
 {

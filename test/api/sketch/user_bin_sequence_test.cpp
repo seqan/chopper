@@ -16,9 +16,8 @@ struct user_bin_sequence_test : public ::testing::Test
 {
     std::vector<std::string> test_filenames{"small.fa", "small.fa", "small2.fa", "small2.fa"};
     std::vector<size_t> test_kmer_counts{500, 600, 700, 800};
-    std::vector<chopper::sketch::hyperloglog> test_sketches = [] ()
+    std::vector<chopper::sketch::hyperloglog> test_sketches = [this] ()
     {
-        std::vector<std::string> test_filenames{"small.fa", "small.fa", "small2.fa", "small2.fa"};
         std::vector<chopper::sketch::hyperloglog> result;
         chopper::sketch::user_bin_sequence::read_hll_files_into(data(""), test_filenames, result);
         return result;
