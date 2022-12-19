@@ -38,9 +38,9 @@ TEST(execute_test, small_example_parallel_2_threads)
     EXPECT_NO_THROW(chopper::count::execute(config, store));
 
     EXPECT_RANGE_EQ(store.filenames, (std::vector<std::string>{input_filename, input_filename}));
-    ASSERT_EQ(store.all_sketches.size(), 2);
-    EXPECT_EQ(std::lround(store.all_sketches[0].estimate()), 571);
-    EXPECT_EQ(std::lround(store.all_sketches[1].estimate()), 571);
+    ASSERT_EQ(store.sketches.size(), 2);
+    EXPECT_EQ(std::lround(store.sketches[0].estimate()), 571);
+    EXPECT_EQ(std::lround(store.sketches[1].estimate()), 571);
 }
 
 TEST(execute_test, some_test)
@@ -71,7 +71,7 @@ TEST(execute_test, some_test)
     chopper::count::execute(config, store);
 
     EXPECT_RANGE_EQ(store.filenames, (std::vector<std::string>{input_filename, input_filename}));
-    ASSERT_EQ(store.all_sketches.size(), 2);
-    EXPECT_EQ(std::lround(store.all_sketches[0].estimate()), 591);
-    EXPECT_EQ(std::lround(store.all_sketches[1].estimate()), 591);
+    ASSERT_EQ(store.sketches.size(), 2);
+    EXPECT_EQ(std::lround(store.sketches[0].estimate()), 591);
+    EXPECT_EQ(std::lround(store.sketches[1].estimate()), 591);
 }
