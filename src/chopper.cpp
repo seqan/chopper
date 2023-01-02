@@ -21,6 +21,8 @@ int main(int argc, char const * argv[])
     try
     {
         parser.parse();
+
+        config.disable_sketch_output = !parser.is_option_set("output-sketches-to");
     }
     catch (sharg::parser_error const & ext) // the user did something wrong
     {

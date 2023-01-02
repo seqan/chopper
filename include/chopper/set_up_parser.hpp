@@ -209,16 +209,14 @@ inline void set_up_parser(sharg::parser & parser, chopper::configuration & confi
                           "and has no effect.",
                       .hidden = true});
 
-    parser.add_flag(
-        config.disable_sketch_output,
+    parser.add_option(
+        config.sketch_directory,
         sharg::config{
-            .short_id = '\0',
-            .long_id = "disable-sketch-output",
+            .long_id = "output-sketches-to",
             .description =
-                "Although the sketches will improve the layout, you might want to disable "
-                "writing the sketch files to disk. Doing so will save disk space. However, you cannot use either "
-                "--estimate-unions or --rearrange-user-bins in chopper layout without the sketches. Note that "
-                "this option does not decrease run time as sketches have to be computed either way."});
+                "If you supply a directory path with this option, the hyperloglog sketches of your input will be "
+                "stored in the respective path; one .hll file per input file.",
+            .advanced = true});
 
     parser.add_flag(config.debug,
                     sharg::config{.short_id = '\0',
