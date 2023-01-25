@@ -5,7 +5,6 @@
 
 #include <seqan3/search/dream_index/interleaved_bloom_filter.hpp>
 #include <seqan3/test/tmp_directory.hpp>
-#include <seqan3/test/tmp_filename.hpp>
 #include <seqan3/utility/range/to.hpp>
 #include <seqan3/utility/views/join_with.hpp>
 
@@ -18,12 +17,13 @@ TEST_F(cli_test, chopper_layout)
 {
     std::string const seq_filename = data("small.fa");
     std::filesystem::path const sketch_prefix = "chopper_sketch";
-    seqan3::test::tmp_filename const taxa_filename{"data.tsv"};
-    seqan3::test::tmp_filename const binning_filename{"output.binning"};
+    seqan3::test::tmp_directory tmp_dir{};
+    std::filesystem::path const taxa_filename{tmp_dir.path()/"data.tsv"};
+    std::filesystem::path const binning_filename{tmp_dir.path()/"output.binning"};
 
     // we need to have tax ids from the user
     {
-        std::ofstream fout{taxa_filename.get_path()};
+        std::ofstream fout{taxa_filename};
         fout << seq_filename << '\t' << "TAX1\n"
              << seq_filename << '\t' << "TAX2\n"
              /* << seq_filename << '\t' << "TAX2\n" */
@@ -37,11 +37,11 @@ TEST_F(cli_test, chopper_layout)
                                          "2",
                                          "--disable-sketch-output",
                                          "--input-file",
-                                         taxa_filename.get_path().c_str(),
+                                         taxa_filename.c_str(),
                                          "--tmax",
                                          "64",
                                          "--output-filename",
-                                         binning_filename.get_path().c_str());
+                                         binning_filename.c_str());
 
     EXPECT_EQ(result.exit_code, 0);
     EXPECT_EQ(result.out, std::string{});
@@ -53,7 +53,7 @@ TEST_F(cli_test, chopper_layout)
                               "##        \"version\": 2,\n"
                               "##        \"data_file\": {\n"
                               "##            \"value0\": \""
-                              + taxa_filename.get_path().string()
+                              + taxa_filename.string()
                               + "\"\n"
                                 "##        },\n"
                                 "##        \"debug\": false,\n"
@@ -66,7 +66,7 @@ TEST_F(cli_test, chopper_layout)
                                 "##        \"precomputed_files\": false,\n"
                                 "##        \"output_filename\": {\n"
                                 "##            \"value0\": \""
-                              + binning_filename.get_path().string()
+                              + binning_filename.string()
                               + "\"\n"
                                 "##        },\n"
                                 "##        \"tmax\": 64,\n"
@@ -87,10 +87,10 @@ TEST_F(cli_test, chopper_layout)
                               + seq_filename + "\t0\t22\n" + seq_filename + /* ";" + seq_filename + */ "\t22\t21\n"
                               + seq_filename + "\t43\t21\n"};
 
-    ASSERT_TRUE(std::filesystem::exists(binning_filename.get_path()));
+    ASSERT_TRUE(std::filesystem::exists(binning_filename));
 
     {
-        std::ifstream output_file{binning_filename.get_path()};
+        std::ifstream output_file{binning_filename};
         std::string const output_file_str((std::istreambuf_iterator<char>(output_file)),
                                           std::istreambuf_iterator<char>());
         ASSERT_EQ(output_file_str, expected_file);
@@ -104,14 +104,14 @@ TEST_F(cli_test, chopper_layout2)
     std::string const seq2_filename = data("seq2.fa");
     std::string const seq3_filename = data("seq3.fa");
     std::string const seq4_filename = data("small.fa");
-    seqan3::test::tmp_filename const taxa_filename{"data.tsv"};
-    // seqan3::test::tmp_filename const sketch_prefix{"small_sketch"};
+    seqan3::test::tmp_directory tmp_dir{};
+    std::filesystem::path const taxa_filename{tmp_dir.path()/"data.tsv"};
+    std::filesystem::path const binning_filename{tmp_dir.path()/"output.binning"};
     std::filesystem::path const sketch_prefix = "chopper_sketch";
-    seqan3::test::tmp_filename const binning_filename{"output.binning"};
 
     // we need to have filenames from the user
     {
-        std::ofstream fout{taxa_filename.get_path()};
+        std::ofstream fout{taxa_filename};
         fout << seq1_filename << '\n' << seq2_filename << '\n' << seq3_filename << '\n' << seq4_filename << '\n';
     }
 
@@ -121,12 +121,12 @@ TEST_F(cli_test, chopper_layout2)
                                          "--sketch-bits",
                                          "12",
                                          "--input-file",
-                                         taxa_filename.get_path().c_str(),
+                                         taxa_filename.c_str(),
                                          "--tmax",
                                          "64",
                                          "--rearrange-user-bins",
                                          "--output-filename",
-                                         binning_filename.get_path().c_str());
+                                         binning_filename.c_str());
 
     EXPECT_EQ(result.exit_code, 0);
     EXPECT_EQ(result.out, std::string{});
@@ -138,7 +138,7 @@ TEST_F(cli_test, chopper_layout2)
                               "##        \"version\": 2,\n"
                               "##        \"data_file\": {\n"
                               "##            \"value0\": \""
-                              + taxa_filename.get_path().string()
+                              + taxa_filename.string()
                               + "\"\n"
                                 "##        },\n"
                                 "##        \"debug\": false,\n"
@@ -151,7 +151,7 @@ TEST_F(cli_test, chopper_layout2)
                                 "##        \"precomputed_files\": false,\n"
                                 "##        \"output_filename\": {\n"
                                 "##            \"value0\": \""
-                              + binning_filename.get_path().string()
+                              + binning_filename.string()
                               + "\"\n"
                                 "##        },\n"
                                 "##        \"tmax\": 64,\n"
@@ -172,10 +172,10 @@ TEST_F(cli_test, chopper_layout2)
                               + seq3_filename + "\t0\t14\n" + seq4_filename + "\t14\t29\n" + seq2_filename
                               + "\t43\t13\n" + seq1_filename + "\t56\t8\n"};
 
-    ASSERT_TRUE(std::filesystem::exists(binning_filename.get_path()));
+    ASSERT_TRUE(std::filesystem::exists(binning_filename));
 
     {
-        std::ifstream output_file{binning_filename.get_path()};
+        std::ifstream output_file{binning_filename};
         std::string const output_file_str((std::istreambuf_iterator<char>(output_file)),
                                           std::istreambuf_iterator<char>());
         ASSERT_EQ(output_file_str, expected_file);

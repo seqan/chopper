@@ -12,14 +12,15 @@
 
 TEST(execute_estimation_test, few_ubs)
 {
-    seqan3::test::tmp_filename const layout_file{"layout.tsv"};
-    std::filesystem::path const stats_file{layout_file.get_path().string() + ".stats"};
+    seqan3::test::tmp_directory tmp_dir{};
+    std::filesystem::path const layout_file{tmp_dir.path() / "layout.tsv"};
+    std::filesystem::path const stats_file{layout_file.string() + ".stats"};
 
     chopper::configuration config{};
     config.tmax = 64;
     config.determine_best_tmax = true;
     config.disable_sketch_output = true;
-    config.output_filename = layout_file.get_path();
+    config.output_filename = layout_file;
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
@@ -59,8 +60,9 @@ TEST(execute_estimation_test, few_ubs)
 
 TEST(execute_estimation_test, many_ubs)
 {
-    seqan3::test::tmp_filename const layout_file{"layout.tsv"};
-    std::filesystem::path const stats_file{layout_file.get_path().string() + ".stats"};
+    seqan3::test::tmp_directory tmp_dir{};
+    std::filesystem::path const layout_file{tmp_dir.path() / "layout.tsv"};
+    std::filesystem::path const stats_file{layout_file.string() + ".stats"};
 
     std::vector<std::string> many_filenames;
     std::vector<size_t> many_kmer_counts;
@@ -75,7 +77,7 @@ TEST(execute_estimation_test, many_ubs)
     chopper::configuration config{};
     config.tmax = 1024;
     config.determine_best_tmax = true;
-    config.output_filename = layout_file.get_path();
+    config.output_filename = layout_file;
     config.disable_sketch_output = true;
 
     std::stringstream output_buffer;
@@ -115,14 +117,15 @@ TEST(execute_estimation_test, many_ubs)
 # Best t_max (regarding expected query runtime): 128
 )expected_cout");
 
-    std::string const layout_string{string_from_file(layout_file.get_path())};
+    std::string const layout_string{string_from_file(layout_file)};
     EXPECT_NE(layout_string.find("\"tmax\": 128,"), std::string::npos);
 }
 
 TEST(execute_estimation_test, many_ubs_force_all)
 {
-    seqan3::test::tmp_filename const layout_file{"layout.tsv"};
-    std::filesystem::path const stats_file{layout_file.get_path().string() + ".stats"};
+    seqan3::test::tmp_directory tmp_dir{};
+    std::filesystem::path const layout_file{tmp_dir.path() / "layout.tsv"};
+    std::filesystem::path const stats_file{layout_file.string() + ".stats"};
 
     std::vector<std::string> many_filenames;
     std::vector<size_t> many_kmer_counts;
@@ -139,7 +142,7 @@ TEST(execute_estimation_test, many_ubs_force_all)
     config.determine_best_tmax = true;
     config.force_all_binnings = true;
     config.disable_sketch_output = true;
-    config.output_filename = layout_file.get_path();
+    config.output_filename = layout_file;
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
@@ -178,22 +181,23 @@ TEST(execute_estimation_test, many_ubs_force_all)
 # Best t_max (regarding expected query runtime): 128
 )expected_cout");
 
-    std::string const layout_string{string_from_file(layout_file.get_path())};
+    std::string const layout_string{string_from_file(layout_file)};
     EXPECT_NE(layout_string.find("\"tmax\": 128,"), std::string::npos);
 }
 
 TEST(execute_estimation_test, with_rearrangement)
 {
-    seqan3::test::tmp_filename const sketches_dir{"test"};
-    seqan3::test::tmp_filename const input_file{"test.tsv"};
-    seqan3::test::tmp_filename const layout_file{"layout.tsv"};
-    std::filesystem::path const stats_file{layout_file.get_path().string() + ".stats"};
+    seqan3::test::tmp_directory tmp_dir{};
+    std::filesystem::path const sketches_dir{tmp_dir.path() / "test"};
+    std::filesystem::path const input_file{tmp_dir.path() / "test.tsv"};
+    std::filesystem::path const layout_file{tmp_dir.path() / "layout.tsv"};
+    std::filesystem::path const stats_file{layout_file.string() + ".stats"};
 
     std::vector<std::string> expected_filenames;
     std::vector<size_t> expected_kmer_counts;
 
     { // write test.tsv
-        std::ofstream fout{input_file.get_path()};
+        std::ofstream fout{input_file};
         for (size_t i{0}; i < 196u;)
         {
             fout << data("seq1.fa").string() << '\t' << (i++) << '\n';
@@ -217,14 +221,14 @@ TEST(execute_estimation_test, with_rearrangement)
     config.threads = 1;
     config.k = 15;
     config.column_index_to_cluster = 2;
-    config.data_file = input_file.get_path();
+    config.data_file = input_file;
     config.tmax = 256;
-    config.sketch_directory = sketches_dir.get_path();
+    config.sketch_directory = sketches_dir;
     config.rearrange_user_bins = true;
     config.determine_best_tmax = true;
     config.force_all_binnings = true;
     // config.output_verbose_statistics = true;
-    config.output_filename = layout_file.get_path();
+    config.output_filename = layout_file;
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
@@ -235,7 +239,7 @@ TEST(execute_estimation_test, with_rearrangement)
 
     chopper::count::execute(config, store);
 
-    ASSERT_TRUE(std::filesystem::exists(sketches_dir.get_path()));
+    ASSERT_TRUE(std::filesystem::exists(sketches_dir));
 
     EXPECT_RANGE_EQ(store.filenames, expected_filenames);
     ASSERT_EQ(store.sketches.size(), expected_kmer_counts.size());
@@ -244,7 +248,7 @@ TEST(execute_estimation_test, with_rearrangement)
         EXPECT_EQ(std::lround(store.sketches[i].estimate()), expected_kmer_counts[i]) << "failed at " << i;
 
         std::filesystem::path const current_path{expected_filenames[i]};
-        std::string const filename = sketches_dir.get_path() / current_path.stem().string() += ".hll";
+        std::string const filename = sketches_dir / current_path.stem().string() += ".hll";
         EXPECT_TRUE(std::filesystem::exists(filename));
     }
 
@@ -278,6 +282,6 @@ TEST(execute_estimation_test, with_rearrangement)
 # Best t_max (regarding expected query runtime): 256
 )expected_cout");
 
-    std::string const layout_string{string_from_file(layout_file.get_path())};
+    std::string const layout_string{string_from_file(layout_file)};
     EXPECT_NE(layout_string.find("\"tmax\": 256,"), std::string::npos);
 }

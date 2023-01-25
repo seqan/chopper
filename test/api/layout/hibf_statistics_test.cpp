@@ -71,7 +71,8 @@ TEST(hibf_statistics, only_merged_on_top_level)
 
 TEST(execute_test, chopper_layout_statistics)
 {
-    seqan3::test::tmp_filename const layout_file{"layout.tsv"};
+    seqan3::test::tmp_directory tmp_dir{};
+    std::filesystem::path const layout_file{tmp_dir.path() / "layout.tsv"};
 
     std::vector<std::string> many_filenames;
     std::vector<size_t> many_kmer_counts;
@@ -86,7 +87,7 @@ TEST(execute_test, chopper_layout_statistics)
     chopper::configuration config{
         .data_file = "not needed",
         .disable_sketch_output = true,
-        .output_filename = layout_file.get_path().c_str(),
+        .output_filename = layout_file.c_str(),
         .tmax = 64,
         .output_verbose_statistics = true
     };
@@ -128,12 +129,13 @@ TEST(execute_test, chopper_layout_statistics)
 
 TEST(execute_test, chopper_layout_statistics_determine_best_bins)
 {
-    seqan3::test::tmp_filename const binning_filename{"output.binning"};
-    std::filesystem::path const stats_file{binning_filename.get_path().string() + ".stats"};
+    seqan3::test::tmp_directory tmp_dir{};
+    std::filesystem::path const binning_filename{tmp_dir.path() / "output.binning"};
+    std::filesystem::path const stats_file{binning_filename.string() + ".stats"};
 
     chopper::configuration config{.data_file = "not needed",
                                   .disable_sketch_output = true,
-                                  .output_filename = binning_filename.get_path().c_str(),
+                                  .output_filename = binning_filename.c_str(),
                                   .tmax = 128,
                                   .determine_best_tmax = true,
                                   .force_all_binnings = true,

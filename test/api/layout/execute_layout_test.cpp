@@ -11,11 +11,12 @@
 
 TEST(execute_test, few_ubs)
 {
-    seqan3::test::tmp_filename const layout_file{"layout.tsv"};
+    seqan3::test::tmp_directory tmp_dir{};
+    std::filesystem::path const layout_file{tmp_dir.path() / "layout.tsv"};
 
     chopper::configuration config{};
     config.tmax = 64;
-    config.output_filename = layout_file.get_path();
+    config.output_filename = layout_file;
     config.disable_sketch_output = true;
 
     std::stringstream output_buffer;
@@ -46,7 +47,7 @@ TEST(execute_test, few_ubs)
                                       "##        \"precomputed_files\": false,\n"
                                       "##        \"output_filename\": {\n"
                                       "##            \"value0\": \""
-                                    + layout_file.get_path().string()
+                                    + layout_file.string()
                                     + "\"\n"
                                       "##        },\n"
                                       "##        \"tmax\": 64,\n"
@@ -72,18 +73,19 @@ TEST(execute_test, few_ubs)
                                       "seq2\t22\t4\n"
                                       "seq0\t26\t4\n"
                                       "seq1\t30\t34\n"};
-    std::string const actual_file{string_from_file(layout_file.get_path())};
+    std::string const actual_file{string_from_file(layout_file)};
 
     EXPECT_EQ(actual_file, expected_file) << actual_file;
 }
 
 TEST(execute_test, few_ubs_debug)
 {
-    seqan3::test::tmp_filename const layout_file{"layout.tsv"};
+    seqan3::test::tmp_directory tmp_dir{};
+    std::filesystem::path const layout_file{tmp_dir.path() / "layout.tsv"};
 
     chopper::configuration config{};
     config.tmax = 64;
-    config.output_filename = layout_file.get_path();
+    config.output_filename = layout_file;
     config.debug = true;
     config.disable_sketch_output = true;
 
@@ -117,7 +119,7 @@ TEST(execute_test, few_ubs_debug)
           "##        \"precomputed_files\": false,\n"
           "##        \"output_filename\": {\n"
           "##            \"value0\": \""
-        + layout_file.get_path().string()
+        + layout_file.string()
         + "\"\n"
           "##        },\n"
           "##        \"tmax\": 64,\n"
@@ -143,15 +145,16 @@ TEST(execute_test, few_ubs_debug)
           "seq2\t22\t4\t125\t278\t2.23\t64\n"
           "seq0\t26\t4\t125\t278\t2.23\t64\n"
           "seq1\t30\t34\t30\t278\t9.44\t64\n"};
-    std::string const actual_file{string_from_file(layout_file.get_path())};
+    std::string const actual_file{string_from_file(layout_file)};
 
     EXPECT_EQ(actual_file, expected_file);
-    // print_debug_file(layout_file.get_path()); // Formatted output
+    // print_debug_file(layout_file); // Formatted output
 }
 
 TEST(execute_test, many_ubs_debug)
 {
-    seqan3::test::tmp_filename const layout_file{"layout.tsv"};
+    seqan3::test::tmp_directory tmp_dir{};
+    std::filesystem::path const layout_file{tmp_dir.path() / "layout.tsv"};
 
     std::vector<std::string> many_filenames;
     std::vector<size_t> many_kmer_counts;
@@ -165,7 +168,7 @@ TEST(execute_test, many_ubs_debug)
 
     chopper::configuration config{};
     config.tmax = 64;
-    config.output_filename = layout_file.get_path();
+    config.output_filename = layout_file;
     config.debug = true;
     config.disable_sketch_output = true;
 
@@ -197,7 +200,7 @@ TEST(execute_test, many_ubs_debug)
                                       "##        \"precomputed_files\": false,\n"
                                       "##        \"output_filename\": {\n"
                                       "##            \"value0\": \""
-                                    + layout_file.get_path().string()
+                                    + layout_file.string()
                                     + "\"\n"
                                       "##        },\n"
                                       "##        \"tmax\": 64,\n"
@@ -323,7 +326,7 @@ TEST(execute_test, many_ubs_debug)
                                       "seq81\t61\t1\t500\t600\t1.00\t64\n"
                                       "seq80\t62\t1\t500\t600\t1.00\t64\n"
                                       "seq95\t63\t1\t500\t600\t1.00\t64\n"};
-    std::string const actual_file{string_from_file(layout_file.get_path())};
+    std::string const actual_file{string_from_file(layout_file)};
 
     EXPECT_EQ(actual_file, expected_file) << actual_file << std::endl;
 }

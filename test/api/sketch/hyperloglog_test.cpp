@@ -183,27 +183,29 @@ TEST(hyperloglog, fail_dump)
 
 TEST(hyperloglog, fail_restore)
 {
-    seqan3::test::tmp_filename file_name{"sketch.hll"};
+    seqan3::test::tmp_directory tmp_dir{};
+    std::filesystem::path file_name{tmp_dir.path() / "sketch.hll"};
     {
         uint8_t b{4u};
-        std::ofstream ostrm{file_name.get_path()};
+        std::ofstream ostrm{file_name};
         ostrm.write((char *)&b, sizeof(b));
     }
     chopper::sketch::hyperloglog sketch{};
-    std::ifstream istrm{file_name.get_path()};
+    std::ifstream istrm{file_name};
     EXPECT_THROW(sketch.restore(istrm), std::runtime_error);
 }
 
 TEST(hyperloglog, fail_restore_bit_width)
 {
-    seqan3::test::tmp_filename file_name{"wrong.hll"};
+    seqan3::test::tmp_directory tmp_dir{};
+    std::filesystem::path file_name{tmp_dir.path() / "wrong.hll"};
     {
         uint8_t b{3u};
-        std::ofstream ostrm{file_name.get_path()};
+        std::ofstream ostrm{file_name};
         ostrm.write((char *)&b, sizeof(b));
     }
     chopper::sketch::hyperloglog sketch{};
-    std::ifstream istrm{file_name.get_path()};
+    std::ifstream istrm{file_name};
     EXPECT_THROW(sketch.restore(istrm), std::runtime_error);
 }
 
@@ -233,14 +235,15 @@ TEST(hyperloglog, dump_and_restore)
     }
 
     // create temp file
-    seqan3::test::tmp_filename dump_filename{"dump.hll"};
+    seqan3::test::tmp_directory tmp_dir{};
+    std::filesystem::path dump_filename{tmp_dir.path() / "dump.hll"};
 
     // dump sketch
-    std::ofstream ostrm(dump_filename.get_path(), std::ios::binary);
+    std::ofstream ostrm(dump_filename, std::ios::binary);
     dump_sketch.dump(ostrm);
 
     // restore sketch
-    std::ifstream istrm(dump_filename.get_path(), std::ios::binary);
+    std::ifstream istrm(dump_filename, std::ios::binary);
     restore_sketch.restore(istrm);
 
     // now dump_sketch and restore_sketch should be equal
