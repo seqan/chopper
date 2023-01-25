@@ -14,12 +14,6 @@
 namespace chopper::layout
 {
 
-void sanity_checks(data_store const & data, chopper::configuration & config)
-{
-    if (config.rearrange_user_bins)
-        config.estimate_union = true;
-}
-
 size_t determine_best_number_of_technical_bins(chopper::data_store & data, chopper::configuration & config)
 {
     std::stringstream * const output_buffer_original = data.output_buffer;
@@ -100,7 +94,8 @@ size_t determine_best_number_of_technical_bins(chopper::data_store & data, chopp
 
 int execute(chopper::configuration & config, chopper::data_store & data)
 {
-    sanity_checks(data, config);
+    if (config.rearrange_user_bins)
+        config.estimate_union = true;
 
     if (config.tmax % 64 != 0)
     {
