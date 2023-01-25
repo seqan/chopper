@@ -59,6 +59,10 @@ protected:
     //!\brief HyperLogLog sketches on the k-mer sets of the sequences from the files of filenames.
     std::vector<hyperloglog> sketches;
 
+    // Myrthe todo
+    std::vector<bool> empty_bins;
+    std::vector<size_t> empty_bin_cum_sizes;
+
 public:
     user_bin_sequence() = default;                                      //!< Defaulted.
     user_bin_sequence(user_bin_sequence const &) = default;             //!< Defaulted.
@@ -72,8 +76,8 @@ public:
      * \param[in] user_bin_kmer_counts_ counts of the k-mer sets of the bins corresponding to filenames
      */
     user_bin_sequence(std::vector<std::string> & filenames_, std::vector<size_t> & user_bin_kmer_counts_) :
-        filenames{std::addressof(filenames_)},
-        user_bin_kmer_counts{std::addressof(user_bin_kmer_counts_)}
+            filenames{std::addressof(filenames_)},
+            user_bin_kmer_counts{std::addressof(user_bin_kmer_counts_)}
     {}
 
     //!\brief Sorts filenames and cardinalities by looking only at the cardinalities.
@@ -97,7 +101,7 @@ public:
         apply_permutation(permutation);
     }
 
-
+// todo myrthe info
     void insert_empty_bins(double percentage, bool hll)
     {
         //evenly among sorted kmer counts, according to a certain percentage
@@ -107,16 +111,27 @@ public:
 //        if (stepsize < 1){stepsize = 1;} // alternatively:
         assert(stepsize > 0);
         size_t original_size = user_bin_kmer_counts -> size();
+        empty_bins.resize(filenames -> size());
         for (double idx=0; idx < original_size; idx = idx+stepsize){
             size_t idx_round = std::round(idx);
             filenames -> insert(filenames -> begin() + idx_round, std::to_string(user_bin_kmer_counts -> at(idx_round)) + ".empty_bin"); // +size of UB?
             user_bin_kmer_counts -> insert(user_bin_kmer_counts -> begin() + idx_round, user_bin_kmer_counts -> at(idx_round)); // insert in the back of the list. or kmer_counts[idx] - kmer_counts[idx+1] to interpolate.
+            empty_bins.insert(empty_bins.begin() + idx_round, user_bin_kmer_counts -> at(idx_round)); // insert in the back of the list. or kmer_counts[idx] - kmer_counts[idx+1] to interpolate.
             if (hll){
-                sketches.insert(sketches.begin() + idx_round, sketches[idx_round]); //sketches is a protected member.
+                sketches.insert(sketches.begin() + idx_round, sketches[idx_round]); //sketches is a protected member. //Todo: instead of sketches[idx_round], insert an empty sketch.
             }  // maybe you can make a pointer to the original sketch?
 
             // Perhaps also push back to to the extra_information vector: std::vector{"empty_bin"}
+
+            // create empty_bin_cum_sizes
+            empty_bins.resize(empty_bins.size());
+            empty_bin_cum_sizes[0] = empty_bins[0];
+            for (size_t j = 1; j < sketches.size(); ++j)
+                if (empty_bins[j]==true)
+                empty_bin_cum_sizes[j] += empty_bin_cum_sizes[j - 1] + user_bin_kmer_counts -> at(j);
         }
+
+
     }
 
     /*!\brief Restore the HLL sketches from the files in hll_dir
@@ -168,7 +183,7 @@ public:
 
     /*!\brief Estimate the cardinality of the union for a single user bin j with all prior ones j' < j.
      * \param[in] j The current user bin (column in the DP matrix)
-     * \param[out] estimates output row
+     * \param[out] estimates output row.
      *
      * estimates[j_prime] will be the union cardinality estimate of the interval {j_prime, ..., j}.
      */
@@ -182,9 +197,11 @@ public:
 
         hyperloglog temp_hll = sketches[j];
         estimates[j] = (*user_bin_kmer_counts)[j];
-
         for (int64_t j_prime = j - 1; j_prime >= 0; --j_prime)
-            estimates[j_prime] = static_cast<uint64_t>(temp_hll.merge_and_estimate_SIMD(sketches[j_prime]));
+            if (empty_bins[j_prime] == false) // if j is not an empty bin
+                estimates[j_prime] = empty_bin_cum_sizes[j] - empty_bin_cum_sizes[j_prime] + // here you should add the difference in cumulative cardinalities of the empty bins on the interval of {j', ..., j}.
+                        static_cast<uint64_t>(temp_hll.merge_and_estimate_SIMD(sketches[j_prime]));
+            else estimates[j_prime] = estimates[j_prime-1] + empty_bin_cum_sizes[j_prime] - empty_bin_cum_sizes[j_prime-1]; // here you should add the difference in cumulative cardinalities of the empty bins between j' and j.
     }
 
     /*!\brief Estimate the cardinality of the union for each interval [0, j] for all user bins j.
@@ -204,8 +221,11 @@ public:
         estimates[0] = (*user_bin_kmer_counts)[0];
 
         for (size_t j = 1; j < sketches.size(); ++j)
-            estimates[j] = static_cast<uint64_t>(temp_hll.merge_and_estimate_SIMD(sketches[j]));
+            if (empty_bins[j] == false) // if j is not an empty bin
+                estimates[j] = empty_bin_cum_sizes[j] + static_cast<uint64_t>(temp_hll.merge_and_estimate_SIMD(sketches[j]));
+            else estimates[j] = estimates[j-1] + empty_bin_cum_sizes[j] - empty_bin_cum_sizes[j-1];
     }
+
 
     /*!\brief Estimate the cardinality of the union for a single interval.
      * \param[in] start The start of the interval.
@@ -222,9 +242,10 @@ public:
         hyperloglog temp_hll = sketches[start];
 
         for (size_t i = start + 1; i <= end; ++i)
-            temp_hll.merge(sketches[i]);
+            if (empty_bins[i]==false) // myrthe
+                temp_hll.merge(sketches[i]);
 
-        return temp_hll.estimate();
+        return temp_hll.estimate() + empty_bin_cum_sizes[end] - empty_bin_cum_sizes[start]; //Myrthe
     }
 
     /*!\brief Rearrange filenames, sketches and counts such that similar bins are close to each other
@@ -314,7 +335,9 @@ protected:
         {
             // id i is at the index i - first
             clustering.push_back({none, none, sketches[id]});
-            estimates.emplace_back(sketches[id].estimate());
+            if (empty_bins[id] == false) //todo: even if this is not an empty bin, the rang eof sketches[id] might contain empty bins ,
+                estimates.emplace_back(sketches[id].estimate()); // myrthe ASK this is simply k-mer count.. ? todo: add statement for empty bins?
+            else  estimates.emplace_back( static_cast<double>(user_bin_kmer_counts[id][id])); // todo: why does user_bin_kmer_counts[id] not work??
         }
 
         // if this is not the first group, we want to have one overlapping bin
@@ -333,7 +356,7 @@ protected:
             previous_rightmost = new_id;
 
             clustering.push_back({none, none, sketches[actual_previous_rightmost]});
-            estimates.emplace_back(sketches[actual_previous_rightmost].estimate());
+            estimates.emplace_back(sketches[actual_previous_rightmost].estimate()); //todo: add statement for empty bins?
         }
 
         // initialize priority queues in the distance matrix (sequentially)
@@ -359,11 +382,15 @@ protected:
                     // we only want one diagonal of the distance matrix
                     if (i < j)
                     {
-                        // this must be a copy, because merging changes the hll sketch
-                        hyperloglog temp_hll = clustering[i].hll;
-                        double const estimate_ij = temp_hll.merge_and_estimate_SIMD(clustering[j].hll);
-                        // Jaccard distance estimate
-                        double const distance = 2 - (estimates[i] + estimates[j]) / estimate_ij;
+                        double distance = 1; // myrthe : for empty bins, the distance(i, j) = 1.
+                        if (empty_bins[j] == false){
+                            // this must be a copy, because merging changes the hll sketch
+                            hyperloglog temp_hll = clustering[i].hll;
+                            double const estimate_ij = temp_hll.merge_and_estimate_SIMD(
+                                    clustering[j].hll);
+                            // Jaccard distance estimate
+                            distance = 2 - (estimates[i] + estimates[j]) / estimate_ij;
+                        }
                         dist[i].pq.push({j + first, distance});
                     }
                 }
@@ -420,8 +447,10 @@ protected:
 
                     // merge the two nodes with minimal distance together insert the new node into the clustering
                     clustering.push_back({min_id, neighbor_id, std::move(clustering[min_id - first].hll)});
-                    estimates.emplace_back(
-                        clustering.back().hll.merge_and_estimate_SIMD(clustering[neighbor_id - first].hll));
+                    estimates.emplace_back( //todo: even if this is not an empty bin, the rang eof sketches[id] might contain empty bins ,
+                        clustering.back().hll.merge_and_estimate_SIMD(clustering[neighbor_id - first].hll)); // myrthe todo: add statement for empty bins?
+                        // if empty_bins[neighbor_id - first]: estimates.emplace_back(  est[min_id - first] + user_bin_kmer_counts[neighbor_id - first]
+
 
                     // remove old ids
                     remaining_ids.erase(min_id);
@@ -457,7 +486,7 @@ protected:
 
                     // this must be a copy, because merge_and_estimate_SIMD() changes the hll
                     hyperloglog temp_hll = new_hll;
-                    double const estimate_ij = temp_hll.merge_and_estimate_SIMD(clustering[other_id - first].hll);
+                    double const estimate_ij = temp_hll.merge_and_estimate_SIMD(clustering[other_id - first].hll); // myrthe todo: add statement for empty bins?
                     // Jaccard distance estimate
                     double const distance = 2 - (estimates[other_id - first] + estimates.back()) / estimate_ij;
                     dist[i].pq.push({new_id, distance});
@@ -631,7 +660,8 @@ protected:
         trace(clustering, permutation, previous_rightmost, first, curr.right);
     }
 
-    /*!\brief Apply a given permutation to filenames, user_bin_kmer_counts and sketches
+    /*!\brief Apply a given permutation to filenames, user_bin_kmer
+     * _counts and sketches
      * \param[in] permutation the permutation to apply
      */
     void apply_permutation(std::vector<size_t> const & permutation)
