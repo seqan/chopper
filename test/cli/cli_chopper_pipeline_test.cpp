@@ -16,7 +16,6 @@
 TEST_F(cli_test, chopper_layout)
 {
     std::string const seq_filename = data("small.fa");
-    std::filesystem::path const sketch_prefix = "chopper_sketch";
     seqan3::test::tmp_directory tmp_dir{};
     std::filesystem::path const taxa_filename{tmp_dir.path()/"data.tsv"};
     std::filesystem::path const binning_filename{tmp_dir.path()/"output.binning"};
@@ -35,7 +34,6 @@ TEST_F(cli_test, chopper_layout)
                                          "15",
                                          "--threads",
                                          "2",
-                                         "--disable-sketch-output",
                                          "--input-file",
                                          taxa_filename.c_str(),
                                          "--tmax",
@@ -97,7 +95,6 @@ TEST_F(cli_test, chopper_layout)
     }
 }
 
-// check if each chopper submodule can work with the output of the other
 TEST_F(cli_test, chopper_layout2)
 {
     std::string const seq1_filename = data("seq1.fa");
@@ -107,7 +104,6 @@ TEST_F(cli_test, chopper_layout2)
     seqan3::test::tmp_directory tmp_dir{};
     std::filesystem::path const taxa_filename{tmp_dir.path()/"data.tsv"};
     std::filesystem::path const binning_filename{tmp_dir.path()/"output.binning"};
-    std::filesystem::path const sketch_prefix = "chopper_sketch";
 
     // we need to have filenames from the user
     {
@@ -147,7 +143,7 @@ TEST_F(cli_test, chopper_layout2)
                                 "##        },\n"
                                 "##        \"k\": 19,\n"
                                 "##        \"sketch_bits\": 12,\n"
-                                "##        \"disable_sketch_output\": false,\n"
+                                "##        \"disable_sketch_output\": true,\n"
                                 "##        \"precomputed_files\": false,\n"
                                 "##        \"output_filename\": {\n"
                                 "##            \"value0\": \""
