@@ -13,11 +13,12 @@
 TEST(execute_test, small_example_parallel_2_threads)
 {
     std::string input_filename = data("small.fa");
-    seqan3::test::tmp_filename data_filename{"data.tsv"};
+    seqan3::test::tmp_directory tmp_dir{};
+    std::filesystem::path data_filename{tmp_dir.path()/"data.tsv"};
 
     // generate data filename
     {
-        std::ofstream fout{data_filename.get_path()};
+        std::ofstream fout{data_filename};
         fout << input_filename << '\t' << "TAX1\n"
              << input_filename << '\t' << "TAX2\n"
             /* << input_filename << '\t' << "TAX2\n" */;
@@ -28,7 +29,7 @@ TEST(execute_test, small_example_parallel_2_threads)
     config.k = 15;
     config.column_index_to_cluster = 2;
     config.disable_sketch_output = true;
-    config.data_file = data_filename.get_path();
+    config.data_file = data_filename;
 
     chopper::data_store store{};
 
@@ -43,11 +44,12 @@ TEST(execute_test, small_example_parallel_2_threads)
 TEST(execute_test, some_test)
 {
     std::string input_filename = data("small.fa");
-    seqan3::test::tmp_filename data_filename{"data.tsv"};
+    seqan3::test::tmp_directory tmp_dir{};
+    std::filesystem::path data_filename{tmp_dir.path() / "data.tsv"};
 
     // generate data filename
     {
-        std::ofstream fout{data_filename.get_path()};
+        std::ofstream fout{data_filename};
         fout << input_filename << '\t' << "TAX1\n"
              << input_filename << '\t' << "TAX2\n"
             /* << input_filename << '\t' << "TAX2\n" */;
@@ -58,7 +60,7 @@ TEST(execute_test, some_test)
     config.k = 25;
     config.column_index_to_cluster = 2;
     config.disable_sketch_output = true;
-    config.data_file = data_filename.get_path();
+    config.data_file = data_filename;
 
     chopper::data_store store{};
 

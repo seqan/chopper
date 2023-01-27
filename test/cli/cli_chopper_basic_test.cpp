@@ -3,7 +3,7 @@
 #include <string> // strings
 #include <vector> // vectors
 
-#include <seqan3/test/tmp_filename.hpp>
+#include <seqan3/test/tmp_directory.hpp>
 
 #include "cli_test.hpp"
 
@@ -38,19 +38,20 @@ TEST_F(cli_test, chopper_cmd_error_tmax_missing)
 
 TEST_F(cli_test, chopper_cmd_error_empty_file)
 {
-    seqan3::test::tmp_filename empty_file{"empty.count"};
+    seqan3::test::tmp_directory tmp_dir{};
+    std::filesystem::path empty_file{tmp_dir.path() / "empty.count"};
 
     {
-        std::ofstream ofs{empty_file.get_path().string()}; // opens file, s.t. it exists but is empty
+        std::ofstream ofs{empty_file.string()}; // opens file, s.t. it exists but is empty
     }
 
     cli_test_result result = execute_app("chopper",
                                          "--tmax",
                                          "64", /* required option */
                                          "--input-file",
-                                         empty_file.get_path().c_str());
+                                         empty_file.c_str());
 
-    std::string expected{"[CHOPPER ERROR] The file " + empty_file.get_path().string() + " appears to be empty.\n"};
+    std::string expected{"[CHOPPER ERROR] The file " + empty_file.string() + " appears to be empty.\n"};
     EXPECT_EQ(result.exit_code, 65280);
     EXPECT_EQ(result.out, std::string{});
     EXPECT_EQ(result.err, expected);

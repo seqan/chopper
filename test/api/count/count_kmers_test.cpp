@@ -24,12 +24,12 @@ TEST(count_kmers_test, small_example)
 
 TEST(count_kmers_test, with_file_output)
 {
-    seqan3::test::tmp_filename sketch_dir{"small"};
+    seqan3::test::tmp_directory sketch_dir{};
 
     chopper::configuration config;
     config.k = 15;
     config.threads = 1;
-    config.sketch_directory = sketch_dir.get_path().string();
+    config.sketch_directory = sketch_dir.path().string();
 
     chopper::data_store store{.filenames = {data("small.fa")}};
 

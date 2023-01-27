@@ -102,46 +102,45 @@ TEST_F(user_bin_sequence_test, read_hll_files_into)
 
 TEST_F(user_bin_sequence_test, read_hll_files_into_empty_dir)
 {
-    seqan3::test::tmp_filename const tmp_file{"some_file"};
-    auto const parent_dir = tmp_file.get_path().parent_path();
-    auto const empty_dir = parent_dir / "empty_dir";
-    std::filesystem::create_directory(empty_dir); // create empty dir
-    ASSERT_TRUE(std::filesystem::exists(empty_dir));
-    ASSERT_TRUE(std::filesystem::is_empty(empty_dir));
+    seqan3::test::tmp_directory empty_dir{};
+    ASSERT_TRUE(std::filesystem::exists(empty_dir.path()));
+    ASSERT_TRUE(std::filesystem::is_empty(empty_dir.path()));
 
     std::vector<chopper::sketch::hyperloglog> target{};
     // Will throw in Release, but assert in Debug
 #ifdef NDEBUG
-    EXPECT_THROW(chopper::sketch::user_bin_sequence::read_hll_files_into(empty_dir, test_filenames, target), std::runtime_error);
+    EXPECT_THROW(chopper::sketch::user_bin_sequence::read_hll_files_into(empty_dir.path(), test_filenames, target), std::runtime_error);
 #else
-    EXPECT_DEATH(chopper::sketch::user_bin_sequence::read_hll_files_into(empty_dir, test_filenames, target), "");
+    EXPECT_DEATH(chopper::sketch::user_bin_sequence::read_hll_files_into(empty_dir.path(), test_filenames, target), "");
 #endif
 }
 
 TEST_F(user_bin_sequence_test, read_hll_files_into_file_is_missing)
 {
-    seqan3::test::tmp_filename const tmp_file{"other.hll"};
+    seqan3::test::tmp_directory tmp_dir{};
+    std::filesystem::path const tmp_file{tmp_dir.path() / "other.hll"};
     {
-        std::ofstream os{tmp_file.get_path()};
+        std::ofstream os{tmp_file};
         os << "Doesn't matter I just need to exist\n";
     }
 
     std::vector<chopper::sketch::hyperloglog> target{};
 
-    EXPECT_THROW(chopper::sketch::user_bin_sequence::read_hll_files_into(tmp_file.get_path().parent_path(), test_filenames, target), std::runtime_error);
+    EXPECT_THROW(chopper::sketch::user_bin_sequence::read_hll_files_into(tmp_file.parent_path(), test_filenames, target), std::runtime_error);
 }
 
 TEST_F(user_bin_sequence_test, read_hll_files_into_faulty_file)
 {
-    seqan3::test::tmp_filename const tmp_file{"small.hll"};
+    seqan3::test::tmp_directory tmp_dir{};
+    std::filesystem::path const tmp_file{tmp_dir.path() / "small.hll"};
     {
-        std::ofstream os{tmp_file.get_path()};
+        std::ofstream os{tmp_file};
         os << "I am not what an hll file looks like\n";
     }
 
     std::vector<chopper::sketch::hyperloglog> target{};
 
-    EXPECT_THROW(chopper::sketch::user_bin_sequence::read_hll_files_into(tmp_file.get_path().parent_path(), test_filenames, target), std::runtime_error);
+    EXPECT_THROW(chopper::sketch::user_bin_sequence::read_hll_files_into(tmp_file.parent_path(), test_filenames, target), std::runtime_error);
 }
 
 TEST_F(user_bin_sequence_test, precompute_union_estimates_for)
