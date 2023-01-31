@@ -216,6 +216,7 @@ inline void set_up_parser(sharg::parser & parser, chopper::configuration & confi
             .description =
                 "If you supply a directory path with this option, the hyperloglog sketches of your input will be "
                 "stored in the respective path; one .hll file per input file.",
+            .default_message = "None",
             .advanced = true});
 
     parser.add_flag(config.debug,
