@@ -27,7 +27,7 @@ struct configuration
      * \{
      */
     //!\brief The name for the output directory when writing sketches to disk.
-    std::filesystem::path sketch_directory{"sketches"};
+    std::filesystem::path sketch_directory{};
 
     //!\brief Size estimates used to be able to be clustered by additional info in the file. OUTDATED.
     size_t column_index_to_cluster{1u};
