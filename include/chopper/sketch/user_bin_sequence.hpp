@@ -81,7 +81,9 @@ public:
     user_bin_sequence(std::vector<std::string> & filenames_, std::vector<size_t> & user_bin_kmer_counts_) :
             filenames{std::addressof(filenames_)},
             user_bin_kmer_counts{std::addressof(user_bin_kmer_counts_)}
-    {}
+    {       empty_bins.resize(filenames -> size());
+            empty_bin_cum_sizes.resize(filenames -> size());
+    }
 
     //!\brief Sorts filenames and cardinalities by looking only at the cardinalities.
     void sort_by_cardinalities()
@@ -105,29 +107,23 @@ public:
     }
 
     /*!\brief insert empty bins in various datastructures based on k-mer counts.
-     * \details sample evenly among sorted kmer counts, according to a certain percentage.
-     * K-mer counts should already be sorted before calling this function.
-     * \param[in] percentage Currently maximum of 100% is supported.
+     * \param[in] empty_bin_fraction Currently a maximum of 1 is supported.
      * \param[in] hll Whether HLL sketches are used in the layout algorithm
      * \author Myrthe Willemsen
      */
-    void insert_empty_bins(double percentage, bool hll){
-        int stepsize = 1/percentage; //this way, it works uptill 100%.
-        assert(stepsize > 0);
-        size_t original_size = user_bin_kmer_counts -> size();
-        empty_bins.resize(filenames -> size());
-        for (double idx=0; idx < original_size; idx = idx+stepsize){
-            size_t idx_round = std::round(idx);
-            filenames -> insert(filenames -> begin() + idx_round, std::to_string(user_bin_kmer_counts -> at(idx_round)) + ".empty_bin"); // +size of UB?
-            user_bin_kmer_counts -> insert(user_bin_kmer_counts -> begin() + idx_round, user_bin_kmer_counts -> at(idx_round)); // insert in the back of the list. or kmer_counts[idx] - kmer_counts[idx+1] to interpolate.
-            empty_bins.insert(empty_bins.begin() + idx_round, user_bin_kmer_counts -> at(idx_round)); // insert in the back of the list. or kmer_counts[idx] - kmer_counts[idx+1] to interpolate.
+    void insert_empty_bins(std::vector<size_t> insertion_indices, bool hll, uint8_t sketch_bits){
+        for (size_t idx=0; idx < insertion_indices.size(); ++idx) {
+            size_t insertion_idx = insertion_indices[idx] + idx; // add `idx` because the indices will be shifted because the array grows longer upon inserting.
+            filenames -> insert(filenames -> begin() + insertion_idx, std::to_string(user_bin_kmer_counts -> at(insertion_idx)) + ".empty_bin"); // +size of UB?
+            user_bin_kmer_counts -> insert(user_bin_kmer_counts -> begin() + insertion_idx, user_bin_kmer_counts -> at(insertion_idx)); // insert in the back of the list. or kmer_counts[idx] - kmer_counts[idx+1] to interpolate.
+            empty_bins.insert(empty_bins.begin() + insertion_idx, user_bin_kmer_counts -> at(insertion_idx)); // insert in the back of the list. or kmer_counts[idx] - kmer_counts[idx+1] to interpolate.
             if (hll){
-                chopper::sketch::hyperloglog empty_sketch;
-                sketches.insert(sketches.begin() + idx_round, empty_sketch);  //Insert an empty sketch.
+                chopper::sketch::hyperloglog empty_sketch(sketch_bits);
+                sketches.insert(sketches.begin() + insertion_idx, empty_sketch);  //Insert an empty sketch.
             }
         }
         // create empty_bin_cum_sizes with cumulative sizes
-        empty_bins.resize(empty_bins.size());
+        empty_bin_cum_sizes.resize(empty_bins.size());
         empty_bin_cum_sizes[0] = empty_bins[0];
         for (size_t j = 1; j < sketches.size(); ++j)
             if (empty_bins[j]==true) empty_bin_cum_sizes[j] += empty_bin_cum_sizes[j - 1] + user_bin_kmer_counts -> at(j);
