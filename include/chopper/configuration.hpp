@@ -41,7 +41,7 @@ struct configuration
     //!\brief Do not write the sketches into a dedicated directory.
     bool disable_sketch_output{false};
 
-    //!\brief Whether the input files are precomputed files (.minimizer) instead of sequence files.
+    //!\brief Whether the input files are precomputed files (.minimiser) instead of sequence files.
     bool precomputed_files{false};
     //!\}
 

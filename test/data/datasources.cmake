@@ -42,6 +42,6 @@ declare_datasource (FILE small2.hll
                     URL ${CMAKE_SOURCE_DIR}/test/data/small2.hll
                     URL_HASH SHA256=0f0791fb26fb87b854108e43e5350ff49b483082aca2b6afe5b7b63ff727c15a)
 
-declare_datasource (FILE small.minimizer
-                    URL ${CMAKE_SOURCE_DIR}/test/data/small.minimizer
+declare_datasource (FILE small.minimiser
+                    URL ${CMAKE_SOURCE_DIR}/test/data/small.minimiser
                     URL_HASH SHA256=6262de00ad97113320469ff952e657930d07151bda5174ee3599560eccb6f0e1)
