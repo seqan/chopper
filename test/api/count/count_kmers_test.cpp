@@ -74,7 +74,7 @@ TEST(count_kmers_test, read_in_precomputed_binary_files)
     config.precomputed_files = true;
     config.disable_sketch_output = true;
 
-    chopper::data_store store{.filenames = {data("small.minimizer")}};
+    chopper::data_store store{.filenames = {data("small.minimiser")}};
 
     chopper::count::count_kmers(config, store);
 

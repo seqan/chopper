@@ -28,21 +28,21 @@ inline void check_filenames(std::vector<std::string> & filenames, configuration 
         return true;
     };
 
-    // If the first filename ends in .minimizer we expect all files to end in .minimizer
-    config.precomputed_files = case_insensitive_string_ends_with(filenames[0], ".minimizer");
+    // If the first filename ends in .minimiser we expect all files to end in .minimiser
+    config.precomputed_files = case_insensitive_string_ends_with(filenames[0], ".minimiser");
 
     for (auto const & filename : filenames)
     {
-        if (config.precomputed_files && !case_insensitive_string_ends_with(filename, ".minimizer"))
+        if (config.precomputed_files && !case_insensitive_string_ends_with(filename, ".minimiser"))
         {
             throw std::invalid_argument{"You are providing precomputed files but the file " + filename
-                                        + " does not have the correct file extension (.minimizer)."
+                                        + " does not have the correct file extension (.minimiser)."
                                             " Mixing non-/precomputed files is not allowed."};
         }
-        else if (!config.precomputed_files && case_insensitive_string_ends_with(filename, ".minimizer"))
+        else if (!config.precomputed_files && case_insensitive_string_ends_with(filename, ".minimiser"))
         {
             throw std::invalid_argument{"You are providing sequence files but the file " + filename
-                                        + " was identified as a precomputed file (.minimizer)."
+                                        + " was identified as a precomputed file (.minimiser)."
                                             " Mixing non-/precomputed files is not allowed."};
         }
     }

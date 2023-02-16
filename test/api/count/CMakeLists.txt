@@ -9,7 +9,7 @@ target_use_datasources (read_data_file_test FILES seqinfo.tsv)
 
 add_api_test (count_kmers_test.cpp)
 target_use_datasources (count_kmers_test FILES small.fa)
-target_use_datasources (count_kmers_test FILES small.minimizer)
+target_use_datasources (count_kmers_test FILES small.minimiser)
 
 add_api_test (execute_test.cpp)
 target_use_datasources (execute_test FILES small.fa)

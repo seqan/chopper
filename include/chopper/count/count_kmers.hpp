@@ -38,9 +38,9 @@ inline void process_sequence_file(std::string const & filename,
             sketch.add(reinterpret_cast<char *>(&k_hash), sizeof(k_hash));
 }
 
-inline void process_minimizer_file(std::string const & filename, sketch::hyperloglog & sketch)
+inline void process_minimiser_file(std::string const & filename, sketch::hyperloglog & sketch)
 {
-    // temporary variables when .minimizer files are read
+    // temporary variables when .minimiser files are read
     uint64_t hash{};
     char * const hash_data{reinterpret_cast<char *>(&hash)};
     size_t const hash_bytes{sizeof(hash)};
@@ -66,7 +66,7 @@ inline void count_kmers(configuration const & config, data_store & data)
         chopper::sketch::hyperloglog sketch(config.sketch_bits);
 
         if (config.precomputed_files)
-            process_minimizer_file(data.filenames[i], sketch);
+            process_minimiser_file(data.filenames[i], sketch);
         else
             process_sequence_file(data.filenames[i], config, sketch);
 
