@@ -17,14 +17,15 @@ TEST_F(cli_test, chopper_layout)
 {
     std::string const seq_filename = data("small.fa");
     seqan3::test::tmp_directory tmp_dir{};
-    std::filesystem::path const taxa_filename{tmp_dir.path()/"data.tsv"};
-    std::filesystem::path const binning_filename{tmp_dir.path()/"output.binning"};
+    std::filesystem::path const taxa_filename{tmp_dir.path() / "data.tsv"};
+    std::filesystem::path const binning_filename{tmp_dir.path() / "output.binning"};
 
     // we need to have tax ids from the user
     {
         std::ofstream fout{taxa_filename};
         fout << seq_filename << '\t' << "TAX1\n"
-             << seq_filename << '\t' << "TAX2\n"
+             << seq_filename << '\t'
+             << "TAX2\n"
              /* << seq_filename << '\t' << "TAX2\n" */
              << seq_filename << '\t' << "TAX3\n";
     }
@@ -102,8 +103,8 @@ TEST_F(cli_test, chopper_layout2)
     std::string const seq3_filename = data("seq3.fa");
     std::string const seq4_filename = data("small.fa");
     seqan3::test::tmp_directory tmp_dir{};
-    std::filesystem::path const taxa_filename{tmp_dir.path()/"data.tsv"};
-    std::filesystem::path const binning_filename{tmp_dir.path()/"output.binning"};
+    std::filesystem::path const taxa_filename{tmp_dir.path() / "data.tsv"};
+    std::filesystem::path const binning_filename{tmp_dir.path() / "output.binning"};
 
     // we need to have filenames from the user
     {
@@ -163,10 +164,10 @@ TEST_F(cli_test, chopper_layout2)
                                 "##    }\n"
                                 "##}\n"
                                 "##ENDCONFIG\n"
-                                "#HIGH_LEVEL_IBF max_bin_id:56\n"
+                                "#HIGH_LEVEL_IBF max_bin_id:54\n"
                                 "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\n"
-                              + seq3_filename + "\t0\t14\n" + seq4_filename + "\t14\t29\n" + seq2_filename
-                              + "\t43\t13\n" + seq1_filename + "\t56\t8\n"};
+                              + seq3_filename + "\t0\t15\n" + seq4_filename + "\t15\t24\n" + seq2_filename
+                              + "\t39\t15\n" + seq1_filename + "\t54\t10\n"};
 
     ASSERT_TRUE(std::filesystem::exists(binning_filename));
 

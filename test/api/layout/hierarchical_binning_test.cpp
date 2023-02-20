@@ -84,8 +84,8 @@ TEST(hierarchical_binning_test, another_example)
     std::string expected_file{"#MERGED_BIN_0;0 max_bin_id:56\n"
                               "#MERGED_BIN_0 max_bin_id:0\n"
                               "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\n"
-                              "seq6\t0;0;0\t1;1;31\n"
-                              "seq5\t0;0;31\t1;1;25\n"
+                              "seq6\t0;0;0\t1;1;42\n"
+                              "seq5\t0;0;42\t1;1;14\n"
                               "seq7\t0;0;56\t1;1;4\n"
                               "seq4\t0;0;60\t1;1;4\n"
                               "seq0\t0;1\t1;2\n"
@@ -132,8 +132,7 @@ TEST(hierarchical_binning_test, knuts_example)
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
-    chopper::data_store data{.output_buffer = &output_buffer,
-                             .header_buffer = &header_buffer};
+    chopper::data_store data{.output_buffer = &output_buffer, .header_buffer = &header_buffer};
     data.filenames = {"seq0", "seq1", "seq2", "seq3", "seq4"};
     data.kmer_counts = {60, 600, 1000, 800, 800};
     data.compute_fp_correction(0.05, 2, config.tmax);
@@ -244,10 +243,10 @@ TEST(hierarchical_binning_test, tb0_is_a_merged_bin_with_debug)
     std::string expected_file{"#MERGED_BIN_0 max_bin_id:0\n"
                               "#MERGED_BIN_1 max_bin_id:0\n"
                               "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\tEST_MAX_TB_SIZES\tSCORE\tCORR\tT_MAX\n"
-                              "seq2\t0;0\t1;32\t1000;16\t1000;140\t1.00;9.02\t2;64\n"
-                              "seq3\t0;32\t1;32\t1000;16\t1000;140\t1.00;9.02\t2;64\n"
-                              "seq0\t1;0\t1;32\t1000;16\t1000;140\t1.00;9.02\t2;64\n"
-                              "seq1\t1;32\t1;32\t1000;16\t1000;140\t1.00;9.02\t2;64\n"};
+                              "seq2\t0;0\t1;32\t1000;16\t1000;96\t1.00;6.20\t2;64\n"
+                              "seq3\t0;32\t1;32\t1000;16\t1000;96\t1.00;6.20\t2;64\n"
+                              "seq0\t1;0\t1;32\t1000;16\t1000;96\t1.00;6.20\t2;64\n"
+                              "seq1\t1;32\t1;32\t1000;16\t1000;96\t1.00;6.20\t2;64\n"};
 
     EXPECT_EQ(header_buffer.str() + output_buffer.str(), expected_file) << output_buffer.str();
 }
