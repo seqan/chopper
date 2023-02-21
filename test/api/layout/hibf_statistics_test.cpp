@@ -4,8 +4,8 @@
 
 #include "../api_test.hpp"
 #include <chopper/configuration.hpp>
-#include <chopper/detail_apply_prefix.hpp>
 #include <chopper/data_store.hpp>
+#include <chopper/detail_apply_prefix.hpp>
 #include <chopper/layout/execute.hpp>
 #include <chopper/layout/hibf_statistics.hpp>
 
@@ -84,13 +84,11 @@ TEST(execute_test, chopper_layout_statistics)
         many_kmer_counts.push_back(100 * ((i + 20) / 20));
     }
 
-    chopper::configuration config{
-        .data_file = "not needed",
-        .disable_sketch_output = true,
-        .output_filename = layout_file.c_str(),
-        .tmax = 64,
-        .output_verbose_statistics = true
-    };
+    chopper::configuration config{.data_file = "not needed",
+                                  .disable_sketch_output = true,
+                                  .output_filename = layout_file.c_str(),
+                                  .tmax = 64,
+                                  .output_verbose_statistics = true};
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
@@ -120,7 +118,7 @@ TEST(execute_test, chopper_layout_statistics)
 ## size : The expected total size of an tmax-HIBF
 ## uncorr_size : The expected size of an tmax-HIBF without FPR correction
 # tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size	uncorr_size	level	num_ibfs	level_size	level_size_no_corr	total_num_tbs	avg_num_tbs	split_tb_percentage	max_split_tb	avg_split_tb	max_factor	avg_factor
-64	1.00	1.26	1.00	1.26	85.2KiB	45.4KiB	:0:1	:1:12	:37.0KiB:48.2KiB	:37.0KiB:8.3KiB	:64:768	:64:64	:81.25:100.00	:1:32	:1.00:17.45	:1.00:9.02	:1.00:6.50
+64	1.00	1.26	1.00	1.26	73.3KiB	44.9KiB	:0:1	:1:12	:37.0KiB:36.2KiB	:37.0KiB:7.8KiB	:64:768	:64:64	:81.25:100.00	:1:32	:1.00:17.45	:1.00:6.20	:1.00:4.87
 )expected_cout";
 
     EXPECT_EQ(layout_result_stdout, expected_cout) << layout_result_stdout;
@@ -144,11 +142,12 @@ TEST(execute_test, chopper_layout_statistics_determine_best_bins)
     std::stringstream output_buffer;
     std::stringstream header_buffer;
 
-    chopper::data_store data{.false_positive_rate = config.false_positive_rate,
-                             .output_buffer = &output_buffer,
-                             .header_buffer = &header_buffer,
-                             .filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7", "seq8", "seq9"},
-                             .kmer_counts = {10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000}};
+    chopper::data_store data{
+        .false_positive_rate = config.false_positive_rate,
+        .output_buffer = &output_buffer,
+        .header_buffer = &header_buffer,
+        .filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7", "seq8", "seq9"},
+        .kmer_counts = {10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000}};
 
     chopper::layout::execute(config, data);
 
@@ -169,8 +168,8 @@ TEST(execute_test, chopper_layout_statistics_determine_best_bins)
 ## size : The expected total size of an tmax-HIBF
 ## uncorr_size : The expected size of an tmax-HIBF without FPR correction
 # tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size	uncorr_size	level	num_ibfs	level_size	level_size_no_corr	total_num_tbs	avg_num_tbs	split_tb_percentage	max_split_tb	avg_split_tb	max_factor	avg_factor
-64	1.00	1.00	1.00	1.00	1.9MiB	1.8MiB	:0	:1	:1.9MiB	:1.8MiB	:64	:64	:100.00	:20	:6.40	:6.38	:3.62
-128	0.96	0.96	1.63	1.56	3.1MiB	2.4MiB	:0	:1	:3.1MiB	:2.4MiB	:128	:128	:100.00	:47	:12.80	:12.17	:5.96
+64	1.00	1.00	1.00	1.00	1.6MiB	1.2MiB	:0	:1	:1.6MiB	:1.2MiB	:64	:64	:100.00	:16	:6.40	:4.35	:3.06
+128	0.96	0.96	1.40	1.34	2.3MiB	1.2MiB	:0	:1	:2.3MiB	:1.2MiB	:128	:128	:100.00	:33	:12.80	:6.29	:4.38
 # Best t_max (regarding expected query runtime): 128
 )expected_cout";
 
