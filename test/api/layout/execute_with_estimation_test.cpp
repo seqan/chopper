@@ -112,8 +112,8 @@ TEST(execute_estimation_test, many_ubs)
 ## size : The expected total size of an tmax-HIBF
 # tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size
 64	1.00	1.26	1.00	1.26	73.3KiB
-128	0.96	0.98	0.66	0.65	48.4KiB
-256	1.20	1.20	0.74	0.89	54.3KiB
+128	1.22	1.25	0.66	0.82	48.4KiB
+256	1.33	1.33	0.74	0.99	54.3KiB
 # Best t_max (regarding expected query runtime): 128
 )expected_cout");
 
@@ -176,8 +176,8 @@ TEST(execute_estimation_test, many_ubs_force_all)
 ## size : The expected total size of an tmax-HIBF
 # tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size
 64	1.00	1.26	1.00	1.26	73.3KiB
-128	0.96	0.98	0.66	0.65	48.4KiB
-256	1.20	1.20	0.74	0.89	54.3KiB
+128	1.22	1.25	0.66	0.82	48.4KiB
+256	1.33	1.33	0.74	0.99	54.3KiB
 # Best t_max (regarding expected query runtime): 128
 )expected_cout");
 
@@ -277,8 +277,8 @@ TEST(execute_estimation_test, with_rearrangement)
 ## size : The expected total size of an tmax-HIBF
 # tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size
 64	1.00	2.23	1.00	2.23	116.5KiB
-128	0.96	1.57	1.15	1.80	133.7KiB
-256	1.20	1.39	1.19	1.66	138.7KiB
+128	1.22	1.95	1.15	2.24	133.7KiB
+256	1.33	1.53	1.19	1.82	138.7KiB
 # Best t_max (regarding expected query runtime): 256
 )expected_cout");
 

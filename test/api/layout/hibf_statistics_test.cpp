@@ -169,8 +169,8 @@ TEST(execute_test, chopper_layout_statistics_determine_best_bins)
 ## uncorr_size : The expected size of an tmax-HIBF without FPR correction
 # tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size	uncorr_size	level	num_ibfs	level_size	level_size_no_corr	total_num_tbs	avg_num_tbs	split_tb_percentage	max_split_tb	avg_split_tb	max_factor	avg_factor
 64	1.00	1.00	1.00	1.00	1.6MiB	1.2MiB	:0	:1	:1.6MiB	:1.2MiB	:64	:64	:100.00	:16	:6.40	:4.35	:3.06
-128	0.96	0.96	1.40	1.34	2.3MiB	1.2MiB	:0	:1	:2.3MiB	:1.2MiB	:128	:128	:100.00	:33	:12.80	:6.29	:4.38
-# Best t_max (regarding expected query runtime): 128
+128	1.22	1.22	1.40	1.71	2.3MiB	1.2MiB	:0	:1	:2.3MiB	:1.2MiB	:128	:128	:100.00	:33	:12.80	:6.29	:4.38
+# Best t_max (regarding expected query runtime): 64
 )expected_cout";
 
     ASSERT_TRUE(std::filesystem::exists(stats_file));
