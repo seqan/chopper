@@ -66,11 +66,12 @@ inline void set_up_parser(sharg::parser & parser, chopper::configuration & confi
                 "trivial. The smaller tmax, the more levels the layout needs to represent the data. This results "
                 "in a higher space consumption of the index. While querying each individual level is cheap, "
                 "querying many levels might also lead to an increased runtime. "
-                "A good tmax is usually the square root of the number of user bins rounded to the next multiple "
-                "of 64. Note that your tmax will be rounded to the next multiple of 64 anyway. "
+                "A good tmax is usually the square root of the number of user bins/samples rounded to the next "
+                "multiple of 64. Note that your tmax will always be rounded to the next multiple of 64. "
                 "At the expense of a longer runtime, you can enable the statistic mode that determines the best "
-                "tmax. See the option --determine-best-tmax",
-            .required = true});
+                "tmax for your data set. See the advanced option --determine-best-tmax",
+            .default_message = "≈sqrt(#samples)",
+            .advanced = true});
 
     parser.add_option(
         config.num_hash_functions,
@@ -182,12 +183,13 @@ inline void set_up_parser(sharg::parser & parser, chopper::configuration & confi
             .long_id = "determine-best-tmax",
             .description =
                 "When this flag is set, the program will compute multiple layouts for tmax in "
-                "[64 , 128, 256, ... , tmax] as well as tmax=sqrt(number of user bins). "
+                "[64 , 128, 256, ... , tmax] as well as tmax=sqrt(#samples). "
                 "The layout algorithm itself only optimizes the space consumption. When determining the best "
                 "layout, we additionally keep track of the average number of queries needed to traverse each "
                 "layout. This query cost is taken into account when determining the best tmax for your data. "
                 "Note that the option --tmax serves as upper bound. Once the layout quality starts dropping, the "
-                "computation is stopped. To run all layout computations, pass the flag --force-all-binnings."});
+                "computation is stopped. To run all layout computations, pass the flag --force-all-binnings.",
+            .advanced = true});
 
     parser.add_flag(
         config.force_all_binnings,

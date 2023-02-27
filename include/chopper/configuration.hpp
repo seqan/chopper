@@ -52,7 +52,7 @@ struct configuration
     std::filesystem::path output_filename{"binning.out"};
 
     //!\brief The maximum number of technical bins on each IBF in the HIBF.
-    uint16_t tmax{64};
+    uint16_t tmax{};
 
     //!\brief Analog to `column_index_to_cluster`. OUTDATED
     int8_t aggregate_by_column{-1};
