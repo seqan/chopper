@@ -1,7 +1,8 @@
 #include <gtest/gtest.h>
 
-#include "../api_test.hpp"
 #include <chopper/detail_apply_prefix.hpp>
+
+#include "../api_test.hpp"
 
 TEST(detail_apply_prefix_test, simple_prefix)
 {

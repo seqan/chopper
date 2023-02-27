@@ -4,8 +4,9 @@
 
 #include <seqan3/io/sequence_file/input.hpp>
 
-#include "../api_test.hpp"
 #include <chopper/sketch/hyperloglog.hpp>
+
+#include "../api_test.hpp"
 
 struct input_traits : public seqan3::sequence_file_input_default_traits_dna
 {

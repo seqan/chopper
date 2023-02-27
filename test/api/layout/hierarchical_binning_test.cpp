@@ -1,13 +1,15 @@
 #include <gtest/gtest.h>
 
 #include <fstream>
-#include <robin_hood.h>
 #include <sstream>
 #include <vector>
 
-#include "../api_test.hpp"
+#include <robin_hood.h>
+
 #include <chopper/layout/hibf_statistics.hpp>
 #include <chopper/layout/hierarchical_binning.hpp>
+
+#include "../api_test.hpp"
 
 TEST(hierarchical_binning_test, filenames_and_kmer_counts_size_differs)
 {

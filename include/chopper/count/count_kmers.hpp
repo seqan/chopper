@@ -3,8 +3,9 @@
 #include <filesystem>
 #include <fstream>
 #include <future>
-#include <robin_hood.h>
 #include <thread>
+
+#include <robin_hood.h>
 
 #include <seqan3/io/sequence_file/all.hpp>
 #include <seqan3/io/views/async_input_buffer.hpp>
@@ -29,9 +30,8 @@ using sequence_file_type = seqan3::sequence_file_input<mytraits,
                                                        seqan3::fields<seqan3::field::seq>,
                                                        seqan3::type_list<seqan3::format_fasta, seqan3::format_fastq>>;
 
-inline void process_sequence_file(std::string const & filename,
-                                   configuration const & config,
-                                   sketch::hyperloglog & sketch)
+inline void
+process_sequence_file(std::string const & filename, configuration const & config, sketch::hyperloglog & sketch)
 {
     for (auto && [seq] : sequence_file_type{filename})
         for (auto && k_hash : seq | seqan3::views::kmer_hash(seqan3::ungapped{config.k}))

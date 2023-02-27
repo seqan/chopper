@@ -3,12 +3,12 @@
 #include <string> // strings
 #include <vector> // vectors
 
+#include <cereal/archives/binary.hpp>
+
 #include <seqan3/search/dream_index/interleaved_bloom_filter.hpp>
 #include <seqan3/test/tmp_directory.hpp>
 #include <seqan3/utility/range/to.hpp>
 #include <seqan3/utility/views/join_with.hpp>
-
-#include <cereal/archives/binary.hpp>
 
 #include "cli_test.hpp"
 

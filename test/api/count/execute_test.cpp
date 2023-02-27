@@ -6,15 +6,16 @@
 
 #include <seqan3/utility/range/to.hpp>
 
-#include "../api_test.hpp"
 #include <chopper/count/execute.hpp>
 #include <chopper/detail_apply_prefix.hpp>
+
+#include "../api_test.hpp"
 
 TEST(execute_test, small_example_parallel_2_threads)
 {
     std::string input_filename = data("small.fa");
     seqan3::test::tmp_directory tmp_dir{};
-    std::filesystem::path data_filename{tmp_dir.path()/"data.tsv"};
+    std::filesystem::path data_filename{tmp_dir.path() / "data.tsv"};
 
     // generate data filename
     {
