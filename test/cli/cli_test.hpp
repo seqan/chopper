@@ -34,7 +34,7 @@ protected:
 
         // Assemble the command string and disable version check.
         std::ostringstream command{};
-        command << "SEQAN3_NO_VERSION_CHECK=1 " << BINDIR;
+        command << "SHARG_NO_VERSION_CHECK=1 " << BINDIR;
         int a[] = {0, ((void)(command << command_items << ' '), 0)...};
         (void)a;
 

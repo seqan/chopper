@@ -1,4 +1,4 @@
-# Format all files in include folder, including std module, excluding contrib module
+# Format all files in include/test folder, including std module, excluding contrib module
 # find . \( -iname "*.cpp" -or -iname "*.hpp" \) -and -not -path "./lib/*" -and -not -path "./build/*" | xargs clang-format-15 --style=file -i
 ---
 Language:        Cpp
@@ -82,20 +82,26 @@ IncludeBlocks:   Regroup
 IncludeCategories:
   - Regex:           '(<gtest/.*|<benchmark/.*)'
     Priority:        1
+  - Regex:           '<robin_hood'
+    Priority:        6
   - Regex:           '(<[[:alnum:]._]+>|<seqan3/std/.*>)'
     Priority:        2
-  - Regex:           '<sdsl/'
-    Priority:        3
-  - Regex:           '<sharg/'
-    Priority:        4
-  - Regex:           '<seqan3/'
-    Priority:        5
-  - Regex:           '<cereal/'
-    Priority:        6
   - Regex:           '<lemon/'
+    Priority:        3
+  - Regex:           '<cereal/'
+    Priority:        4
+  - Regex:           '<sdsl/'
+    Priority:        5
+  - Regex:           '<sharg/'
     Priority:        7
-  - Regex:           '.*'
+  - Regex:           '<seqan3/'
     Priority:        8
+  - Regex:           '<chopper/'
+    Priority:        9
+  - Regex:           '<raptor/'
+    Priority:        10
+  - Regex:           '.*'
+    Priority:        11
 IncludeIsMainRegex: '(Test)?$'
 IncludeIsMainSourceRegex: ''
 IndentAccessModifiers: false

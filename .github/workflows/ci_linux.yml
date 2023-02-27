@@ -5,6 +5,8 @@ on:
     branches:
       - 'master'
   pull_request:
+    types:
+      - unlabeled
 
 concurrency:
   group: linux-${{ github.event.pull_request.number || github.ref }}
@@ -12,7 +14,7 @@ concurrency:
 
 env:
   CMAKE_VERSION: 3.15.4
-  SEQAN3_NO_VERSION_CHECK: 1
+  SHARG_NO_VERSION_CHECK: 1
   TZ: Europe/Berlin
 
 defaults:

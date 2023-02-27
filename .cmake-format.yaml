@@ -1,34 +1,15 @@
-_chopper_cmake_format_documentation_only:
-  install:
-    command:
-      - pip install cmakelang[YAML]
-    repo:
-      - https://github.com/cheshirekow/cmake_format
-  example:
-    description:
-      - Format all "*.cmake" and "CMakeLists.txt", ignoring the directories "build" and "lib"
-    note:
-      - Run from chopper root directory!
-    shell_single_line:
-      - find . \( -iname CMakeLists.txt -or -iname "*.cmake" \) -and -not -path "./lib/*" -and -not -path "./build/*" | xargs cmake-format --config-files .cmake-format.yaml --in-place
-    shell_multi_line: |
-      find . `#Search this directory.` \
-      \( -iname CMakeLists.txt -or -iname "*.cmake" \) `#Look for files called "CMakeLists.txt" or ending in ".cmake".` \
-      -and -not -path "./lib/*" `#Do not print hits for files in the "lib" directory.` \
-      -and -not -path "./build/*" `#Do not print hits for files in the "build" directory, pipe results.` | \
-      xargs cmake-format --config-files .cmake-format.yaml --in-place # Call cmake-format on each result.
-# ^^^ Chopper
-# vvv cmake-format
+# find . \( -iname CMakeLists.txt -o -iname *.cmake \) -a -not -path "./lib/*" -a -not -path "./build/*" | xargs cmake-format -c .cmake-format.yaml -i
 _help_parse: Options affecting listfile parsing
 parse:
   _help_additional_commands:
   - Specify structure for custom cmake functions
   additional_commands:
-    declare_datasource:
+    declare_internal_datasource:
       kwargs:
         FILE: '*'
         URL: '*'
         URL_HASH: '*'
+        CONFIGURE: '*'
   _help_override_spec:
   - Override configurations per-command where available
   override_spec: {}
@@ -88,7 +69,7 @@ format:
   _help_dangle_parens:
   - If a statement is wrapped to more than one line, than dangle
   - the closing parenthesis on its own line.
-  dangle_parens: false
+  dangle_parens: true
   _help_dangle_align:
   - If the trailing parenthesis must be 'dangled' on its on
   - 'line, then align it to this reference: `prefix`: the start'
@@ -100,12 +81,12 @@ format:
   - If the statement spelling length (including space and
   - parenthesis) is smaller than this amount, then force reject
   - nested layouts.
-  min_prefix_chars: 20
+  min_prefix_chars: 120
   _help_max_prefix_chars:
   - If the statement spelling length (including space and
   - parenthesis) is larger than the tab width by more than this
   - amount, then force reject un-nested layouts.
-  max_prefix_chars: 30
+  max_prefix_chars: 120
   _help_max_lines_hwrap:
   - If a candidate layout is wrapped horizontally but it exceeds
   - this many lines, then reject the layout.
@@ -235,7 +216,7 @@ lint:
   min_statement_spacing: 1
   _help_max_statement_spacing:
   - Require no more than this many newlines between statements
-  max_statement_spacing: 1
+  max_statement_spacing: 2
   max_returns: 6
   max_branches: 12
   max_arguments: 5
