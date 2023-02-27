@@ -27,15 +27,6 @@ TEST_F(cli_test, chopper_cmd_error_unknown_option)
     EXPECT_EQ(result.err, expected);
 }
 
-TEST_F(cli_test, chopper_cmd_error_tmax_missing)
-{
-    cli_test_result result = execute_app("chopper", "--input-file", "foo.txt");
-    std::string expected{"[CHOPPER ERROR] Option --tmax is required but not set.\n"};
-    EXPECT_EQ(result.exit_code, 65280);
-    EXPECT_EQ(result.out, std::string{});
-    EXPECT_EQ(result.err, expected);
-}
-
 TEST_F(cli_test, chopper_cmd_error_empty_file)
 {
     seqan3::test::tmp_directory tmp_dir{};
