@@ -41,9 +41,9 @@ size_t determine_best_number_of_technical_bins(chopper::data_store & data, chopp
     std::ofstream file_out{config.output_filename.string() + ".stats"};
 
     file_out << "## ### Parameters ###\n"
-              << "## number of user bins = " << data.filenames.size() << '\n'
-              << "## number of hash functions = " << config.num_hash_functions << '\n'
-              << "## false positive rate = " << config.false_positive_rate << '\n';
+             << "## number of user bins = " << data.filenames.size() << '\n'
+             << "## number of hash functions = " << config.num_hash_functions << '\n'
+             << "## false positive rate = " << config.false_positive_rate << '\n';
     hibf_statistics::print_header_to(file_out, config.output_verbose_statistics);
 
     double best_expected_HIBF_query_cost{std::numeric_limits<double>::infinity()};
@@ -100,7 +100,7 @@ int execute(chopper::configuration & config, chopper::data_store & data)
     if (config.tmax == 0) // no tmax was set by the user on the command line
     {
         // Set default as sqrt(#samples). Experiments showed that this is a reasonable default.
-        if (size_t number_samples = data.filenames.size(); number_samples > 1ULL << 32) // sqrt is bigger than uint16_t
+        if (size_t number_samples = data.filenames.size(); number_samples >= 1ULL << 32) // sqrt is bigger than uint16_t
             throw std::invalid_argument{"Too many samples. Please set a tmax (see help via `-hh`)."}; // GCOVR_EXCL_LINE
         else
             config.tmax = chopper::next_multiple_of_64(static_cast<uint16_t>(std::ceil(std::sqrt(number_samples))));
