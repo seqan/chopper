@@ -70,7 +70,7 @@ inline void set_up_parser(sharg::parser & parser, chopper::configuration & confi
                 "multiple of 64. Note that your tmax will always be rounded to the next multiple of 64. "
                 "At the expense of a longer runtime, you can enable the statistic mode that determines the best "
                 "tmax for your data set. See the advanced option --determine-best-tmax",
-            .default_message = "~sqrt(#samples)",
+            .default_message = "≈sqrt(#samples)",
             .advanced = true});
 
     parser.add_option(
