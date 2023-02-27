@@ -78,6 +78,29 @@ TEST(execute_test, few_ubs)
     EXPECT_EQ(actual_file, expected_file) << actual_file;
 }
 
+TEST(execute_test, set_default_tmax)
+{
+    seqan3::test::tmp_directory tmp_dir{};
+    std::filesystem::path const layout_file{tmp_dir.path() / "layout.tsv"};
+
+    chopper::configuration config{}; // tmax == 0 triggers to set default to the sqrt(#samples)
+    config.output_filename = layout_file;
+    config.disable_sketch_output = true;
+
+    std::stringstream output_buffer;
+    std::stringstream header_buffer;
+
+    chopper::data_store store{.false_positive_rate = config.false_positive_rate,
+                              .output_buffer = &output_buffer,
+                              .header_buffer = &header_buffer,
+                              .filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7"},
+                              .kmer_counts = {500, 1000, 500, 500, 500, 500, 500, 500}};
+
+    chopper::layout::execute(config, store);
+
+    EXPECT_EQ(config.tmax, 64u);
+}
+
 TEST(execute_test, few_ubs_debug)
 {
     seqan3::test::tmp_directory tmp_dir{};

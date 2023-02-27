@@ -97,7 +97,12 @@ int execute(chopper::configuration & config, chopper::data_store & data)
     if (config.rearrange_user_bins)
         config.estimate_union = true;
 
-    if (config.tmax % 64 != 0)
+    if (config.tmax == 0) // no tmax was set by the user on the command line
+    {
+        // set default as sqrt(#samples). Experiments showed that this is a reasonable default.
+        config.tmax = chopper::next_multiple_of_64(static_cast<uint16_t>(std::sqrt(data.filenames.size())));
+    }
+    else if (config.tmax % 64 != 0)
     {
         config.tmax = chopper::next_multiple_of_64(config.tmax);
         std::cerr << "[CHOPPER LAYOUT WARNING]: Your requested number of technical bins was not a multiple of 64. "
