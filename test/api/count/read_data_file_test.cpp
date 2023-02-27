@@ -3,9 +3,10 @@
 #include <sstream>
 #include <vector>
 
-#include "../api_test.hpp"
 #include <chopper/configuration.hpp>
 #include <chopper/count/read_data_file.hpp>
+
+#include "../api_test.hpp"
 
 TEST(read_data_file_with_clustering_test, file_open_error)
 {

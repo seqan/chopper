@@ -2,12 +2,13 @@
 
 #include <iostream>
 
-#include "../api_test.hpp"
 #include <chopper/configuration.hpp>
 #include <chopper/data_store.hpp>
 #include <chopper/detail_apply_prefix.hpp>
 #include <chopper/layout/execute.hpp>
 #include <chopper/layout/hibf_statistics.hpp>
+
+#include "../api_test.hpp"
 
 TEST(hibf_statistics, only_merged_on_top_level)
 {

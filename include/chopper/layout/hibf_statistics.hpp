@@ -117,28 +117,28 @@ public:
     {
         // print column names explanation in header
         stream << "## ### Notation ###\n"
-                  << "## X-IBF = An IBF with X number of bins.\n"
-                  << "## X-HIBF = An HIBF with tmax = X, e.g a maximum of X technical bins on each level.\n";
+               << "## X-IBF = An IBF with X number of bins.\n"
+               << "## X-HIBF = An HIBF with tmax = X, e.g a maximum of X technical bins on each level.\n";
 
         stream << "## ### Column Description ###\n"
-                     "## tmax : The maximum number of technical bin on each level\n"
-                     "## c_tmax : The technical extra cost of querying an tmax-IBF, compared to 64-IBF\n"
-                     "## l_tmax : The estimated query cost for an tmax-HIBF, compared to an 64-HIBF\n"
-                     "## m_tmax : The estimated memory consumption for an tmax-HIBF, compared to an 64-HIBF\n"
-                     "## (l*m)_tmax : Computed by l_tmax * m_tmax\n"
-                     "## size : The expected total size of an tmax-HIBF\n"
-                  << ((verbose) ? "## uncorr_size : The expected size of an tmax-HIBF without FPR correction\n" : "");
+                  "## tmax : The maximum number of technical bin on each level\n"
+                  "## c_tmax : The technical extra cost of querying an tmax-IBF, compared to 64-IBF\n"
+                  "## l_tmax : The estimated query cost for an tmax-HIBF, compared to an 64-HIBF\n"
+                  "## m_tmax : The estimated memory consumption for an tmax-HIBF, compared to an 64-HIBF\n"
+                  "## (l*m)_tmax : Computed by l_tmax * m_tmax\n"
+                  "## size : The expected total size of an tmax-HIBF\n"
+               << ((verbose) ? "## uncorr_size : The expected size of an tmax-HIBF without FPR correction\n" : "");
 
         // print column names
-        stream << "# tmax" << '\t' << "c_tmax" << '\t' << "l_tmax" << '\t' << "m_tmax" << '\t' << "(l*m)_tmax"
-                  << '\t' << "size";
+        stream << "# tmax" << '\t' << "c_tmax" << '\t' << "l_tmax" << '\t' << "m_tmax" << '\t' << "(l*m)_tmax" << '\t'
+               << "size";
 
         if (verbose) // uncorrected size and add level statistics
         {
             stream << '\t' << "uncorr_size" << '\t' << "level" << '\t' << "num_ibfs" << '\t' << "level_size" << '\t'
-                      << "level_size_no_corr" << '\t' << "total_num_tbs" << '\t' << "avg_num_tbs" << '\t'
-                      << "split_tb_percentage" << '\t' << "max_split_tb" << '\t' << "avg_split_tb" << '\t'
-                      << "max_factor" << '\t' << "avg_factor";
+                   << "level_size_no_corr" << '\t' << "total_num_tbs" << '\t' << "avg_num_tbs" << '\t'
+                   << "split_tb_percentage" << '\t' << "max_split_tb" << '\t' << "avg_split_tb" << '\t' << "max_factor"
+                   << '\t' << "avg_factor";
         }
 
         stream << '\n';
@@ -232,22 +232,22 @@ public:
         stream << std::fixed << std::setprecision(2);
 
         stream /*        tmax */ << config.tmax
-                                    << '\t'
-                                    /*      c_tmax */
-                                    << chopper::layout::ibf_query_cost::interpolated(config.tmax,
-                                                                                     config.false_positive_rate)
-                                    << '\t'
-                                    /*      l_tmax */
-                                    << expected_HIBF_query_cost
-                                    << '\t' /*relative to a 64 bin IBF*/
-                                            /*      m_tmax */
-                                    << relative_memory_size
-                                    << '\t' /*relative to the 64 T_Max HIBF*/
-                                            /*   (l*m)tmax */
-                                    << query_time_memory_usage_prod
-                                    << '\t'
-                                    /*  corr. size */
-                                    << to_formatted_BF_size(total_size) << ((verbose) ? '\t' : '\n');
+                                 << '\t'
+                                 /*      c_tmax */
+                                 << chopper::layout::ibf_query_cost::interpolated(config.tmax,
+                                                                                  config.false_positive_rate)
+                                 << '\t'
+                                 /*      l_tmax */
+                                 << expected_HIBF_query_cost
+                                 << '\t' /*relative to a 64 bin IBF*/
+                                         /*      m_tmax */
+                                 << relative_memory_size
+                                 << '\t' /*relative to the 64 T_Max HIBF*/
+                                         /*   (l*m)tmax */
+                                 << query_time_memory_usage_prod
+                                 << '\t'
+                                 /*  corr. size */
+                                 << to_formatted_BF_size(total_size) << ((verbose) ? '\t' : '\n');
 
         if (verbose)
         {
@@ -256,36 +256,36 @@ public:
 
             // per level statistics:
             stream /* level               */ << level_str
-                                                << '\t'
-                                                /* num_ibfs            */
-                                                << num_ibfs_str
-                                                << '\t'
-                                                /* level_size          */
-                                                << level_size_str
-                                                << '\t'
-                                                /* level_size_no_corr  */
-                                                << level_size_no_corr_str
-                                                << '\t'
-                                                /* total_num_tbs       */
-                                                << total_num_tbs_str
-                                                << '\t'
-                                                /* avg_num_tbs         */
-                                                << avg_num_tbs_str
-                                                << '\t'
-                                                /* split_tb_percentage */
-                                                << split_tb_percentage_str
-                                                << '\t'
-                                                /* max_split_tb        */
-                                                << max_split_tb_str
-                                                << '\t'
-                                                /* avg_split_tb        */
-                                                << avg_split_tb_str
-                                                << '\t'
-                                                /* max_factor          */
-                                                << max_factor_str
-                                                << '\t'
-                                                /* avg_factor          */
-                                                << avg_factor_str << '\n';
+                                             << '\t'
+                                             /* num_ibfs            */
+                                             << num_ibfs_str
+                                             << '\t'
+                                             /* level_size          */
+                                             << level_size_str
+                                             << '\t'
+                                             /* level_size_no_corr  */
+                                             << level_size_no_corr_str
+                                             << '\t'
+                                             /* total_num_tbs       */
+                                             << total_num_tbs_str
+                                             << '\t'
+                                             /* avg_num_tbs         */
+                                             << avg_num_tbs_str
+                                             << '\t'
+                                             /* split_tb_percentage */
+                                             << split_tb_percentage_str
+                                             << '\t'
+                                             /* max_split_tb        */
+                                             << max_split_tb_str
+                                             << '\t'
+                                             /* avg_split_tb        */
+                                             << avg_split_tb_str
+                                             << '\t'
+                                             /* max_factor          */
+                                             << max_factor_str
+                                             << '\t'
+                                             /* avg_factor          */
+                                             << avg_factor_str << '\n';
         }
     }
 

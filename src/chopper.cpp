@@ -7,8 +7,8 @@
 #include <chopper/data_store.hpp>
 #include <chopper/detail_apply_prefix.hpp>
 #include <chopper/layout/execute.hpp>
-#include <chopper/sketch/estimate_kmer_counts.hpp>
 #include <chopper/set_up_parser.hpp>
+#include <chopper/sketch/estimate_kmer_counts.hpp>
 
 int main(int argc, char const * argv[])
 {

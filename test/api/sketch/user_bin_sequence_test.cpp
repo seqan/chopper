@@ -2,8 +2,9 @@
 
 #include <seqan3/io/sequence_file/input.hpp>
 
-#include "../api_test.hpp"
 #include <chopper/sketch/user_bin_sequence.hpp>
+
+#include "../api_test.hpp"
 struct input_traits : public seqan3::sequence_file_input_default_traits_dna
 {
     using sequence_alphabet = char;
@@ -16,7 +17,7 @@ struct user_bin_sequence_test : public ::testing::Test
 {
     std::vector<std::string> test_filenames{"small.fa", "small.fa", "small2.fa", "small2.fa"};
     std::vector<size_t> test_kmer_counts{500, 600, 700, 800};
-    std::vector<chopper::sketch::hyperloglog> test_sketches = [this] ()
+    std::vector<chopper::sketch::hyperloglog> test_sketches = [this]()
     {
         std::vector<chopper::sketch::hyperloglog> result;
         chopper::sketch::user_bin_sequence::read_hll_files_into(data(""), test_filenames, result);
@@ -109,7 +110,8 @@ TEST_F(user_bin_sequence_test, read_hll_files_into_empty_dir)
     std::vector<chopper::sketch::hyperloglog> target{};
     // Will throw in Release, but assert in Debug
 #ifdef NDEBUG
-    EXPECT_THROW(chopper::sketch::user_bin_sequence::read_hll_files_into(empty_dir.path(), test_filenames, target), std::runtime_error);
+    EXPECT_THROW(chopper::sketch::user_bin_sequence::read_hll_files_into(empty_dir.path(), test_filenames, target),
+                 std::runtime_error);
 #else
     EXPECT_DEATH(chopper::sketch::user_bin_sequence::read_hll_files_into(empty_dir.path(), test_filenames, target), "");
 #endif
@@ -126,7 +128,9 @@ TEST_F(user_bin_sequence_test, read_hll_files_into_file_is_missing)
 
     std::vector<chopper::sketch::hyperloglog> target{};
 
-    EXPECT_THROW(chopper::sketch::user_bin_sequence::read_hll_files_into(tmp_file.parent_path(), test_filenames, target), std::runtime_error);
+    EXPECT_THROW(
+        chopper::sketch::user_bin_sequence::read_hll_files_into(tmp_file.parent_path(), test_filenames, target),
+        std::runtime_error);
 }
 
 TEST_F(user_bin_sequence_test, read_hll_files_into_faulty_file)
@@ -140,7 +144,9 @@ TEST_F(user_bin_sequence_test, read_hll_files_into_faulty_file)
 
     std::vector<chopper::sketch::hyperloglog> target{};
 
-    EXPECT_THROW(chopper::sketch::user_bin_sequence::read_hll_files_into(tmp_file.parent_path(), test_filenames, target), std::runtime_error);
+    EXPECT_THROW(
+        chopper::sketch::user_bin_sequence::read_hll_files_into(tmp_file.parent_path(), test_filenames, target),
+        std::runtime_error);
 }
 
 TEST_F(user_bin_sequence_test, precompute_union_estimates_for)
@@ -167,7 +173,11 @@ TEST_F(user_bin_sequence_test, precompute_union_estimates_for)
 TEST_F(user_bin_sequence_test, random_shuffle)
 {
     chopper::sketch::user_bin_sequence::prio_queue default_pq{};
-    chopper::sketch::user_bin_sequence::distance_matrix dist{{0, default_pq}, {1, default_pq}, {2, default_pq}, {3, default_pq}, {4, default_pq}};
+    chopper::sketch::user_bin_sequence::distance_matrix dist{{0, default_pq},
+                                                             {1, default_pq},
+                                                             {2, default_pq},
+                                                             {3, default_pq},
+                                                             {4, default_pq}};
     robin_hood::unordered_flat_map<size_t, size_t> ids{{0, 0}, {1, 1}, {2, 2}, {3, 3}, {4, 4}};
 
     chopper::sketch::user_bin_sequence ubs{test_filenames, test_kmer_counts, test_sketches};
@@ -193,7 +203,11 @@ TEST_F(user_bin_sequence_test, random_shuffle)
 TEST_F(user_bin_sequence_test, prune)
 {
     chopper::sketch::user_bin_sequence::prio_queue default_pq{};
-    chopper::sketch::user_bin_sequence::distance_matrix dist{{0, default_pq}, {1, default_pq}, {2, default_pq}, {3, default_pq}, {4, default_pq}};
+    chopper::sketch::user_bin_sequence::distance_matrix dist{{0, default_pq},
+                                                             {1, default_pq},
+                                                             {2, default_pq},
+                                                             {3, default_pq},
+                                                             {4, default_pq}};
     robin_hood::unordered_flat_map<size_t, size_t> remaining_ids{{0, 0}, {1, 1}, {2, 2}, {3, 3}, {4, 4}};
 
     chopper::sketch::user_bin_sequence ubs{test_filenames, test_kmer_counts, test_sketches};
@@ -246,16 +260,13 @@ TEST_F(user_bin_sequence_test, rotate)
      *       /    \     /    \
      *   (f,f)  (f,f) (f,f) (f,f) the leaves are the UBs to be clustered
      */
-    std::vector<chopper::sketch::user_bin_sequence::clustering_node> clustering
-    {
-        {f, f, s},
-        {f, f, s},
-        {f, f, s},
-        {f, f, s}, // the leaves come first
-        {5, 6, s},
-        {0, 1, s},
-        {2, 3, s}
-    };
+    std::vector<chopper::sketch::user_bin_sequence::clustering_node> clustering{{f, f, s},
+                                                                                {f, f, s},
+                                                                                {f, f, s},
+                                                                                {f, f, s}, // the leaves come first
+                                                                                {5, 6, s},
+                                                                                {0, 1, s},
+                                                                                {2, 3, s}};
 
     // previous_rightmost is already at the very left. Nothing has to be rotated.
     ubs.rotate(clustering, 0 /*previous_rightmost*/, 0 /*interval_start*/, 4 /*root_id*/);
@@ -295,16 +306,13 @@ TEST_F(user_bin_sequence_test, trace)
      *       /    \     /    \
      *   (f,f)  (f,f) (f,f) (f,f) the leaves are the UBs to be clustered
      */
-    std::vector<chopper::sketch::user_bin_sequence::clustering_node> clustering
-    {
-        {f, f, s},
-        {f, f, s},
-        {f, f, s},
-        {f, f, s}, // the leaves come first
-        {5, 6, s},
-        {1, 3, s},
-        {2, 0, s}
-    };
+    std::vector<chopper::sketch::user_bin_sequence::clustering_node> clustering{{f, f, s},
+                                                                                {f, f, s},
+                                                                                {f, f, s},
+                                                                                {f, f, s}, // the leaves come first
+                                                                                {5, 6, s},
+                                                                                {1, 3, s},
+                                                                                {2, 0, s}};
 
     std::vector<size_t> permutation{};
 

@@ -4,9 +4,10 @@
 #include <sstream>
 #include <vector>
 
-#include "../api_test.hpp"
-#include <chopper/layout/aggregate_by.hpp>
 #include <chopper/data_store.hpp>
+#include <chopper/layout/aggregate_by.hpp>
+
+#include "../api_test.hpp"
 
 TEST(sort_by_test, small_example)
 {

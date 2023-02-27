@@ -2,10 +2,11 @@
 
 #include <cmath>
 
-#include "../api_test.hpp"
 #include <chopper/configuration.hpp>
 #include <chopper/count/count_kmers.hpp>
 #include <chopper/detail_apply_prefix.hpp>
+
+#include "../api_test.hpp"
 
 TEST(count_kmers_test, small_example)
 {

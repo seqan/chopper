@@ -14,7 +14,8 @@ chopper_require_test ()
 file (WRITE "${CMAKE_CURRENT_BINARY_DIR}/build_test_targets.cmake"
       "execute_process (COMMAND ${CMAKE_COMMAND} --build . --target api_test)\n"
       "execute_process (COMMAND ${CMAKE_COMMAND} --build . --target cli_test)\n"
-      "execute_process (COMMAND ${CMAKE_COMMAND} --build ./header --target header_test)\n")
+      "execute_process (COMMAND ${CMAKE_COMMAND} --build ./header --target header_test)\n"
+)
 set_directory_properties (PROPERTIES TEST_INCLUDE_FILE "${CMAKE_CURRENT_BINARY_DIR}/build_test_targets.cmake")
 
 # Define the test targets. All depending targets are built just before the test execution.
@@ -75,7 +76,8 @@ endmacro ()
 
 set (CHOPPER_HEADER_TEST_ONLY
      OFF
-     CACHE BOOL "Only build header test.")
+     CACHE BOOL "Only build header test."
+)
 
 if (CHOPPER_HEADER_TEST_ONLY)
     add_subdirectory (header)

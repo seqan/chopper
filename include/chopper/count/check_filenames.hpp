@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cassert>
+
 #include <robin_hood.h>
 
 #include <chopper/configuration.hpp>
@@ -37,13 +38,13 @@ inline void check_filenames(std::vector<std::string> & filenames, configuration 
         {
             throw std::invalid_argument{"You are providing precomputed files but the file " + filename
                                         + " does not have the correct file extension (.minimiser)."
-                                            " Mixing non-/precomputed files is not allowed."};
+                                          " Mixing non-/precomputed files is not allowed."};
         }
         else if (!config.precomputed_files && case_insensitive_string_ends_with(filename, ".minimiser"))
         {
             throw std::invalid_argument{"You are providing sequence files but the file " + filename
                                         + " was identified as a precomputed file (.minimiser)."
-                                            " Mixing non-/precomputed files is not allowed."};
+                                          " Mixing non-/precomputed files is not allowed."};
         }
     }
 }

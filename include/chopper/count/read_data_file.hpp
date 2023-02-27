@@ -1,10 +1,11 @@
 #pragma once
 
 #include <fstream>
+
 #include <robin_hood.h>
 
-#include <chopper/data_store.hpp>
 #include <chopper/configuration.hpp>
+#include <chopper/data_store.hpp>
 
 namespace chopper::count
 {

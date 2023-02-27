@@ -4,11 +4,12 @@
 #include <sstream>
 #include <vector>
 
-#include "../api_test.hpp"
 #include <chopper/count/execute.hpp>
 #include <chopper/detail_apply_prefix.hpp>
 #include <chopper/layout/execute.hpp>
 #include <chopper/sketch/estimate_kmer_counts.hpp>
+
+#include "../api_test.hpp"
 
 TEST(execute_estimation_test, few_ubs)
 {

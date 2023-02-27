@@ -4,10 +4,11 @@
 #include <sstream>
 #include <vector>
 
-#include "../api_test.hpp"
-#include "print_debug_file.hpp"
 #include <chopper/detail_apply_prefix.hpp>
 #include <chopper/layout/execute.hpp>
+
+#include "../api_test.hpp"
+#include "print_debug_file.hpp"
 
 TEST(execute_test, few_ubs)
 {

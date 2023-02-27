@@ -1,7 +1,8 @@
 #include <gtest/gtest.h>
 
-#include "../api_test.hpp"
 #include <chopper/data_store.hpp>
+
+#include "../api_test.hpp"
 
 TEST(fp_correction_test, one_bin)
 {
