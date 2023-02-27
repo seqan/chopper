@@ -99,11 +99,11 @@ int execute(chopper::configuration & config, chopper::data_store & data)
 
     if (config.tmax == 0) // no tmax was set by the user on the command line
     {
-        // set default as sqrt(#samples). Experiments showed that this is a reasonable default.
-        if (size_t number_samples = data.filenames.size(); number_samples > 1ULL<<32) // sqrt is bigger than uint16_t
-            throw std::invalid_argument{"Too big!"};
+        // Set default as sqrt(#samples). Experiments showed that this is a reasonable default.
+        if (size_t number_samples = data.filenames.size(); number_samples > 1ULL << 32) // sqrt is bigger than uint16_t
+            throw std::invalid_argument{"Too many samples. Please set a tmax (see help via `-hh`)."}; // GCOVR_EXCL_LINE
         else
-            config.tmax = chopper::next_multiple_of_64(static_cast<uint16_t>(std::sqrt(number_samples)));
+            config.tmax = chopper::next_multiple_of_64(static_cast<uint16_t>(std::ceil(std::sqrt(number_samples))));
     }
     else if (config.tmax % 64 != 0)
     {
