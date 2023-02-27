@@ -70,6 +70,8 @@ private:
      *
      * Each run was conducted 5 times and the mean was taken over the measurements. Low FPR rates were observed to have
      * a rather high variance on the runs.
+     *
+     * See also `test/benchmark/benchmark_data/query_cost`.
      */
     static inline const std::map<double, std::array<double, 11>> cost_factors{
         /* FPR, cost factors relative to a 64 IBF */
