@@ -225,7 +225,6 @@ TEST(execute_estimation_test, with_rearrangement)
     config.data_file = input_file;
     config.tmax = 256;
     config.sketch_directory = sketches_dir;
-    config.rearrange_user_bins = true;
     config.determine_best_tmax = true;
     config.force_all_binnings = true;
     // config.output_verbose_statistics = true;

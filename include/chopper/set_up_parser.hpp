@@ -117,25 +117,26 @@ inline void set_up_parser(sharg::parser & parser, chopper::configuration & confi
     parser.add_line("To improve the layout, you can estimate the sequence similarities using HyperLogLog sketches.");
 
     parser.add_flag(
-        config.estimate_union,
+        config.disable_estimate_union,
         sharg::config{
             .short_id = '\0',
-            .long_id = "estimate-union",
+            .long_id = "disable-estimate-union",
             .description =
-                "Use sketches to estimate the sequence similarity among a set of user bins. This will improve the "
-                "layout computation as merging user bins that do not increase technical bin sizes will be "
-                "preferred. Attention: Only possible if the directory [INPUT-PREFIX]_sketches is present."});
+                "The sketches are used to estimate the sequence similarity among a set of user bins. This will improve "
+                "the layout computation as merging user bins that do not increase technical bin sizes will be "
+                "preferred. This may use more RAM and can be disabled on RAM critical environments. "
+                "Attention: Also disables rearrangement with depends on union estimations."});
 
     parser.add_flag(
-        config.rearrange_user_bins,
+        config.disable_rearrangement,
         sharg::config{
             .short_id = '\0',
-            .long_id = "rearrange-user-bins",
+            .long_id = "disable-rearrangement",
             .description =
                 "As a preprocessing step, rearranging the order of the given user bins based on their sequence "
                 "similarity may lead to favourable small unions and thus a smaller index. "
-                "Attention: Also enables --estimate-union and is only possible if the directory "
-                "[INPUT-PREFIX]_sketches is present."});
+                "Depending on the number of input samples (user bins) this may need a lot of time and can thus be "
+                "disabled if an efficient layout is not needed."});
 
     parser.add_subsection("Parameter Tweaking:");
     // -----------------------------------------------------------------------------------------------------------------

@@ -14,9 +14,9 @@ inline void arrange_user_bins(data_store & data, configuration const & config)
         data.sketch_toolbox = sketch::user_bin_sequence{data.filenames, data.kmer_counts, data.sketches};
         data.sketch_toolbox.sort_by_cardinalities();
 
-        if (config.estimate_union)
+        if (!config.disable_estimate_union)
         {
-            if (config.rearrange_user_bins)
+            if (!config.disable_rearrangement)
                 data.sketch_toolbox.rearrange_bins(config.max_rearrangement_ratio, config.threads);
         }
 

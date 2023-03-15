@@ -94,8 +94,8 @@ size_t determine_best_number_of_technical_bins(chopper::data_store & data, chopp
 
 int execute(chopper::configuration & config, chopper::data_store & data)
 {
-    if (config.rearrange_user_bins)
-        config.estimate_union = true;
+    if (config.disable_estimate_union)
+        config.disable_rearrangement = true;
 
     if (config.tmax == 0) // no tmax was set by the user on the command line
     {
