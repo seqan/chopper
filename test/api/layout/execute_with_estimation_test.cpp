@@ -22,6 +22,7 @@ TEST(execute_estimation_test, few_ubs)
     config.determine_best_tmax = true;
     config.disable_sketch_output = true;
     config.output_filename = layout_file;
+    config.disable_estimate_union = true; // also disables rearrangement
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
@@ -80,6 +81,7 @@ TEST(execute_estimation_test, many_ubs)
     config.determine_best_tmax = true;
     config.output_filename = layout_file;
     config.disable_sketch_output = true;
+    config.disable_estimate_union = true; // also disables rearrangement
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
@@ -144,6 +146,7 @@ TEST(execute_estimation_test, many_ubs_force_all)
     config.force_all_binnings = true;
     config.disable_sketch_output = true;
     config.output_filename = layout_file;
+    config.disable_estimate_union = true; // also disables rearrangement
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;

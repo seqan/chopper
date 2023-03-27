@@ -200,8 +200,8 @@ inline void set_up_parser(sharg::parser & parser, chopper::configuration & confi
             .description =
                 "Forces all layouts up to --tmax to be computed, "
                 "regardless of the layout quality. If the flag --determine-best-tmax is not set, this flag is "
-                "ignored and has no effect."},
-        .advanced = true);
+                "ignored and has no effect.",
+            .advanced = true});
 
     parser.add_flag(
         config.output_verbose_statistics,

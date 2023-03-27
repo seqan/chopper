@@ -20,6 +20,7 @@ TEST(hibf_statistics, only_merged_on_top_level)
 
     chopper::configuration config{}; // default config
     config.tmax = 64u;
+    config.disable_estimate_union = true; /* also disable rearrangement */
     chopper::data_store data{};
     data.compute_fp_correction(config.false_positive_rate, config.num_hash_functions, lower_level_split_bin_span);
     std::vector<size_t> kmer_counts{50, 50};
@@ -90,6 +91,7 @@ TEST(execute_test, chopper_layout_statistics)
                                   .disable_sketch_output = true,
                                   .output_filename = layout_file.c_str(),
                                   .tmax = 64,
+                                  .disable_estimate_union = true /* also disable rearrangement */,
                                   .output_verbose_statistics = true};
 
     std::stringstream output_buffer;
@@ -137,6 +139,7 @@ TEST(execute_test, chopper_layout_statistics_determine_best_bins)
                                   .disable_sketch_output = true,
                                   .output_filename = binning_filename.c_str(),
                                   .tmax = 128,
+                                  .disable_estimate_union = true /* also disable rearrangement */,
                                   .determine_best_tmax = true,
                                   .force_all_binnings = true,
                                   .output_verbose_statistics = true};

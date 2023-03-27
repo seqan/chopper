@@ -19,6 +19,7 @@ TEST(execute_test, few_ubs)
     config.tmax = 64;
     config.output_filename = layout_file;
     config.disable_sketch_output = true;
+    config.disable_estimate_union = true; // also disables rearrangement
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
@@ -57,8 +58,8 @@ TEST(execute_test, few_ubs)
                                       "##        \"alpha\": 1.2,\n"
                                       "##        \"max_rearrangement_ratio\": 0.5,\n"
                                       "##        \"threads\": 1,\n"
-                                      "##        \"disable_estimate_union\": false,\n"
-                                      "##        \"disable_rearrangement\": false,\n"
+                                      "##        \"disable_estimate_union\": true,\n"
+                                      "##        \"disable_rearrangement\": true,\n"
                                       "##        \"determine_best_tmax\": false,\n"
                                       "##        \"force_all_binnings\": false\n"
                                       "##    }\n"
@@ -87,6 +88,7 @@ TEST(execute_test, set_default_tmax)
     chopper::configuration config{}; // tmax == 0 triggers to set default to the sqrt(#samples)
     config.output_filename = layout_file;
     config.disable_sketch_output = true;
+    config.disable_estimate_union = true; // also disables rearrangement
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
@@ -112,6 +114,7 @@ TEST(execute_test, few_ubs_debug)
     config.output_filename = layout_file;
     config.debug = true;
     config.disable_sketch_output = true;
+    config.disable_estimate_union = true; // also disables rearrangement
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
@@ -152,8 +155,8 @@ TEST(execute_test, few_ubs_debug)
           "##        \"alpha\": 1.2,\n"
           "##        \"max_rearrangement_ratio\": 0.5,\n"
           "##        \"threads\": 1,\n"
-          "##        \"disable_estimate_union\": false,\n"
-          "##        \"disable_rearrangement\": false,\n"
+          "##        \"disable_estimate_union\": true,\n"
+          "##        \"disable_rearrangement\": true,\n"
           "##        \"determine_best_tmax\": false,\n"
           "##        \"force_all_binnings\": false\n"
           "##    }\n"
@@ -195,6 +198,7 @@ TEST(execute_test, many_ubs_debug)
     config.output_filename = layout_file;
     config.debug = true;
     config.disable_sketch_output = true;
+    config.disable_estimate_union = true; // also disables rearrangement
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
@@ -233,8 +237,8 @@ TEST(execute_test, many_ubs_debug)
                                       "##        \"alpha\": 1.2,\n"
                                       "##        \"max_rearrangement_ratio\": 0.5,\n"
                                       "##        \"threads\": 1,\n"
-                                      "##        \"disable_estimate_union\": false,\n"
-                                      "##        \"disable_rearrangement\": false,\n"
+                                      "##        \"disable_estimate_union\": true,\n"
+                                      "##        \"disable_rearrangement\": true,\n"
                                       "##        \"determine_best_tmax\": false,\n"
                                       "##        \"force_all_binnings\": false\n"
                                       "##    }\n"

@@ -75,7 +75,7 @@ TEST_F(cli_test, chopper_layout)
                                 "##        \"max_rearrangement_ratio\": 0.5,\n"
                                 "##        \"threads\": 2,\n"
                                 "##        \"disable_estimate_union\": false,\n"
-                                "##        \"disable_rearrangement\": true,\n"
+                                "##        \"disable_rearrangement\": false,\n"
                                 "##        \"determine_best_tmax\": false,\n"
                                 "##        \"force_all_binnings\": false\n"
                                 "##    }\n"
