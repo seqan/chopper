@@ -136,7 +136,7 @@ private:
 
         // initialize first row
         size_t sum = data->kmer_counts[0];
-        if (config.estimate_union)
+        if (!config.disable_estimate_union)
         {
             data->sketch_toolbox.precompute_initial_union_estimates(data->union_estimates);
 
@@ -210,7 +210,7 @@ private:
             size_t const current_weight = data->kmer_counts[j];
             double const ub_cardinality = static_cast<double>(current_weight);
 
-            if (config.estimate_union)
+            if (!config.disable_estimate_union)
                 data->sketch_toolbox.precompute_union_estimates_for(data->union_estimates, j);
 
             for (size_t i = 1; i < num_technical_bins; ++i)
