@@ -125,7 +125,7 @@ inline void set_up_parser(sharg::parser & parser, chopper::configuration & confi
                 "The sketches are used to estimate the sequence similarity among a set of user bins. This will improve "
                 "the layout computation as merging user bins that do not increase technical bin sizes will be "
                 "preferred. This may use more RAM and can be disabled on RAM critical environments. "
-                "Attention: Also disables rearrangement with depends on union estimations."});
+                "Attention: Also disables rearrangement which depends on union estimations."});
 
     parser.add_flag(
         config.disable_rearrangement,
@@ -135,8 +135,8 @@ inline void set_up_parser(sharg::parser & parser, chopper::configuration & confi
             .description =
                 "As a preprocessing step, rearranging the order of the given user bins based on their sequence "
                 "similarity may lead to favourable small unions and thus a smaller index. "
-                "Depending on the number of input samples (user bins) this may need a lot of time and can thus be "
-                "disabled if an efficient layout is not needed."});
+                "Depending on the number of input samples (user bins) this may be time consuming and can thus be "
+                "disabled if a non-optimal layout is sufficient."});
 
     parser.add_subsection("Parameter Tweaking:");
     // -----------------------------------------------------------------------------------------------------------------
