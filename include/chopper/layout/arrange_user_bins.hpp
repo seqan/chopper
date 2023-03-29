@@ -15,7 +15,7 @@ inline void arrange_user_bins(data_store & data, configuration const & config)
         data.sketch_toolbox.sort_by_cardinalities();
 
         if (!config.disable_estimate_union && !config.disable_rearrangement)
-                data.sketch_toolbox.rearrange_bins(config.max_rearrangement_ratio, config.threads);
+            data.sketch_toolbox.rearrange_bins(config.max_rearrangement_ratio, config.threads);
 
         data.user_bins_arranged = true;
     }
