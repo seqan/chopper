@@ -34,6 +34,7 @@ TEST(hierarchical_binning_test, small_example)
 {
     chopper::configuration config;
     config.tmax = 4;
+    config.disable_estimate_union = true; // also disables rearrangement
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
@@ -68,6 +69,7 @@ TEST(hierarchical_binning_test, another_example)
 {
     chopper::configuration config;
     config.tmax = 5;
+    config.disable_estimate_union = true; // also disables rearrangement
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
@@ -102,6 +104,7 @@ TEST(hierarchical_binning_test, high_level_max_bin_id_is_0)
 {
     chopper::configuration config;
     config.tmax = 4;
+    config.disable_estimate_union = true; // also disables rearrangement
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
@@ -131,6 +134,7 @@ TEST(hierarchical_binning_test, knuts_example)
     chopper::configuration config;
     config.alpha = 1;
     config.tmax = 5;
+    config.disable_estimate_union = true; // also disables rearrangement
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
@@ -159,6 +163,7 @@ TEST(hierarchical_binning_test, four_level_hibf)
 {
     chopper::configuration config;
     config.tmax = 2;
+    config.disable_estimate_union = true; // also disables rearrangement
     // config.debug = true;
 
     std::stringstream output_buffer;
@@ -195,6 +200,7 @@ TEST(hierarchical_binning_test, tb0_is_a_merged_bin)
     chopper::configuration config;
     config.alpha = 1;
     config.tmax = 2;
+    config.disable_estimate_union = true; // also disables rearrangement
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
@@ -227,6 +233,7 @@ TEST(hierarchical_binning_test, tb0_is_a_merged_bin_with_debug)
     config.alpha = 1;
     config.tmax = 2;
     config.debug = true;
+    config.disable_estimate_union = true; // also disables rearrangement
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;
@@ -258,6 +265,7 @@ TEST(hierarchical_binning_test, tb0_is_a_merged_bin_and_leads_to_recursive_call)
     chopper::configuration config;
     config.alpha = 1;
     config.tmax = 2;
+    config.disable_estimate_union = true; // also disables rearrangement
 
     std::stringstream output_buffer;
     std::stringstream header_buffer;

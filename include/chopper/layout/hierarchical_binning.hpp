@@ -136,7 +136,7 @@ private:
 
         // initialize first row
         size_t sum = data->kmer_counts[0];
-        if (config.estimate_union)
+        if (!config.disable_estimate_union)
         {
             data->sketch_toolbox.precompute_initial_union_estimates(data->union_estimates);
 
@@ -210,7 +210,7 @@ private:
             size_t const current_weight = data->kmer_counts[j];
             double const ub_cardinality = static_cast<double>(current_weight);
 
-            if (config.estimate_union)
+            if (!config.disable_estimate_union)
                 data->sketch_toolbox.precompute_union_estimates_for(data->union_estimates, j);
 
             for (size_t i = 1; i < num_technical_bins; ++i)
@@ -253,7 +253,7 @@ private:
                     // if we use the union estimate we plug in that value instead of the sum (weight)
                     // union_estimates[j_prime] is the union of {j_prime, ..., j}
                     // the + 1 is necessary because j_prime is decremented directly after weight is updated
-                    return config.estimate_union ? data->union_estimates[j_prime + 1] : weight;
+                    return config.disable_estimate_union ? weight : data->union_estimates[j_prime + 1];
                 };
 
                 // if the user bin j-1 was not split into multiple technical bins!
@@ -487,7 +487,7 @@ private:
         if (data->stats)
         {
             uint64_t const cardinality =
-                config.estimate_union ? data->sketch_toolbox.estimate_interval(trace_j + 1, j) : kmer_count;
+                config.disable_estimate_union ? kmer_count : data->sketch_toolbox.estimate_interval(trace_j + 1, j);
             hibf_statistics::bin & bin_stats =
                 data->stats->bins.emplace_back(hibf_statistics::bin_kind::merged, cardinality, num_contained_ubs, 1ul);
             libf_data.stats = &bin_stats.child_level;

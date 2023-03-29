@@ -397,7 +397,7 @@ private:
                 ++number_of_tbs;
                 merged_bin_indices.push_back(index);
 
-                if (config.estimate_union)
+                if (!config.disable_estimate_union)
                 {
                     // compute merged_bin_sketch
                     assert(!current_bin.child_level.filenames.empty());
@@ -438,7 +438,7 @@ private:
 
             // If merged bins share kmers, we need to penalize this
             // because querying a kmer will result in multi level look-ups.
-            if (config.estimate_union)
+            if (!config.disable_estimate_union)
             {
                 double const current_estimate = merged_bin_sketches[i].estimate();
 

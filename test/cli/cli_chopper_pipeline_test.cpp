@@ -74,8 +74,8 @@ TEST_F(cli_test, chopper_layout)
                                 "##        \"alpha\": 1.2,\n"
                                 "##        \"max_rearrangement_ratio\": 0.5,\n"
                                 "##        \"threads\": 2,\n"
-                                "##        \"estimate_union\": false,\n"
-                                "##        \"rearrange_user_bins\": false,\n"
+                                "##        \"disable_estimate_union\": false,\n"
+                                "##        \"disable_rearrangement\": false,\n"
                                 "##        \"determine_best_tmax\": false,\n"
                                 "##        \"force_all_binnings\": false\n"
                                 "##    }\n"
@@ -121,7 +121,6 @@ TEST_F(cli_test, chopper_layout2)
                                          taxa_filename.c_str(),
                                          "--tmax",
                                          "64",
-                                         "--rearrange-user-bins",
                                          "--output-filename",
                                          binning_filename.c_str());
 
@@ -157,8 +156,8 @@ TEST_F(cli_test, chopper_layout2)
                                 "##        \"alpha\": 1.2,\n"
                                 "##        \"max_rearrangement_ratio\": 0.5,\n"
                                 "##        \"threads\": 2,\n"
-                                "##        \"estimate_union\": true,\n"
-                                "##        \"rearrange_user_bins\": true,\n"
+                                "##        \"disable_estimate_union\": false,\n"
+                                "##        \"disable_rearrangement\": false,\n"
                                 "##        \"determine_best_tmax\": false,\n"
                                 "##        \"force_all_binnings\": false\n"
                                 "##    }\n"

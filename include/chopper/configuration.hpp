@@ -76,11 +76,11 @@ struct configuration
     //!\brief The number of threads to use to compute merged HLL sketches.
     size_t threads{1u};
 
-    //!\brief Whether to estimate the union of kmer sets to possibly improve the binning or not.
-    bool estimate_union{false};
+    //!\brief Whether to skip estimating the union of kmer sets to possibly improve the binning.
+    bool disable_estimate_union{false};
 
-    //!\brief Whether to do a second sorting of the bins which takes into account similarity or not.
-    bool rearrange_user_bins{false};
+    //!\brief Whether to skip the secondary sorting of the bins which considers similarity.
+    bool disable_rearrangement{false};
 
     //!\brief Whether the program should determine the best number of IBF bins by doing multiple binning runs.
     bool determine_best_tmax{false};
@@ -118,8 +118,8 @@ private:
         archive(CEREAL_NVP(alpha));
         archive(CEREAL_NVP(max_rearrangement_ratio));
         archive(CEREAL_NVP(threads));
-        archive(CEREAL_NVP(estimate_union));
-        archive(CEREAL_NVP(rearrange_user_bins));
+        archive(CEREAL_NVP(disable_estimate_union));
+        archive(CEREAL_NVP(disable_rearrangement));
         archive(CEREAL_NVP(determine_best_tmax));
         archive(CEREAL_NVP(force_all_binnings));
     }
