@@ -76,10 +76,10 @@ struct configuration
     //!\brief The number of threads to use to compute merged HLL sketches.
     size_t threads{1u};
 
-    //!\brief Whether to estimate the union of kmer sets to possibly improve the binning or not.
+    //!\brief Whether to skip estimating the union of kmer sets to possibly improve the binning.
     bool disable_estimate_union{false};
 
-    //!\brief Whether to do a second sorting of the bins which takes into account similarity or not.
+    //!\brief Whether to skip the secondary sorting of the bins which considers similarity.
     bool disable_rearrangement{false};
 
     //!\brief Whether the program should determine the best number of IBF bins by doing multiple binning runs.
