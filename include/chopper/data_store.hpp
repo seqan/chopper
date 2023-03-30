@@ -8,7 +8,7 @@
 #include <chopper/helper.hpp>
 #include <chopper/layout/hibf_statistics.hpp>
 #include <chopper/layout/previous_level.hpp>
-#include <chopper/sketch/user_bin_sequence.hpp>
+#include <chopper/sketch/toolbox.hpp>
 
 namespace chopper
 {
@@ -56,7 +56,7 @@ struct data_store
     std::vector<double> fp_correction{};
 
     //!\brief Stores sketches if needed and provides utility functions for user bin rearrangement or union estimation.
-    sketch::user_bin_sequence sketch_toolbox{};
+    sketch::toolbox sketch_toolbox{};
 
     //!\brief Information about previous levels of the IBF if the algorithm is called recursively.
     layout::previous_level previous{};

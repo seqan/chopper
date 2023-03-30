@@ -12,7 +12,7 @@
 #include <chopper/helper.hpp>
 #include <chopper/layout/ibf_query_cost.hpp>
 #include <chopper/sketch/hyperloglog.hpp>
-#include <chopper/sketch/user_bin_sequence.hpp>
+#include <chopper/sketch/toolbox.hpp>
 
 /*!\brief Workaround bogus memcpy errors in GCC 12.1 and 12.2. (Wrestrict and Wstringop-overflow)
  * \see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=105545
@@ -402,9 +402,9 @@ private:
                     // compute merged_bin_sketch
                     assert(!current_bin.child_level.filenames.empty());
                     std::vector<sketch::hyperloglog> sketches;
-                    sketch::user_bin_sequence::read_hll_files_into(config.sketch_directory,
-                                                                   current_bin.child_level.filenames,
-                                                                   sketches);
+                    sketch::toolbox::read_hll_files_into(config.sketch_directory,
+                                                         current_bin.child_level.filenames,
+                                                         sketches);
                     sketch::hyperloglog hll = sketches[0];
                     for (size_t i = 1; i < sketches.size(); ++i)
                         hll.merge(sketches[i]);
