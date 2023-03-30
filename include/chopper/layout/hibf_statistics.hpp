@@ -403,8 +403,8 @@ private:
                     assert(!current_bin.child_level.filenames.empty());
                     std::vector<sketch::hyperloglog> sketches;
                     sketch::toolbox::read_hll_files_into(config.sketch_directory,
-                                                                   current_bin.child_level.filenames,
-                                                                   sketches);
+                                                         current_bin.child_level.filenames,
+                                                         sketches);
                     sketch::hyperloglog hll = sketches[0];
                     for (size_t i = 1; i < sketches.size(); ++i)
                         hll.merge(sketches[i]);

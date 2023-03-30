@@ -61,12 +61,12 @@ public:
     std::vector<hyperloglog> * sketches{nullptr};
 
 public:
-    toolbox() = default;                                      //!< Defaulted.
+    toolbox() = default;                            //!< Defaulted.
     toolbox(toolbox const &) = default;             //!< Defaulted.
     toolbox & operator=(toolbox const &) = default; //!< Defaulted.
     toolbox(toolbox &&) = default;                  //!< Defaulted.
     toolbox & operator=(toolbox &&) = default;      //!< Defaulted.
-    ~toolbox() = default;                                     //!< Defaulted.
+    ~toolbox() = default;                           //!< Defaulted.
 
     /*!\brief A sequence of user bins for which filenames and counts are given.
      * \param[in] filenames_ filenames of the sequence files for the user bins
@@ -74,8 +74,8 @@ public:
      * \param[in] sketches_ sketches of the bins corresponding to filenames
      */
     toolbox(std::vector<std::string> & filenames_,
-                      std::vector<size_t> & user_bin_kmer_counts_,
-                      std::vector<hyperloglog> & sketches_) :
+            std::vector<size_t> & user_bin_kmer_counts_,
+            std::vector<hyperloglog> & sketches_) :
         filenames{std::addressof(filenames_)},
         user_bin_kmer_counts{std::addressof(user_bin_kmer_counts_)},
         sketches{std::addressof(sketches_)}

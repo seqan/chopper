@@ -128,9 +128,8 @@ TEST_F(toolbox_test, read_hll_files_into_file_is_missing)
 
     std::vector<chopper::sketch::hyperloglog> target{};
 
-    EXPECT_THROW(
-        chopper::sketch::toolbox::read_hll_files_into(tmp_file.parent_path(), test_filenames, target),
-        std::runtime_error);
+    EXPECT_THROW(chopper::sketch::toolbox::read_hll_files_into(tmp_file.parent_path(), test_filenames, target),
+                 std::runtime_error);
 }
 
 TEST_F(toolbox_test, read_hll_files_into_faulty_file)
@@ -144,9 +143,8 @@ TEST_F(toolbox_test, read_hll_files_into_faulty_file)
 
     std::vector<chopper::sketch::hyperloglog> target{};
 
-    EXPECT_THROW(
-        chopper::sketch::toolbox::read_hll_files_into(tmp_file.parent_path(), test_filenames, target),
-        std::runtime_error);
+    EXPECT_THROW(chopper::sketch::toolbox::read_hll_files_into(tmp_file.parent_path(), test_filenames, target),
+                 std::runtime_error);
 }
 
 TEST_F(toolbox_test, precompute_union_estimates_for)
@@ -174,10 +172,10 @@ TEST_F(toolbox_test, random_shuffle)
 {
     chopper::sketch::toolbox::prio_queue default_pq{};
     chopper::sketch::toolbox::distance_matrix dist{{0, default_pq},
-                                                             {1, default_pq},
-                                                             {2, default_pq},
-                                                             {3, default_pq},
-                                                             {4, default_pq}};
+                                                   {1, default_pq},
+                                                   {2, default_pq},
+                                                   {3, default_pq},
+                                                   {4, default_pq}};
     robin_hood::unordered_flat_map<size_t, size_t> ids{{0, 0}, {1, 1}, {2, 2}, {3, 3}, {4, 4}};
 
     chopper::sketch::toolbox ubs{test_filenames, test_kmer_counts, test_sketches};
@@ -204,10 +202,10 @@ TEST_F(toolbox_test, prune)
 {
     chopper::sketch::toolbox::prio_queue default_pq{};
     chopper::sketch::toolbox::distance_matrix dist{{0, default_pq},
-                                                             {1, default_pq},
-                                                             {2, default_pq},
-                                                             {3, default_pq},
-                                                             {4, default_pq}};
+                                                   {1, default_pq},
+                                                   {2, default_pq},
+                                                   {3, default_pq},
+                                                   {4, default_pq}};
     robin_hood::unordered_flat_map<size_t, size_t> remaining_ids{{0, 0}, {1, 1}, {2, 2}, {3, 3}, {4, 4}};
 
     chopper::sketch::toolbox ubs{test_filenames, test_kmer_counts, test_sketches};
@@ -261,12 +259,12 @@ TEST_F(toolbox_test, rotate)
      *   (f,f)  (f,f) (f,f) (f,f) the leaves are the UBs to be clustered
      */
     std::vector<chopper::sketch::toolbox::clustering_node> clustering{{f, f, s},
-                                                                                {f, f, s},
-                                                                                {f, f, s},
-                                                                                {f, f, s}, // the leaves come first
-                                                                                {5, 6, s},
-                                                                                {0, 1, s},
-                                                                                {2, 3, s}};
+                                                                      {f, f, s},
+                                                                      {f, f, s},
+                                                                      {f, f, s}, // the leaves come first
+                                                                      {5, 6, s},
+                                                                      {0, 1, s},
+                                                                      {2, 3, s}};
 
     // previous_rightmost is already at the very left. Nothing has to be rotated.
     ubs.rotate(clustering, 0 /*previous_rightmost*/, 0 /*interval_start*/, 4 /*root_id*/);
@@ -307,12 +305,12 @@ TEST_F(toolbox_test, trace)
      *   (f,f)  (f,f) (f,f) (f,f) the leaves are the UBs to be clustered
      */
     std::vector<chopper::sketch::toolbox::clustering_node> clustering{{f, f, s},
-                                                                                {f, f, s},
-                                                                                {f, f, s},
-                                                                                {f, f, s}, // the leaves come first
-                                                                                {5, 6, s},
-                                                                                {1, 3, s},
-                                                                                {2, 0, s}};
+                                                                      {f, f, s},
+                                                                      {f, f, s},
+                                                                      {f, f, s}, // the leaves come first
+                                                                      {5, 6, s},
+                                                                      {1, 3, s},
+                                                                      {2, 0, s}};
 
     std::vector<size_t> permutation{};
 
