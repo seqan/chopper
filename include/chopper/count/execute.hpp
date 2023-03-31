@@ -7,12 +7,12 @@
 #include <seqan3/search/views/kmer_hash.hpp>
 
 #include <chopper/configuration.hpp>
-#include <chopper/count/output.hpp>
 #include <chopper/count/check_filenames.hpp>
+#include <chopper/count/output.hpp>
 #include <chopper/count/read_data_file.hpp>
-#include <chopper/sketch/compute_sketches.hpp>
 #include <chopper/data_store.hpp>
 #include <chopper/print_peak_memory_usage.hpp>
+#include <chopper/sketch/compute_sketches.hpp>
 
 namespace chopper::count
 {

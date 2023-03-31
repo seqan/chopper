@@ -9,8 +9,8 @@ namespace chopper::sketch
 
 template <typename input_type>
     requires std::ranges::random_access_range<input_type> && /* input is a range of range of uint64_t values */
-             std::ranges::input_range<std::ranges::range_value_t<input_type>> &&
-             std::same_as<uint64_t, std::ranges::range_value_t<std::ranges::range_value_t<input_type>>>
+             std::ranges::input_range<std::ranges::range_value_t<input_type>>
+          && std::same_as<uint64_t, std::ranges::range_value_t<std::ranges::range_value_t<input_type>>>
 void compute_sketches_from_hashes(input_type && input,
                                   uint8_t const sketch_bits,
                                   uint8_t const number_of_threads,
