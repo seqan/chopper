@@ -255,7 +255,7 @@ TEST(execute_estimation_test, with_rearrangement)
         EXPECT_TRUE(std::filesystem::exists(filename));
     }
 
-    chopper::sketch::estimate_kmer_counts(store);
+    chopper::sketch::estimate_kmer_counts(store.sketches, store.kmer_counts);
 
     chopper::layout::execute(config, store);
 

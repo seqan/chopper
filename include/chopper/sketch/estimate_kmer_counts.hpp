@@ -2,20 +2,18 @@
 
 #include <vector>
 
-#include <chopper/data_store.hpp>
+#include <chopper/sketch/hyperloglog.hpp>
 
 namespace chopper::sketch
 {
 
-inline void estimate_kmer_counts(data_store & store)
+inline void estimate_kmer_counts(std::vector<chopper::sketch::hyperloglog> const & sketches,
+                                 std::vector<size_t> & kmer_counts)
 {
-    assert(!store.filenames.empty());
-    assert(store.filenames.size() == store.sketches.size());
+    kmer_counts.resize(sketches.size());
 
-    store.kmer_counts.resize(store.filenames.size());
-
-    for (size_t i = 0; i < store.sketches.size(); ++i)
-        store.kmer_counts[i] = store.sketches[i].estimate();
+    for (size_t i = 0; i < sketches.size(); ++i)
+        kmer_counts[i] = sketches[i].estimate();
 }
 
 } // namespace chopper::sketch
