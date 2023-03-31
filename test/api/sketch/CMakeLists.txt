@@ -8,3 +8,6 @@ target_use_datasources (toolbox_test FILES small.fa)
 target_use_datasources (toolbox_test FILES small2.fa)
 target_use_datasources (toolbox_test FILES small.hll)
 target_use_datasources (toolbox_test FILES small2.hll)
+
+add_api_test (compute_sketches_test.cpp)
+target_use_datasources (compute_sketches_test FILES small.fa)
