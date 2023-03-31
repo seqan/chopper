@@ -7,7 +7,7 @@
 #include <chopper/configuration.hpp>
 #include <chopper/data_store.hpp>
 
-namespace chopper::count
+namespace chopper::sketch
 {
 
 inline auto read_data_file_with_clustering(configuration const & config)
@@ -87,4 +87,4 @@ inline void read_data_file(configuration const & config, data_store & data)
     }
 }
 
-} // namespace chopper::count
+} // namespace chopper::sketch

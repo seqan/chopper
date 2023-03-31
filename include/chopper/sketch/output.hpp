@@ -9,7 +9,7 @@
 #include <chopper/configuration.hpp>
 #include <chopper/sketch/hyperloglog.hpp>
 
-namespace chopper::count
+namespace chopper::sketch
 {
 
 inline void write_count_file_line(std::pair<std::string, std::vector<std::string>> const & cluster,
@@ -35,4 +35,4 @@ inline void write_sketch_file(std::string const & filename,
     sketch.dump(hll_fout);
 }
 
-} // namespace chopper::count
+} // namespace chopper::sketch

@@ -6,8 +6,8 @@
 
 #include <seqan3/utility/range/to.hpp>
 
-#include <chopper/count/execute.hpp>
 #include <chopper/detail_apply_prefix.hpp>
+#include <chopper/sketch/execute.hpp>
 
 #include "../api_test.hpp"
 
@@ -34,7 +34,7 @@ TEST(execute_test, small_example_parallel_2_threads)
 
     chopper::data_store store{};
 
-    EXPECT_NO_THROW(chopper::count::execute(config, store));
+    EXPECT_NO_THROW(chopper::sketch::execute(config, store));
 
     EXPECT_RANGE_EQ(store.filenames, (std::vector<std::string>{input_filename, input_filename}));
     ASSERT_EQ(store.sketches.size(), 2);
@@ -65,7 +65,7 @@ TEST(execute_test, some_test)
 
     chopper::data_store store{};
 
-    chopper::count::execute(config, store);
+    chopper::sketch::execute(config, store);
 
     EXPECT_RANGE_EQ(store.filenames, (std::vector<std::string>{input_filename, input_filename}));
     ASSERT_EQ(store.sketches.size(), 2);
