@@ -6,8 +6,8 @@
 
 #include <seqan3/utility/range/to.hpp>
 
-#include <chopper/sketch/execute.hpp>
 #include <chopper/detail_apply_prefix.hpp>
+#include <chopper/sketch/execute.hpp>
 
 #include "../api_test.hpp"
 

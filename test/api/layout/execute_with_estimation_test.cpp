@@ -4,10 +4,10 @@
 #include <sstream>
 #include <vector>
 
-#include <chopper/sketch/execute.hpp>
 #include <chopper/detail_apply_prefix.hpp>
 #include <chopper/layout/execute.hpp>
 #include <chopper/sketch/estimate_kmer_counts.hpp>
+#include <chopper/sketch/execute.hpp>
 
 #include "../api_test.hpp"
 

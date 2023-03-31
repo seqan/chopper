@@ -7,12 +7,12 @@
 #include <seqan3/search/views/kmer_hash.hpp>
 
 #include <chopper/configuration.hpp>
-#include <chopper/sketch/check_filenames.hpp>
-#include <chopper/sketch/output.hpp>
-#include <chopper/sketch/read_data_file.hpp>
 #include <chopper/data_store.hpp>
 #include <chopper/print_peak_memory_usage.hpp>
+#include <chopper/sketch/check_filenames.hpp>
 #include <chopper/sketch/compute_sketches.hpp>
+#include <chopper/sketch/output.hpp>
+#include <chopper/sketch/read_data_file.hpp>
 
 namespace chopper::sketch
 {
