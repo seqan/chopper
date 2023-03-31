@@ -3,14 +3,15 @@
 #include <sstream>
 #include <vector>
 
+#include <seqan3/test/expect_range_eq.hpp>
+
 #include <chopper/layout/hibf_statistics.hpp>
 #include <chopper/layout/simple_binning.hpp>
 
 TEST(simple_binning_test, small_example)
 {
-    std::stringstream output_buffer;
-    chopper::data_store data{.output_buffer = &output_buffer,
-                             .header_buffer = &output_buffer,
+    chopper::layout::layout hibf_layout;
+    chopper::data_store data{.hibf_layout = &hibf_layout,
                              .filenames = {"seq1", "seq2", "seq3", "seq4"},
                              .kmer_counts = {100, 40, 20, 20}};
 
@@ -21,20 +22,19 @@ TEST(simple_binning_test, small_example)
     chopper::layout::simple_binning algo{data, 9};
     size_t max_bin = algo.execute();
 
-    std::string expected{"seq4\t0\t1\n"
-                         "seq3\t1\t1\n"
-                         "seq2\t2\t2\n"
-                         "seq1\t4\t5\n"};
+    std::vector<chopper::layout::layout::user_bin> expected{{"seq4", {}, 1, 0},
+                                                            {"seq3", {}, 1, 1},
+                                                            {"seq2", {}, 2, 2},
+                                                            {"seq1", {}, 5, 4}};
 
-    EXPECT_EQ(output_buffer.str(), expected);
+    EXPECT_RANGE_EQ(hibf_layout.user_bins, expected);
     EXPECT_EQ(max_bin, 0u);
 }
 
 TEST(simple_binning_test, uniform_distribution)
 {
-    std::stringstream output_buffer;
-    chopper::data_store data{.output_buffer = &output_buffer,
-                             .header_buffer = &output_buffer,
+    chopper::layout::layout hibf_layout;
+    chopper::data_store data{.hibf_layout = &hibf_layout,
                              .filenames = {"seq1", "seq2", "seq3", "seq4"},
                              .kmer_counts = {20, 20, 20, 20}};
 
@@ -45,23 +45,22 @@ TEST(simple_binning_test, uniform_distribution)
     chopper::layout::simple_binning algo{data, 4u};
     size_t max_bin = algo.execute();
 
-    std::string expected{"seq4\t0\t1\n"
-                         "seq3\t1\t1\n"
-                         "seq2\t2\t1\n"
-                         "seq1\t3\t1\n"};
+    std::vector<chopper::layout::layout::user_bin> expected{{"seq4", {}, 1, 0},
+                                                            {"seq3", {}, 1, 1},
+                                                            {"seq2", {}, 1, 2},
+                                                            {"seq1", {}, 1, 3}};
 
-    EXPECT_EQ(output_buffer.str(), expected);
+    EXPECT_RANGE_EQ(hibf_layout.user_bins, expected);
     EXPECT_EQ(max_bin, 0u);
 }
 
 TEST(simple_binning_test, user_bins_must_be_smaller_than_technical_bins)
 {
-    std::stringstream output_buffer;
+    chopper::layout::layout hibf_layout;
     chopper::layout::hibf_statistics global_stats_dummy{};
 
-    chopper::data_store data{.output_buffer = &output_buffer,
-                             .header_buffer = &output_buffer,
-                             .stats = &global_stats_dummy.top_level_ibf,
+    chopper::data_store data{.stats = &global_stats_dummy.top_level_ibf,
+                             .hibf_layout = &hibf_layout,
                              .filenames = {"seq1", "seq2", "seq3", "seq4"},
                              .kmer_counts = {100, 40, 20, 20},
                              .fp_correction = std::vector<double>(65, 1.0)};

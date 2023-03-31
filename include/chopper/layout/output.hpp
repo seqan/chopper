@@ -3,6 +3,7 @@
 #include <cereal/archives/json.hpp>
 
 #include <chopper/configuration.hpp>
+#include <chopper/layout/layout.hpp>
 #include <chopper/prefixes.hpp>
 
 namespace chopper::layout
@@ -24,14 +25,18 @@ inline void write_config_to(configuration const & config, std::ostream & stream)
            << prefix::header << prefix::header_config << "ENDCONFIG\n";
 }
 
-inline void write_layout_header_to(configuration const & config,
-                                   size_t const max_hibf_id,
-                                   std::string_view const header,
-                                   std::ostream & stream)
+inline void write_layout_header_to(layout const & hibf_layout, size_t const max_hibf_id, std::ostream & stream)
 {
-    write_config_to(config, stream);
     stream << prefix::header << prefix::high_level << " max_bin_id:" << max_hibf_id << '\n';
-    stream << header;
+    for (auto const & max_bin : hibf_layout.max_bins)
+        stream << max_bin << '\n';
+}
+
+inline void write_layout_content_to(layout const & hibf_layout, std::ostream & stream)
+{
+    stream << prefix::header << "FILES\tBIN_INDICES\tNUMBER_OF_BINS" << std::endl;
+    for (auto const & user_bin : hibf_layout.user_bins)
+        stream << user_bin << '\n';
 }
 
 } // namespace chopper::layout

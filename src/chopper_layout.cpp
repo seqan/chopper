@@ -16,8 +16,7 @@ namespace chopper::layout
 
 size_t determine_best_number_of_technical_bins(chopper::data_store & data, chopper::configuration & config)
 {
-    std::stringstream * const output_buffer_original = data.output_buffer;
-    std::stringstream * const header_buffer_original = data.header_buffer;
+    chopper::layout::layout * original_layout = data.hibf_layout; // cache original layout
 
     std::set<size_t> potential_t_max = [&]()
     {
@@ -53,11 +52,9 @@ size_t determine_best_number_of_technical_bins(chopper::data_store & data, chopp
 
     for (size_t const t_max : potential_t_max)
     {
-        std::stringstream output_buffer_tmp;
-        std::stringstream header_buffer_tmp;
-        config.tmax = t_max;                               // overwrite tmax
-        data.output_buffer = &output_buffer_tmp;           // overwrite buffer
-        data.header_buffer = &header_buffer_tmp;           // overwrite buffer
+        chopper::layout::layout tmp_layout{}; // will be rewritten for every tmax
+        config.tmax = t_max;                  // overwrite tmax
+        data.hibf_layout = &tmp_layout;
         data.previous = chopper::layout::previous_level{}; // reset previous IBF, s.t. data refers to top level IBF
 
         chopper::layout::hibf_statistics global_stats{config, data.fp_correction, data.kmer_counts};
@@ -73,8 +70,7 @@ size_t determine_best_number_of_technical_bins(chopper::data_store & data, chopp
         // Use result if better than previous one.
         if (global_stats.expected_HIBF_query_cost < best_expected_HIBF_query_cost)
         {
-            *output_buffer_original = std::move(output_buffer_tmp);
-            *header_buffer_original = std::move(header_buffer_tmp);
+            *original_layout = std::move(tmp_layout);
             max_hibf_id = max_hibf_id_tmp;
             best_t_max = t_max;
             best_expected_HIBF_query_cost = global_stats.expected_HIBF_query_cost;
@@ -87,8 +83,7 @@ size_t determine_best_number_of_technical_bins(chopper::data_store & data, chopp
 
     file_out << "# Best t_max (regarding expected query runtime): " << best_t_max << '\n';
     config.tmax = best_t_max;
-    data.output_buffer = output_buffer_original; // reset data buffers
-    data.header_buffer = header_buffer_original; // reset data buffers
+    data.hibf_layout = original_layout; // reset original layout
     return max_hibf_id;
 }
 
@@ -143,8 +138,9 @@ int execute(chopper::configuration & config, chopper::data_store & data)
 
     // brief Write the output to the layout file.
     std::ofstream fout{config.output_filename};
-    write_layout_header_to(config, max_hibf_id, data.header_buffer->str(), fout);
-    fout << data.output_buffer->str();
+    chopper::layout::write_config_to(config, fout);
+    chopper::layout::write_layout_header_to(*(data.hibf_layout), max_hibf_id, fout);
+    chopper::layout::write_layout_content_to(*(data.hibf_layout), fout);
 
     return 0;
 }

@@ -6,7 +6,6 @@
 #include <chopper/configuration.hpp>
 #include <chopper/helper.hpp>
 #include <chopper/layout/arrange_user_bins.hpp>
-#include <chopper/layout/print_result_line.hpp>
 #include <chopper/layout/simple_binning.hpp>
 #include <chopper/prefixes.hpp>
 
@@ -48,14 +47,6 @@ public:
         num_technical_bins{data->previous.empty() ? config.tmax : needed_technical_bins(num_user_bins)}
     {
         assert(data != nullptr);
-        assert(data->output_buffer != nullptr);
-        assert(data->header_buffer != nullptr);
-
-        if (config.debug)
-        {
-            *data->header_buffer << std::fixed << std::setprecision(2);
-            *data->output_buffer << std::fixed << std::setprecision(2);
-        }
 
         if (data->filenames.size() != data->kmer_counts.size())
             throw std::runtime_error{"The filenames and kmer counts do not have the same length."};
@@ -65,8 +56,6 @@ public:
     size_t execute()
     {
         assert(data != nullptr);
-        assert(data->output_buffer != nullptr);
-        assert(data->header_buffer != nullptr);
         assert(data->filenames.size() == data->kmer_counts.size());
         assert(data->sketches.empty() || data->filenames.size() == data->sketches.size());
 
@@ -293,18 +282,6 @@ private:
                         std::vector<std::vector<std::pair<size_t, size_t>>> const & trace)
     {
         assert(data != nullptr);
-        assert(data->output_buffer != nullptr);
-        assert(data->header_buffer != nullptr);
-
-        if (data->output_buffer->tellp() == 0) // beginning of the file
-        {
-            if (config.debug)
-                *data->output_buffer << prefix::header
-                                     << "FILES\tBIN_INDICES\tNUMBER_OF_BINS\tEST_MAX_TB_SIZES\tSCORE\tCORR\tT_MAX"
-                                     << std::endl;
-            else
-                *data->output_buffer << prefix::header << "FILES\tBIN_INDICES\tNUMBER_OF_BINS" << std::endl;
-        }
 
         if (data->stats)
             data->stats->filenames = data->filenames;
@@ -360,22 +337,16 @@ private:
             {
                 size_t const kmer_count_per_bin = (kmer_count + number_of_bins - 1) / number_of_bins; // round up
 
+                data->hibf_layout->user_bins.emplace_back(data->filenames[trace_j],
+                                                          data->previous.bin_indices,
+                                                          number_of_bins,
+                                                          bin_id);
+
                 // add split bin to ibf statistics
                 if (data->stats)
                 {
                     data->stats->bins.emplace_back(hibf_statistics::bin_kind::split, kmer_count, 1ul, number_of_bins);
                 }
-
-                if (!config.debug)
-                    print_result_line(*data, trace_j, bin_id, number_of_bins);
-                else
-                    print_debug_line(*data,
-                                     trace_j,
-                                     bin_id,
-                                     number_of_bins,
-                                     kmer_count_per_bin,
-                                     optimal_score,
-                                     num_technical_bins);
 
                 // std::cout << "split " << trace_j << " into " << number_of_bins << ": " << kmer_count_per_bin << std::endl;
 
@@ -427,16 +398,16 @@ private:
             size_t const number_of_tbs = trace_i + 1;
             size_t const average_bin_size = (kmer_count + number_of_tbs - 1) / number_of_tbs; // round up
 
+            data->hibf_layout->user_bins.emplace_back(data->filenames[0],
+                                                      data->previous.bin_indices,
+                                                      number_of_tbs,
+                                                      bin_id);
+
             // add split bin to ibf statistics
             if (data->stats)
             {
                 data->stats->bins.emplace_back(hibf_statistics::bin_kind::split, kmer_count, 1ul, number_of_tbs);
             }
-
-            if (!config.debug)
-                print_result_line(*data, 0, bin_id, number_of_tbs);
-            else
-                print_debug_line(*data, 0, bin_id, number_of_tbs, average_bin_size, optimal_score, num_technical_bins);
 
             update_max_id(high_level_max_id, high_level_max_size, bin_id, average_bin_size);
             // std::cout << "split " << trace_j << " into " << trace_i << ": " << kmer_count / number_of_tbs << std::endl;
@@ -456,8 +427,7 @@ private:
     data_store initialise_libf_data(size_t const kmer_count, size_t const trace_j) const
     {
         data_store libf_data{.false_positive_rate = data->false_positive_rate,
-                             .output_buffer = data->output_buffer,
-                             .header_buffer = data->header_buffer,
+                             .hibf_layout = data->hibf_layout,
                              .filenames = {data->filenames[trace_j]},
                              .kmer_counts = {kmer_count},
                              .fp_correction = data->fp_correction};
@@ -481,8 +451,6 @@ private:
         if (config.debug)
             update_debug_libf_data(libf_data, kmer_count, optimal_score);
 
-        std::string const merged_ibf_name{std::string{prefix::merged_bin} + "_" + libf_data.previous.bin_indices};
-
         // add merged bin to ibf statistics
         if (data->stats)
         {
@@ -496,7 +464,7 @@ private:
         // now do the binning for the low-level IBF:
         size_t const lower_max_bin = add_lower_level(libf_data);
 
-        *data->header_buffer << prefix::header << merged_ibf_name << " max_bin_id:" << lower_max_bin << '\n';
+        data->hibf_layout->max_bins.emplace_back(libf_data.previous.bin_indices, lower_max_bin);
     }
 
     void update_libf_data(data_store & libf_data, size_t const bin_id) const
@@ -504,7 +472,8 @@ private:
         bool const is_top_level = data->previous.empty();
 
         libf_data.previous = data->previous;
-        libf_data.previous.bin_indices += (is_top_level ? "" : ";") + std::to_string(bin_id);
+        libf_data.previous.bin_indices.push_back(bin_id);
+        libf_data.previous.bin_indices_str += (is_top_level ? "" : ";") + std::to_string(bin_id);
         libf_data.previous.num_of_bins += (is_top_level ? "" : ";") + std::string{"1"};
     }
 

@@ -94,12 +94,10 @@ TEST(execute_test, chopper_layout_statistics)
                                   .disable_estimate_union = true /* also disable rearrangement */,
                                   .output_verbose_statistics = true};
 
-    std::stringstream output_buffer;
-    std::stringstream header_buffer;
+    chopper::layout::layout hibf_layout{};
 
     chopper::data_store data{.false_positive_rate = config.false_positive_rate,
-                             .output_buffer = &output_buffer,
-                             .header_buffer = &header_buffer,
+                             .hibf_layout = &hibf_layout,
                              .filenames = many_filenames,
                              .kmer_counts = many_kmer_counts};
 
@@ -144,13 +142,11 @@ TEST(execute_test, chopper_layout_statistics_determine_best_bins)
                                   .force_all_binnings = true,
                                   .output_verbose_statistics = true};
 
-    std::stringstream output_buffer;
-    std::stringstream header_buffer;
+    chopper::layout::layout hibf_layout{};
 
     chopper::data_store data{
         .false_positive_rate = config.false_positive_rate,
-        .output_buffer = &output_buffer,
-        .header_buffer = &header_buffer,
+        .hibf_layout = &hibf_layout,
         .filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7", "seq8", "seq9"},
         .kmer_counts = {10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000}};
 
