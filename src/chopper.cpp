@@ -44,7 +44,7 @@ int main(int argc, char const * argv[])
     try
     {
         exit_code |= chopper::count::execute(config, store);
-        chopper::sketch::estimate_kmer_counts(store);
+        chopper::sketch::estimate_kmer_counts(store.sketches, store.kmer_counts);
         exit_code |= chopper::layout::execute(config, store);
     }
     catch (sharg::parser_error const & ext)
