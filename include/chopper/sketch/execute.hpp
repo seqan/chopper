@@ -7,14 +7,14 @@
 #include <seqan3/search/views/kmer_hash.hpp>
 
 #include <chopper/configuration.hpp>
-#include <chopper/count/check_filenames.hpp>
-#include <chopper/count/output.hpp>
-#include <chopper/count/read_data_file.hpp>
+#include <chopper/sketch/check_filenames.hpp>
+#include <chopper/sketch/output.hpp>
+#include <chopper/sketch/read_data_file.hpp>
 #include <chopper/data_store.hpp>
 #include <chopper/print_peak_memory_usage.hpp>
 #include <chopper/sketch/compute_sketches.hpp>
 
-namespace chopper::count
+namespace chopper::sketch
 {
 
 struct dna4_traits : public seqan3::sequence_file_input_default_traits_dna
@@ -34,7 +34,7 @@ inline int execute(configuration & config, data_store & store)
         throw sharg::parser_error{
             sharg::detail::to_string("The file ", config.data_file.string(), " appears to be empty.")};
 
-    chopper::count::check_filenames(store.filenames, config);
+    chopper::sketch::check_filenames(store.filenames, config);
 
     if (config.precomputed_files)
     {
@@ -90,4 +90,4 @@ inline int execute(configuration & config, data_store & store)
     return 0;
 }
 
-} // namespace chopper::count
+} // namespace chopper::sketch

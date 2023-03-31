@@ -4,7 +4,7 @@
 #include <sstream>
 #include <vector>
 
-#include <chopper/count/execute.hpp>
+#include <chopper/sketch/execute.hpp>
 #include <chopper/detail_apply_prefix.hpp>
 #include <chopper/layout/execute.hpp>
 #include <chopper/sketch/estimate_kmer_counts.hpp>
@@ -240,7 +240,7 @@ TEST(execute_estimation_test, with_rearrangement)
                               .output_buffer = &output_buffer,
                               .header_buffer = &header_buffer};
 
-    chopper::count::execute(config, store);
+    chopper::sketch::execute(config, store);
 
     ASSERT_TRUE(std::filesystem::exists(sketches_dir));
 

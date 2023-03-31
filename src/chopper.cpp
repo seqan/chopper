@@ -3,7 +3,7 @@
 #include <seqan3/core/debug_stream.hpp>
 
 #include <chopper/configuration.hpp>
-#include <chopper/count/execute.hpp>
+#include <chopper/sketch/execute.hpp>
 #include <chopper/data_store.hpp>
 #include <chopper/detail_apply_prefix.hpp>
 #include <chopper/layout/execute.hpp>
@@ -43,7 +43,7 @@ int main(int argc, char const * argv[])
 
     try
     {
-        exit_code |= chopper::count::execute(config, store);
+        exit_code |= chopper::sketch::execute(config, store);
         chopper::sketch::estimate_kmer_counts(store.sketches, store.kmer_counts);
         exit_code |= chopper::layout::execute(config, store);
     }

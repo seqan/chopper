@@ -6,7 +6,7 @@
 
 #include <chopper/configuration.hpp>
 
-namespace chopper::count
+namespace chopper::sketch
 {
 
 //!\brief Checks the `filenames` for consistent files, either precomputed or sequence files.
@@ -49,4 +49,4 @@ inline void check_filenames(std::vector<std::string> & filenames, configuration 
     }
 }
 
-} // namespace chopper::count
+} // namespace chopper::sketch
