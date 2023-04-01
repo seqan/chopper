@@ -138,8 +138,9 @@ TEST(execute_estimation_test, many_ubs)
 ##        "disable_sketch_output": true,
 ##        "precomputed_files": false,
 ##        "output_filename": {
-##            "value0": ")expected_layout" + layout_file.string() +
-R"expected_layout("
+##            "value0": ")expected_layout"
+                  + layout_file.string() +
+                  R"expected_layout("
 ##        },
 ##        "tmax": 128,
 ##        "num_hash_functions": 2,
