@@ -121,7 +121,141 @@ TEST(execute_estimation_test, many_ubs)
 )expected_cout");
 
     std::string const layout_string{string_from_file(layout_file)};
-    EXPECT_NE(layout_string.find("\"tmax\": 128,"), std::string::npos);
+    EXPECT_EQ(layout_string,
+              R"expected_layout(##CONFIG:
+##{
+##    "config": {
+##        "version": 2,
+##        "data_file": {
+##            "value0": ""
+##        },
+##        "debug": false,
+##        "sketch_directory": {
+##            "value0": ""
+##        },
+##        "k": 19,
+##        "sketch_bits": 12,
+##        "disable_sketch_output": true,
+##        "precomputed_files": false,
+##        "output_filename": {
+##            "value0": ")expected_layout"
+                  + layout_file.string() +
+                  R"expected_layout("
+##        },
+##        "tmax": 128,
+##        "num_hash_functions": 2,
+##        "false_positive_rate": 0.05,
+##        "alpha": 1.2,
+##        "max_rearrangement_ratio": 0.5,
+##        "threads": 1,
+##        "disable_estimate_union": true,
+##        "disable_rearrangement": true,
+##        "determine_best_tmax": true,
+##        "force_all_binnings": false
+##    }
+##}
+##ENDCONFIG
+#HIGH_LEVEL_IBF max_bin_id:14
+#MERGED_BIN_14 max_bin_id:0
+#MERGED_BIN_15 max_bin_id:0
+#FILES	BIN_INDICES	NUMBER_OF_BINS
+seq0	0	1
+seq19	1	1
+seq18	2	1
+seq17	3	1
+seq16	4	1
+seq15	5	1
+seq14	6	1
+seq13	7	1
+seq12	8	1
+seq11	9	1
+seq10	10	1
+seq9	11	1
+seq8	12	1
+seq7	13	1
+seq4	14;0	1;22
+seq5	14;22	1;21
+seq6	14;43	1;21
+seq1	15;0	1;22
+seq2	15;22	1;21
+seq3	15;43	1;21
+seq32	16	1
+seq33	17	1
+seq34	18	1
+seq35	19	1
+seq30	20	1
+seq36	21	1
+seq37	22	1
+seq38	23	1
+seq39	24	1
+seq31	25	1
+seq20	26	1
+seq21	27	1
+seq22	28	1
+seq23	29	1
+seq25	30	1
+seq26	31	1
+seq27	32	1
+seq28	33	1
+seq24	34	1
+seq29	35	1
+seq40	36	1
+seq41	37	1
+seq42	38	1
+seq43	39	1
+seq44	40	1
+seq45	41	1
+seq46	42	1
+seq47	43	1
+seq48	44	1
+seq59	45	1
+seq58	46	1
+seq57	47	1
+seq56	48	1
+seq55	49	1
+seq54	50	1
+seq53	51	1
+seq52	52	1
+seq51	53	1
+seq50	54	1
+seq49	55	1
+seq79	56	2
+seq78	58	2
+seq77	60	2
+seq76	62	2
+seq75	64	2
+seq74	66	2
+seq73	68	2
+seq70	70	2
+seq71	72	2
+seq72	74	2
+seq60	76	2
+seq61	78	2
+seq62	80	2
+seq63	82	2
+seq64	84	2
+seq65	86	2
+seq66	88	2
+seq67	90	2
+seq68	92	2
+seq69	94	2
+seq88	96	2
+seq94	98	2
+seq93	100	2
+seq92	102	2
+seq91	104	2
+seq90	106	2
+seq89	108	2
+seq87	110	2
+seq86	112	2
+seq85	114	2
+seq84	116	2
+seq83	118	2
+seq82	120	2
+seq81	122	2
+seq80	124	2
+seq95	126	2
+)expected_layout");
 }
 
 TEST(execute_estimation_test, many_ubs_force_all)
