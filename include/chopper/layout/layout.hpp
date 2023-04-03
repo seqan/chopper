@@ -17,19 +17,23 @@ struct layout
         std::vector<size_t> previous_TB_indices{}; // identifies the IBF based on upper levels
         size_t id{};                               // the technical bin id that has the maximum kmer content
 
-        auto operator<=>(max_bin const &) const = default;
+        friend constexpr auto operator<=>(max_bin const &, max_bin const &) = default;
 
         // needs a template (instead of using std::ostream directly) to be able to only include <iosfwd>
         template <typename stream_type>
             requires std::derived_from<stream_type, std::ostream>
         friend stream_type & operator<<(stream_type & stream, max_bin const & object)
         {
-            stream << prefix::header << prefix::merged_bin << "_";
+            stream << prefix::header << prefix::merged_bin << '_';
             auto it = object.previous_TB_indices.begin();
-            if (it != object.previous_TB_indices.end())
-                stream << *it++;
-            for (; it != object.previous_TB_indices.end(); ++it)
-                stream << ';' << *it;
+            auto end = object.previous_TB_indices.end();
+            // If not empty, we join with ';'
+            if (it != end)
+            {
+                stream << *it;
+                while (++it != end)
+                    stream << ';' << *it;
+            }
             stream << " max_bin_id:" << object.id;
 
             return stream;
@@ -43,7 +47,7 @@ struct layout
         size_t number_of_technical_bins{};         // 1 == signle bin, >1 == split_bin
         size_t storage_TB_id{}; // the id of the technical bin that the user bin is actullly stored in
 
-        auto operator<=>(user_bin const &) const = default;
+        friend constexpr auto operator<=>(user_bin const &, user_bin const &) = default;
 
         // needs a template (instead of using std::ostream directly) to be able to only include <iosfwd>
         template <typename stream_type>
@@ -54,8 +58,8 @@ struct layout
             for (auto bin : object.previous_TB_indices)
                 stream << bin << ';';
             stream << object.storage_TB_id << '\t';
-            for (size_t i = 0; i < object.previous_TB_indices.size(); ++i) // number of bins per merged level is 1
-                stream << '1' << ';';
+            for ([[maybe_unused]] auto && elem : object.previous_TB_indices) // number of bins per merged level is 1
+                stream << "1;";
             stream << object.number_of_technical_bins;
 
             return stream;

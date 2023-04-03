@@ -34,7 +34,7 @@ inline void write_layout_header_to(layout const & hibf_layout, size_t const max_
 
 inline void write_layout_content_to(layout const & hibf_layout, std::ostream & stream)
 {
-    stream << prefix::header << "FILES\tBIN_INDICES\tNUMBER_OF_BINS" << std::endl;
+    stream << prefix::header << "FILES\tBIN_INDICES\tNUMBER_OF_BINS\n";
     for (auto const & user_bin : hibf_layout.user_bins)
         stream << user_bin << '\n';
 }
