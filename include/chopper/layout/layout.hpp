@@ -17,7 +17,7 @@ struct layout
         std::vector<size_t> previous_TB_indices{}; // identifies the IBF based on upper levels
         size_t id{};                               // the technical bin id that has the maximum kmer content
 
-        friend constexpr auto operator<=>(max_bin const &, max_bin const &) = default;
+        friend auto operator<=>(max_bin const &, max_bin const &) = default;
 
         // needs a template (instead of using std::ostream directly) to be able to only include <iosfwd>
         template <typename stream_type>
@@ -47,7 +47,7 @@ struct layout
         size_t number_of_technical_bins{};         // 1 == signle bin, >1 == split_bin
         size_t storage_TB_id{}; // the id of the technical bin that the user bin is actullly stored in
 
-        friend constexpr auto operator<=>(user_bin const &, user_bin const &) = default;
+        friend auto operator<=>(user_bin const &, user_bin const &) = default;
 
         // needs a template (instead of using std::ostream directly) to be able to only include <iosfwd>
         template <typename stream_type>
