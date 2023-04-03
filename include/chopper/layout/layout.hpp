@@ -28,7 +28,6 @@ struct layout
             auto it = object.previous_TB_indices.begin();
             if (it != object.previous_TB_indices.end())
                 stream << *it++;
-
             for (; it != object.previous_TB_indices.end(); ++it)
                 stream << ';' << *it;
             stream << " max_bin_id:" << object.id;
