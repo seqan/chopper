@@ -4,8 +4,8 @@
 #include <cmath>
 
 #include <chopper/configuration.hpp>
-#include <chopper/next_multiple_of_64.hpp>
 #include <chopper/layout/simple_binning.hpp>
+#include <chopper/next_multiple_of_64.hpp>
 #include <chopper/prefixes.hpp>
 
 namespace chopper::layout

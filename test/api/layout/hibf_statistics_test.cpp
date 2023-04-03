@@ -33,7 +33,8 @@ TEST(byte_size_to_formatted_str, rounding)
 TEST(byte_size_to_formatted_str, edge_cases)
 {
     EXPECT_EQ("0Bytes", chopper::layout::hibf_statistics::byte_size_to_formatted_str(0ULL));
-    EXPECT_EQ("16.0EiB", chopper::layout::hibf_statistics::byte_size_to_formatted_str(std::numeric_limits<size_t>::max()));
+    EXPECT_EQ("16.0EiB",
+              chopper::layout::hibf_statistics::byte_size_to_formatted_str(std::numeric_limits<size_t>::max()));
 }
 
 TEST(hibf_statistics, only_merged_on_top_level)

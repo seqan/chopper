@@ -9,8 +9,8 @@
 #include <vector>
 
 #include <chopper/configuration.hpp>
-#include <chopper/next_multiple_of_64.hpp>
 #include <chopper/layout/ibf_query_cost.hpp>
+#include <chopper/next_multiple_of_64.hpp>
 #include <chopper/sketch/hyperloglog.hpp>
 #include <chopper/sketch/toolbox.hpp>
 
@@ -387,9 +387,9 @@ private:
         {
             assert(iterations > 0u);
             size_t decimal{bytes};
-            decimal -= integer << (iterations * 10u);             // Substract bytes represented by integer, e.g. -5GiB
-            decimal >>= (iterations - 1u) * 10u;                  // Shift to next smallest unit, e.g. 800MiB
-            decimal = decimal * 1000u / 1024u;                    // Account for using decimal system, i.e. 800MiB != 0.8GiB
+            decimal -= integer << (iterations * 10u); // Substract bytes represented by integer, e.g. -5GiB
+            decimal >>= (iterations - 1u) * 10u;      // Shift to next smallest unit, e.g. 800MiB
+            decimal = decimal * 1000u / 1024u;        // Account for using decimal system, i.e. 800MiB != 0.8GiB
             size_t const diff{decimal - (decimal / 100u) * 100u}; // We want to round up to 1 decimal position
             uint32_t const round_up{diff >= 50u};
             decimal += round_up * 100u - diff;
