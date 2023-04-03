@@ -4,7 +4,6 @@
 #include <sstream>
 #include <vector>
 
-#include <chopper/detail_apply_prefix.hpp>
 #include <chopper/layout/execute.hpp>
 
 #include "../api_test.hpp"

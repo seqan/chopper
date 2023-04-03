@@ -4,7 +4,6 @@
 
 #include <chopper/configuration.hpp>
 #include <chopper/data_store.hpp>
-#include <chopper/detail_apply_prefix.hpp>
 #include <chopper/layout/execute.hpp>
 #include <chopper/layout/hibf_statistics.hpp>
 
