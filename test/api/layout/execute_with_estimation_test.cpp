@@ -24,12 +24,10 @@ TEST(execute_estimation_test, few_ubs)
     config.output_filename = layout_file;
     config.disable_estimate_union = true; // also disables rearrangement
 
-    std::stringstream output_buffer;
-    std::stringstream header_buffer;
+    chopper::layout::layout hibf_layout{};
 
     chopper::data_store store{.false_positive_rate = config.false_positive_rate,
-                              .output_buffer = &output_buffer,
-                              .header_buffer = &header_buffer,
+                              .hibf_layout = &hibf_layout,
                               .filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7"},
                               .kmer_counts = {500, 1000, 500, 500, 500, 500, 500, 500}};
 
@@ -83,12 +81,10 @@ TEST(execute_estimation_test, many_ubs)
     config.disable_sketch_output = true;
     config.disable_estimate_union = true; // also disables rearrangement
 
-    std::stringstream output_buffer;
-    std::stringstream header_buffer;
+    chopper::layout::layout hibf_layout{};
 
     chopper::data_store data{.false_positive_rate = config.false_positive_rate,
-                             .output_buffer = &output_buffer,
-                             .header_buffer = &header_buffer,
+                             .hibf_layout = &hibf_layout,
                              .filenames = many_filenames,
                              .kmer_counts = many_kmer_counts};
 
@@ -282,12 +278,10 @@ TEST(execute_estimation_test, many_ubs_force_all)
     config.output_filename = layout_file;
     config.disable_estimate_union = true; // also disables rearrangement
 
-    std::stringstream output_buffer;
-    std::stringstream header_buffer;
+    chopper::layout::layout hibf_layout{};
 
     chopper::data_store data{.false_positive_rate = config.false_positive_rate,
-                             .output_buffer = &output_buffer,
-                             .header_buffer = &header_buffer,
+                             .hibf_layout = &hibf_layout,
                              .filenames = many_filenames,
                              .kmer_counts = many_kmer_counts};
 
@@ -367,12 +361,9 @@ TEST(execute_estimation_test, with_rearrangement)
     // config.output_verbose_statistics = true;
     config.output_filename = layout_file;
 
-    std::stringstream output_buffer;
-    std::stringstream header_buffer;
+    chopper::layout::layout hibf_layout{};
 
-    chopper::data_store store{.false_positive_rate = config.false_positive_rate,
-                              .output_buffer = &output_buffer,
-                              .header_buffer = &header_buffer};
+    chopper::data_store store{.false_positive_rate = config.false_positive_rate, .hibf_layout = &hibf_layout};
 
     chopper::sketch::execute(config, store);
 

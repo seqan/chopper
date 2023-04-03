@@ -6,23 +6,21 @@
 
 #include <robin_hood.h>
 
+#include <seqan3/test/expect_range_eq.hpp>
+
 #include <chopper/layout/hibf_statistics.hpp>
 #include <chopper/layout/hierarchical_binning.hpp>
-
-#include "../api_test.hpp"
 
 TEST(hierarchical_binning_test, filenames_and_kmer_counts_size_differs)
 {
     chopper::configuration config;
     config.tmax = 4;
 
-    std::stringstream output_buffer;
-    std::stringstream header_buffer;
+    chopper::layout::layout hibf_layout{};
     chopper::layout::hibf_statistics global_stats_dummy{};
 
-    chopper::data_store data{.output_buffer = &output_buffer,
-                             .header_buffer = &header_buffer,
-                             .stats = &global_stats_dummy.top_level_ibf,
+    chopper::data_store data{.stats = &global_stats_dummy.top_level_ibf,
+                             .hibf_layout = &hibf_layout,
                              .filenames = {"seq0", "seq1"},    // 2 filenames
                              .kmer_counts = {500, 1000, 500}}; // 3 kmer_counts
     data.compute_fp_correction(0.05, 2, config.tmax);
@@ -36,10 +34,8 @@ TEST(hierarchical_binning_test, small_example)
     config.tmax = 4;
     config.disable_estimate_union = true; // also disables rearrangement
 
-    std::stringstream output_buffer;
-    std::stringstream header_buffer;
-    chopper::data_store data{.output_buffer = &output_buffer,
-                             .header_buffer = &header_buffer,
+    chopper::layout::layout hibf_layout{};
+    chopper::data_store data{.hibf_layout = &hibf_layout,
                              .filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7"},
                              .kmer_counts = {500, 1000, 500, 500, 500, 500, 500, 500}};
 
@@ -49,20 +45,19 @@ TEST(hierarchical_binning_test, small_example)
     chopper::layout::hierarchical_binning algo{data, config};
     EXPECT_EQ(algo.execute(), 1u); // #HIGH_LEVEL_IBF max_bin_id:3
 
-    std::string expected_file{"#MERGED_BIN_1 max_bin_id:22\n"
-                              "#MERGED_BIN_2 max_bin_id:22\n"
-                              "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\n"
-                              "seq7\t0\t1\n"
-                              "seq4\t1;0\t1;22\n"
-                              "seq5\t1;22\t1;21\n"
-                              "seq6\t1;43\t1;21\n"
-                              "seq0\t2;0\t1;22\n"
-                              "seq2\t2;22\t1;21\n"
-                              "seq3\t2;43\t1;21\n"
-                              "seq1\t3\t1\n"};
+    std::vector<chopper::layout::layout::max_bin> expected_max_bins{{{1}, 22}, {{2}, 22}};
 
-    EXPECT_EQ(header_buffer.str() + output_buffer.str(), expected_file) << output_buffer.str() << std::endl
-                                                                        << expected_file << std::endl;
+    std::vector<chopper::layout::layout::user_bin> expected_user_bins{{"seq7", {}, 1, 0},
+                                                                      {"seq4", {1}, 22, 0},
+                                                                      {"seq5", {1}, 21, 22},
+                                                                      {"seq6", {1}, 21, 43},
+                                                                      {"seq0", {2}, 22, 0},
+                                                                      {"seq2", {2}, 21, 22},
+                                                                      {"seq3", {2}, 21, 43},
+                                                                      {"seq1", {}, 1, 3}};
+
+    EXPECT_RANGE_EQ(hibf_layout.max_bins, expected_max_bins);
+    EXPECT_RANGE_EQ(hibf_layout.user_bins, expected_user_bins);
 }
 
 TEST(hierarchical_binning_test, another_example)
@@ -71,10 +66,8 @@ TEST(hierarchical_binning_test, another_example)
     config.tmax = 5;
     config.disable_estimate_union = true; // also disables rearrangement
 
-    std::stringstream output_buffer;
-    std::stringstream header_buffer;
-    chopper::data_store data{.output_buffer = &output_buffer,
-                             .header_buffer = &header_buffer,
+    chopper::layout::layout hibf_layout{};
+    chopper::data_store data{.hibf_layout = &hibf_layout,
                              .filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7"},
                              .kmer_counts = {50, 1000, 1000, 50, 5, 10, 10, 5}};
 
@@ -85,19 +78,19 @@ TEST(hierarchical_binning_test, another_example)
     chopper::layout::hierarchical_binning algo{data, config};
     EXPECT_EQ(algo.execute(), 1u); // #HIGH_LEVEL_IBF max_bin_id:1
 
-    std::string expected_file{"#MERGED_BIN_0;0 max_bin_id:56\n"
-                              "#MERGED_BIN_0 max_bin_id:0\n"
-                              "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\n"
-                              "seq6\t0;0;0\t1;1;42\n"
-                              "seq5\t0;0;42\t1;1;14\n"
-                              "seq7\t0;0;56\t1;1;4\n"
-                              "seq4\t0;0;60\t1;1;4\n"
-                              "seq0\t0;1\t1;2\n"
-                              "seq3\t0;3\t1;2\n"
-                              "seq2\t1\t2\n"
-                              "seq1\t3\t2\n"};
+    std::vector<chopper::layout::layout::max_bin> expected_max_bins{{{0, 0}, 56}, {{0}, 0}};
 
-    EXPECT_EQ(header_buffer.str() + output_buffer.str(), expected_file);
+    std::vector<chopper::layout::layout::user_bin> expected_user_bins{{"seq6", {0, 0}, 42, 0},
+                                                                      {"seq5", {0, 0}, 14, 42},
+                                                                      {"seq7", {0, 0}, 4, 56},
+                                                                      {"seq4", {0, 0}, 4, 60},
+                                                                      {"seq0", {0}, 2, 1},
+                                                                      {"seq3", {0}, 2, 3},
+                                                                      {"seq2", {}, 2, 1},
+                                                                      {"seq1", {}, 2, 3}};
+
+    EXPECT_RANGE_EQ(hibf_layout.max_bins, expected_max_bins);
+    EXPECT_RANGE_EQ(hibf_layout.user_bins, expected_user_bins);
 }
 
 TEST(hierarchical_binning_test, high_level_max_bin_id_is_0)
@@ -106,10 +99,8 @@ TEST(hierarchical_binning_test, high_level_max_bin_id_is_0)
     config.tmax = 4;
     config.disable_estimate_union = true; // also disables rearrangement
 
-    std::stringstream output_buffer;
-    std::stringstream header_buffer;
-    chopper::data_store data{.output_buffer = &output_buffer,
-                             .header_buffer = &header_buffer,
+    chopper::layout::layout hibf_layout{};
+    chopper::data_store data{.hibf_layout = &hibf_layout,
                              .filenames = {"seq0", "seq1", "seq2", "seq3"},
                              .kmer_counts = {500, 500, 500, 500}};
 
@@ -120,13 +111,12 @@ TEST(hierarchical_binning_test, high_level_max_bin_id_is_0)
     chopper::layout::hierarchical_binning algo{data, config};
     EXPECT_EQ(algo.execute(), 0u); // #HIGH_LEVEL_IBF max_bin_id:1
 
-    std::string expected_file{"#FILES\tBIN_INDICES\tNUMBER_OF_BINS\n"
-                              "seq3\t0\t1\n"
-                              "seq2\t1\t1\n"
-                              "seq1\t2\t1\n"
-                              "seq0\t3\t1\n"};
+    std::vector<chopper::layout::layout::user_bin> expected_user_bins{{"seq3", {}, 1, 0},
+                                                                      {"seq2", {}, 1, 1},
+                                                                      {"seq1", {}, 1, 2},
+                                                                      {"seq0", {}, 1, 3}};
 
-    EXPECT_EQ(header_buffer.str() + output_buffer.str(), expected_file);
+    EXPECT_RANGE_EQ(hibf_layout.user_bins, expected_user_bins);
 }
 
 TEST(hierarchical_binning_test, knuts_example)
@@ -136,9 +126,8 @@ TEST(hierarchical_binning_test, knuts_example)
     config.tmax = 5;
     config.disable_estimate_union = true; // also disables rearrangement
 
-    std::stringstream output_buffer;
-    std::stringstream header_buffer;
-    chopper::data_store data{.output_buffer = &output_buffer, .header_buffer = &header_buffer};
+    chopper::layout::layout hibf_layout{};
+    chopper::data_store data{.hibf_layout = &hibf_layout};
     data.filenames = {"seq0", "seq1", "seq2", "seq3", "seq4"};
     data.kmer_counts = {60, 600, 1000, 800, 800};
     data.compute_fp_correction(0.05, 2, config.tmax);
@@ -148,15 +137,16 @@ TEST(hierarchical_binning_test, knuts_example)
     chopper::layout::hierarchical_binning algo{data, config};
     EXPECT_EQ(algo.execute(), 1u);
 
-    std::string expected_file{"#MERGED_BIN_0 max_bin_id:63\n"
-                              "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\n"
-                              "seq1\t0;0\t1;63\n"
-                              "seq0\t0;63\t1;1\n"
-                              "seq4\t1\t1\n"
-                              "seq3\t2\t1\n"
-                              "seq2\t3\t2\n"};
+    std::vector<chopper::layout::layout::max_bin> expected_max_bins{{{0}, 63}};
 
-    EXPECT_EQ(header_buffer.str() + output_buffer.str(), expected_file);
+    std::vector<chopper::layout::layout::user_bin> expected_user_bins{{"seq1", {0}, 63, 0},
+                                                                      {"seq0", {0}, 1, 63},
+                                                                      {"seq4", {}, 1, 1},
+                                                                      {"seq3", {}, 1, 2},
+                                                                      {"seq2", {}, 2, 3}};
+
+    EXPECT_RANGE_EQ(hibf_layout.max_bins, expected_max_bins);
+    EXPECT_RANGE_EQ(hibf_layout.user_bins, expected_user_bins);
 }
 
 TEST(hierarchical_binning_test, four_level_hibf)
@@ -164,12 +154,9 @@ TEST(hierarchical_binning_test, four_level_hibf)
     chopper::configuration config;
     config.tmax = 2;
     config.disable_estimate_union = true; // also disables rearrangement
-    // config.debug = true;
 
-    std::stringstream output_buffer;
-    std::stringstream header_buffer;
-    chopper::data_store data{.output_buffer = &output_buffer,
-                             .header_buffer = &header_buffer,
+    chopper::layout::layout hibf_layout{};
+    chopper::data_store data{.hibf_layout = &hibf_layout,
                              .filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5"},
                              .kmer_counts = {11090, 5080, 3040, 1020, 510, 500}};
 
@@ -180,19 +167,20 @@ TEST(hierarchical_binning_test, four_level_hibf)
     chopper::layout::hierarchical_binning algo{data, config};
     EXPECT_EQ(algo.execute(), 1u); // #HIGH_LEVEL_IBF max_bin_id:1
 
-    std::string expected_file{"#MERGED_BIN_0;0;0;0 max_bin_id:33\n"
-                              "#MERGED_BIN_0;0;0 max_bin_id:1\n"
-                              "#MERGED_BIN_0;0 max_bin_id:1\n"
-                              "#MERGED_BIN_0 max_bin_id:1\n"
-                              "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\n"
-                              "seq4\t0;0;0;0;0\t1;1;1;1;33\n"
-                              "seq5\t0;0;0;0;33\t1;1;1;1;31\n"
-                              "seq3\t0;0;0;1\t1;1;1;1\n"
-                              "seq2\t0;0;1\t1;1;1\n"
-                              "seq1\t0;1\t1;1\n"
-                              "seq0\t1\t1\n"};
+    std::vector<chopper::layout::layout::max_bin> expected_max_bins{{{0, 0, 0, 0}, 33},
+                                                                    {{0, 0, 0}, 1},
+                                                                    {{0, 0}, 1},
+                                                                    {{0}, 1}};
 
-    EXPECT_EQ(header_buffer.str() + output_buffer.str(), expected_file);
+    std::vector<chopper::layout::layout::user_bin> expected_user_bins{{"seq4", {0, 0, 0, 0}, 33, 0},
+                                                                      {"seq5", {0, 0, 0, 0}, 31, 33},
+                                                                      {"seq3", {0, 0, 0}, 1, 1},
+                                                                      {"seq2", {0, 0}, 1, 1},
+                                                                      {"seq1", {0}, 1, 1},
+                                                                      {"seq0", {}, 1, 1}};
+
+    EXPECT_RANGE_EQ(hibf_layout.max_bins, expected_max_bins);
+    EXPECT_RANGE_EQ(hibf_layout.user_bins, expected_user_bins);
 }
 
 TEST(hierarchical_binning_test, tb0_is_a_merged_bin)
@@ -202,10 +190,8 @@ TEST(hierarchical_binning_test, tb0_is_a_merged_bin)
     config.tmax = 2;
     config.disable_estimate_union = true; // also disables rearrangement
 
-    std::stringstream output_buffer;
-    std::stringstream header_buffer;
-    chopper::data_store data{.output_buffer = &output_buffer,
-                             .header_buffer = &header_buffer,
+    chopper::layout::layout hibf_layout{};
+    chopper::data_store data{.hibf_layout = &hibf_layout,
                              .filenames = {"seq0", "seq1", "seq2", "seq3"},
                              .kmer_counts = {500, 500, 500, 500}};
 
@@ -216,48 +202,15 @@ TEST(hierarchical_binning_test, tb0_is_a_merged_bin)
     chopper::layout::hierarchical_binning algo{data, config};
     EXPECT_EQ(algo.execute(), 0u);
 
-    std::string expected_file{"#MERGED_BIN_0 max_bin_id:0\n"
-                              "#MERGED_BIN_1 max_bin_id:0\n"
-                              "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\n"
-                              "seq2\t0;0\t1;32\n"
-                              "seq3\t0;32\t1;32\n"
-                              "seq0\t1;0\t1;32\n"
-                              "seq1\t1;32\t1;32\n"};
+    std::vector<chopper::layout::layout::max_bin> expected_max_bins{{{0}, 0}, {{1}, 0}};
 
-    EXPECT_EQ(header_buffer.str() + output_buffer.str(), expected_file) << output_buffer.str();
-}
+    std::vector<chopper::layout::layout::user_bin> expected_user_bins{{"seq2", {0}, 32, 0},
+                                                                      {"seq3", {0}, 32, 32},
+                                                                      {"seq0", {1}, 32, 0},
+                                                                      {"seq1", {1}, 32, 32}};
 
-TEST(hierarchical_binning_test, tb0_is_a_merged_bin_with_debug)
-{
-    chopper::configuration config;
-    config.alpha = 1;
-    config.tmax = 2;
-    config.debug = true;
-    config.disable_estimate_union = true; // also disables rearrangement
-
-    std::stringstream output_buffer;
-    std::stringstream header_buffer;
-    chopper::data_store data{.output_buffer = &output_buffer,
-                             .header_buffer = &header_buffer,
-                             .filenames = {"seq0", "seq1", "seq2", "seq3"},
-                             .kmer_counts = {500, 500, 500, 500}};
-
-    data.compute_fp_correction(0.05, 2, config.tmax);
-    chopper::layout::hibf_statistics global_stats_dummy{};
-    data.stats = &global_stats_dummy.top_level_ibf;
-
-    chopper::layout::hierarchical_binning algo{data, config};
-    EXPECT_EQ(algo.execute(), 0u);
-
-    std::string expected_file{"#MERGED_BIN_0 max_bin_id:0\n"
-                              "#MERGED_BIN_1 max_bin_id:0\n"
-                              "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\tEST_MAX_TB_SIZES\tSCORE\tCORR\tT_MAX\n"
-                              "seq2\t0;0\t1;32\t1000;16\t1000;96\t1.00;6.20\t2;64\n"
-                              "seq3\t0;32\t1;32\t1000;16\t1000;96\t1.00;6.20\t2;64\n"
-                              "seq0\t1;0\t1;32\t1000;16\t1000;96\t1.00;6.20\t2;64\n"
-                              "seq1\t1;32\t1;32\t1000;16\t1000;96\t1.00;6.20\t2;64\n"};
-
-    EXPECT_EQ(header_buffer.str() + output_buffer.str(), expected_file) << output_buffer.str();
+    EXPECT_RANGE_EQ(hibf_layout.max_bins, expected_max_bins);
+    EXPECT_RANGE_EQ(hibf_layout.user_bins, expected_user_bins);
 }
 
 TEST(hierarchical_binning_test, tb0_is_a_merged_bin_and_leads_to_recursive_call)
@@ -267,10 +220,8 @@ TEST(hierarchical_binning_test, tb0_is_a_merged_bin_and_leads_to_recursive_call)
     config.tmax = 2;
     config.disable_estimate_union = true; // also disables rearrangement
 
-    std::stringstream output_buffer;
-    std::stringstream header_buffer;
-    chopper::data_store data{.output_buffer = &output_buffer,
-                             .header_buffer = &header_buffer,
+    chopper::layout::layout hibf_layout{};
+    chopper::data_store data{.hibf_layout = &hibf_layout,
                              .filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7"},
                              .kmer_counts = {500, 500, 500, 500, 500, 500, 500, 500}};
 
@@ -281,21 +232,22 @@ TEST(hierarchical_binning_test, tb0_is_a_merged_bin_and_leads_to_recursive_call)
     chopper::layout::hierarchical_binning algo{data, config};
     EXPECT_EQ(algo.execute(), 0u);
 
-    std::string expected_file{"#MERGED_BIN_0;0 max_bin_id:0\n"
-                              "#MERGED_BIN_0;1 max_bin_id:0\n"
-                              "#MERGED_BIN_0 max_bin_id:0\n"
-                              "#MERGED_BIN_1;0 max_bin_id:0\n"
-                              "#MERGED_BIN_1;1 max_bin_id:0\n"
-                              "#MERGED_BIN_1 max_bin_id:0\n"
-                              "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\n"
-                              "seq5\t0;0;0\t1;1;32\n"
-                              "seq4\t0;0;32\t1;1;32\n"
-                              "seq7\t0;1;0\t1;1;32\n"
-                              "seq6\t0;1;32\t1;1;32\n"
-                              "seq1\t1;0;0\t1;1;32\n"
-                              "seq0\t1;0;32\t1;1;32\n"
-                              "seq3\t1;1;0\t1;1;32\n"
-                              "seq2\t1;1;32\t1;1;32\n"};
+    std::vector<chopper::layout::layout::max_bin> expected_max_bins{{{0, 0}, 0},
+                                                                    {{0, 1}, 0},
+                                                                    {{0}, 0},
+                                                                    {{1, 0}, 0},
+                                                                    {{1, 1}, 0},
+                                                                    {{1}, 0}};
 
-    EXPECT_EQ(header_buffer.str() + output_buffer.str(), expected_file) << output_buffer.str();
+    std::vector<chopper::layout::layout::user_bin> expected_user_bins{{"seq5", {0, 0}, 32, 0},
+                                                                      {"seq4", {0, 0}, 32, 32},
+                                                                      {"seq7", {0, 1}, 32, 0},
+                                                                      {"seq6", {0, 1}, 32, 32},
+                                                                      {"seq1", {1, 0}, 32, 0},
+                                                                      {"seq0", {1, 0}, 32, 32},
+                                                                      {"seq3", {1, 1}, 32, 0},
+                                                                      {"seq2", {1, 1}, 32, 32}};
+
+    EXPECT_RANGE_EQ(hibf_layout.max_bins, expected_max_bins);
+    EXPECT_RANGE_EQ(hibf_layout.user_bins, expected_user_bins);
 }

@@ -11,7 +11,6 @@
 #include <chopper/helper.hpp>
 #include <chopper/layout/previous_level.hpp>
 #include <chopper/layout/print_matrix.hpp>
-#include <chopper/layout/print_result_line.hpp>
 
 namespace chopper::layout
 {
@@ -131,14 +130,6 @@ public:
         debug{debug_}
     {
         assert(data != nullptr);
-        assert(data->output_buffer != nullptr);
-        assert(data->header_buffer != nullptr);
-
-        if (debug)
-        {
-            *data->header_buffer << std::fixed << std::setprecision(2);
-            *data->output_buffer << std::fixed << std::setprecision(2);
-        }
 
         if (num_user_bins > num_technical_bins)
         {
@@ -157,8 +148,6 @@ public:
     size_t execute()
     {
         assert(data != nullptr);
-        assert(data->output_buffer != nullptr);
-        assert(data->header_buffer != nullptr);
 
         if (data->stats)
             data->stats->filenames = data->filenames;
@@ -216,7 +205,6 @@ public:
         size_t max_size{};
 
         size_t bin_id{};
-        size_t const optimal_score{matrix[trace_i][trace_j]};
 
         while (trace_j > 0)
         {
@@ -225,22 +213,16 @@ public:
             size_t const number_of_bins = (trace_i - next_i);
             size_t const kmer_count_per_bin = (kmer_count + number_of_bins - 1) / number_of_bins; // round up
 
+            data->hibf_layout->user_bins.emplace_back(data->filenames[trace_j],
+                                                      data->previous.bin_indices,
+                                                      number_of_bins,
+                                                      bin_id);
+
             // add split bin to ibf statistics
             if (data->stats)
             {
                 data->stats->bins.emplace_back(hibf_statistics::bin_kind::split, kmer_count, 1ul, number_of_bins);
             }
-
-            if (!debug)
-                print_result_line(*data, trace_j, bin_id, number_of_bins);
-            else
-                print_debug_line(*data,
-                                 trace_j,
-                                 bin_id,
-                                 number_of_bins,
-                                 kmer_count_per_bin,
-                                 optimal_score,
-                                 num_technical_bins);
 
             if (kmer_count_per_bin > max_size)
             {
@@ -257,6 +239,8 @@ public:
         size_t const kmer_count = data->kmer_counts[0];
         size_t const kmer_count_per_bin = (kmer_count + trace_i - 1) / trace_i;
 
+        data->hibf_layout->user_bins.emplace_back(data->filenames[0], data->previous.bin_indices, trace_i, bin_id);
+
         // add split bin to ibf statistics
         if (data->stats)
         {
@@ -268,11 +252,6 @@ public:
             max_id = bin_id;
             max_size = kmer_count_per_bin;
         }
-
-        if (!debug)
-            print_result_line(*data, 0, bin_id, trace_i);
-        else
-            print_debug_line(*data, 0, bin_id, trace_i, kmer_count_per_bin, optimal_score, num_technical_bins);
 
         return max_id;
     }

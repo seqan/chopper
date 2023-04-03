@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <string>
+#include <vector>
 
 namespace chopper::layout
 {
@@ -9,7 +10,8 @@ namespace chopper::layout
 //!\brief Information about the previous IBF level to be passed down to ensure correct output.
 struct previous_level
 {
-    std::string bin_indices;
+    std::vector<size_t> bin_indices{};
+    std::string bin_indices_str;
     std::string num_of_bins;
     std::string estimated_sizes;
     std::string optimal_score;
