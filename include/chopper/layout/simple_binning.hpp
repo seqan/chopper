@@ -8,7 +8,7 @@
 #include <vector>
 
 #include <chopper/data_store.hpp>
-#include <chopper/helper.hpp>
+#include <chopper/next_multiple_of_64.hpp>
 #include <chopper/layout/print_matrix.hpp>
 
 namespace chopper::layout
