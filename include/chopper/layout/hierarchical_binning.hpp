@@ -5,7 +5,6 @@
 
 #include <chopper/configuration.hpp>
 #include <chopper/helper.hpp>
-#include <chopper/layout/arrange_user_bins.hpp>
 #include <chopper/layout/simple_binning.hpp>
 #include <chopper/prefixes.hpp>
 
@@ -61,7 +60,16 @@ public:
 
         static constexpr size_t max_size_t{std::numeric_limits<size_t>::max()};
 
-        arrange_user_bins(*data, config);
+        if (!data->user_bins_arranged)
+        {
+            data->sketch_toolbox = sketch::toolbox{data->filenames, data->kmer_counts, data->sketches};
+            data->sketch_toolbox.sort_by_cardinalities();
+
+            if (!config.disable_estimate_union && !config.disable_rearrangement)
+                data->sketch_toolbox.rearrange_bins(config.max_rearrangement_ratio, config.threads);
+
+            data->user_bins_arranged = true;
+        }
 
         // technical bins (outer) = rows; user bins (inner) = columns
         std::vector<std::vector<size_t>> matrix(num_technical_bins, std::vector<size_t>(num_user_bins, max_size_t));
