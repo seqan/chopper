@@ -308,68 +308,6 @@ public:
         return compute_bin_size(total_size) / 8;
     }
 
-    //!\brief The top level IBF of this HIBF, often starting point for recursions.
-    level top_level_ibf;
-
-    //!\brief The estimated query cost of every single kmer in this HIBF.
-    double total_query_cost{0.0};
-
-    //!\brief The estimated query cost relative to the total k-mer count in the data set.
-    double expected_HIBF_query_cost{0.0};
-
-private:
-    //!\brief Copy of the user configuration for this HIBF.
-    configuration const config{};
-
-    //!\brief The false positive correction factors to use for the statistics.
-    std::vector<double> const * const fp_correction{nullptr};
-
-    //!\brief The original kmer count of all user bins.
-    size_t const total_kmer_count{};
-
-    //!\brief Statistics for all IBFs on a certain level of the HIBF.
-    struct level_summary
-    {
-        size_t num_ibfs{};
-
-        std::vector<size_t> num_tbs{};
-        std::vector<size_t> num_ubs{};
-
-        std::vector<size_t> num_split_tbs{};
-        std::vector<size_t> num_merged_tbs{};
-
-        std::vector<size_t> num_split_ubs{};
-        std::vector<size_t> num_merged_ubs{};
-
-        std::vector<size_t> max_split_tb_span{};
-        std::vector<size_t> split_tb_corr_kmers{};
-        std::vector<size_t> split_tb_kmers{};
-
-        std::vector<size_t> max_ubs_in_merged{};
-
-        std::vector<size_t> ibf_mem_size{};
-        std::vector<size_t> ibf_mem_size_no_corr{};
-    };
-
-    //!\brief The gathered summary of statistics for each level of this HIBF.
-    std::map<size_t, level_summary> summaries;
-
-    /*!\brief Computes the bin size in bits.
-    *
-    * -NUM_ELEM*HASHES
-    * ----------------------  = SIZE
-    * LN(1-FPR^(1/HASHES))
-    *
-    * -NUM_ELEMS*HASHES
-    * -----------------------
-    * LN(1 - e^(LN(FPR) / HASHES) )
-    */
-    size_t compute_bin_size(size_t const number_of_kmers_to_be_stored) const
-    {
-        return std::ceil(-static_cast<double>(number_of_kmers_to_be_stored * config.num_hash_functions)
-                         / std::log(1 - std::exp(std::log(config.false_positive_rate) / config.num_hash_functions)));
-    }
-
     //!\brief Round bytes to the appropriate unit and convert to string with unit.
     [[nodiscard]] static std::string byte_size_to_formatted_str(size_t const bytes)
     {
@@ -447,6 +385,68 @@ private:
         }
 
         return result;
+    }
+
+    //!\brief The top level IBF of this HIBF, often starting point for recursions.
+    level top_level_ibf;
+
+    //!\brief The estimated query cost of every single kmer in this HIBF.
+    double total_query_cost{0.0};
+
+    //!\brief The estimated query cost relative to the total k-mer count in the data set.
+    double expected_HIBF_query_cost{0.0};
+
+private:
+    //!\brief Copy of the user configuration for this HIBF.
+    configuration const config{};
+
+    //!\brief The false positive correction factors to use for the statistics.
+    std::vector<double> const * const fp_correction{nullptr};
+
+    //!\brief The original kmer count of all user bins.
+    size_t const total_kmer_count{};
+
+    //!\brief Statistics for all IBFs on a certain level of the HIBF.
+    struct level_summary
+    {
+        size_t num_ibfs{};
+
+        std::vector<size_t> num_tbs{};
+        std::vector<size_t> num_ubs{};
+
+        std::vector<size_t> num_split_tbs{};
+        std::vector<size_t> num_merged_tbs{};
+
+        std::vector<size_t> num_split_ubs{};
+        std::vector<size_t> num_merged_ubs{};
+
+        std::vector<size_t> max_split_tb_span{};
+        std::vector<size_t> split_tb_corr_kmers{};
+        std::vector<size_t> split_tb_kmers{};
+
+        std::vector<size_t> max_ubs_in_merged{};
+
+        std::vector<size_t> ibf_mem_size{};
+        std::vector<size_t> ibf_mem_size_no_corr{};
+    };
+
+    //!\brief The gathered summary of statistics for each level of this HIBF.
+    std::map<size_t, level_summary> summaries;
+
+    /*!\brief Computes the bin size in bits.
+    *
+    * -NUM_ELEM*HASHES
+    * ----------------------  = SIZE
+    * LN(1-FPR^(1/HASHES))
+    *
+    * -NUM_ELEMS*HASHES
+    * -----------------------
+    * LN(1 - e^(LN(FPR) / HASHES) )
+    */
+    size_t compute_bin_size(size_t const number_of_kmers_to_be_stored) const
+    {
+        return std::ceil(-static_cast<double>(number_of_kmers_to_be_stored * config.num_hash_functions)
+                         / std::log(1 - std::exp(std::log(config.false_positive_rate) / config.num_hash_functions)));
     }
 
     /*!\brief Compute the Bloom Filter size from `number_of_kmers_to_be_stored` and
