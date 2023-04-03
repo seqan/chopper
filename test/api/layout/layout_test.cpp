@@ -12,7 +12,7 @@ TEST(layout_test, printing_max_bins)
 
     layout.max_bins.emplace_back(std::vector<size_t>{}, 0);
     layout.max_bins.emplace_back(std::vector<size_t>{2}, 2);
-    layout.max_bins.emplace_back(std::vector<size_t>{1,2,3,4}, 22);
+    layout.max_bins.emplace_back(std::vector<size_t>{1, 2, 3, 4}, 22);
 
     for (auto const & mb : layout.max_bins)
         ss << mb << "\n";
@@ -33,7 +33,7 @@ TEST(layout_test, printing_user_bins)
 
     layout.user_bins.emplace_back("seq7", std::vector<size_t>{}, 1, 0);
     layout.user_bins.emplace_back("seq4", std::vector<size_t>{1}, 22, 0);
-    layout.user_bins.emplace_back("seq5", std::vector<size_t>{1,2,3,4}, 21, 22);
+    layout.user_bins.emplace_back("seq5", std::vector<size_t>{1, 2, 3, 4}, 21, 22);
 
     for (auto const & ub : layout.user_bins)
         ss << ub << "\n";
