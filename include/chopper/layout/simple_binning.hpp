@@ -9,7 +9,6 @@
 
 #include <chopper/data_store.hpp>
 #include <chopper/helper.hpp>
-#include <chopper/layout/previous_level.hpp>
 #include <chopper/layout/print_matrix.hpp>
 
 namespace chopper::layout
