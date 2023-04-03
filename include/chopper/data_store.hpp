@@ -8,7 +8,6 @@
 #include <chopper/helper.hpp>
 #include <chopper/layout/hibf_statistics.hpp>
 #include <chopper/layout/layout.hpp>
-#include <chopper/layout/previous_level.hpp>
 #include <chopper/sketch/toolbox.hpp>
 
 namespace chopper
@@ -16,6 +15,33 @@ namespace chopper
 
 struct data_store
 {
+    /*!\brief Stores information of the previous level of a given IBF.
+     *
+     * When computing a hierarchical layout, the `data_store` data structure is used with local copies for each IBF
+     * within the hierarchical structure of the HIBF. To keep track of the hierarchy, the `previous_level` stores
+     * information about the previous level (where the corresponding merged bin is located).
+     */
+    struct previous_level
+    {
+        std::vector<size_t> bin_indices{};
+        std::string bin_indices_str;
+        std::string num_of_bins;
+        std::string estimated_sizes;
+        std::string optimal_score;
+        std::string correction;
+        std::string tmax;
+
+        bool empty() const
+        {
+            assert(bin_indices.empty() == num_of_bins.empty());
+            assert(num_of_bins.empty() == estimated_sizes.empty());
+            assert(estimated_sizes.empty() == optimal_score.empty());
+            assert(optimal_score.empty() == correction.empty());
+            assert(correction.empty() == tmax.empty());
+            return bin_indices.empty();
+        }
+    };
+
     /*!\name References to global instances of the HIBF.
      * \{
      */
@@ -57,7 +83,7 @@ struct data_store
     sketch::toolbox sketch_toolbox{};
 
     //!\brief Information about previous levels of the IBF if the algorithm is called recursively.
-    layout::previous_level previous{};
+    previous_level previous{};
 
     //!\brief Matrix of estimates of merged bin cardinalites
     std::vector<uint64_t> union_estimates{};

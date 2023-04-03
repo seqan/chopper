@@ -9,7 +9,6 @@
 #include <chopper/layout/hierarchical_binning.hpp>
 #include <chopper/layout/ibf_query_cost.hpp>
 #include <chopper/layout/output.hpp>
-#include <chopper/layout/previous_level.hpp>
 
 namespace chopper::layout
 {
@@ -55,7 +54,7 @@ size_t determine_best_number_of_technical_bins(chopper::data_store & data, chopp
         chopper::layout::layout tmp_layout{}; // will be rewritten for every tmax
         config.tmax = t_max;                  // overwrite tmax
         data.hibf_layout = &tmp_layout;
-        data.previous = chopper::layout::previous_level{}; // reset previous IBF, s.t. data refers to top level IBF
+        data.previous = chopper::data_store::previous_level{}; // reset previous IBF, s.t. data refers to top level IBF
 
         chopper::layout::hibf_statistics global_stats{config, data.fp_correction, data.kmer_counts};
         data.stats = &global_stats.top_level_ibf;
