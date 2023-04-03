@@ -8,7 +8,6 @@
 
 #include <chopper/configuration.hpp>
 #include <chopper/data_store.hpp>
-#include <chopper/print_peak_memory_usage.hpp>
 #include <chopper/sketch/check_filenames.hpp>
 #include <chopper/sketch/compute_sketches.hpp>
 #include <chopper/sketch/output.hpp>
@@ -84,8 +83,6 @@ inline int execute(configuration & config, data_store & store)
         for (size_t i = 0; i < store.filenames.size(); ++i)
             write_sketch_file(store.filenames[i], store.sketches[i], config);
     }
-
-    print_peak_memory_usage();
 
     return 0;
 }
