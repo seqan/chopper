@@ -12,7 +12,6 @@
 #include <seqan3/search/kmer_index/shape.hpp>
 #include <seqan3/search/views/kmer_hash.hpp>
 
-#include <chopper/print_peak_memory_usage.hpp>
 #include <chopper/sketch/hyperloglog.hpp>
 
 struct cli_args
@@ -112,6 +111,4 @@ int main(int argc, char const * argv[])
 
         control.clear();
     }
-
-    chopper::print_peak_memory_usage();
 }
