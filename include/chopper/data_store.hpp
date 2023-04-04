@@ -5,9 +5,9 @@
 #include <vector>
 
 #include <chopper/configuration.hpp>
-#include <chopper/helper.hpp>
 #include <chopper/layout/hibf_statistics.hpp>
 #include <chopper/layout/layout.hpp>
+#include <chopper/next_multiple_of_64.hpp>
 #include <chopper/sketch/toolbox.hpp>
 
 namespace chopper
