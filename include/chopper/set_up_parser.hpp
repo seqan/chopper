@@ -94,14 +94,6 @@ inline void set_up_parser(sharg::parser & parser, chopper::configuration & confi
                                     .long_id = "output-filename",
                                     .description = "A file name for the resulting layout."});
 
-    // using aggregate_by_type = std::remove_cvref_t<decltype(config.aggregate_by_column)>;
-    // parser.add_option(config.aggregate_by_column,
-    //                   '\0', "aggregate-by-column",
-    //                   "Which column do you want to aggregate your files by? Start counting your columns from 0!",
-    //                   seqan3::option_spec::hidden,
-    //                   seqan3::arithmetic_range_validator{aggregate_by_type{2},
-    //                                                      std::numeric_limits<aggregate_by_type>::max()});
-
     parser.add_option(
         config.threads,
         sharg::config{

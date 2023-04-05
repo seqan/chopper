@@ -5,7 +5,6 @@
 #include <sharg/exceptions.hpp>
 
 #include <chopper/configuration.hpp>
-#include <chopper/layout/aggregate_by.hpp>
 #include <chopper/layout/hierarchical_binning.hpp>
 #include <chopper/layout/ibf_query_cost.hpp>
 #include <chopper/layout/output.hpp>
@@ -108,11 +107,6 @@ int execute(chopper::configuration & config, chopper::data_store & data)
     }
 
     data.compute_fp_correction(config.false_positive_rate, config.num_hash_functions, config.tmax);
-
-    // TODO aggregating is outdated. Has to be reworked when needed
-    // If requested, aggregate the data before layouting them
-    // if (config.aggregate_by_column != -1)
-    //     aggregate_by(data, config.aggregate_by_column - 2/*user index includes first two columns (filename, count)*/);
 
     size_t max_hibf_id;
 
