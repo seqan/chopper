@@ -24,20 +24,11 @@ struct data_store
     struct previous_level
     {
         std::vector<size_t> bin_indices{};
-        std::string bin_indices_str;
         std::string num_of_bins;
-        std::string estimated_sizes;
-        std::string optimal_score;
-        std::string correction;
-        std::string tmax;
 
         bool empty() const
         {
             assert(bin_indices.empty() == num_of_bins.empty());
-            assert(num_of_bins.empty() == estimated_sizes.empty());
-            assert(estimated_sizes.empty() == optimal_score.empty());
-            assert(optimal_score.empty() == correction.empty());
-            assert(correction.empty() == tmax.empty());
             return bin_indices.empty();
         }
     };
