@@ -135,7 +135,9 @@ private:
         size_t sum = data->kmer_counts[0];
         if (!config.disable_estimate_union)
         {
-            data->sketch_toolbox.precompute_initial_union_estimates(data->union_estimates);
+            sketch::toolbox::precompute_initial_union_estimates(data->union_estimates,
+                                                                data->sketches,
+                                                                data->kmer_counts);
 
             for (size_t j = 1; j < num_user_bins; ++j)
             {

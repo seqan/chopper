@@ -161,25 +161,25 @@ public:
 
     /*!\brief Estimate the cardinality of the union for each interval [0, j] for all user bins j.
      * \param[out] estimates output row
+     * \param[in] sketches The hyperloglog sketches of the respective user bins, in the same order as `estimates`.
+     * \param[in] counts The counts/sketch.estimates() of the respective user bins, in the same order as `estimates`.
      *
      * estimates[j] will be the union cardinality estimate of the interval {0, ..., j}.
      */
-    void precompute_initial_union_estimates(std::vector<uint64_t> & estimates) const
+    static void precompute_initial_union_estimates(std::vector<uint64_t> & estimates,
+                                                   std::vector<hyperloglog> const & sketches,
+                                                   std::vector<size_t> const & counts)
     {
-        assert(filenames != nullptr);
-        assert(user_bin_kmer_counts != nullptr);
-        assert(sketches != nullptr);
-        assert(filenames->size() == user_bin_kmer_counts->size());
-        assert(filenames->size() == sketches->size());
-        assert(filenames->size() > 0u);
+        assert(counts.size() == sketches.size());
+        assert(sketches.size() > 0u);
 
-        estimates.resize(sketches->size());
+        estimates.resize(sketches.size());
 
-        hyperloglog temp_hll = (*sketches)[0];
-        estimates[0] = (*user_bin_kmer_counts)[0];
+        hyperloglog temp_hll = sketches[0];
+        estimates[0] = counts[0];
 
-        for (size_t j = 1; j < sketches->size(); ++j)
-            estimates[j] = static_cast<uint64_t>(temp_hll.merge_and_estimate_SIMD((*sketches)[j]));
+        for (size_t j = 1; j < sketches.size(); ++j)
+            estimates[j] = static_cast<uint64_t>(temp_hll.merge_and_estimate_SIMD(sketches[j]));
     }
 
     /*!\brief Estimate the cardinality of the union for a single interval.
