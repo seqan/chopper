@@ -62,11 +62,11 @@ public:
 
         if (!data->user_bins_arranged)
         {
-            data->sketch_toolbox = sketch::toolbox{data->filenames, data->kmer_counts, data->sketches};
-            data->sketch_toolbox.sort_by_cardinalities();
+            sketch::toolbox sketch_toolbox{data->filenames, data->kmer_counts, data->sketches};
+            sketch_toolbox.sort_by_cardinalities();
 
             if (!config.disable_estimate_union && !config.disable_rearrangement)
-                data->sketch_toolbox.rearrange_bins(config.max_rearrangement_ratio, config.threads);
+                sketch_toolbox.rearrange_bins(config.max_rearrangement_ratio, config.threads);
 
             data->user_bins_arranged = true;
         }
@@ -135,7 +135,9 @@ private:
         size_t sum = data->kmer_counts[0];
         if (!config.disable_estimate_union)
         {
-            data->sketch_toolbox.precompute_initial_union_estimates(data->union_estimates);
+            sketch::toolbox::precompute_initial_union_estimates(data->union_estimates,
+                                                                data->sketches,
+                                                                data->kmer_counts);
 
             for (size_t j = 1; j < num_user_bins; ++j)
             {
@@ -459,8 +461,9 @@ private:
         // add merged bin to ibf statistics
         if (data->stats)
         {
-            uint64_t const cardinality =
-                config.disable_estimate_union ? kmer_count : data->sketch_toolbox.estimate_interval(trace_j + 1, j);
+            uint64_t const cardinality = config.disable_estimate_union
+                                           ? kmer_count
+                                           : sketch::toolbox::estimate_interval(data->sketches, trace_j + 1, j);
             hibf_statistics::bin & bin_stats =
                 data->stats->bins.emplace_back(hibf_statistics::bin_kind::merged, cardinality, num_contained_ubs, 1ul);
             libf_data.stats = &bin_stats.child_level;
