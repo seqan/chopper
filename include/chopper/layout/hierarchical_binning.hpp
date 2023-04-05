@@ -90,7 +90,7 @@ public:
         // print_matrix(ll_matrix, num_technical_bins, num_user_bins, max_size_t);
         // print_matrix(trace, num_technical_bins, num_user_bins, std::make_pair(max_size_t, max_size_t));
 
-        return backtracking(matrix, trace);
+        return backtracking(trace);
     }
 
 private:
@@ -286,8 +286,7 @@ private:
     }
 
     //!\brief Backtracks the trace matrix and writes the resulting binning into the output file.
-    size_t backtracking(std::vector<std::vector<size_t>> const & matrix,
-                        std::vector<std::vector<std::pair<size_t, size_t>>> const & trace)
+    size_t backtracking(std::vector<std::vector<std::pair<size_t, size_t>>> const & trace)
     {
         assert(data != nullptr);
 
@@ -297,7 +296,6 @@ private:
         // backtracking starts at the bottom right corner:
         size_t trace_i = num_technical_bins - 1;
         size_t trace_j = num_user_bins - 1;
-        size_t const optimal_score{matrix[trace_i][trace_j]};
 
         // while backtracking, keep trach of the following variables
         size_t high_level_max_id{};   // the id of the technical bin with maximal size
@@ -336,7 +334,7 @@ private:
                 trace_i = next_i;
                 trace_j = next_j; // unneccessary?
 
-                process_merged_bin(libf_data, bin_id, trace_j, j, kmer_count, optimal_score, num_contained_ubs);
+                process_merged_bin(libf_data, bin_id, trace_j, j, kmer_count, num_contained_ubs);
 
                 update_max_id(high_level_max_id, high_level_max_size, bin_id, kmer_count);
                 // std::cout << "]: " << kmer_count << std::endl;
@@ -391,7 +389,7 @@ private:
             assert(trace_j == 0);
             assert(kmer_count == std::accumulate(libf_data.kmer_counts.begin(), libf_data.kmer_counts.end(), 0u));
 
-            process_merged_bin(libf_data, bin_id, trace_j, j, kmer_count, optimal_score, num_contained_ubs);
+            process_merged_bin(libf_data, bin_id, trace_j, j, kmer_count, num_contained_ubs);
 
             update_max_id(high_level_max_id, high_level_max_size, bin_id, kmer_count);
 
@@ -451,13 +449,9 @@ private:
                             int const trace_j,
                             int const j,
                             size_t const kmer_count,
-                            size_t const optimal_score,
                             double const num_contained_ubs) const
     {
         update_libf_data(libf_data, bin_id);
-
-        if (config.debug)
-            update_debug_libf_data(libf_data, kmer_count, optimal_score);
 
         // add merged bin to ibf statistics
         if (data->stats)
@@ -482,16 +476,6 @@ private:
         libf_data.previous = data->previous;
         libf_data.previous.bin_indices.push_back(bin_id);
         libf_data.previous.num_of_bins += (is_top_level ? "" : ";") + std::string{"1"};
-    }
-
-    void update_debug_libf_data(data_store & libf_data, size_t const kmer_count, size_t const optimal_score) const
-    {
-        bool const is_top_level = data->previous.empty();
-
-        libf_data.previous.estimated_sizes += (is_top_level ? "" : ";") + std::to_string(kmer_count);
-        libf_data.previous.optimal_score += (is_top_level ? "" : ";") + std::to_string(optimal_score);
-        libf_data.previous.correction += (is_top_level ? "" : ";") + to_string_with_precision(1.0);
-        libf_data.previous.tmax += (is_top_level ? "" : ";") + std::to_string(num_technical_bins);
     }
 
     size_t add_lower_level(data_store & libf_data) const
