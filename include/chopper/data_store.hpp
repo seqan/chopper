@@ -24,7 +24,6 @@ struct data_store
     struct previous_level
     {
         std::vector<size_t> bin_indices{};
-        std::string bin_indices_str;
         std::string num_of_bins;
         std::string estimated_sizes;
         std::string optimal_score;

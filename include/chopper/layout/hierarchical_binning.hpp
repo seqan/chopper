@@ -481,7 +481,6 @@ private:
 
         libf_data.previous = data->previous;
         libf_data.previous.bin_indices.push_back(bin_id);
-        libf_data.previous.bin_indices_str += (is_top_level ? "" : ";") + std::to_string(bin_id);
         libf_data.previous.num_of_bins += (is_top_level ? "" : ";") + std::string{"1"};
     }
 
