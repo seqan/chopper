@@ -208,7 +208,10 @@ private:
             double const ub_cardinality = static_cast<double>(current_weight);
 
             if (!config.disable_estimate_union)
-                data->sketch_toolbox.precompute_union_estimates_for(data->union_estimates, j);
+                sketch::toolbox::precompute_union_estimates_for(data->union_estimates,
+                                                                data->sketches,
+                                                                data->kmer_counts,
+                                                                j);
 
             for (size_t i = 1; i < num_technical_bins; ++i)
             {
