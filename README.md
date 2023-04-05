@@ -25,71 +25,123 @@ cd chopper_build
 cmake ../chopper
 ```
 
-Build the test to check if everything works
+Build chopper
+```
+make
+```
+
+Optional: Build the test to check if everything works
 ```
 make test
 ```
+In case anything fails, please open a GitHub issue mentioning your OS and compiler version.
 
-:warning: The following section is not yet adapted to the multi-level approach :warning:
 
-## Chopper layout
+## Chopper
 
-This submodule uses a hierarchical DP algorithm to layout user bins into a given number technical bins,
-optimizing the space consumption of a Hierarchical Binning Directory.
+Chopper uses a hierarchical DP algorithm to layout user bins into a given number of technical bins,
+optimizing the space consumption of a Hierarchical Interleaved Bloom Filter (HIBF).
 
-The app `chopper layout` needs an input file with filenames and weights as input
-(see chopper count if you want to use kmer counts as weights).
-
-The file has to be **tab separated** and looks like this:
+Chopper needs an **input file** with filenames. The file could look like this:
+(it is always good to give absolute instead of relative paths)
 
 ```
-file_path1    500
-file_path2    1000
-file_path3    10
+/path/to/file1.fa
+/path/to/file2.fa
+/path/to/file3.fa.gz
 ...
 ```
 
-It can also contain meta information like taxonomic ids which you can group by later on:
+You can then **run chopper** with the following command:
 
 ```
-file_path1    500    taxID_1
-file_path2    1000   taxID_2
-file_path2    10     taxID_2
+./chopper --input-file data.tsv --kmer-size 21 --output-filename chopper.layout
+```
+
+There are **more options** to tweak the layout (with sensible defaults). You get detailed information if you run:
+```
+./chopper --help
+```
+
+The resulting layout file can be used to build an HIBF index with
+[raptor](https://github.com/seqan/raptor).
+
+## Understanding the layout file
+
+There is no need to actually understand the internals of the layout file, as you can just let
+[raptor](https://github.com/seqan/raptor) build the HIBF index automatically from the layout.
+If you are interested, or you have a specific use case, here is some information about the layout.
+
+**A layout file has 3 parts: (1) The config, (2) the header, (3) the layout content.**
+
+At first, **the config** of chopper that created this particular file is stored.
+The config part is identified by two hashes `##` at the beginning of each line. It starts with `##CONFIG` and ends with
+`##ENDCONFIG`. It could look like this:
+
+```
+##CONFIG:
+##{
+##    "config": {
+##        "version": 2,
+##        "k": 19,
+
 ...
+
+##ENDCONFIG
 ```
 
-If you have the file you can use `chopper layout` like this:
+The config is followed by the actual **header** of the layout file, which stores important information for building the
+HIBF index.
+The header is identified by one hash `#` at the beginning of each line. It starts with `#HIGH_LEVEL_IBF max_bin_id:[X]`
+and ends with `#FILES	BIN_INDICES	  NUMBER_OF_BINS`, the column names of the layout content.
+
+It could look like this:
 
 ```
-./chopper layout -f fata.tsv --technical-bins 2 -o output_filename.txt
-```
-
-Given the example tsv file with the 3 lines above, it will create a file `output_filename.txt` which looks like this:
-
-```
+#HIGH_LEVEL_IBF max_bin_id:14
 #MERGED_BIN_0 max_bin_id:0
-#HIGH_LEVEL_IBF max_bin_id:SPLIT_BIN_1
-#BIN_ID SEQ_IDS NUM_TECHNICAL_BINS  ESTIMATED_MAX_TB_SIZE
-MERGED_BIN_0_0  file_path1  62  9
-MERGED_BIN_0_62 file_path2  2   5
-SPLIT_BIN_1 file_path2  1   1000
+#MERGED_BIN_5;3 max_bin_id:2
+
+...
+
+#FILES	BIN_INDICES	NUMBER_OF_BINS
 ```
 
-Every line that starts with `#` is a header line and is needed for `chopper split` and `chopper build`.
+Each line corresponds to one IBF in the hierarchy, identifying the maximum technical bin, maximal in its k-mer content.
+This information is needed to compute the size of each IBF when building the HIBF.
 
-The output file has the following columns:
+Details:
 
-1. `BIN_ID`: An identification of the bin. **MERGED/SPLIT** indicates a bin that has been merged/split.
-             Note that MERGED bins with the same number belong together.
-             In the example `MERGED_BIN_0_0` and `MERGED_BIN_0_62` both belong to `MERGED_BIN_0`.
-2. `SEQ_IDS`: The file paths that belong to this bin.
-3. `NUM_TECHNICAL_BINS`: The number of technical bins.
-                         For SPLIT bins, this indicates the number of technical bins in the High-Level IBF.
-                         For MERGED bins, this indicates the number of technical bins in the Low-Level IBF
-                         (MERGED bins have always exactly one bin in the High-Level IBF).
-3. `ESTIMATED_MAX_TB_SIZE`: The estimated maximum bin size of this bin
-                            (can be neglected and is used for internal calculations).
+1. `HIGH_LEVEL_IBF max_bin_id:[X]`: Reports the id (`[X]`) of that technical bin in the Top/High level IBF that has the
+                                    highest kmer content.
+2. `MERGED_BIN_[Y] max_bin_id:[X]`: Reports the id (`[X]`) of that technical bin in the IBF identified by `[Y]`.
 
-## To be continued...
 
-More Examples and descriptions will follow soon.
+Following the header, the **layout content** describes the actual layout.
+Each line reports the structure for a particular user bin. In that sense, the number of content lines is exactly the
+same that of the inputs.
+
+It could look like this:
+
+```
+/path/to/file1.fa	12	3
+/path/to/file2.fa	0;2	1;1
+/path/to/file3.fa.gz	5;4	1;7
+
+...
+```
+
+Columns of the layout content:
+
+1. `FILES`: The file path(s) for the user bin.
+2. `BIN_INDICES`: The technical bin indices on each level that the user bin is stored in. In the example:
+                  * `file1.fa` is stored in technical bin `12` of the top level IBF.
+                  * `file2.fa` is stored in technical bin `0` of the top level IBF which is a merged bin, so it's
+                    also stored in a lower level IBF. In this lower level IBF, it is stored in technical bin `2`.
+                  * `file3.fa.gz` is stored in technical bin `5` of the top level IBF which is a merged bin so it's
+                    also stored in a lower level IBF.  In this lower level IBF, it is stored in technical bin `4`.
+3. `NUMBER_OF_BINS`: The number of technical bins the user bin is stored in on each level. For this example:
+                  * `file1.fa` split into `3` technical bins (ids:`12,13,14`) on the top level IBF.
+                  * `file2.fa` is stored in a merged bin (`1`) and in a single bin (`1`) on the lower level.
+                  * `file3.fa.gz` is stored in a merged bin (`1`) and is split into `7` bins (ids:`4,5,6,7,8,9,10`)
+                     on the lower level.
