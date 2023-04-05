@@ -461,8 +461,9 @@ private:
         // add merged bin to ibf statistics
         if (data->stats)
         {
-            uint64_t const cardinality =
-                config.disable_estimate_union ? kmer_count : data->sketch_toolbox.estimate_interval(trace_j + 1, j);
+            uint64_t const cardinality = config.disable_estimate_union
+                                           ? kmer_count
+                                           : sketch::toolbox::estimate_interval(data->sketches, trace_j + 1, j);
             hibf_statistics::bin & bin_stats =
                 data->stats->bins.emplace_back(hibf_statistics::bin_kind::merged, cardinality, num_contained_ubs, 1ul);
             libf_data.stats = &bin_stats.child_level;

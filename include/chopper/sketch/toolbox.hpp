@@ -183,21 +183,20 @@ public:
     }
 
     /*!\brief Estimate the cardinality of the union for a single interval.
+     * \param[in] sketches The hyperloglog sketches to be used for estimation.
      * \param[in] start The start of the interval.
      * \param[in] end   The end of the interval (end >= start);
+     * \returns The the cardinality of the union for the interval [start, end).
      */
-    uint64_t estimate_interval(size_t const start, size_t const end) const
+    static uint64_t estimate_interval(std::vector<hyperloglog> const & sketches, size_t const start, size_t const end)
     {
-        assert(user_bin_kmer_counts != nullptr);
-        assert(filenames->size() == user_bin_kmer_counts->size());
-        assert(filenames->size() == sketches->size());
         assert(start <= end);
-        assert(end < sketches->size());
+        assert(end < sketches.size());
 
-        hyperloglog temp_hll = (*sketches)[start];
+        hyperloglog temp_hll = sketches[start];
 
         for (size_t i = start + 1; i <= end; ++i)
-            temp_hll.merge((*sketches)[i]);
+            temp_hll.merge(sketches[i]);
 
         return temp_hll.estimate();
     }
