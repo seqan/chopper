@@ -148,7 +148,7 @@ Columns of the layout content:
 
 ## Multiple files per user bin
 
-Currently chopper always has a 1-to-1 relation between files and user bins when layouting.
+Currently, chopper always has a 1-to-1 relation between files and user bins when laying out.
 If you want to assign multiple files to a user bin, you can use [raptor](https://github.com/seqan/raptor).
 
 `raptor prepare` also handles files like this:
@@ -161,5 +161,4 @@ If you want to assign multiple files to a user bin, you can use [raptor](https:/
 ...
 ```
 
-and then `copper` or alternatevily `raptor layout` (which calls chopper) then computes the layout pased on the
-precomputed files.
+`copper` or alternatively `raptor layout` (which calls chopper) then computes the layout based on the precomputed files.
