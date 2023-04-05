@@ -62,11 +62,11 @@ public:
 
         if (!data->user_bins_arranged)
         {
-            data->sketch_toolbox = sketch::toolbox{data->filenames, data->kmer_counts, data->sketches};
-            data->sketch_toolbox.sort_by_cardinalities();
+            sketch::toolbox sketch_toolbox{data->filenames, data->kmer_counts, data->sketches};
+            sketch_toolbox.sort_by_cardinalities();
 
             if (!config.disable_estimate_union && !config.disable_rearrangement)
-                data->sketch_toolbox.rearrange_bins(config.max_rearrangement_ratio, config.threads);
+                sketch_toolbox.rearrange_bins(config.max_rearrangement_ratio, config.threads);
 
             data->user_bins_arranged = true;
         }

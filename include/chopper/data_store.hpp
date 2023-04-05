@@ -70,9 +70,6 @@ struct data_store
     //!\brief The false positive correction based on fp_rate, num_hash_functions and requested_max_tb.
     std::vector<double> fp_correction{};
 
-    //!\brief Stores sketches if needed and provides utility functions for user bin rearrangement or union estimation.
-    sketch::toolbox sketch_toolbox{};
-
     //!\brief Information about previous levels of the IBF if the algorithm is called recursively.
     previous_level previous{};
 
