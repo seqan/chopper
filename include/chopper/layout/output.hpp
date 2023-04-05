@@ -27,7 +27,7 @@ inline void write_config_to(configuration const & config, std::ostream & stream)
 
 inline void write_layout_header_to(layout const & hibf_layout, size_t const max_hibf_id, std::ostream & stream)
 {
-    stream << prefix::header << prefix::high_level << " max_bin_id:" << max_hibf_id << '\n';
+    stream << prefix::first_header_line << " max_bin_id:" << max_hibf_id << '\n';
     for (auto const & max_bin : hibf_layout.max_bins)
         stream << max_bin << '\n';
 }
