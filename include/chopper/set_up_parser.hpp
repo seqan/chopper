@@ -36,14 +36,6 @@ inline void set_up_parser(sharg::parser & parser, chopper::configuration & confi
     parser.add_list_item("", "/absolute/path/to/file2.fa.gz");
     parser.add_list_item("", "```");
 
-    // clustering (==aggregating is not selectable at the moment)
-    parser.add_option(
-        config.column_index_to_cluster,
-        sharg::config{.short_id = '\0',
-                      .long_id = "column-index",
-                      .description = "The column index by which to cluster. Clustering is not supported at the moment",
-                      .hidden = true});
-
     parser.add_option(
         config.k,
         sharg::config{
