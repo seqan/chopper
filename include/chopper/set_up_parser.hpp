@@ -36,14 +36,6 @@ inline void set_up_parser(sharg::parser & parser, chopper::configuration & confi
     parser.add_list_item("", "/absolute/path/to/file2.fa.gz");
     parser.add_list_item("", "```");
 
-    // clustering (==aggregating is not selectable at the moment)
-    parser.add_option(
-        config.column_index_to_cluster,
-        sharg::config{.short_id = '\0',
-                      .long_id = "column-index",
-                      .description = "The column index by which to cluster. Clustering is not supported at the moment",
-                      .hidden = true});
-
     parser.add_option(
         config.k,
         sharg::config{
@@ -93,14 +85,6 @@ inline void set_up_parser(sharg::parser & parser, chopper::configuration & confi
                       sharg::config{.short_id = '\0',
                                     .long_id = "output-filename",
                                     .description = "A file name for the resulting layout."});
-
-    // using aggregate_by_type = std::remove_cvref_t<decltype(config.aggregate_by_column)>;
-    // parser.add_option(config.aggregate_by_column,
-    //                   '\0', "aggregate-by-column",
-    //                   "Which column do you want to aggregate your files by? Start counting your columns from 0!",
-    //                   seqan3::option_spec::hidden,
-    //                   seqan3::arithmetic_range_validator{aggregate_by_type{2},
-    //                                                      std::numeric_limits<aggregate_by_type>::max()});
 
     parser.add_option(
         config.threads,

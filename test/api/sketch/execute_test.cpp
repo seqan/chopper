@@ -27,7 +27,6 @@ TEST(execute_test, small_example_parallel_2_threads)
     chopper::configuration config{};
     config.threads = 2;
     config.k = 15;
-    config.column_index_to_cluster = 2;
     config.disable_sketch_output = true;
     config.data_file = data_filename;
 
@@ -58,7 +57,6 @@ TEST(execute_test, some_test)
     chopper::configuration config{};
     config.threads = 1;
     config.k = 25;
-    config.column_index_to_cluster = 2;
     config.disable_sketch_output = true;
     config.data_file = data_filename;
 

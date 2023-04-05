@@ -29,9 +29,6 @@ struct configuration
     //!\brief The name for the output directory when writing sketches to disk.
     std::filesystem::path sketch_directory{};
 
-    //!\brief Size estimates used to be able to be clustered by additional info in the file. OUTDATED.
-    size_t column_index_to_cluster{1u};
-
     //!\brief The kmer size to hash the input sequences before computing a HyperLogLog sketch from them.
     uint8_t k{19};
 
@@ -53,9 +50,6 @@ struct configuration
 
     //!\brief The maximum number of technical bins on each IBF in the HIBF.
     uint16_t tmax{};
-
-    //!\brief Analog to `column_index_to_cluster`. OUTDATED
-    int8_t aggregate_by_column{-1};
 
     //!\brief The number of hash functions for the IBFs.
     size_t num_hash_functions{2};
@@ -104,7 +98,6 @@ private:
         archive(CEREAL_NVP(data_file));
         archive(CEREAL_NVP(debug));
         archive(CEREAL_NVP(sketch_directory));
-        // archive(CEREAL_NVP(column_index_to_cluster));
         archive(CEREAL_NVP(k));
         archive(CEREAL_NVP(sketch_bits));
         archive(CEREAL_NVP(disable_sketch_output));
@@ -112,7 +105,6 @@ private:
 
         archive(CEREAL_NVP(output_filename));
         archive(CEREAL_NVP(tmax));
-        // archive(CEREAL_NVP(aggregate_by_column));
         archive(CEREAL_NVP(num_hash_functions));
         archive(CEREAL_NVP(false_positive_rate));
         archive(CEREAL_NVP(alpha));

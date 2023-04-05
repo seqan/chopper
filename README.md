@@ -145,3 +145,20 @@ Columns of the layout content:
                   * `file2.fa` is stored in a merged bin (`1`) and in a single bin (`1`) on the lower level.
                   * `file3.fa.gz` is stored in a merged bin (`1`) and is split into `7` bins (ids:`4,5,6,7,8,9,10`)
                      on the lower level.
+
+## Multiple files per user bin
+
+Currently, chopper always has a 1-to-1 relation between files and user bins when laying out.
+If you want to assign multiple files to a user bin, you can use [raptor](https://github.com/seqan/raptor).
+
+`raptor prepare` also handles files like this:
+
+```
+/path/to/file1-a.fa;/path/to/file1-b.fa;/path/to/file1-c.fa
+/path/to/file2.fa
+/path/to/file3.fa.gz
+
+...
+```
+
+`copper` or alternatively `raptor layout` (which calls chopper) then computes the layout based on the precomputed files.
