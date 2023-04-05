@@ -149,23 +149,19 @@ TEST_F(toolbox_test, read_hll_files_into_faulty_file)
 
 TEST_F(toolbox_test, precompute_union_estimates_for)
 {
-    using vt = std::vector<uint64_t>;
-
     std::vector<uint64_t> estimates(4);
 
-    chopper::sketch::toolbox ubs{test_filenames, test_kmer_counts, test_sketches};
+    chopper::sketch::toolbox::precompute_union_estimates_for(estimates, test_sketches, test_kmer_counts, 0);
+    EXPECT_RANGE_EQ(estimates, (std::vector<uint64_t>{500, 0, 0, 0}));
 
-    ubs.precompute_union_estimates_for(estimates, 0);
-    EXPECT_RANGE_EQ(estimates, (vt{500, 0, 0, 0}));
+    chopper::sketch::toolbox::precompute_union_estimates_for(estimates, test_sketches, test_kmer_counts, 1);
+    EXPECT_RANGE_EQ(estimates, (std::vector<uint64_t>{670, 600, 0, 0}));
 
-    ubs.precompute_union_estimates_for(estimates, 1);
-    EXPECT_RANGE_EQ(estimates, (vt{670, 600, 0, 0}));
+    chopper::sketch::toolbox::precompute_union_estimates_for(estimates, test_sketches, test_kmer_counts, 2);
+    EXPECT_RANGE_EQ(estimates, (std::vector<uint64_t>{670, 670, 700, 0}));
 
-    ubs.precompute_union_estimates_for(estimates, 2);
-    EXPECT_RANGE_EQ(estimates, (vt{670, 670, 700, 0}));
-
-    ubs.precompute_union_estimates_for(estimates, 3);
-    EXPECT_RANGE_EQ(estimates, (vt{670, 670, 670, 800}));
+    chopper::sketch::toolbox::precompute_union_estimates_for(estimates, test_sketches, test_kmer_counts, 3);
+    EXPECT_RANGE_EQ(estimates, (std::vector<uint64_t>{670, 670, 670, 800}));
 }
 
 TEST_F(toolbox_test, random_shuffle)

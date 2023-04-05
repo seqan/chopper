@@ -136,26 +136,27 @@ public:
     }
 
     /*!\brief Estimate the cardinality of the union for a single user bin j with all prior ones j' < j.
-     * \param[in] j The current user bin (column in the DP matrix)
      * \param[out] estimates output row
+     * \param[in] sketches The hyperloglog sketches of the respective user bins, in the same order as `estimates`.
+     * \param[in] counts The counts/sketch.estimates() of the respective user bins, in the same order as `estimates`.
+     * \param[in] j The current user bin (column in the DP matrix)
      *
      * estimates[j_prime] will be the union cardinality estimate of the interval {j_prime, ..., j}.
      */
-    void precompute_union_estimates_for(std::vector<uint64_t> & estimates, int64_t const j) const
+    static void precompute_union_estimates_for(std::vector<uint64_t> & estimates,
+                                               std::vector<hyperloglog> const & sketches,
+                                               std::vector<size_t> const & counts,
+                                               int64_t const j)
     {
-        assert(user_bin_kmer_counts != nullptr);
-        assert(filenames != nullptr);
-        assert(sketches != nullptr);
-        assert(filenames->size() == user_bin_kmer_counts->size());
-        assert(filenames->size() == sketches->size());
-        assert(filenames->size() > static_cast<size_t>(j));
-        assert(estimates.size() == sketches->size()); // Resize happens in precompute_init_interval_union_estimations
+        assert(counts.size() == sketches.size());
+        assert(estimates.size() == sketches.size()); // Resize happens in precompute_init_interval_union_estimations
+        assert(estimates.size() > static_cast<size_t>(j));
 
-        hyperloglog temp_hll = (*sketches)[j];
-        estimates[j] = (*user_bin_kmer_counts)[j];
+        hyperloglog temp_hll = sketches[j];
+        estimates[j] = counts[j];
 
         for (int64_t j_prime = j - 1; j_prime >= 0; --j_prime)
-            estimates[j_prime] = static_cast<uint64_t>(temp_hll.merge_and_estimate_SIMD((*sketches)[j_prime]));
+            estimates[j_prime] = static_cast<uint64_t>(temp_hll.merge_and_estimate_SIMD(sketches[j_prime]));
     }
 
     /*!\brief Estimate the cardinality of the union for each interval [0, j] for all user bins j.
