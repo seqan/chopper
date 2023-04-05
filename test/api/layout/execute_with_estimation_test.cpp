@@ -351,7 +351,6 @@ TEST(execute_estimation_test, with_rearrangement)
     chopper::configuration config{};
     config.threads = 1;
     config.k = 15;
-    config.column_index_to_cluster = 2;
     config.data_file = input_file;
     config.tmax = 256;
     config.sketch_directory = sketches_dir;
