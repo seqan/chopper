@@ -470,7 +470,7 @@ public:
      * \param[in] dist the distance matrix (vector of priority queues) to shuffle
      * \param[in] remaining_ids the map with information about which ids remain at which index
      */
-    void random_shuffle(distance_matrix & dist, robin_hood::unordered_flat_map<size_t, size_t> & remaining_ids)
+    void random_shuffle(distance_matrix & dist, robin_hood::unordered_flat_map<size_t, size_t> & remaining_ids) const
     {
         size_t const n = dist.size();
 
@@ -494,7 +494,7 @@ public:
      * \param[in] dist the distance matrix (vector of priority queues) to prune
      * \param[in] remaining_ids the map with information about which ids remain at which index
      */
-    void prune(distance_matrix & dist, robin_hood::unordered_flat_map<size_t, size_t> & remaining_ids)
+    void prune(distance_matrix & dist, robin_hood::unordered_flat_map<size_t, size_t> & remaining_ids) const
     {
         if (dist.empty())
             return;
@@ -549,7 +549,7 @@ public:
     bool rotate(std::vector<clustering_node> & clustering,
                 size_t const previous_rightmost,
                 size_t const first,
-                size_t const id)
+                size_t const id) const
     {
         if (id == previous_rightmost) // we are at the leaf that is previous_rightmost (Anchor of the recursion)
             return true;
@@ -590,7 +590,7 @@ public:
                std::vector<size_t> & permutation,
                size_t const previous_rightmost,
                size_t const first,
-               size_t const id)
+               size_t const id) const
     {
         clustering_node const & curr = clustering[id - first];
 
