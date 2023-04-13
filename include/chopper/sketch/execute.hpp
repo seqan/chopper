@@ -27,7 +27,7 @@ using sequence_file_type = seqan3::sequence_file_input<dna4_traits,
 
 inline int execute(configuration & config, data_store & store)
 {
-    read_data_file(config, store);
+    read_data_file(config, store.filenames);
 
     if (store.filenames.empty())
         throw sharg::parser_error{

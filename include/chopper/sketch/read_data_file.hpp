@@ -10,7 +10,7 @@
 namespace chopper::sketch
 {
 
-inline void read_data_file(configuration const & config, data_store & data)
+inline void read_data_file(configuration const & config, std::vector<std::string> & filenames)
 {
     std::ifstream fin{config.data_file.string()};
 
@@ -25,15 +25,12 @@ inline void read_data_file(configuration const & config, data_store & data)
         if (tab_pos == std::string::npos)
         {
             std::string const filename{line.begin(), line.end()};
-            data.filenames.push_back(filename);
-            data.extra_information_strings.push_back(std::string{});
+            filenames.push_back(filename);
         }
         else
         {
             std::string const filename{line.begin(), line.begin() + tab_pos};
-            std::string const extra_info{line.begin() + tab_pos + 1, line.end()};
-            data.filenames.push_back(filename);
-            data.extra_information_strings.push_back(extra_info);
+            filenames.push_back(filename);
         }
     }
 }
