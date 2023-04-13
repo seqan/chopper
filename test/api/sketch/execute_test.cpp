@@ -30,14 +30,15 @@ TEST(execute_test, small_example_parallel_2_threads)
     config.disable_sketch_output = true;
     config.data_file = data_filename;
 
-    chopper::data_store store{};
+    std::vector<std::string> filenames{};
+    std::vector<chopper::sketch::hyperloglog> sketches{};
 
-    EXPECT_NO_THROW(chopper::sketch::execute(config, store));
+    EXPECT_NO_THROW(chopper::sketch::execute(config, filenames, sketches));
 
-    EXPECT_RANGE_EQ(store.filenames, (std::vector<std::string>{input_filename, input_filename}));
-    ASSERT_EQ(store.sketches.size(), 2);
-    EXPECT_EQ(std::lround(store.sketches[0].estimate()), 571);
-    EXPECT_EQ(std::lround(store.sketches[1].estimate()), 571);
+    EXPECT_RANGE_EQ(filenames, (std::vector<std::string>{input_filename, input_filename}));
+    ASSERT_EQ(sketches.size(), 2);
+    EXPECT_EQ(std::lround(sketches[0].estimate()), 571);
+    EXPECT_EQ(std::lround(sketches[1].estimate()), 571);
 }
 
 TEST(execute_test, some_test)
@@ -60,12 +61,13 @@ TEST(execute_test, some_test)
     config.disable_sketch_output = true;
     config.data_file = data_filename;
 
-    chopper::data_store store{};
+    std::vector<std::string> filenames{};
+    std::vector<chopper::sketch::hyperloglog> sketches{};
 
-    chopper::sketch::execute(config, store);
+    chopper::sketch::execute(config, filenames, sketches);
 
-    EXPECT_RANGE_EQ(store.filenames, (std::vector<std::string>{input_filename, input_filename}));
-    ASSERT_EQ(store.sketches.size(), 2);
-    EXPECT_EQ(std::lround(store.sketches[0].estimate()), 591);
-    EXPECT_EQ(std::lround(store.sketches[1].estimate()), 591);
+    EXPECT_RANGE_EQ(filenames, (std::vector<std::string>{input_filename, input_filename}));
+    ASSERT_EQ(sketches.size(), 2);
+    EXPECT_EQ(std::lround(sketches[0].estimate()), 591);
+    EXPECT_EQ(std::lround(sketches[1].estimate()), 591);
 }
