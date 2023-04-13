@@ -41,13 +41,16 @@ public:
     /*!\brief Construct an empty HIBF with an empty top level IBF
      * \param[in] config_ User configuration for the HIBF.
      * \param[in] fp_correction_ The false positive correction factors to use for the statistics.
+     * \param[in] sketches_ The sketches of the input.
      * \param[in] kmer_counts The original user bin weights (kmer counts).
      */
     hibf_statistics(configuration const & config_,
                     std::vector<double> const & fp_correction_,
+                    std::vector<sketch::hyperloglog> const & sketches_,
                     std::vector<size_t> const & kmer_counts) :
         config{config_},
         fp_correction{&fp_correction_},
+        sketches{sketches_},
         total_kmer_count{std::accumulate(kmer_counts.begin(), kmer_counts.end(), size_t{})}
     {}
 
@@ -62,8 +65,8 @@ public:
         //!\brief The query cost to arrive at this IBF (updated before backtracking respective DP).
         double current_query_cost{0.0};
 
-        //!\brief A pointer to the filenames of the user input sequences.
-        std::vector<std::string> filenames;
+        //!\brief A pointer to the positions of the user input sequences.
+        std::vector<size_t> positions;
     };
 
     //!\brief The kind of bin that is stored.
@@ -403,6 +406,9 @@ private:
     //!\brief The false positive correction factors to use for the statistics.
     std::vector<double> const * const fp_correction{nullptr};
 
+    //!\brief A reference to the input sketches.
+    std::vector<sketch::hyperloglog> const & sketches;
+
     //!\brief The original kmer count of all user bins.
     size_t const total_kmer_count{};
 
@@ -479,14 +485,13 @@ private:
                 if (!config.disable_estimate_union)
                 {
                     // compute merged_bin_sketch
-                    assert(!current_bin.child_level.filenames.empty());
-                    std::vector<sketch::hyperloglog> sketches;
-                    sketch::toolbox::read_hll_files_into(config.sketch_directory,
-                                                         current_bin.child_level.filenames,
-                                                         sketches);
-                    sketch::hyperloglog hll = sketches[0];
-                    for (size_t i = 1; i < sketches.size(); ++i)
-                        hll.merge(sketches[i]);
+                    auto & positions = current_bin.child_level.positions;
+
+                    assert(!positions.empty());
+                    sketch::hyperloglog hll = sketches[positions[0]];
+
+                    for (size_t i = 1; i < positions.size(); ++i)
+                        hll.merge(sketches[positions[i]]);
 
                     merged_bin_sketches.push_back(std::move(hll));
                 }

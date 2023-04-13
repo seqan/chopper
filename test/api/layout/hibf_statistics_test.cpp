@@ -53,9 +53,12 @@ TEST(hibf_statistics, only_merged_on_top_level)
     data.fp_correction = chopper::layout::compute_fp_correction(config.false_positive_rate,
                                                                 config.num_hash_functions,
                                                                 lower_level_split_bin_span);
+
+    std::vector<std::string> filenames{"s1", "s2"};
+    std::vector<chopper::sketch::hyperloglog> sketches{{}, {}};
     std::vector<size_t> kmer_counts{50, 50};
 
-    chopper::layout::hibf_statistics stats(config, data.fp_correction, kmer_counts);
+    chopper::layout::hibf_statistics stats(config, data.fp_correction, sketches, kmer_counts);
 
     for (size_t i = 0; i < num_top_level_bins; ++i)
     {
@@ -128,12 +131,11 @@ TEST(execute_test, chopper_layout_statistics)
 
     chopper::data_store data{.false_positive_rate = config.false_positive_rate,
                              .hibf_layout = &hibf_layout,
-                             .filenames = many_filenames,
                              .kmer_counts = many_kmer_counts};
 
     testing::internal::CaptureStdout();
     testing::internal::CaptureStderr();
-    chopper::layout::execute(config, data);
+    chopper::layout::execute(config, many_filenames, data);
     std::string layout_result_stdout = testing::internal::GetCapturedStdout();
     std::string layout_result_stderr = testing::internal::GetCapturedStderr();
 
@@ -173,14 +175,13 @@ TEST(execute_test, chopper_layout_statistics_determine_best_bins)
                                   .output_verbose_statistics = true};
 
     chopper::layout::layout hibf_layout{};
+    std::vector<std::string> filenames{"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7", "seq8", "seq9"};
 
-    chopper::data_store data{
-        .false_positive_rate = config.false_positive_rate,
-        .hibf_layout = &hibf_layout,
-        .filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7", "seq8", "seq9"},
-        .kmer_counts = {10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000}};
+    chopper::data_store data{.false_positive_rate = config.false_positive_rate,
+                             .hibf_layout = &hibf_layout,
+                             .kmer_counts = {10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000}};
 
-    chopper::layout::execute(config, data);
+    chopper::layout::execute(config, filenames, data);
 
     std::string expected_cout =
         R"expected_cout(## ### Parameters ###

@@ -21,13 +21,13 @@ TEST(execute_test, few_ubs)
     config.disable_estimate_union = true; // also disables rearrangement
 
     chopper::layout::layout hibf_layout{};
+    std::vector<std::string> filenames{"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7"};
 
     chopper::data_store store{.false_positive_rate = config.false_positive_rate,
                               .hibf_layout = &hibf_layout,
-                              .filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7"},
                               .kmer_counts = {500, 1000, 500, 500, 500, 500, 500, 500}};
 
-    chopper::layout::execute(config, store);
+    chopper::layout::execute(config, filenames, store);
 
     std::string const expected_file{"##CONFIG:\n"
                                     "##{\n"
@@ -88,13 +88,12 @@ TEST(execute_test, set_default_tmax)
     config.disable_estimate_union = true; // also disables rearrangement
 
     chopper::layout::layout hibf_layout{};
-
+    std::vector<std::string> filenames{"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7"};
     chopper::data_store store{.false_positive_rate = config.false_positive_rate,
                               .hibf_layout = &hibf_layout,
-                              .filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7"},
                               .kmer_counts = {500, 1000, 500, 500, 500, 500, 500, 500}};
 
-    chopper::layout::execute(config, store);
+    chopper::layout::execute(config, filenames, store);
 
     EXPECT_EQ(config.tmax, 64u);
 }
@@ -121,13 +120,11 @@ TEST(execute_test, many_ubs)
     config.disable_estimate_union = true; // also disables rearrangement
 
     chopper::layout::layout hibf_layout{};
-
     chopper::data_store data{.false_positive_rate = config.false_positive_rate,
                              .hibf_layout = &hibf_layout,
-                             .filenames = many_filenames,
                              .kmer_counts = many_kmer_counts};
 
-    chopper::layout::execute(config, data);
+    chopper::layout::execute(config, many_filenames, data);
 
     std::string const expected_file{"##CONFIG:\n"
                                     "##{\n"

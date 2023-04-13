@@ -39,7 +39,7 @@ size_t determine_best_number_of_technical_bins(chopper::data_store & data, chopp
     std::ofstream file_out{config.output_filename.string() + ".stats"};
 
     file_out << "## ### Parameters ###\n"
-             << "## number of user bins = " << data.filenames.size() << '\n'
+             << "## number of user bins = " << data.kmer_counts.size() << '\n'
              << "## number of hash functions = " << config.num_hash_functions << '\n'
              << "## false positive rate = " << config.false_positive_rate << '\n';
     hibf_statistics::print_header_to(file_out, config.output_verbose_statistics);
@@ -56,7 +56,7 @@ size_t determine_best_number_of_technical_bins(chopper::data_store & data, chopp
         data.hibf_layout = &tmp_layout;
         data.previous = chopper::data_store::previous_level{}; // reset previous IBF, s.t. data refers to top level IBF
 
-        chopper::layout::hibf_statistics global_stats{config, data.fp_correction, data.kmer_counts};
+        chopper::layout::hibf_statistics global_stats{config, data.fp_correction, data.sketches, data.kmer_counts};
         data.stats = &global_stats.top_level_ibf;
 
         // execute the actual algorithm
@@ -86,7 +86,7 @@ size_t determine_best_number_of_technical_bins(chopper::data_store & data, chopp
     return max_hibf_id;
 }
 
-int execute(chopper::configuration & config, chopper::data_store & data)
+int execute(chopper::configuration & config, std::vector<std::string> const & filenames, chopper::data_store & data)
 {
     if (config.disable_estimate_union)
         config.disable_rearrangement = true;
@@ -94,7 +94,8 @@ int execute(chopper::configuration & config, chopper::data_store & data)
     if (config.tmax == 0) // no tmax was set by the user on the command line
     {
         // Set default as sqrt(#samples). Experiments showed that this is a reasonable default.
-        if (size_t number_samples = data.filenames.size(); number_samples >= 1ULL << 32) // sqrt is bigger than uint16_t
+        if (size_t number_samples = data.kmer_counts.size();
+            number_samples >= 1ULL << 32) // sqrt is bigger than uint16_t
             throw std::invalid_argument{"Too many samples. Please set a tmax (see help via `-hh`)."}; // GCOVR_EXCL_LINE
         else
             config.tmax = chopper::next_multiple_of_64(static_cast<uint16_t>(std::ceil(std::sqrt(number_samples))));
@@ -117,7 +118,7 @@ int execute(chopper::configuration & config, chopper::data_store & data)
     }
     else
     {
-        chopper::layout::hibf_statistics global_stats{config, data.fp_correction, data.kmer_counts};
+        chopper::layout::hibf_statistics global_stats{config, data.fp_correction, data.sketches, data.kmer_counts};
         data.stats = &global_stats.top_level_ibf;
         size_t dummy{};
 
@@ -134,7 +135,7 @@ int execute(chopper::configuration & config, chopper::data_store & data)
     std::ofstream fout{config.output_filename};
     chopper::layout::write_config_to(config, fout);
     chopper::layout::write_layout_header_to(*(data.hibf_layout), max_hibf_id, fout);
-    chopper::layout::write_layout_content_to(*(data.hibf_layout), fout);
+    chopper::layout::write_layout_content_to(*(data.hibf_layout), filenames, fout);
 
     return 0;
 }

@@ -42,6 +42,12 @@ struct data_store
 
     //!\brief The layout that is build by layout::hierarchical_binning.
     layout::layout * hibf_layout;
+
+    //!\brief The kmer counts associated with the above files used to layout user bin into technical bins.
+    std::vector<size_t> const & kmer_counts{};
+
+    //!\brief The hyperloglog sketches of all input files to estimate their size and similarities.
+    std::vector<sketch::hyperloglog> const & sketches{};
     //!\}
 
     /*!\name Local Storage one IBF in the HIBF.
@@ -50,14 +56,15 @@ struct data_store
      * the current subset of data. The same data is also used for the top level IBF that holds all the data.
      * \{
      */
-    //!\brief The file names of the user input. Since the input might be sorted, we need to keep track of the names.
-    std::vector<std::string> filenames{};
 
-    //!\brief The kmer counts associated with the above files used to layout user bin into technical bins.
-    std::vector<size_t> kmer_counts{};
-
-    //!\brief The hyperloglog sketches of all input files to estimate their size and similarities.
-    std::vector<sketch::hyperloglog> sketches{};
+    //!\brief The input is sorted and rearranged. To keep track without changing the input we store the positions.
+    std::vector<size_t> positions = [this]()
+    {
+        std::vector<size_t> ps;
+        ps.resize(this->kmer_counts.size());
+        std::iota(ps.begin(), ps.end(), 0);
+        return ps;
+    }();
 
     //!\brief The false positive correction based on fp_rate, num_hash_functions and requested_max_tb.
     std::vector<double> fp_correction{};

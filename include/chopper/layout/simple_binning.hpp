@@ -83,7 +83,7 @@ namespace chopper::layout
 class simple_binning
 {
 private:
-    //!\brief The data input: filenames associated with the user bin and a kmer count per user bin.
+    //!\brief Stores all data that is needed to compute the layout, e.g. the counts, sketches and the layout::layout.
     data_store const * data{nullptr};
 
     /*!\brief The number of User bins.
@@ -112,7 +112,7 @@ public:
     ~simple_binning() = default;                                  //!< Defaulted.
 
     /*!\brief The constructor from user bin names, their kmer counts and a configuration.
-     * \param[in] data_ The filenames and kmer counts associated with the user bin, as well as the ostream buffer.
+     * \param[in] data_ Stores all data that is needed to compute the layout.
      * \param[in] num_bins (optional) The number of technical bins.
      * \param[in] debug_ (optional) Enables debug output in layouting file.
      *
@@ -124,7 +124,7 @@ public:
      */
     simple_binning(data_store & data_, size_t const num_bins = 0, bool const debug_ = false) :
         data{std::addressof(data_)},
-        num_user_bins{data->kmer_counts.size()},
+        num_user_bins{data->positions.size()},
         num_technical_bins{num_bins ? num_bins : next_multiple_of_64(num_user_bins)},
         debug{debug_}
     {
@@ -149,7 +149,7 @@ public:
         assert(data != nullptr);
 
         if (data->stats)
-            data->stats->filenames = data->filenames;
+            data->stats->positions = data->positions;
 
         std::vector<std::vector<size_t>> matrix(num_technical_bins); // rows
         for (auto & v : matrix)
@@ -162,7 +162,7 @@ public:
         size_t const extra_bins = num_technical_bins - num_user_bins + 1;
 
         // initialize first column (first row is initialized with inf)
-        double const ub_cardinality = static_cast<double>(data->kmer_counts[0]);
+        double const ub_cardinality = static_cast<double>(data->kmer_counts[data->positions[0]]);
         for (size_t i = 0; i < extra_bins; ++i)
         {
             size_t const corrected_ub_cardinality = static_cast<size_t>(ub_cardinality * data->fp_correction[i + 1]);
@@ -172,7 +172,7 @@ public:
         // we must iterate column wise
         for (size_t j = 1; j < num_user_bins; ++j)
         {
-            double const ub_cardinality = static_cast<double>(data->kmer_counts[j]);
+            double const ub_cardinality = static_cast<double>(data->kmer_counts[data->positions[j]]);
 
             for (size_t i = j; i < j + extra_bins; ++i)
             {
@@ -208,11 +208,11 @@ public:
         while (trace_j > 0)
         {
             size_t next_i = trace[trace_i][trace_j];
-            size_t const kmer_count = data->kmer_counts[trace_j];
+            size_t const kmer_count = data->kmer_counts[data->positions[trace_j]];
             size_t const number_of_bins = (trace_i - next_i);
             size_t const kmer_count_per_bin = (kmer_count + number_of_bins - 1) / number_of_bins; // round up
 
-            data->hibf_layout->user_bins.emplace_back(data->filenames[trace_j],
+            data->hibf_layout->user_bins.emplace_back(data->positions[trace_j],
                                                       data->previous.bin_indices,
                                                       number_of_bins,
                                                       bin_id);
@@ -235,10 +235,10 @@ public:
             --trace_j;
         }
         ++trace_i; // because we want the length not the index. Now trace_i == number_of_bins
-        size_t const kmer_count = data->kmer_counts[0];
+        size_t const kmer_count = data->kmer_counts[data->positions[0]];
         size_t const kmer_count_per_bin = (kmer_count + trace_i - 1) / trace_i;
 
-        data->hibf_layout->user_bins.emplace_back(data->filenames[0], data->previous.bin_indices, trace_i, bin_id);
+        data->hibf_layout->user_bins.emplace_back(data->positions[0], data->previous.bin_indices, trace_i, bin_id);
 
         // add split bin to ibf statistics
         if (data->stats)

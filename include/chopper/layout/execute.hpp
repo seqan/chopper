@@ -6,6 +6,6 @@
 namespace chopper::layout
 {
 
-int execute(chopper::configuration & config, chopper::data_store & data);
+int execute(chopper::configuration & config, std::vector<std::string> const & filenames, chopper::data_store & data);
 
 } // namespace chopper::layout

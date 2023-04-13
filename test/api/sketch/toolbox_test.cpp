@@ -17,6 +17,7 @@ struct toolbox_test : public ::testing::Test
 {
     std::vector<std::string> test_filenames{"small.fa", "small.fa", "small2.fa", "small2.fa"};
     std::vector<size_t> test_kmer_counts{500, 600, 700, 800};
+    std::vector<size_t> test_positions{0, 1, 2, 3};
     std::vector<chopper::sketch::hyperloglog> test_sketches = [this]()
     {
         std::vector<chopper::sketch::hyperloglog> result;
@@ -27,49 +28,29 @@ struct toolbox_test : public ::testing::Test
 
 TEST_F(toolbox_test, construction)
 {
-    EXPECT_TRUE(std::is_default_constructible<chopper::sketch::toolbox>::value);
+    EXPECT_FALSE(std::is_default_constructible<chopper::sketch::toolbox>::value);
+    EXPECT_FALSE(std::is_copy_assignable<chopper::sketch::toolbox>::value);
+    EXPECT_FALSE(std::is_move_assignable<chopper::sketch::toolbox>::value);
+
     EXPECT_TRUE(std::is_copy_constructible<chopper::sketch::toolbox>::value);
     EXPECT_TRUE(std::is_move_constructible<chopper::sketch::toolbox>::value);
     EXPECT_TRUE(std::is_destructible<chopper::sketch::toolbox>::value);
-    EXPECT_TRUE(std::is_copy_assignable<chopper::sketch::toolbox>::value);
-    EXPECT_TRUE(std::is_move_assignable<chopper::sketch::toolbox>::value);
 
     // construction from filenames and kmer_counts and sketches
-    chopper::sketch::toolbox ubs{test_filenames, test_kmer_counts, test_sketches};
-}
-
-TEST_F(toolbox_test, apply_permutation)
-{
-    std::vector<size_t> const permutation{2, 1, 3, 0};
-
-    chopper::sketch::toolbox ubs{test_filenames, test_kmer_counts, test_sketches};
-
-    ubs.apply_permutation(permutation);
-
-    EXPECT_RANGE_EQ(test_filenames, (std::vector<std::string>{"small2.fa", "small.fa", "small2.fa", "small.fa"}));
-    EXPECT_RANGE_EQ(test_kmer_counts, (std::vector<size_t>{700, 600, 800, 500}));
-}
-
-TEST_F(toolbox_test, apply_permutation_with_sketches)
-{
-    std::vector<size_t> const permutation{2, 1, 3, 0};
-
-    chopper::sketch::toolbox ubs{test_filenames, test_kmer_counts, test_sketches};
-
-    ubs.apply_permutation(permutation);
-
-    EXPECT_RANGE_EQ(test_filenames, (std::vector<std::string>{"small2.fa", "small.fa", "small2.fa", "small.fa"}));
-    EXPECT_RANGE_EQ(test_kmer_counts, (std::vector<size_t>{700, 600, 800, 500}));
+    chopper::sketch::toolbox ubs{test_kmer_counts, test_sketches, test_positions};
 }
 
 TEST_F(toolbox_test, sort_by_cardinalities)
 {
-    chopper::sketch::toolbox ubs{test_filenames, test_kmer_counts, test_sketches};
+    chopper::sketch::toolbox ubs{test_kmer_counts, test_sketches, test_positions};
 
     ubs.sort_by_cardinalities();
 
-    EXPECT_RANGE_EQ(test_filenames, (std::vector<std::string>{"small2.fa", "small2.fa", "small.fa", "small.fa"}));
-    EXPECT_RANGE_EQ(test_kmer_counts, (std::vector<size_t>{800, 700, 600, 500}));
+    // filenames do not change
+    EXPECT_RANGE_EQ(test_filenames, (std::vector<std::string>{"small.fa", "small.fa", "small2.fa", "small2.fa"}));
+    EXPECT_RANGE_EQ(test_kmer_counts, (std::vector<size_t>{500, 600, 700, 800}));
+    // only positions change
+    EXPECT_RANGE_EQ(test_positions, (std::vector<size_t>{3, 2, 1, 0}));
 }
 
 TEST_F(toolbox_test, read_hll_files_into)
@@ -151,16 +132,32 @@ TEST_F(toolbox_test, precompute_union_estimates_for)
 {
     std::vector<uint64_t> estimates(4);
 
-    chopper::sketch::toolbox::precompute_union_estimates_for(estimates, test_sketches, test_kmer_counts, 0);
+    chopper::sketch::toolbox::precompute_union_estimates_for(estimates,
+                                                             test_sketches,
+                                                             test_kmer_counts,
+                                                             test_positions,
+                                                             0);
     EXPECT_RANGE_EQ(estimates, (std::vector<uint64_t>{500, 0, 0, 0}));
 
-    chopper::sketch::toolbox::precompute_union_estimates_for(estimates, test_sketches, test_kmer_counts, 1);
+    chopper::sketch::toolbox::precompute_union_estimates_for(estimates,
+                                                             test_sketches,
+                                                             test_kmer_counts,
+                                                             test_positions,
+                                                             1);
     EXPECT_RANGE_EQ(estimates, (std::vector<uint64_t>{670, 600, 0, 0}));
 
-    chopper::sketch::toolbox::precompute_union_estimates_for(estimates, test_sketches, test_kmer_counts, 2);
+    chopper::sketch::toolbox::precompute_union_estimates_for(estimates,
+                                                             test_sketches,
+                                                             test_kmer_counts,
+                                                             test_positions,
+                                                             2);
     EXPECT_RANGE_EQ(estimates, (std::vector<uint64_t>{670, 670, 700, 0}));
 
-    chopper::sketch::toolbox::precompute_union_estimates_for(estimates, test_sketches, test_kmer_counts, 3);
+    chopper::sketch::toolbox::precompute_union_estimates_for(estimates,
+                                                             test_sketches,
+                                                             test_kmer_counts,
+                                                             test_positions,
+                                                             3);
     EXPECT_RANGE_EQ(estimates, (std::vector<uint64_t>{670, 670, 670, 800}));
 }
 
@@ -174,7 +171,7 @@ TEST_F(toolbox_test, random_shuffle)
                                                    {4, default_pq}};
     robin_hood::unordered_flat_map<size_t, size_t> ids{{0, 0}, {1, 1}, {2, 2}, {3, 3}, {4, 4}};
 
-    chopper::sketch::toolbox ubs{test_filenames, test_kmer_counts, test_sketches};
+    chopper::sketch::toolbox ubs{test_kmer_counts, test_sketches, test_positions};
 
     ubs.random_shuffle(dist, ids);
 
@@ -204,7 +201,7 @@ TEST_F(toolbox_test, prune)
                                                    {4, default_pq}};
     robin_hood::unordered_flat_map<size_t, size_t> remaining_ids{{0, 0}, {1, 1}, {2, 2}, {3, 3}, {4, 4}};
 
-    chopper::sketch::toolbox ubs{test_filenames, test_kmer_counts, test_sketches};
+    chopper::sketch::toolbox ubs{test_kmer_counts, test_sketches, test_positions};
 
     // since remaining_ids contains all_ids, prune shouldn't do anything. All ids are valid.
     ubs.prune(dist, remaining_ids);
@@ -244,7 +241,7 @@ TEST_F(toolbox_test, rotate)
     chopper::sketch::hyperloglog s{5}; // default sketch for every entry in the tree as it is not important for rotate
     auto f = std::numeric_limits<size_t>::max();
 
-    chopper::sketch::toolbox ubs{test_filenames, test_kmer_counts, test_sketches};
+    chopper::sketch::toolbox ubs{test_kmer_counts, test_sketches, test_positions};
 
     /* test clustering tree
      * The root is at position 0. 'f' means infinity.
@@ -290,7 +287,7 @@ TEST_F(toolbox_test, trace)
     chopper::sketch::hyperloglog s{5}; // default sketch for every entry in the tree as it is not important for rotate
     auto f = std::numeric_limits<size_t>::max();
 
-    chopper::sketch::toolbox ubs{test_filenames, test_kmer_counts, test_sketches};
+    chopper::sketch::toolbox ubs{test_kmer_counts, test_sketches, test_positions};
 
     /* test clustering tree
      * The root is at position 0. 'f' means infinity.
@@ -317,7 +314,7 @@ TEST_F(toolbox_test, trace)
 
 TEST_F(toolbox_test, cluster_bins)
 {
-    chopper::sketch::toolbox ubs{test_filenames, test_kmer_counts, test_sketches};
+    chopper::sketch::toolbox ubs{test_kmer_counts, test_sketches, test_positions};
 
     { // whole range
         std::vector<size_t> permutation{};

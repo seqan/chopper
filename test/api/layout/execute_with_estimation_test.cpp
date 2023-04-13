@@ -24,13 +24,12 @@ TEST(execute_estimation_test, few_ubs)
     config.disable_estimate_union = true; // also disables rearrangement
 
     chopper::layout::layout hibf_layout{};
-
+    std::vector<std::string> filenames{"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7"};
     chopper::data_store store{.false_positive_rate = config.false_positive_rate,
                               .hibf_layout = &hibf_layout,
-                              .filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7"},
                               .kmer_counts = {500, 1000, 500, 500, 500, 500, 500, 500}};
 
-    chopper::layout::execute(config, store);
+    chopper::layout::execute(config, filenames, store);
 
     ASSERT_TRUE(std::filesystem::exists(stats_file));
 
@@ -84,10 +83,9 @@ TEST(execute_estimation_test, many_ubs)
 
     chopper::data_store data{.false_positive_rate = config.false_positive_rate,
                              .hibf_layout = &hibf_layout,
-                             .filenames = many_filenames,
                              .kmer_counts = many_kmer_counts};
 
-    chopper::layout::execute(config, data);
+    chopper::layout::execute(config, many_filenames, data);
 
     ASSERT_TRUE(std::filesystem::exists(stats_file));
 
@@ -281,10 +279,9 @@ TEST(execute_estimation_test, many_ubs_force_all)
 
     chopper::data_store data{.false_positive_rate = config.false_positive_rate,
                              .hibf_layout = &hibf_layout,
-                             .filenames = many_filenames,
                              .kmer_counts = many_kmer_counts};
 
-    chopper::layout::execute(config, data);
+    chopper::layout::execute(config, many_filenames, data);
 
     ASSERT_TRUE(std::filesystem::exists(stats_file));
 
@@ -320,38 +317,34 @@ TEST(execute_estimation_test, with_rearrangement)
 {
     seqan3::test::tmp_directory tmp_dir{};
     std::filesystem::path const sketches_dir{tmp_dir.path() / "test"};
-    std::filesystem::path const input_file{tmp_dir.path() / "test.tsv"};
     std::filesystem::path const layout_file{tmp_dir.path() / "layout.tsv"};
     std::filesystem::path const stats_file{layout_file.string() + ".stats"};
 
+    std::vector<std::string> filenames{};
     std::vector<std::string> expected_filenames;
     std::vector<size_t> expected_kmer_counts;
 
-    { // write test.tsv
-        std::ofstream fout{input_file};
-        for (size_t i{0}; i < 196u;)
-        {
-            fout << data("seq1.fa").string() << '\t' << (i++) << '\n';
-            fout << data("seq2.fa").string() << '\t' << (i++) << '\n';
-            fout << data("seq3.fa").string() << '\t' << (i++) << '\n';
-            fout << data("small.fa").string() << '\t' << (i++) << '\n';
+    for (size_t i{0}; i < 49u; ++i)
+    {
+        filenames.push_back(data("seq1.fa").string());
+        filenames.push_back(data("seq2.fa").string());
+        filenames.push_back(data("seq3.fa").string());
+        filenames.push_back(data("small.fa").string());
 
-            expected_filenames.push_back(data("seq1.fa"));
-            expected_filenames.push_back(data("seq2.fa"));
-            expected_filenames.push_back(data("seq3.fa"));
-            expected_filenames.push_back(data("small.fa"));
+        expected_filenames.push_back(data("seq1.fa"));
+        expected_filenames.push_back(data("seq2.fa"));
+        expected_filenames.push_back(data("seq3.fa"));
+        expected_filenames.push_back(data("small.fa"));
 
-            expected_kmer_counts.push_back(387);
-            expected_kmer_counts.push_back(465);
-            expected_kmer_counts.push_back(465);
-            expected_kmer_counts.push_back(571);
-        }
+        expected_kmer_counts.push_back(387);
+        expected_kmer_counts.push_back(465);
+        expected_kmer_counts.push_back(465);
+        expected_kmer_counts.push_back(571);
     }
 
     chopper::configuration config{};
     config.threads = 1;
     config.k = 15;
-    config.data_file = input_file;
     config.tmax = 256;
     config.sketch_directory = sketches_dir;
     config.determine_best_tmax = true;
@@ -360,27 +353,30 @@ TEST(execute_estimation_test, with_rearrangement)
     config.output_filename = layout_file;
 
     chopper::layout::layout hibf_layout{};
+    std::vector<size_t> kmer_counts{};
+    std::vector<chopper::sketch::hyperloglog> sketches{};
 
-    chopper::data_store store{.false_positive_rate = config.false_positive_rate, .hibf_layout = &hibf_layout};
-
-    chopper::sketch::execute(config, store.filenames, store.sketches);
-
+    chopper::sketch::execute(config, filenames, sketches);
+    chopper::sketch::estimate_kmer_counts(sketches, kmer_counts);
     ASSERT_TRUE(std::filesystem::exists(sketches_dir));
 
-    EXPECT_RANGE_EQ(store.filenames, expected_filenames);
-    ASSERT_EQ(store.sketches.size(), expected_kmer_counts.size());
-    for (size_t i = 0; i < store.sketches.size(); ++i)
+    EXPECT_RANGE_EQ(filenames, expected_filenames);
+    ASSERT_EQ(sketches.size(), expected_kmer_counts.size());
+    for (size_t i = 0; i < sketches.size(); ++i)
     {
-        EXPECT_EQ(std::lround(store.sketches[i].estimate()), expected_kmer_counts[i]) << "failed at " << i;
+        EXPECT_EQ(std::lround(sketches[i].estimate()), expected_kmer_counts[i]) << "failed at " << i;
 
         std::filesystem::path const current_path{expected_filenames[i]};
         std::string const filename = sketches_dir / current_path.stem().string() += ".hll";
         EXPECT_TRUE(std::filesystem::exists(filename));
     }
 
-    chopper::sketch::estimate_kmer_counts(store.sketches, store.kmer_counts);
+    chopper::data_store store{.false_positive_rate = config.false_positive_rate,
+                              .hibf_layout = &hibf_layout,
+                              .kmer_counts = kmer_counts,
+                              .sketches = sketches};
 
-    chopper::layout::execute(config, store);
+    chopper::layout::execute(config, filenames, store);
 
     ASSERT_TRUE(std::filesystem::exists(stats_file));
 
