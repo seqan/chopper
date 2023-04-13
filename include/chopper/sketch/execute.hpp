@@ -25,9 +25,8 @@ using sequence_file_type = seqan3::sequence_file_input<dna4_traits,
                                                        seqan3::fields<seqan3::field::seq>,
                                                        seqan3::type_list<seqan3::format_fasta, seqan3::format_fastq>>;
 
-inline int execute(configuration & config,
-                   std::vector<std::string> & filenames,
-                   std::vector<sketch::hyperloglog> & sketches)
+inline int
+execute(configuration & config, std::vector<std::string> & filenames, std::vector<sketch::hyperloglog> & sketches)
 {
     read_data_file(config, filenames);
 
