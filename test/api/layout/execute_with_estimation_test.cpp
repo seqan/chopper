@@ -363,7 +363,7 @@ TEST(execute_estimation_test, with_rearrangement)
 
     chopper::data_store store{.false_positive_rate = config.false_positive_rate, .hibf_layout = &hibf_layout};
 
-    chopper::sketch::execute(config, store);
+    chopper::sketch::execute(config, store.filenames, store.sketches);
 
     ASSERT_TRUE(std::filesystem::exists(sketches_dir));
 

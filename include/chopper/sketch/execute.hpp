@@ -25,15 +25,16 @@ using sequence_file_type = seqan3::sequence_file_input<dna4_traits,
                                                        seqan3::fields<seqan3::field::seq>,
                                                        seqan3::type_list<seqan3::format_fasta, seqan3::format_fastq>>;
 
-inline int execute(configuration & config, data_store & store)
+inline int
+execute(configuration & config, std::vector<std::string> & filenames, std::vector<sketch::hyperloglog> & sketches)
 {
-    read_data_file(config, store);
+    read_data_file(config, filenames);
 
-    if (store.filenames.empty())
+    if (filenames.empty())
         throw sharg::parser_error{
             sharg::detail::to_string("The file ", config.data_file.string(), " appears to be empty.")};
 
-    chopper::sketch::check_filenames(store.filenames, config);
+    chopper::sketch::check_filenames(filenames, config);
 
     if (config.precomputed_files)
     {
@@ -52,8 +53,8 @@ inline int execute(configuration & config, data_store & store)
 
             return result;
         };
-        auto hashes = store.filenames | std::views::transform(hash_minimizer_file);
-        sketch::compute_sketches_from_hashes(hashes, config.sketch_bits, config.threads, store.sketches);
+        auto hashes = filenames | std::views::transform(hash_minimizer_file);
+        sketch::compute_sketches_from_hashes(hashes, config.sketch_bits, config.threads, sketches);
     }
     else
     {
@@ -70,8 +71,8 @@ inline int execute(configuration & config, data_store & store)
 
             return result;
         };
-        auto hashes = store.filenames | std::views::transform(hash_file);
-        sketch::compute_sketches_from_hashes(hashes, config.sketch_bits, config.threads, store.sketches);
+        auto hashes = filenames | std::views::transform(hash_file);
+        sketch::compute_sketches_from_hashes(hashes, config.sketch_bits, config.threads, sketches);
     }
 
     if (!config.disable_sketch_output)
@@ -79,9 +80,9 @@ inline int execute(configuration & config, data_store & store)
         if (!std::filesystem::exists(config.sketch_directory))
             std::filesystem::create_directory(config.sketch_directory);
 
-        assert(store.filenames.size() == store.sketches.size());
-        for (size_t i = 0; i < store.filenames.size(); ++i)
-            write_sketch_file(store.filenames[i], store.sketches[i], config);
+        assert(filenames.size() == sketches.size());
+        for (size_t i = 0; i < filenames.size(); ++i)
+            write_sketch_file(filenames[i], sketches[i], config);
     }
 
     return 0;

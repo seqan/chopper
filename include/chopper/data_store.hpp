@@ -61,12 +61,6 @@ struct data_store
     //!\brief The hyperloglog sketches of all input files to estimate their size and similarities.
     std::vector<sketch::hyperloglog> sketches{};
 
-    //!\brief Extra information in given in the input file
-    std::vector<std::string> extra_information_strings{};
-
-    //!\brief Extra information in given in the input file
-    std::vector<std::vector<std::string>> extra_information{};
-
     //!\brief The false positive correction based on fp_rate, num_hash_functions and requested_max_tb.
     std::vector<double> fp_correction{};
 

@@ -37,7 +37,7 @@ int main(int argc, char const * argv[])
 
     try
     {
-        exit_code |= chopper::sketch::execute(config, store);
+        exit_code |= chopper::sketch::execute(config, store.filenames, store.sketches);
         chopper::sketch::estimate_kmer_counts(store.sketches, store.kmer_counts);
         exit_code |= chopper::layout::execute(config, store);
     }
