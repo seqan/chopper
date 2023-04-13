@@ -8,6 +8,7 @@
 
 #include <seqan3/test/expect_range_eq.hpp>
 
+#include <chopper/layout/compute_fp_correction.hpp>
 #include <chopper/layout/hibf_statistics.hpp>
 #include <chopper/layout/hierarchical_binning.hpp>
 
@@ -23,7 +24,7 @@ TEST(hierarchical_binning_test, filenames_and_kmer_counts_size_differs)
                              .hibf_layout = &hibf_layout,
                              .filenames = {"seq0", "seq1"},    // 2 filenames
                              .kmer_counts = {500, 1000, 500}}; // 3 kmer_counts
-    data.compute_fp_correction(0.05, 2, config.tmax);
+    data.fp_correction = chopper::layout::compute_fp_correction(0.05, 2, config.tmax);
 
     EXPECT_THROW((chopper::layout::hierarchical_binning{data, config}), std::runtime_error);
 }
@@ -39,7 +40,7 @@ TEST(hierarchical_binning_test, small_example)
                              .filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7"},
                              .kmer_counts = {500, 1000, 500, 500, 500, 500, 500, 500}};
 
-    data.compute_fp_correction(0.05, 2, config.tmax);
+    data.fp_correction = chopper::layout::compute_fp_correction(0.05, 2, config.tmax);
     chopper::layout::hibf_statistics global_stats_dummy{};
     data.stats = &global_stats_dummy.top_level_ibf;
     chopper::layout::hierarchical_binning algo{data, config};
@@ -71,7 +72,7 @@ TEST(hierarchical_binning_test, another_example)
                              .filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7"},
                              .kmer_counts = {50, 1000, 1000, 50, 5, 10, 10, 5}};
 
-    data.compute_fp_correction(0.05, 2, config.tmax);
+    data.fp_correction = chopper::layout::compute_fp_correction(0.05, 2, config.tmax);
     chopper::layout::hibf_statistics global_stats_dummy{};
     data.stats = &global_stats_dummy.top_level_ibf;
 
@@ -104,7 +105,7 @@ TEST(hierarchical_binning_test, high_level_max_bin_id_is_0)
                              .filenames = {"seq0", "seq1", "seq2", "seq3"},
                              .kmer_counts = {500, 500, 500, 500}};
 
-    data.compute_fp_correction(0.05, 2, config.tmax);
+    data.fp_correction = chopper::layout::compute_fp_correction(0.05, 2, config.tmax);
     chopper::layout::hibf_statistics global_stats_dummy{};
     data.stats = &global_stats_dummy.top_level_ibf;
 
@@ -130,7 +131,7 @@ TEST(hierarchical_binning_test, knuts_example)
     chopper::data_store data{.hibf_layout = &hibf_layout};
     data.filenames = {"seq0", "seq1", "seq2", "seq3", "seq4"};
     data.kmer_counts = {60, 600, 1000, 800, 800};
-    data.compute_fp_correction(0.05, 2, config.tmax);
+    data.fp_correction = chopper::layout::compute_fp_correction(0.05, 2, config.tmax);
     chopper::layout::hibf_statistics global_stats_dummy{};
     data.stats = &global_stats_dummy.top_level_ibf;
 
@@ -160,7 +161,7 @@ TEST(hierarchical_binning_test, four_level_hibf)
                              .filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5"},
                              .kmer_counts = {11090, 5080, 3040, 1020, 510, 500}};
 
-    data.compute_fp_correction(0.05, 2, config.tmax);
+    data.fp_correction = chopper::layout::compute_fp_correction(0.05, 2, config.tmax);
     chopper::layout::hibf_statistics global_stats_dummy{};
     data.stats = &global_stats_dummy.top_level_ibf;
 
@@ -195,7 +196,7 @@ TEST(hierarchical_binning_test, tb0_is_a_merged_bin)
                              .filenames = {"seq0", "seq1", "seq2", "seq3"},
                              .kmer_counts = {500, 500, 500, 500}};
 
-    data.compute_fp_correction(0.05, 2, config.tmax);
+    data.fp_correction = chopper::layout::compute_fp_correction(0.05, 2, config.tmax);
     chopper::layout::hibf_statistics global_stats_dummy{};
     data.stats = &global_stats_dummy.top_level_ibf;
 
@@ -225,7 +226,7 @@ TEST(hierarchical_binning_test, tb0_is_a_merged_bin_and_leads_to_recursive_call)
                              .filenames = {"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7"},
                              .kmer_counts = {500, 500, 500, 500, 500, 500, 500, 500}};
 
-    data.compute_fp_correction(0.05, 2, config.tmax);
+    data.fp_correction = chopper::layout::compute_fp_correction(0.05, 2, config.tmax);
     chopper::layout::hibf_statistics global_stats_dummy{};
     data.stats = &global_stats_dummy.top_level_ibf;
 

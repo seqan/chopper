@@ -5,6 +5,7 @@
 #include <sharg/exceptions.hpp>
 
 #include <chopper/configuration.hpp>
+#include <chopper/layout/compute_fp_correction.hpp>
 #include <chopper/layout/hierarchical_binning.hpp>
 #include <chopper/layout/ibf_query_cost.hpp>
 #include <chopper/layout/output.hpp>
@@ -106,7 +107,7 @@ int execute(chopper::configuration & config, chopper::data_store & data)
                   << "anyway, so we increased your number of technical bins to " << config.tmax << ".\n";
     }
 
-    data.compute_fp_correction(config.false_positive_rate, config.num_hash_functions, config.tmax);
+    data.fp_correction = compute_fp_correction(config.false_positive_rate, config.num_hash_functions, config.tmax);
 
     size_t max_hibf_id;
 
