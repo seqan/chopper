@@ -31,16 +31,16 @@ TEST(layout_test, printing_user_bins)
 
     chopper::layout::layout layout;
 
-    layout.user_bins.emplace_back("seq7", std::vector<size_t>{}, 1, 0);
-    layout.user_bins.emplace_back("seq4", std::vector<size_t>{1}, 22, 0);
-    layout.user_bins.emplace_back("seq5", std::vector<size_t>{1, 2, 3, 4}, 21, 22);
+    layout.user_bins.emplace_back(7, std::vector<size_t>{}, 1, 0);
+    layout.user_bins.emplace_back(4, std::vector<size_t>{1}, 22, 0);
+    layout.user_bins.emplace_back(5, std::vector<size_t>{1, 2, 3, 4}, 21, 22);
 
     for (auto const & ub : layout.user_bins)
         ss << ub << "\n";
 
-    std::string expected = R"ub(seq7	0	1
-seq4	1;0	1;22
-seq5	1;2;3;4;22	1;1;1;1;21
+    std::string expected = R"ub(7	0	1
+4	1;0	1;22
+5	1;2;3;4;22	1;1;1;1;21
 )ub";
 
     EXPECT_EQ(ss.str(), expected);

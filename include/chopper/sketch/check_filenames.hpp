@@ -10,7 +10,7 @@ namespace chopper::sketch
 {
 
 //!\brief Checks the `filenames` for consistent files, either precomputed or sequence files.
-inline void check_filenames(std::vector<std::string> & filenames, configuration & config)
+inline void check_filenames(std::vector<std::string> const & filenames, configuration & config)
 {
     assert(!filenames.empty());
 

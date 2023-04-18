@@ -32,11 +32,26 @@ inline void write_layout_header_to(layout const & hibf_layout, size_t const max_
         stream << max_bin << '\n';
 }
 
-inline void write_layout_content_to(layout const & hibf_layout, std::ostream & stream)
+inline void write_user_bin_line_to(layout::user_bin const & object,
+                                   std::vector<std::string> const & filenames,
+                                   std::ostream & stream)
+{
+    stream << filenames[object.idx] << '\t';
+    for (auto bin : object.previous_TB_indices)
+        stream << bin << ';';
+    stream << object.storage_TB_id << '\t';
+    for ([[maybe_unused]] auto && elem : object.previous_TB_indices) // number of bins per merged level is 1
+        stream << "1;";
+    stream << object.number_of_technical_bins;
+    stream << '\n';
+}
+
+inline void
+write_layout_content_to(layout const & hibf_layout, std::vector<std::string> const & filenames, std::ostream & stream)
 {
     stream << prefix::header << "FILES\tBIN_INDICES\tNUMBER_OF_BINS\n";
     for (auto const & user_bin : hibf_layout.user_bins)
-        stream << user_bin << '\n';
+        write_user_bin_line_to(user_bin, filenames, stream);
 }
 
 } // namespace chopper::layout

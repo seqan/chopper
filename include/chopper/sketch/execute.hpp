@@ -7,7 +7,6 @@
 #include <seqan3/search/views/kmer_hash.hpp>
 
 #include <chopper/configuration.hpp>
-#include <chopper/data_store.hpp>
 #include <chopper/sketch/check_filenames.hpp>
 #include <chopper/sketch/compute_sketches.hpp>
 #include <chopper/sketch/output.hpp>
@@ -26,10 +25,8 @@ using sequence_file_type = seqan3::sequence_file_input<dna4_traits,
                                                        seqan3::type_list<seqan3::format_fasta, seqan3::format_fastq>>;
 
 inline int
-execute(configuration & config, std::vector<std::string> & filenames, std::vector<sketch::hyperloglog> & sketches)
+execute(configuration & config, std::vector<std::string> const & filenames, std::vector<sketch::hyperloglog> & sketches)
 {
-    read_data_file(config, filenames);
-
     if (filenames.empty())
         throw sharg::parser_error{
             sharg::detail::to_string("The file ", config.data_file.string(), " appears to be empty.")};

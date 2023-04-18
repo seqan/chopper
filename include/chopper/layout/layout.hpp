@@ -42,7 +42,7 @@ struct layout
 
     struct user_bin
     {
-        std::string id{};                          // the id of the user bin. Often its filename.
+        size_t idx{};                              // The index of the user bin corresponding to the order in data
         std::vector<size_t> previous_TB_indices{}; // previous technical bin indices which refer to merged bin indices.
         size_t number_of_technical_bins{};         // 1 == signle bin, >1 == split_bin
         size_t storage_TB_id{}; // the id of the technical bin that the user bin is actullly stored in
@@ -54,7 +54,7 @@ struct layout
             requires std::derived_from<stream_type, std::ostream>
         friend stream_type & operator<<(stream_type & stream, user_bin const & object)
         {
-            stream << object.id << '\t';
+            stream << object.idx << '\t';
             for (auto bin : object.previous_TB_indices)
                 stream << bin << ';';
             stream << object.storage_TB_id << '\t';

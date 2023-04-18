@@ -32,14 +32,23 @@ int main(int argc, char const * argv[])
     int exit_code{};
 
     chopper::layout::layout hibf_layout{};
+    std::vector<std::string> filenames{};
+    std::vector<size_t> kmer_counts{};
+    std::vector<chopper::sketch::hyperloglog> sketches{};
 
-    chopper::data_store store{.false_positive_rate = config.false_positive_rate, .hibf_layout = &hibf_layout};
+    chopper::sketch::read_data_file(config, filenames);
 
     try
     {
-        exit_code |= chopper::sketch::execute(config, store.filenames, store.sketches);
-        chopper::sketch::estimate_kmer_counts(store.sketches, store.kmer_counts);
-        exit_code |= chopper::layout::execute(config, store);
+        exit_code |= chopper::sketch::execute(config, filenames, sketches);
+        chopper::sketch::estimate_kmer_counts(sketches, kmer_counts);
+
+        chopper::data_store store{.false_positive_rate = config.false_positive_rate,
+                                  .hibf_layout = &hibf_layout,
+                                  .kmer_counts = kmer_counts,
+                                  .sketches = sketches};
+
+        exit_code |= chopper::layout::execute(config, filenames, store);
     }
     catch (sharg::parser_error const & ext)
     {

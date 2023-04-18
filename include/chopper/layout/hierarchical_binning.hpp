@@ -8,6 +8,17 @@
 #include <chopper/next_multiple_of_64.hpp>
 #include <chopper/prefixes.hpp>
 
+/*!\brief Workaround bogus memcpy errors in GCC 12.1 and 12.2. (Wrestrict and Wstringop-overflow)
+ * \see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=105545
+ */
+#ifndef CHOPPER_WORKAROUND_GCC_BOGUS_MEMCPY
+#    if defined(__GNUC__) && !defined(__llvm__) && !defined(__INTEL_COMPILER) && (__GNUC__ == 12 && __GNUC_MINOR__ < 3)
+#        define CHOPPER_WORKAROUND_GCC_BOGUS_MEMCPY 1
+#    else
+#        define CHOPPER_WORKAROUND_GCC_BOGUS_MEMCPY 0
+#    endif
+#endif
+
 namespace chopper::layout
 {
 
@@ -16,7 +27,7 @@ class hierarchical_binning
 private:
     //!\brief The user configuration passed down from the command line.
     configuration const config{};
-    //!\brief The data input: filenames associated with the user bin and a kmer count per user bin.
+    //!\brief Stores all data that is needed to compute the layout, e.g. the counts, sketches and the layout::layout.
     data_store * const data{nullptr};
 
     //!\brief The number of user bins, initialised with the length of user_bin_kmer_counts.
@@ -33,7 +44,7 @@ public:
     ~hierarchical_binning() = default;                                       //!< Defaulted.
 
     /*!\brief The constructor from user bin names, their kmer counts and a configuration.
-     * \param[in, out] data_ The data input: filenames associated with the user bin and a kmer count per user bin.
+     * \param[in, out] data_ Stores all data that is needed to compute the layout.
      * \param[in] config_ A configuration object that holds information from the user that influence the computation.
      *
      * Each entry in the names_ and input vector respectively is considered a user bin (both vectors must have the
@@ -42,27 +53,23 @@ public:
     hierarchical_binning(data_store & data_, configuration const & config_) :
         config{config_},
         data{std::addressof(data_)},
-        num_user_bins{data->kmer_counts.size()},
+        num_user_bins{data->positions.size()},
         num_technical_bins{data->previous.empty() ? config.tmax : needed_technical_bins(num_user_bins)}
     {
         assert(data != nullptr);
-
-        if (data->filenames.size() != data->kmer_counts.size())
-            throw std::runtime_error{"The filenames and kmer counts do not have the same length."};
     }
 
     //!\brief Executes the hierarchical binning algorithm and layouts user bins into technical bins.
     size_t execute()
     {
         assert(data != nullptr);
-        assert(data->filenames.size() == data->kmer_counts.size());
-        assert(data->sketches.empty() || data->filenames.size() == data->sketches.size());
+        assert(data->positions.size() <= data->kmer_counts.size());
 
         static constexpr size_t max_size_t{std::numeric_limits<size_t>::max()};
 
         if (!data->user_bins_arranged)
         {
-            sketch::toolbox sketch_toolbox{data->filenames, data->kmer_counts, data->sketches};
+            sketch::toolbox sketch_toolbox{data->kmer_counts, data->sketches, data->positions};
             sketch_toolbox.sort_by_cardinalities();
 
             if (!config.disable_estimate_union && !config.disable_rearrangement)
@@ -123,7 +130,7 @@ private:
         assert(data != nullptr);
 
         // initialize first column
-        double const ub_cardinality = static_cast<double>(data->kmer_counts[0]);
+        double const ub_cardinality = static_cast<double>(data->kmer_counts[data->positions[0]]);
         for (size_t i = 0; i < num_technical_bins; ++i)
         {
             size_t const corrected_ub_cardinality = static_cast<size_t>(ub_cardinality * data->fp_correction[i + 1]);
@@ -132,16 +139,17 @@ private:
         }
 
         // initialize first row
-        size_t sum = data->kmer_counts[0];
+        size_t sum = data->kmer_counts[data->positions[0]];
         if (!config.disable_estimate_union)
         {
             sketch::toolbox::precompute_initial_union_estimates(data->union_estimates,
                                                                 data->sketches,
-                                                                data->kmer_counts);
+                                                                data->kmer_counts,
+                                                                data->positions);
 
             for (size_t j = 1; j < num_user_bins; ++j)
             {
-                sum += data->kmer_counts[j];
+                sum += data->kmer_counts[data->positions[j]];
                 matrix[0][j] = data->union_estimates[j];
                 ll_matrix[0][j] = max_merge_levels(j + 1) * sum;
                 trace[0][j] = {0u, j - 1}; // unnecessary?
@@ -151,7 +159,9 @@ private:
         {
             for (size_t j = 1; j < num_user_bins; ++j)
             {
-                sum += data->kmer_counts[j];
+                assert(j < data->positions.size());
+                assert(data->positions[j] < data->kmer_counts.size());
+                sum += data->kmer_counts[data->positions[j]];
                 matrix[0][j] = sum;
                 ll_matrix[0][j] = max_merge_levels(j + 1) * sum;
                 trace[0][j] = {0u, j - 1}; // unnecessary?
@@ -206,13 +216,14 @@ private:
         // we must iterate column wise
         for (size_t j = 1; j < num_user_bins; ++j)
         {
-            size_t const current_weight = data->kmer_counts[j];
+            size_t const current_weight = data->kmer_counts[data->positions[j]];
             double const ub_cardinality = static_cast<double>(current_weight);
 
             if (!config.disable_estimate_union)
                 sketch::toolbox::precompute_union_estimates_for(data->union_estimates,
                                                                 data->sketches,
                                                                 data->kmer_counts,
+                                                                data->positions,
                                                                 j);
 
             for (size_t i = 1; i < num_technical_bins; ++i)
@@ -262,7 +273,7 @@ private:
                 // I may merge the current user bin j into the former
                 while (j_prime != 0 && ((i - trace[i][j_prime].first) < 2) && get_weight() < minimum)
                 {
-                    weight += data->kmer_counts[j_prime];
+                    weight += data->kmer_counts[data->positions[j_prime]];
                     --j_prime;
 
                     // score: The current maximum technical bin size for the high-level IBF (score for the matrix M)
@@ -296,7 +307,7 @@ private:
         assert(data != nullptr);
 
         if (data->stats)
-            data->stats->filenames = data->filenames;
+            data->stats->positions = data->positions;
 
         // backtracking starts at the bottom right corner:
         size_t trace_i = num_technical_bins - 1;
@@ -314,12 +325,12 @@ private:
             size_t next_i = trace[trace_i][trace_j].first;
             size_t next_j = trace[trace_i][trace_j].second;
 
-            size_t kmer_count = data->kmer_counts[trace_j];
+            size_t kmer_count = data->kmer_counts[data->positions[trace_j]];
             size_t number_of_bins = (trace_i - next_i);
 
             if (number_of_bins == 1 && next_j != trace_j - 1u) // merged bin
             {
-                auto libf_data = initialise_libf_data(kmer_count, trace_j);
+                auto libf_data = initialise_libf_data(trace_j);
                 size_t num_contained_ubs = 1;
                 size_t const j = trace_j;
 
@@ -327,11 +338,8 @@ private:
                 --trace_j;
                 while (trace_j != next_j)
                 {
-                    kmer_count += data->kmer_counts[trace_j];
-                    libf_data.kmer_counts.push_back(data->kmer_counts[trace_j]);
-                    libf_data.filenames.push_back(data->filenames[trace_j]);
-                    if (!data->sketches.empty())
-                        libf_data.sketches.push_back(data->sketches[trace_j]);
+                    kmer_count += data->kmer_counts[data->positions[trace_j]];
+                    libf_data.positions.push_back(data->positions[trace_j]);
                     ++num_contained_ubs;
                     // std::cout << "," << trace_j;
                     --trace_j;
@@ -348,7 +356,7 @@ private:
             {
                 size_t const kmer_count_per_bin = (kmer_count + number_of_bins - 1) / number_of_bins; // round up
 
-                data->hibf_layout->user_bins.emplace_back(data->filenames[trace_j],
+                data->hibf_layout->user_bins.emplace_back(data->positions[trace_j],
                                                           data->previous.bin_indices,
                                                           number_of_bins,
                                                           bin_id);
@@ -374,8 +382,8 @@ private:
         assert(trace_i == 0 || trace_j == 0);
         if (trace_i == 0u && trace_j > 0u) // the last UBs get merged into the remaining TB
         {
-            size_t kmer_count = data->kmer_counts[trace_j];
-            auto libf_data = initialise_libf_data(kmer_count, trace_j);
+            size_t kmer_count = data->kmer_counts[data->positions[trace_j]];
+            auto libf_data = initialise_libf_data(trace_j);
             size_t num_contained_ubs = 1;
             size_t const j = trace_j;
 
@@ -383,16 +391,12 @@ private:
             while (trace_j > 0)
             {
                 --trace_j;
-                kmer_count += data->kmer_counts[trace_j];
-                libf_data.kmer_counts.push_back(data->kmer_counts[trace_j]);
-                libf_data.filenames.push_back(data->filenames[trace_j]);
-                if (!data->sketches.empty())
-                    libf_data.sketches.push_back(data->sketches[trace_j]);
+                kmer_count += data->kmer_counts[data->positions[trace_j]];
+                libf_data.positions.push_back(data->positions[trace_j]);
                 ++num_contained_ubs;
                 // std::cout << "," << trace_j;
             }
             assert(trace_j == 0);
-            assert(kmer_count == std::accumulate(libf_data.kmer_counts.begin(), libf_data.kmer_counts.end(), 0u));
 
             process_merged_bin(libf_data, bin_id, trace_j, j, kmer_count, num_contained_ubs);
 
@@ -405,11 +409,11 @@ private:
         {
             // we only arrive here if the first user bin (UB-0) wasn't merged with some before so it is safe to assume
             // that the bin was split (even if only into 1 bin).
-            size_t const kmer_count = data->kmer_counts[0];
+            size_t const kmer_count = data->kmer_counts[data->positions[0]];
             size_t const number_of_tbs = trace_i + 1;
             size_t const average_bin_size = (kmer_count + number_of_tbs - 1) / number_of_tbs; // round up
 
-            data->hibf_layout->user_bins.emplace_back(data->filenames[0],
+            data->hibf_layout->user_bins.emplace_back(data->positions[0],
                                                       data->previous.bin_indices,
                                                       number_of_tbs,
                                                       bin_id);
@@ -435,16 +439,14 @@ private:
         return stream.str();
     };
 
-    data_store initialise_libf_data(size_t const kmer_count, size_t const trace_j) const
+    data_store initialise_libf_data(size_t const trace_j) const
     {
         data_store libf_data{.false_positive_rate = data->false_positive_rate,
                              .hibf_layout = data->hibf_layout,
-                             .filenames = {data->filenames[trace_j]},
-                             .kmer_counts = {kmer_count},
+                             .kmer_counts = data->kmer_counts,
+                             .sketches = data->sketches,
+                             .positions = {data->positions[trace_j]},
                              .fp_correction = data->fp_correction};
-
-        if (!data->sketches.empty())
-            libf_data.sketches = {data->sketches[trace_j]};
 
         return libf_data;
     }
@@ -461,9 +463,10 @@ private:
         // add merged bin to ibf statistics
         if (data->stats)
         {
-            uint64_t const cardinality = config.disable_estimate_union
-                                           ? kmer_count
-                                           : sketch::toolbox::estimate_interval(data->sketches, trace_j + 1, j);
+            uint64_t const cardinality =
+                config.disable_estimate_union
+                    ? kmer_count
+                    : sketch::toolbox::estimate_interval(data->sketches, data->positions, trace_j + 1, j);
             hibf_statistics::bin & bin_stats =
                 data->stats->bins.emplace_back(hibf_statistics::bin_kind::merged, cardinality, num_contained_ubs, 1ul);
             libf_data.stats = &bin_stats.child_level;
@@ -481,13 +484,23 @@ private:
 
         libf_data.previous = data->previous;
         libf_data.previous.bin_indices.push_back(bin_id);
+
+#if CHOPPER_WORKAROUND_GCC_BOGUS_MEMCPY
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wrestrict"
+#endif // CHOPPER_WORKAROUND_GCC_BOGUS_MEMCPY
+
         libf_data.previous.num_of_bins += (is_top_level ? "" : ";") + std::string{"1"};
+
+#if CHOPPER_WORKAROUND_GCC_BOGUS_MEMCPY
+#    pragma GCC diagnostic pop
+#endif // CHOPPER_WORKAROUND_GCC_BOGUS_MEMCPY
     }
 
     size_t add_lower_level(data_store & libf_data) const
     {
         // now do the binning for the low-level IBF:
-        if (libf_data.kmer_counts.size() > config.tmax)
+        if (libf_data.positions.size() > config.tmax)
         {
             // recursively call hierarchical binning if there are still too many UBs
             return hierarchical_binning{libf_data, config}.execute(); // return id of maximum technical bin

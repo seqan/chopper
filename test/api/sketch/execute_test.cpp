@@ -1,10 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <fstream>
-#include <unordered_map>
 #include <vector>
-
-#include <seqan3/utility/range/to.hpp>
 
 #include <chopper/sketch/execute.hpp>
 
@@ -13,29 +9,17 @@
 TEST(execute_test, small_example_parallel_2_threads)
 {
     std::string input_filename = data("small.fa");
-    seqan3::test::tmp_directory tmp_dir{};
-    std::filesystem::path data_filename{tmp_dir.path() / "data.tsv"};
-
-    // generate data filename
-    {
-        std::ofstream fout{data_filename};
-        fout << input_filename << '\t' << "TAX1\n"
-             << input_filename << '\t' << "TAX2\n"
-            /* << input_filename << '\t' << "TAX2\n" */;
-    }
 
     chopper::configuration config{};
     config.threads = 2;
     config.k = 15;
     config.disable_sketch_output = true;
-    config.data_file = data_filename;
 
-    std::vector<std::string> filenames{};
+    std::vector<std::string> filenames{input_filename, input_filename};
     std::vector<chopper::sketch::hyperloglog> sketches{};
 
     EXPECT_NO_THROW(chopper::sketch::execute(config, filenames, sketches));
 
-    EXPECT_RANGE_EQ(filenames, (std::vector<std::string>{input_filename, input_filename}));
     ASSERT_EQ(sketches.size(), 2);
     EXPECT_EQ(std::lround(sketches[0].estimate()), 571);
     EXPECT_EQ(std::lround(sketches[1].estimate()), 571);
@@ -44,29 +28,17 @@ TEST(execute_test, small_example_parallel_2_threads)
 TEST(execute_test, some_test)
 {
     std::string input_filename = data("small.fa");
-    seqan3::test::tmp_directory tmp_dir{};
-    std::filesystem::path data_filename{tmp_dir.path() / "data.tsv"};
-
-    // generate data filename
-    {
-        std::ofstream fout{data_filename};
-        fout << input_filename << '\t' << "TAX1\n"
-             << input_filename << '\t' << "TAX2\n"
-            /* << input_filename << '\t' << "TAX2\n" */;
-    }
 
     chopper::configuration config{};
     config.threads = 1;
     config.k = 25;
     config.disable_sketch_output = true;
-    config.data_file = data_filename;
 
-    std::vector<std::string> filenames{};
+    std::vector<std::string> filenames{input_filename, input_filename};
     std::vector<chopper::sketch::hyperloglog> sketches{};
 
     chopper::sketch::execute(config, filenames, sketches);
 
-    EXPECT_RANGE_EQ(filenames, (std::vector<std::string>{input_filename, input_filename}));
     ASSERT_EQ(sketches.size(), 2);
     EXPECT_EQ(std::lround(sketches[0].estimate()), 591);
     EXPECT_EQ(std::lround(sketches[1].estimate()), 591);
