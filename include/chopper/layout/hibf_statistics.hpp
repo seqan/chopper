@@ -78,10 +78,11 @@ public:
     class bin
     {
     public:
-        bin_kind const kind;            //!< Either a split or merged bin.
-        size_t cardinality;       //!< The size/weight of the bin (either a kmer count or hll sketch estimation). Will be computed after construction in compute_cardinalities.
-        size_t const num_contained_ubs; //!< [MERGED] How many UBs are merged within this TB.
-        size_t const num_spanning_tbs;  //!< [SPLIT] How many TBs are used for this sindle UB.
+        bin_kind const kind; //!< Either a split or merged bin.
+        size_t
+            cardinality; //!< The size/weight of the bin (either a kmer count or hll sketch estimation). Will be computed after construction in compute_cardinalities.
+        size_t const num_contained_ubs;             //!< [MERGED] How many UBs are merged within this TB.
+        size_t const num_spanning_tbs;              //!< [SPLIT] How many TBs are used for this sindle UB.
         std::vector<size_t> const user_bin_indices; //!< The user bin indices of this bin.
 
         level child_level; //!< [MERGED] The lower level ibf statistics.
@@ -93,9 +94,7 @@ public:
         bin & operator=(bin &&) = default;      //!< Defaulted.
         ~bin() = default;                       //!< Defaulted.
 
-        bin(bin_kind const kind_,
-            size_t const spanning_tbs,
-            std::vector<size_t> const & user_bin_indices_) :
+        bin(bin_kind const kind_, size_t const spanning_tbs, std::vector<size_t> const & user_bin_indices_) :
             kind{kind_},
             num_contained_ubs{user_bin_indices_.size()},
             num_spanning_tbs{spanning_tbs},

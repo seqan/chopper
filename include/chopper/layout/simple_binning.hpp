@@ -218,9 +218,7 @@ public:
             if (data->stats)
             {
                 std::vector<size_t> user_bin_indices{data->positions[trace_j]};
-                data->stats->bins.emplace_back(hibf_statistics::bin_kind::split,
-                                               number_of_bins,
-                                               user_bin_indices);
+                data->stats->bins.emplace_back(hibf_statistics::bin_kind::split, number_of_bins, user_bin_indices);
             }
 
             if (kmer_count_per_bin > max_size)
@@ -244,9 +242,7 @@ public:
         if (data->stats)
         {
             std::vector<size_t> user_bin_indices{data->positions[0]};
-            data->stats->bins.emplace_back(hibf_statistics::bin_kind::split,
-                                           trace_i,
-                                           user_bin_indices);
+            data->stats->bins.emplace_back(hibf_statistics::bin_kind::split, trace_i, user_bin_indices);
         }
 
         if (kmer_count_per_bin > max_size)
