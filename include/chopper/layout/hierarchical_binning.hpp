@@ -361,7 +361,6 @@ private:
                     std::vector<size_t> user_bin_indices{data->positions[trace_j]};
                     data->stats->bins.emplace_back(hibf_statistics::bin_kind::split,
                                                    kmer_count,
-                                                   1ul,
                                                    number_of_bins,
                                                    user_bin_indices);
                 }
@@ -420,7 +419,6 @@ private:
                 std::vector<size_t> user_bin_indices{data->positions[0]};
                 data->stats->bins.emplace_back(hibf_statistics::bin_kind::split,
                                                kmer_count,
-                                               1ul,
                                                number_of_tbs,
                                                user_bin_indices);
             }
@@ -469,7 +467,6 @@ private:
 
             hibf_statistics::bin & bin_stats = data->stats->bins.emplace_back(hibf_statistics::bin_kind::merged,
                                                                               cardinality,
-                                                                              libf_data.positions.size(),
                                                                               1ul,
                                                                               user_bin_indices);
             libf_data.stats = &bin_stats.child_level;

@@ -94,12 +94,11 @@ public:
 
         bin(bin_kind const kind_,
             size_t const card,
-            size_t const contained_ubs,
             size_t const spanning_tbs,
             std::vector<size_t> const & user_bin_indices_) :
             kind{kind_},
             cardinality{card},
-            num_contained_ubs{contained_ubs},
+            num_contained_ubs{user_bin_indices_.size()},
             num_spanning_tbs{spanning_tbs},
             user_bin_indices{user_bin_indices_}
         {
