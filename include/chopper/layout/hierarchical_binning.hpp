@@ -331,7 +331,6 @@ private:
             if (number_of_bins == 1 && next_j != trace_j - 1u) // merged bin
             {
                 auto libf_data = initialise_libf_data(trace_j);
-                size_t num_contained_ubs = 1;
                 size_t const j = trace_j;
 
                 // std::cout << "merged [" << trace_j;
@@ -340,14 +339,13 @@ private:
                 {
                     kmer_count += data->kmer_counts[data->positions[trace_j]];
                     libf_data.positions.push_back(data->positions[trace_j]);
-                    ++num_contained_ubs;
                     // std::cout << "," << trace_j;
                     --trace_j;
                 }
                 trace_i = next_i;
                 trace_j = next_j; // unneccessary?
 
-                process_merged_bin(libf_data, bin_id, trace_j, j, kmer_count, num_contained_ubs);
+                process_merged_bin(libf_data, bin_id, trace_j, j, kmer_count);
 
                 update_max_id(high_level_max_id, high_level_max_size, bin_id, kmer_count);
                 // std::cout << "]: " << kmer_count << std::endl;
@@ -384,7 +382,6 @@ private:
         {
             size_t kmer_count = data->kmer_counts[data->positions[trace_j]];
             auto libf_data = initialise_libf_data(trace_j);
-            size_t num_contained_ubs = 1;
             size_t const j = trace_j;
 
             // std::cout << "merged [" << trace_j;
@@ -393,12 +390,11 @@ private:
                 --trace_j;
                 kmer_count += data->kmer_counts[data->positions[trace_j]];
                 libf_data.positions.push_back(data->positions[trace_j]);
-                ++num_contained_ubs;
                 // std::cout << "," << trace_j;
             }
             assert(trace_j == 0);
 
-            process_merged_bin(libf_data, bin_id, trace_j, j, kmer_count, num_contained_ubs);
+            process_merged_bin(libf_data, bin_id, trace_j, j, kmer_count);
 
             update_max_id(high_level_max_id, high_level_max_size, bin_id, kmer_count);
 
@@ -455,8 +451,7 @@ private:
                             size_t const bin_id,
                             int const trace_j,
                             int const j,
-                            size_t const kmer_count,
-                            double const num_contained_ubs) const
+                            size_t const kmer_count) const
     {
         update_libf_data(libf_data, bin_id);
 
@@ -468,7 +463,7 @@ private:
                     ? kmer_count
                     : sketch::toolbox::estimate_interval(data->sketches, data->positions, trace_j + 1, j);
             hibf_statistics::bin & bin_stats =
-                data->stats->bins.emplace_back(hibf_statistics::bin_kind::merged, cardinality, num_contained_ubs, 1ul);
+                data->stats->bins.emplace_back(hibf_statistics::bin_kind::merged, cardinality, j - trace_j, 1ul);
             libf_data.stats = &bin_stats.child_level;
         }
 
