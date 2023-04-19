@@ -331,7 +331,6 @@ private:
             if (number_of_bins == 1 && next_j != trace_j - 1u) // merged bin
             {
                 auto libf_data = initialise_libf_data(trace_j);
-                size_t const j = trace_j;
 
                 // std::cout << "merged [" << trace_j;
                 --trace_j;
@@ -345,7 +344,7 @@ private:
                 trace_i = next_i;
                 trace_j = next_j; // unneccessary?
 
-                process_merged_bin(libf_data, bin_id, trace_j, j, kmer_count);
+                process_merged_bin(libf_data, bin_id, kmer_count);
 
                 update_max_id(high_level_max_id, high_level_max_size, bin_id, kmer_count);
                 // std::cout << "]: " << kmer_count << std::endl;
@@ -382,7 +381,6 @@ private:
         {
             size_t kmer_count = data->kmer_counts[data->positions[trace_j]];
             auto libf_data = initialise_libf_data(trace_j);
-            size_t const j = trace_j;
 
             // std::cout << "merged [" << trace_j;
             while (trace_j > 0)
@@ -394,7 +392,7 @@ private:
             }
             assert(trace_j == 0);
 
-            process_merged_bin(libf_data, bin_id, trace_j, j, kmer_count);
+            process_merged_bin(libf_data, bin_id, kmer_count);
 
             update_max_id(high_level_max_id, high_level_max_size, bin_id, kmer_count);
 
@@ -447,11 +445,7 @@ private:
         return libf_data;
     }
 
-    void process_merged_bin(data_store & libf_data,
-                            size_t const bin_id,
-                            int const trace_j,
-                            int const j,
-                            size_t const kmer_count) const
+    void process_merged_bin(data_store & libf_data, size_t const bin_id, size_t const kmer_count) const
     {
         update_libf_data(libf_data, bin_id);
 
@@ -461,8 +455,10 @@ private:
             uint64_t const cardinality = config.disable_estimate_union
                                            ? kmer_count
                                            : sketch::toolbox::estimate_interval(data->sketches, libf_data.positions);
-            hibf_statistics::bin & bin_stats =
-                data->stats->bins.emplace_back(hibf_statistics::bin_kind::merged, cardinality, j - trace_j, 1ul);
+            hibf_statistics::bin & bin_stats = data->stats->bins.emplace_back(hibf_statistics::bin_kind::merged,
+                                                                              cardinality,
+                                                                              libf_data.positions.size(),
+                                                                              1ul);
             libf_data.stats = &bin_stats.child_level;
         }
 
