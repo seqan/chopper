@@ -64,9 +64,6 @@ public:
 
         //!\brief The query cost to arrive at this IBF (updated before backtracking respective DP).
         double current_query_cost{0.0};
-
-        //!\brief A pointer to the positions of the user input sequences.
-        std::vector<size_t> positions;
     };
 
     //!\brief The kind of bin that is stored.
@@ -84,6 +81,7 @@ public:
         size_t const cardinality;       //!< The size/weight of the bin (either a kmer count or hll sketch estimation).
         size_t const num_contained_ubs; //!< [MERGED] How many UBs are merged within this TB.
         size_t const num_spanning_tbs;  //!< [SPLIT] How many TBs are used for this sindle UB.
+        std::vector<size_t> const user_bin_indices; //!< The user bin indices of this bin.
 
         level child_level; //!< [MERGED] The lower level ibf statistics.
 
@@ -94,11 +92,12 @@ public:
         bin & operator=(bin &&) = default;      //!< Defaulted.
         ~bin() = default;                       //!< Defaulted.
 
-        bin(bin_kind const kind_, size_t const card, size_t const contained_ubs, size_t const spanning_tbs) :
+        bin(bin_kind const kind_, size_t const card, size_t const contained_ubs, size_t const spanning_tbs, std::vector<size_t> const & user_bin_indices_) :
             kind{kind_},
             cardinality{card},
             num_contained_ubs{contained_ubs},
-            num_spanning_tbs{spanning_tbs}
+            num_spanning_tbs{spanning_tbs},
+            user_bin_indices{user_bin_indices_}
         {
             assert((kind == bin_kind::split && num_contained_ubs == 1u)
                    || (kind == bin_kind::merged && num_spanning_tbs == 1u));
@@ -485,13 +484,11 @@ private:
                 if (!config.disable_estimate_union)
                 {
                     // compute merged_bin_sketch
-                    auto & positions = current_bin.child_level.positions;
+                    assert(!current_bin.user_bin_indices.empty());
+                    sketch::hyperloglog hll = sketches[current_bin.user_bin_indices[0]];
 
-                    assert(!positions.empty());
-                    sketch::hyperloglog hll = sketches[positions[0]];
-
-                    for (size_t i = 1; i < positions.size(); ++i)
-                        hll.merge(sketches[positions[i]]);
+                    for (size_t i = 1; i < current_bin.user_bin_indices.size(); ++i)
+                        hll.merge(sketches[current_bin.user_bin_indices[i]]);
 
                     merged_bin_sketches.push_back(std::move(hll));
                 }

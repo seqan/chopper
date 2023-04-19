@@ -306,9 +306,6 @@ private:
     {
         assert(data != nullptr);
 
-        if (data->stats)
-            data->stats->positions = data->positions;
-
         // backtracking starts at the bottom right corner:
         size_t trace_i = num_technical_bins - 1;
         size_t trace_j = num_user_bins - 1;
@@ -361,7 +358,8 @@ private:
                 // add split bin to ibf statistics
                 if (data->stats)
                 {
-                    data->stats->bins.emplace_back(hibf_statistics::bin_kind::split, kmer_count, 1ul, number_of_bins);
+                    std::vector<size_t> user_bin_indices{data->positions[trace_j]};
+                    data->stats->bins.emplace_back(hibf_statistics::bin_kind::split, kmer_count, 1ul, number_of_bins, user_bin_indices);
                 }
 
                 // std::cout << "split " << trace_j << " into " << number_of_bins << ": " << kmer_count_per_bin << std::endl;
@@ -415,7 +413,8 @@ private:
             // add split bin to ibf statistics
             if (data->stats)
             {
-                data->stats->bins.emplace_back(hibf_statistics::bin_kind::split, kmer_count, 1ul, number_of_tbs);
+                std::vector<size_t> user_bin_indices{data->positions[0]};
+                data->stats->bins.emplace_back(hibf_statistics::bin_kind::split, kmer_count, 1ul, number_of_tbs, user_bin_indices);
             }
 
             update_max_id(high_level_max_id, high_level_max_size, bin_id, average_bin_size);
@@ -455,10 +454,16 @@ private:
             uint64_t const cardinality = config.disable_estimate_union
                                            ? kmer_count
                                            : sketch::toolbox::estimate_interval(data->sketches, libf_data.positions);
+
+            std::vector<size_t> user_bin_indices{};
+            for (size_t pos : libf_data.positions)
+                user_bin_indices.push_back(pos);
+
             hibf_statistics::bin & bin_stats = data->stats->bins.emplace_back(hibf_statistics::bin_kind::merged,
                                                                               cardinality,
                                                                               libf_data.positions.size(),
-                                                                              1ul);
+                                                                              1ul,
+                                                                              user_bin_indices);
             libf_data.stats = &bin_stats.child_level;
         }
 
