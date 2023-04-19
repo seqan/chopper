@@ -219,7 +219,6 @@ public:
             {
                 std::vector<size_t> user_bin_indices{data->positions[trace_j]};
                 data->stats->bins.emplace_back(hibf_statistics::bin_kind::split,
-                                               kmer_count,
                                                number_of_bins,
                                                user_bin_indices);
             }
@@ -246,7 +245,6 @@ public:
         {
             std::vector<size_t> user_bin_indices{data->positions[0]};
             data->stats->bins.emplace_back(hibf_statistics::bin_kind::split,
-                                           kmer_count,
                                            trace_i,
                                            user_bin_indices);
         }

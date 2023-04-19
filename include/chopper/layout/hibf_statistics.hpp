@@ -51,6 +51,7 @@ public:
         config{config_},
         fp_correction{&fp_correction_},
         sketches{sketches_},
+        counts{kmer_counts},
         total_kmer_count{std::accumulate(kmer_counts.begin(), kmer_counts.end(), size_t{})}
     {}
 
@@ -78,7 +79,7 @@ public:
     {
     public:
         bin_kind const kind;            //!< Either a split or merged bin.
-        size_t const cardinality;       //!< The size/weight of the bin (either a kmer count or hll sketch estimation).
+        size_t cardinality;       //!< The size/weight of the bin (either a kmer count or hll sketch estimation). Will be computed after construction in compute_cardinalities.
         size_t const num_contained_ubs; //!< [MERGED] How many UBs are merged within this TB.
         size_t const num_spanning_tbs;  //!< [SPLIT] How many TBs are used for this sindle UB.
         std::vector<size_t> const user_bin_indices; //!< The user bin indices of this bin.
@@ -93,11 +94,9 @@ public:
         ~bin() = default;                       //!< Defaulted.
 
         bin(bin_kind const kind_,
-            size_t const card,
             size_t const spanning_tbs,
             std::vector<size_t> const & user_bin_indices_) :
             kind{kind_},
-            cardinality{card},
             num_contained_ubs{user_bin_indices_.size()},
             num_spanning_tbs{spanning_tbs},
             user_bin_indices{user_bin_indices_}
@@ -110,6 +109,8 @@ public:
     //!\brief Gather all statistics to have all members ready.
     void finalize()
     {
+        compute_cardinalities(top_level_ibf);
+
         compute_total_query_cost(top_level_ibf);
 
         gather_statistics(top_level_ibf, 0);
@@ -411,6 +412,9 @@ private:
     //!\brief A reference to the input sketches.
     std::vector<sketch::hyperloglog> const & sketches;
 
+    //!\brief A reference to the input counts.
+    std::vector<size_t> const & counts;
+
     //!\brief The original kmer count of all user bins.
     size_t const total_kmer_count{};
 
@@ -465,6 +469,40 @@ private:
     {
         size_t const size_in_bytes = compute_bin_size(number_of_kmers_to_be_stored) / 8;
         return byte_size_to_formatted_str(size_in_bytes);
+    }
+
+    void compute_cardinalities(level & curr_level)
+    {
+        for (bin & current_bin : curr_level.bins)
+        {
+            if (current_bin.kind == bin_kind::merged)
+            {
+                if (config.disable_estimate_union)
+                {
+                    size_t sum{};
+                    for (size_t i = 0; i < current_bin.user_bin_indices.size(); ++i)
+                        sum += counts[current_bin.user_bin_indices[i]]; // TODO should be kmer_counts
+                    current_bin.cardinality = sum;
+                }
+                else
+                {
+                    assert(!current_bin.user_bin_indices.empty());
+                    sketch::hyperloglog hll = sketches[current_bin.user_bin_indices[0]];
+
+                    for (size_t i = 1; i < current_bin.user_bin_indices.size(); ++i)
+                        hll.merge(sketches[current_bin.user_bin_indices[i]]);
+
+                    current_bin.cardinality = hll.estimate();
+                }
+
+                compute_cardinalities(current_bin.child_level);
+            }
+            else if (current_bin.kind == bin_kind::split) // bin_kind::split
+            {
+                assert(current_bin.user_bin_indices.size() == 1);
+                current_bin.cardinality = counts[current_bin.user_bin_indices[0]];
+            }
+        }
     }
 
     //!\brief Computes the estimated query cost

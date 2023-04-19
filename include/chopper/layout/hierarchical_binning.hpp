@@ -341,7 +341,7 @@ private:
                 trace_i = next_i;
                 trace_j = next_j; // unneccessary?
 
-                process_merged_bin(libf_data, bin_id, kmer_count);
+                process_merged_bin(libf_data, bin_id);
 
                 update_max_id(high_level_max_id, high_level_max_size, bin_id, kmer_count);
                 // std::cout << "]: " << kmer_count << std::endl;
@@ -360,7 +360,6 @@ private:
                 {
                     std::vector<size_t> user_bin_indices{data->positions[trace_j]};
                     data->stats->bins.emplace_back(hibf_statistics::bin_kind::split,
-                                                   kmer_count,
                                                    number_of_bins,
                                                    user_bin_indices);
                 }
@@ -393,7 +392,7 @@ private:
             }
             assert(trace_j == 0);
 
-            process_merged_bin(libf_data, bin_id, kmer_count);
+            process_merged_bin(libf_data, bin_id);
 
             update_max_id(high_level_max_id, high_level_max_size, bin_id, kmer_count);
 
@@ -418,7 +417,6 @@ private:
             {
                 std::vector<size_t> user_bin_indices{data->positions[0]};
                 data->stats->bins.emplace_back(hibf_statistics::bin_kind::split,
-                                               kmer_count,
                                                number_of_tbs,
                                                user_bin_indices);
             }
@@ -450,23 +448,18 @@ private:
         return libf_data;
     }
 
-    void process_merged_bin(data_store & libf_data, size_t const bin_id, size_t const kmer_count) const
+    void process_merged_bin(data_store & libf_data, size_t const bin_id) const
     {
         update_libf_data(libf_data, bin_id);
 
         // add merged bin to ibf statistics
         if (data->stats)
         {
-            uint64_t const cardinality = config.disable_estimate_union
-                                           ? kmer_count
-                                           : sketch::toolbox::estimate_interval(data->sketches, libf_data.positions);
-
             std::vector<size_t> user_bin_indices{};
             for (size_t pos : libf_data.positions)
                 user_bin_indices.push_back(pos);
 
             hibf_statistics::bin & bin_stats = data->stats->bins.emplace_back(hibf_statistics::bin_kind::merged,
-                                                                              cardinality,
                                                                               1ul,
                                                                               user_bin_indices);
             libf_data.stats = &bin_stats.child_level;

@@ -42,7 +42,6 @@ TEST(hibf_statistics, only_merged_on_top_level)
 {
     // parameters for this test HIBF
     size_t const num_top_level_bins = 4u;
-    size_t const cardinality = 100u;
     size_t const top_level_num_contained_user_bins = 2u;
     size_t const lower_level_split_bin_span = 1u;
 
@@ -64,14 +63,12 @@ TEST(hibf_statistics, only_merged_on_top_level)
     {
         chopper::layout::hibf_statistics::bin & bin =
             stats.top_level_ibf.bins.emplace_back(chopper::layout::hibf_statistics::bin_kind::merged,
-                                                  cardinality,
                                                   1u, // merged bin always is a single technical bin
                                                   std::vector<size_t>{0, 1});
 
         for (size_t j = 0; j < top_level_num_contained_user_bins; ++j)
         {
             bin.child_level.bins.emplace_back(chopper::layout::hibf_statistics::bin_kind::split,
-                                              cardinality / 2,
                                               lower_level_split_bin_span,
                                               std::vector<size_t>{j % 2});
         }
