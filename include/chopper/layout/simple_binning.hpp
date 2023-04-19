@@ -148,9 +148,6 @@ public:
     {
         assert(data != nullptr);
 
-        if (data->stats)
-            data->stats->positions = data->positions;
-
         std::vector<std::vector<size_t>> matrix(num_technical_bins); // rows
         for (auto & v : matrix)
             v.resize(num_user_bins, std::numeric_limits<size_t>::max()); // columns
@@ -220,7 +217,12 @@ public:
             // add split bin to ibf statistics
             if (data->stats)
             {
-                data->stats->bins.emplace_back(hibf_statistics::bin_kind::split, kmer_count, 1ul, number_of_bins);
+                std::vector<size_t> user_bin_indices{data->positions[trace_j]};
+                data->stats->bins.emplace_back(hibf_statistics::bin_kind::split,
+                                               kmer_count,
+                                               1ul,
+                                               number_of_bins,
+                                               user_bin_indices);
             }
 
             if (kmer_count_per_bin > max_size)
@@ -243,7 +245,12 @@ public:
         // add split bin to ibf statistics
         if (data->stats)
         {
-            data->stats->bins.emplace_back(hibf_statistics::bin_kind::split, kmer_count, 1ul, trace_i);
+            std::vector<size_t> user_bin_indices{data->positions[0]};
+            data->stats->bins.emplace_back(hibf_statistics::bin_kind::split,
+                                           kmer_count,
+                                           1ul,
+                                           trace_i,
+                                           user_bin_indices);
         }
 
         if (kmer_count_per_bin > max_size)
