@@ -71,7 +71,7 @@ TEST(hibf_statistics, only_merged_on_top_level)
         for (size_t j = 0; j < top_level_num_contained_user_bins; ++j)
         {
             bin.child_level.bins.emplace_back(chopper::layout::hibf_statistics::bin_kind::split,
-                                              cardinality,
+                                              cardinality / 2,
                                               lower_level_split_bin_span,
                                               std::vector<size_t>{j % 2});
         }
@@ -98,7 +98,7 @@ TEST(hibf_statistics, only_merged_on_top_level)
 ## size : The expected total size of an tmax-HIBF
 ## uncorr_size : The expected size of an tmax-HIBF without FPR correction
 # tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size	uncorr_size	level	num_ibfs	level_size	level_size_no_corr	total_num_tbs	avg_num_tbs	split_tb_percentage	max_split_tb	avg_split_tb	max_factor	avg_factor
-64	1.00	16.00	1.00	16.00	1.2KiB	1.2KiB	:0:1	:1:4	:395Bytes:790Bytes	:395Bytes:790Bytes	:4:8	:4:2	:0.00:100.00	:-:1	:-:1.00	:-:1.00	:-:1.00
+64	1.00	8.00	1.00	8.00	790Bytes	790Bytes	:0:1	:1:4	:395Bytes:395Bytes	:395Bytes:395Bytes	:4:8	:4:2	:0.00:100.00	:-:1	:-:1.00	:-:1.00	:-:1.00
 )expected_cout";
 
     EXPECT_EQ(summary, expected_cout);
