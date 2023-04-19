@@ -92,7 +92,11 @@ public:
         bin & operator=(bin &&) = default;      //!< Defaulted.
         ~bin() = default;                       //!< Defaulted.
 
-        bin(bin_kind const kind_, size_t const card, size_t const contained_ubs, size_t const spanning_tbs, std::vector<size_t> const & user_bin_indices_) :
+        bin(bin_kind const kind_,
+            size_t const card,
+            size_t const contained_ubs,
+            size_t const spanning_tbs,
+            std::vector<size_t> const & user_bin_indices_) :
             kind{kind_},
             cardinality{card},
             num_contained_ubs{contained_ubs},

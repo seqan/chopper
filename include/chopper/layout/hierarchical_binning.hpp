@@ -359,7 +359,11 @@ private:
                 if (data->stats)
                 {
                     std::vector<size_t> user_bin_indices{data->positions[trace_j]};
-                    data->stats->bins.emplace_back(hibf_statistics::bin_kind::split, kmer_count, 1ul, number_of_bins, user_bin_indices);
+                    data->stats->bins.emplace_back(hibf_statistics::bin_kind::split,
+                                                   kmer_count,
+                                                   1ul,
+                                                   number_of_bins,
+                                                   user_bin_indices);
                 }
 
                 // std::cout << "split " << trace_j << " into " << number_of_bins << ": " << kmer_count_per_bin << std::endl;
@@ -414,7 +418,11 @@ private:
             if (data->stats)
             {
                 std::vector<size_t> user_bin_indices{data->positions[0]};
-                data->stats->bins.emplace_back(hibf_statistics::bin_kind::split, kmer_count, 1ul, number_of_tbs, user_bin_indices);
+                data->stats->bins.emplace_back(hibf_statistics::bin_kind::split,
+                                               kmer_count,
+                                               1ul,
+                                               number_of_tbs,
+                                               user_bin_indices);
             }
 
             update_max_id(high_level_max_id, high_level_max_size, bin_id, average_bin_size);
