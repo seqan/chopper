@@ -11,14 +11,10 @@
 TEST(simple_binning_test, small_example)
 {
     chopper::layout::layout hibf_layout;
-    chopper::layout::hibf_statistics global_stats_dummy{{}, {}, {}, {}};
 
-    chopper::data_store data{.stats = &global_stats_dummy.top_level_ibf,
-                             .hibf_layout = &hibf_layout,
+    chopper::data_store data{.hibf_layout = &hibf_layout,
                              .kmer_counts = {100, 40, 20, 20},
                              .fp_correction = std::vector<double>(65, 1.0)};
-
-    // data.stats = &global_stats_dummy.top_level_ibf;
 
     chopper::layout::simple_binning algo{data, 9};
     size_t max_bin = algo.execute();
@@ -32,10 +28,8 @@ TEST(simple_binning_test, small_example)
 TEST(simple_binning_test, uniform_distribution)
 {
     chopper::layout::layout hibf_layout;
-    chopper::layout::hibf_statistics global_stats_dummy{{}, {}, {}, {}};
 
-    chopper::data_store data{.stats = &global_stats_dummy.top_level_ibf,
-                             .hibf_layout = &hibf_layout,
+    chopper::data_store data{.hibf_layout = &hibf_layout,
                              .kmer_counts = {20, 20, 20, 20},
                              .fp_correction = std::vector<double>(65, 1.0)};
 
@@ -51,10 +45,8 @@ TEST(simple_binning_test, uniform_distribution)
 TEST(simple_binning_test, user_bins_must_be_smaller_than_technical_bins)
 {
     chopper::layout::layout hibf_layout;
-    chopper::layout::hibf_statistics global_stats_dummy{{}, {}, {}, {}};
 
-    chopper::data_store data{.stats = &global_stats_dummy.top_level_ibf,
-                             .hibf_layout = &hibf_layout,
+    chopper::data_store data{.hibf_layout = &hibf_layout,
                              .kmer_counts = {100, 40, 20, 20},
                              .fp_correction = std::vector<double>(65, 1.0)};
 

@@ -10,6 +10,7 @@
 
 #include <chopper/configuration.hpp>
 #include <chopper/layout/ibf_query_cost.hpp>
+#include <chopper/layout/layout.hpp>
 #include <chopper/next_multiple_of_64.hpp>
 #include <chopper/sketch/hyperloglog.hpp>
 #include <chopper/sketch/toolbox.hpp>
@@ -24,6 +25,26 @@
 #        define CHOPPER_WORKAROUND_GCC_BOGUS_MEMCPY 0
 #    endif
 #endif
+
+namespace std
+{
+
+template <>
+struct hash<std::vector<size_t>>
+{
+    size_t operator()(std::vector<size_t> const & vec) const
+    {
+        return std::accumulate(vec.begin(),
+                               vec.end(),
+                               vec.size(),
+                               [](std::size_t hash, size_t value)
+                               {
+                                   return hash ^= value + 0x9e3779b9ULL + (hash << 6) + (hash >> 2);
+                               });
+    }
+};
+
+} // namespace std
 
 namespace chopper::layout
 {
@@ -78,14 +99,14 @@ public:
     class bin
     {
     public:
-        bin_kind const kind; //!< Either a split or merged bin.
-        size_t
-            cardinality; //!< The size/weight of the bin (either a kmer count or hll sketch estimation). Will be computed after construction in compute_cardinalities.
-        size_t const num_contained_ubs;             //!< [MERGED] How many UBs are merged within this TB.
-        size_t const num_spanning_tbs;              //!< [SPLIT] How many TBs are used for this sindle UB.
-        std::vector<size_t> const user_bin_indices; //!< The user bin indices of this bin.
-
-        level child_level; //!< [MERGED] The lower level ibf statistics.
+        bin_kind kind;            //!< Either a split or merged bin.
+        size_t cardinality;       //!< The size/weight of the bin (either a kmer count or hll sketch estimation).
+        size_t num_contained_ubs; //!< [MERGED] How many UBs are merged within this TB.
+        size_t num_spanning_tbs;  //!< [SPLIT] How many TBs are used for this sindle UB.
+        std::vector<size_t> user_bin_indices; //!< The user bin indices of this bin.
+        size_t tb_index;                      // The (first) technical bin idx this bin is stored in.
+        level child_level;                    //!< [MERGED] The lower level ibf statistics.
+        size_t child_level_idx;               //!< [MERGED] The lower level ibf statistics.
 
         bin() = default;                        //!< Defaulted.
         bin(bin const & b) = default;           //!< Defaulted.
@@ -108,6 +129,8 @@ public:
     //!\brief Gather all statistics to have all members ready.
     void finalize()
     {
+        collect_bins();
+
         compute_cardinalities(top_level_ibf);
 
         compute_total_query_cost(top_level_ibf);
@@ -401,6 +424,9 @@ public:
     //!\brief The estimated query cost relative to the total k-mer count in the data set.
     double expected_HIBF_query_cost{0.0};
 
+    //!\brief A reference to the input counts.
+    chopper::layout::layout hibf_layout;
+
 private:
     //!\brief Copy of the user configuration for this HIBF.
     configuration const config{};
@@ -468,6 +494,64 @@ private:
     {
         size_t const size_in_bytes = compute_bin_size(number_of_kmers_to_be_stored) / 8;
         return byte_size_to_formatted_str(size_in_bytes);
+    }
+
+    void collect_bins()
+    {
+        std::vector<hibf_statistics::level> ibfs(hibf_layout.max_bins.size() + 1); // 0 = top_level
+        robin_hood::unordered_map<std::vector<size_t>, size_t> id_to_pos{};
+
+        // fill id_to_pos map
+        id_to_pos[std::vector<size_t>{}] = 0;
+        for (size_t i = 0; i < hibf_layout.max_bins.size(); ++i)
+            id_to_pos[hibf_layout.max_bins[i].previous_TB_indices] = i + 1;
+
+        for (auto const & user_bin_info : hibf_layout.user_bins)
+        {
+            std::vector<size_t> prev{};
+
+            // add user bin index to previous merged bins
+            for (size_t i = 0; i < user_bin_info.previous_TB_indices.size(); ++i)
+            {
+                auto & ibf = ibfs[id_to_pos.at(prev)];
+                auto const target_tb_index = user_bin_info.previous_TB_indices[i];
+
+                bool found_merged_bin{false};
+                for (auto & previous_bins_to_check : ibf.bins)
+                {
+                    if (previous_bins_to_check.tb_index == target_tb_index)
+                    {
+                        found_merged_bin = true;
+                        previous_bins_to_check.user_bin_indices.push_back(user_bin_info.idx);
+                        ++previous_bins_to_check.num_contained_ubs;
+                    }
+                }
+
+                if (!found_merged_bin)
+                {
+                    ibf.bins.emplace_back(hibf_statistics::bin_kind::merged, 1, std::vector<size_t>{user_bin_info.idx});
+                    ibf.bins.back().tb_index = target_tb_index;
+                    auto next = prev;
+                    next.push_back(target_tb_index);
+                    ibf.bins.back().child_level_idx = id_to_pos.at(next);
+                }
+                prev.push_back(target_tb_index);
+            }
+
+            // emplace a split bin at last since every user bin is on its lowest level single or split
+            auto & ibf = ibfs[id_to_pos.at(prev)];
+            ibf.bins.emplace_back(hibf_statistics::bin_kind::split,
+                                  user_bin_info.number_of_technical_bins,
+                                  std::vector<size_t>{user_bin_info.idx});
+            ibf.bins.back().tb_index = user_bin_info.storage_TB_id;
+        }
+
+        for (auto & ibf : ibfs)
+            for (auto & bin : ibf.bins)
+                if (bin.kind == hibf_statistics::bin_kind::merged)
+                    bin.child_level = ibfs[bin.child_level_idx];
+
+        top_level_ibf = std::move(ibfs[0]);
     }
 
     void compute_cardinalities(level & curr_level)

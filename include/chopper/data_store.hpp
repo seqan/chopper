@@ -4,7 +4,6 @@
 #include <vector>
 
 #include <chopper/configuration.hpp>
-#include <chopper/layout/hibf_statistics.hpp>
 #include <chopper/layout/layout.hpp>
 #include <chopper/sketch/toolbox.hpp>
 
@@ -36,9 +35,6 @@ struct data_store
      */
     //!\brief The desired maximum false positive rate of the resulting index.
     double const false_positive_rate{};
-
-    //!\brief An object starting at the top level IBF to collecting statistics about the HIBF on the way.
-    layout::hibf_statistics::level * stats{nullptr};
 
     //!\brief The layout that is build by layout::hierarchical_binning.
     layout::layout * hibf_layout;

@@ -6,6 +6,7 @@
 
 #include <chopper/configuration.hpp>
 #include <chopper/layout/compute_fp_correction.hpp>
+#include <chopper/layout/hibf_statistics.hpp>
 #include <chopper/layout/hierarchical_binning.hpp>
 #include <chopper/layout/ibf_query_cost.hpp>
 #include <chopper/layout/output.hpp>
@@ -56,14 +57,12 @@ size_t determine_best_number_of_technical_bins(chopper::data_store & data, chopp
         data.hibf_layout = &tmp_layout;
         data.previous = chopper::data_store::previous_level{}; // reset previous IBF, s.t. data refers to top level IBF
 
-        chopper::layout::hibf_statistics global_stats{config, data.fp_correction, data.sketches, data.kmer_counts};
-        data.stats = &global_stats.top_level_ibf;
-
         // execute the actual algorithm
         size_t const max_hibf_id_tmp = chopper::layout::hierarchical_binning{data, config}.execute();
 
+        chopper::layout::hibf_statistics global_stats{config, data.fp_correction, data.sketches, data.kmer_counts};
+        global_stats.hibf_layout = *data.hibf_layout;
         global_stats.finalize();
-
         global_stats.print_summary_to(t_max_64_memory, file_out, config.output_verbose_statistics);
 
         // Use result if better than previous one.
@@ -118,14 +117,14 @@ int execute(chopper::configuration & config, std::vector<std::string> const & fi
     }
     else
     {
-        chopper::layout::hibf_statistics global_stats{config, data.fp_correction, data.sketches, data.kmer_counts};
-        data.stats = &global_stats.top_level_ibf;
         size_t dummy{};
 
         max_hibf_id = chopper::layout::hierarchical_binning{data, config}.execute(); // just execute once
 
         if (config.output_verbose_statistics)
         {
+            chopper::layout::hibf_statistics global_stats{config, data.fp_correction, data.sketches, data.kmer_counts};
+            global_stats.hibf_layout = *data.hibf_layout;
             global_stats.print_header_to(std::cout);
             global_stats.print_summary_to(dummy, std::cout);
         }
