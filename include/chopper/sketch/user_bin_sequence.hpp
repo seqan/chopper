@@ -124,9 +124,11 @@ public:
         }
         // create empty_bin_cum_sizes with cumulative sizes
         empty_bin_cum_sizes.resize(empty_bins.size());
-        empty_bin_cum_sizes[0] = empty_bins[0];
-        for (size_t j = 1; j < sketches.size(); ++j)
-            if (empty_bins[j]==true) empty_bin_cum_sizes[j] += empty_bin_cum_sizes[j - 1] + user_bin_kmer_counts -> at(j);
+        if (empty_bins[0]) empty_bin_cum_sizes[0] = user_bin_kmer_counts -> at(0);
+        for (size_t j = 1; j < sketches.size(); ++j) {
+            if (empty_bins[j]) empty_bin_cum_sizes[j] = user_bin_kmer_counts->at(j);
+            empty_bin_cum_sizes[j] += empty_bin_cum_sizes[j - 1];
+        }
     }
 
     /*!\brief Restore the HLL sketches from the files in hll_dir
@@ -206,7 +208,7 @@ public:
      */
     void precompute_initial_union_estimates(std::vector<uint64_t> & estimates) const
     {
-        assert(user_bin_kmer_counts != nullptr);
+        assert(user_bin_kmer_counts != nullptr); //todo asset
         assert(filenames->size() == user_bin_kmer_counts->size());
         assert(filenames->size() == sketches.size());
         assert(filenames->size() > 0u);

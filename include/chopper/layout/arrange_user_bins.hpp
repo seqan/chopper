@@ -28,7 +28,7 @@ std::vector<size_t> empty_bin_indices (double empty_bin_fraction, size_t origina
  * \details If empty bins need to be inserted, then first sort the k-mer counts by cardinality and then insert empty bins.
  * \author Adapted by Myrthe Willemsen
  */
-
+// TODO myrthe bin 07 disapears. in the halved example it is for instance _01.
 inline void arrange_user_bins(data_store & data, configuration const & config)
 {
     if (!data.user_bins_arranged)
