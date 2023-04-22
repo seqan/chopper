@@ -44,7 +44,7 @@ public:
     hierarchical_binning(data_store & data_, configuration const & config_) :
         config{config_},
         data{std::addressof(data_)},
-        num_user_bins{static_cast<size_t>((double) data->kmer_counts.size()*(1+config.update_ubs))},
+        num_user_bins{static_cast<size_t>(std::ceil((double) data->kmer_counts.size()*(1+config.update_ubs)))},
         num_technical_bins{data->previous.empty() ? config.tmax : needed_technical_bins(num_user_bins)}
     {
         assert(data != nullptr);
