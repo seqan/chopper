@@ -42,7 +42,6 @@ TEST(hibf_statistics, only_merged_on_top_level)
 {
     // parameters for this test HIBF
     size_t const num_top_level_bins = 4u;
-    // size_t const top_level_num_contained_user_bins = 2u;
     size_t const lower_level_split_bin_span = 1u;
 
     chopper::configuration config{}; // default config

@@ -97,9 +97,7 @@ public:
         // print_matrix(ll_matrix, num_technical_bins, num_user_bins, max_size_t);
         // print_matrix(trace, num_technical_bins, num_user_bins, std::make_pair(max_size_t, max_size_t));
 
-        size_t const max_bin_idx = backtracking(trace);
-
-        return max_bin_idx;
+        return backtracking(trace);
     }
 
 private:
