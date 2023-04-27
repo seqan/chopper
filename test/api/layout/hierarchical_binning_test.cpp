@@ -19,12 +19,9 @@ TEST(hierarchical_binning_test, small_example)
     config.disable_estimate_union = true; // also disables rearrangement
 
     chopper::layout::layout hibf_layout{};
-    chopper::layout::hibf_statistics global_stats_dummy{{}, {}, {}, {}};
     std::vector<size_t> kmer_counts{500, 1000, 500, 500, 500, 500, 500, 500};
 
-    chopper::data_store data{.stats = &global_stats_dummy.top_level_ibf,
-                             .hibf_layout = &hibf_layout,
-                             .kmer_counts = kmer_counts};
+    chopper::data_store data{.hibf_layout = &hibf_layout, .kmer_counts = kmer_counts};
 
     data.fp_correction = chopper::layout::compute_fp_correction(0.05, 2, config.tmax);
     chopper::layout::hierarchical_binning algo{data, config};
@@ -52,11 +49,8 @@ TEST(hierarchical_binning_test, another_example)
     config.disable_estimate_union = true; // also disables rearrangement
 
     chopper::layout::layout hibf_layout{};
-    chopper::layout::hibf_statistics global_stats_dummy{{}, {}, {}, {}};
     std::vector<size_t> kmer_counts{50, 1000, 1000, 50, 5, 10, 10, 5};
-    chopper::data_store data{.stats = &global_stats_dummy.top_level_ibf,
-                             .hibf_layout = &hibf_layout,
-                             .kmer_counts = kmer_counts};
+    chopper::data_store data{.hibf_layout = &hibf_layout, .kmer_counts = kmer_counts};
 
     data.fp_correction = chopper::layout::compute_fp_correction(0.05, 2, config.tmax);
 
@@ -85,11 +79,8 @@ TEST(hierarchical_binning_test, high_level_max_bin_id_is_0)
     config.disable_estimate_union = true; // also disables rearrangement
 
     chopper::layout::layout hibf_layout{};
-    chopper::layout::hibf_statistics global_stats_dummy{{}, {}, {}, {}};
     std::vector<size_t> kmer_counts{500, 500, 500, 500};
-    chopper::data_store data{.stats = &global_stats_dummy.top_level_ibf,
-                             .hibf_layout = &hibf_layout,
-                             .kmer_counts = kmer_counts};
+    chopper::data_store data{.hibf_layout = &hibf_layout, .kmer_counts = kmer_counts};
 
     data.fp_correction = chopper::layout::compute_fp_correction(0.05, 2, config.tmax);
 
@@ -112,11 +103,8 @@ TEST(hierarchical_binning_test, knuts_example)
     config.disable_estimate_union = true; // also disables rearrangement
 
     chopper::layout::layout hibf_layout{};
-    chopper::layout::hibf_statistics global_stats_dummy{{}, {}, {}, {}};
     std::vector<size_t> kmer_counts{60, 600, 1000, 800, 800};
-    chopper::data_store data{.stats = &global_stats_dummy.top_level_ibf,
-                             .hibf_layout = &hibf_layout,
-                             .kmer_counts = kmer_counts};
+    chopper::data_store data{.hibf_layout = &hibf_layout, .kmer_counts = kmer_counts};
 
     data.fp_correction = chopper::layout::compute_fp_correction(0.05, 2, config.tmax);
 
@@ -142,11 +130,8 @@ TEST(hierarchical_binning_test, four_level_hibf)
     config.disable_estimate_union = true; // also disables rearrangement
 
     chopper::layout::layout hibf_layout{};
-    chopper::layout::hibf_statistics global_stats_dummy{{}, {}, {}, {}};
     std::vector<size_t> kmer_counts{11090, 5080, 3040, 1020, 510, 500};
-    chopper::data_store data{.stats = &global_stats_dummy.top_level_ibf,
-                             .hibf_layout = &hibf_layout,
-                             .kmer_counts = kmer_counts};
+    chopper::data_store data{.hibf_layout = &hibf_layout, .kmer_counts = kmer_counts};
 
     data.fp_correction = chopper::layout::compute_fp_correction(0.05, 2, config.tmax);
 
@@ -177,11 +162,8 @@ TEST(hierarchical_binning_test, tb0_is_a_merged_bin)
     config.disable_estimate_union = true; // also disables rearrangement
 
     chopper::layout::layout hibf_layout{};
-    chopper::layout::hibf_statistics global_stats_dummy{{}, {}, {}, {}};
     std::vector<size_t> kmer_counts{500, 500, 500, 500};
-    chopper::data_store data{.stats = &global_stats_dummy.top_level_ibf,
-                             .hibf_layout = &hibf_layout,
-                             .kmer_counts = kmer_counts};
+    chopper::data_store data{.hibf_layout = &hibf_layout, .kmer_counts = kmer_counts};
 
     data.fp_correction = chopper::layout::compute_fp_correction(0.05, 2, config.tmax);
 
@@ -207,11 +189,8 @@ TEST(hierarchical_binning_test, tb0_is_a_merged_bin_and_leads_to_recursive_call)
     config.disable_estimate_union = true; // also disables rearrangement
 
     chopper::layout::layout hibf_layout{};
-    chopper::layout::hibf_statistics global_stats_dummy{{}, {}, {}, {}};
     std::vector<size_t> kmer_counts{500, 500, 500, 500, 500, 500, 500, 500};
-    chopper::data_store data{.stats = &global_stats_dummy.top_level_ibf,
-                             .hibf_layout = &hibf_layout,
-                             .kmer_counts = kmer_counts};
+    chopper::data_store data{.hibf_layout = &hibf_layout, .kmer_counts = kmer_counts};
 
     data.fp_correction = chopper::layout::compute_fp_correction(0.05, 2, config.tmax);
 

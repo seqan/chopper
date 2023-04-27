@@ -42,7 +42,6 @@ TEST(hibf_statistics, only_merged_on_top_level)
 {
     // parameters for this test HIBF
     size_t const num_top_level_bins = 4u;
-    size_t const top_level_num_contained_user_bins = 2u;
     size_t const lower_level_split_bin_span = 1u;
 
     chopper::configuration config{}; // default config
@@ -61,17 +60,11 @@ TEST(hibf_statistics, only_merged_on_top_level)
 
     for (size_t i = 0; i < num_top_level_bins; ++i)
     {
-        chopper::layout::hibf_statistics::bin & bin =
-            stats.top_level_ibf.bins.emplace_back(chopper::layout::hibf_statistics::bin_kind::merged,
-                                                  1u, // merged bin always is a single technical bin
-                                                  std::vector<size_t>{0, 1});
+        stats.hibf_layout.max_bins.emplace_back(std::vector<size_t>{0u}, 0u);
+        stats.hibf_layout.max_bins.emplace_back(std::vector<size_t>{1u}, 0u);
 
-        for (size_t j = 0; j < top_level_num_contained_user_bins; ++j)
-        {
-            bin.child_level.bins.emplace_back(chopper::layout::hibf_statistics::bin_kind::split,
-                                              lower_level_split_bin_span,
-                                              std::vector<size_t>{j % 2});
-        }
+        stats.hibf_layout.user_bins.emplace_back(0u, std::vector<size_t>{0u}, 2u, 0u);
+        stats.hibf_layout.user_bins.emplace_back(1u, std::vector<size_t>{1u}, 2u, 0u);
     }
 
     testing::internal::CaptureStdout();
@@ -95,7 +88,7 @@ TEST(hibf_statistics, only_merged_on_top_level)
 ## size : The expected total size of an tmax-HIBF
 ## uncorr_size : The expected size of an tmax-HIBF without FPR correction
 # tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size	uncorr_size	level	num_ibfs	level_size	level_size_no_corr	total_num_tbs	avg_num_tbs	split_tb_percentage	max_split_tb	avg_split_tb	max_factor	avg_factor
-64	1.00	8.00	1.00	8.00	790Bytes	790Bytes	:0:1	:1:4	:395Bytes:395Bytes	:395Bytes:395Bytes	:4:8	:4:2	:0.00:100.00	:-:1	:-:1.00	:-:1.00	:-:1.00
+64	1.00	8.00	1.00	8.00	979Bytes	790Bytes	:0:1	:1:2	:395Bytes:584Bytes	:395Bytes:395Bytes	:2:16	:2:8	:0.00:100.00	:-:2	:-:2.00	:-:1.46	:-:1.48
 )expected_cout";
 
     EXPECT_EQ(summary, expected_cout);

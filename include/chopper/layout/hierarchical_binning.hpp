@@ -355,13 +355,6 @@ private:
                                                           number_of_bins,
                                                           bin_id);
 
-                // add split bin to ibf statistics
-                if (data->stats)
-                {
-                    std::vector<size_t> user_bin_indices{data->positions[trace_j]};
-                    data->stats->bins.emplace_back(hibf_statistics::bin_kind::split, number_of_bins, user_bin_indices);
-                }
-
                 // std::cout << "split " << trace_j << " into " << number_of_bins << ": " << kmer_count_per_bin << std::endl;
 
                 update_max_id(high_level_max_id, high_level_max_size, bin_id, kmer_count_per_bin);
@@ -410,13 +403,6 @@ private:
                                                       number_of_tbs,
                                                       bin_id);
 
-            // add split bin to ibf statistics
-            if (data->stats)
-            {
-                std::vector<size_t> user_bin_indices{data->positions[0]};
-                data->stats->bins.emplace_back(hibf_statistics::bin_kind::split, number_of_tbs, user_bin_indices);
-            }
-
             update_max_id(high_level_max_id, high_level_max_size, bin_id, average_bin_size);
             // std::cout << "split " << trace_j << " into " << trace_i << ": " << kmer_count / number_of_tbs << std::endl;
         }
@@ -447,18 +433,6 @@ private:
     void process_merged_bin(data_store & libf_data, size_t const bin_id) const
     {
         update_libf_data(libf_data, bin_id);
-
-        // add merged bin to ibf statistics
-        if (data->stats)
-        {
-            std::vector<size_t> user_bin_indices{};
-            for (size_t pos : libf_data.positions)
-                user_bin_indices.push_back(pos);
-
-            hibf_statistics::bin & bin_stats =
-                data->stats->bins.emplace_back(hibf_statistics::bin_kind::merged, 1ul, user_bin_indices);
-            libf_data.stats = &bin_stats.child_level;
-        }
 
         // now do the binning for the low-level IBF:
         size_t const lower_max_bin = add_lower_level(libf_data);
