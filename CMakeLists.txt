@@ -59,9 +59,6 @@ set (FontReset "${Esc}[m")
 # Dependency: SeqAn3.
 find_package (SeqAn3 REQUIRED QUIET HINTS ${CHOPPER_SUBMODULES_DIR}/seqan3/build_system)
 
-# Dependency: Sharg.
-find_package (Sharg REQUIRED QUIET HINTS ${CHOPPER_SUBMODULES_DIR}/sharg-parser/build_system)
-
 # Allow to include CMake scripts from seqan3.
 list (APPEND CMAKE_MODULE_PATH "${SEQAN3_CLONE_DIR}/test/cmake/")
 list (APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/test/cmake/")
@@ -76,6 +73,19 @@ list (APPEND SEQAN3_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_C_FLAGS=${CMAKE_C_FLAGS
 list (APPEND SEQAN3_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
 list (APPEND SEQAN3_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}")
 list (APPEND SEQAN3_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_VERBOSE_MAKEFILE=${CMAKE_VERBOSE_MAKEFILE}")
+
+# Use ccache.
+set (CHOPPER_USE_CCACHE
+     ON
+     CACHE BOOL "Use ccache if available."
+)
+if (CHOPPER_USE_CCACHE)
+    include (chopper_require_ccache)
+    chopper_require_ccache ()
+endif ()
+
+# Dependency: Sharg.
+find_package (Sharg REQUIRED QUIET HINTS ${CHOPPER_SUBMODULES_DIR}/sharg-parser/build_system)
 
 # Dependency: xxHash
 set (CHOPPER_XXHASH_PATH "${PROJECT_BINARY_DIR}/lib/libxxhash.a")
@@ -105,16 +115,6 @@ add_library (xxhash STATIC IMPORTED)
 add_dependencies (xxhash xxhash_project)
 set_target_properties (xxhash PROPERTIES IMPORTED_LOCATION "${CHOPPER_XXHASH_PATH}")
 target_include_directories (xxhash INTERFACE "${PROJECT_BINARY_DIR}/include")
-
-# Use ccache.
-set (CHOPPER_USE_CCACHE
-     ON
-     CACHE BOOL "Use ccache if available."
-)
-if (CHOPPER_USE_CCACHE)
-    include (chopper_require_ccache)
-    chopper_require_ccache ()
-endif ()
 
 # Add the application.
 add_subdirectory (src)
