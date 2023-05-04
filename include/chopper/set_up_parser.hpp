@@ -92,8 +92,8 @@ inline void set_up_parser(sharg::parser & parser, chopper::configuration & confi
             .short_id = '\0',
             .long_id = "threads",
             .description =
-                "The number of threads to use. Currently, only merging of sketches is parallelized, so if option "
-                "--rearrange-user-bins is not set, --threads will have no effect.",
+                "The number of threads to use. Currently, only merging of sketches is parallelized, so if the flag "
+                "--disable-rearrangement is set, --threads will have no effect.",
             .validator =
                 sharg::arithmetic_range_validator{static_cast<size_t>(1), std::numeric_limits<size_t>::max()}});
 
@@ -143,7 +143,7 @@ inline void set_up_parser(sharg::parser & parser, chopper::configuration & confi
             .short_id = '\0',
             .long_id = "max-rearrangement-ratio",
             .description =
-                "When the option --rearrange-user-bins is set, this option can influence the rearrangement "
+                "When the flag --disable-rearrangement is \\fBnot\\fP set, this option can influence the rearrangement "
                 "algorithm. The algorithm only rearranges the order of user bins in fixed intervals. The higher "
                 "--max-rearrangement-ratio, the larger the intervals. This potentially improves the layout, but "
                 "increases the runtime of the layout algorithm.",
