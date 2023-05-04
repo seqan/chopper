@@ -12,8 +12,7 @@ namespace chopper
 {
 
 struct configuration
-{
-    /*!\name General Configuration
+{ /*!\name General Configuration
      * \{
      */
     //!\brief The input file to chopper. Should contain one file path per line.
@@ -84,6 +83,12 @@ struct configuration
 
     //!\brief Whether to print verbose output when computing the statistics when computing the layout.
     bool output_verbose_statistics{false};
+
+    //!\brief The percentage of empty bins sampled during layout computation.
+    double update_ubs{0};
+
+    //!\brief Whether update operations of type sequence insertions are expected.
+    bool update_seqs{false};
     //!\}
 
 private:

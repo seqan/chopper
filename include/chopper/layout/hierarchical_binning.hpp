@@ -30,7 +30,7 @@ private:
     //!\brief Stores all data that is needed to compute the layout, e.g. the counts, sketches and the layout::layout.
     data_store * const data{nullptr};
 
-    //!\brief The number of user bins, initialised with the length of user_bin_kmer_counts.
+    //!\brief The number of user bins, initialised with the length of user_bin_kmer_counts, taking into account the percentage of empty bins to be inserted.
     size_t const num_user_bins{};
     //!\brief The number of technical bins requested by the user.
     size_t const num_technical_bins{};
@@ -53,7 +53,7 @@ public:
     hierarchical_binning(data_store & data_, configuration const & config_) :
         config{config_},
         data{std::addressof(data_)},
-        num_user_bins{data->positions.size()},
+        num_user_bins{static_cast<size_t>(std::ceil((double)data->positions.size() * (1 + config.update_ubs)))},
         num_technical_bins{data->previous.empty() ? config.tmax : needed_technical_bins(num_user_bins)}
     {
         assert(data != nullptr);
@@ -77,6 +77,11 @@ public:
 
             data->user_bins_arranged = true;
         }
+
+        assert(
+            num_user_bins
+            == data->positions
+                   .size()); // If this is not correct, there must be a rounding problem in the way num_user_bins is created.
 
         // technical bins (outer) = rows; user bins (inner) = columns
         std::vector<std::vector<size_t>> matrix(num_technical_bins, std::vector<size_t>(num_user_bins, max_size_t));

@@ -18,12 +18,13 @@ class toolbox
 public:
     //!\brief type for a node in the clustering tree when for the rearrangement
     struct clustering_node
-    {
-        // children in the tree
+    { // children in the tree
         size_t left;
         size_t right;
         // hll sketch of the union if the node is still a root
         hyperloglog hll;
+        // the sum of the number of k-mers that all empty bins that are in the subtree of this node should be able to store. This should be the minimal amount of 'unseen' k-mers that the merged bin corresponding to this node should be able to store.
+        size_t empty_bin_kmers;
     };
 
     //!\brief element of the second priority queue layer of the distance matrix
@@ -60,6 +61,12 @@ public:
     //!\brief HyperLogLog sketches on the k-mer sets of the sequences from the files of filenames.
     std::vector<size_t> & positions;
 
+    //!\brief A bitvector indicating whether a bin is empty (1) or not (0).
+    std::vector<bool> empty_bins;
+
+    //!\brief The cumulative k-mer count for the first empty bin until empty bin i
+    std::vector<size_t> empty_bin_cum_sizes;
+
 public:
     toolbox() = default;                            //!< Defaulted.
     toolbox(toolbox const &) = default;             //!< Defaulted.
@@ -79,7 +86,10 @@ public:
         kmer_counts{kmer_counts_},
         sketches{sketches_},
         positions{positions_}
-    {}
+    {
+        empty_bins.resize(sketches_->size());
+        empty_bin_cum_sizes.resize(sketches_->size());
+    }
 
     //!\brief Sorts filenames and cardinalities by looking only at the cardinalities.
     void sort_by_cardinalities()
@@ -92,6 +102,46 @@ public:
         };
 
         std::sort(positions.begin(), positions.end(), cardinality_compare);
+    }
+
+    /*!\brief insert empty bins in various datastructures based on k-mer counts.
+     * \param[in] empty_bin_fraction Currently a maximum of 1 is supported.
+     * \param[in] hll Whether HLL sketches are used in the layout algorithm
+     * \author Myrthe Willemsen
+     */
+    void insert_empty_bins(std::vector<size_t> insertion_indices, bool hll, uint8_t sketch_bits)
+    { // TODO needs adjustment
+        for (size_t idx = 0; idx < insertion_indices.size(); ++idx)
+        {
+            size_t insertion_idx =
+                insertion_indices[idx]
+                + idx; // add `idx` because the indices will be shifted because the array grows longer upon inserting.
+            filenames->insert(filenames->begin() + insertion_idx,
+                              std::to_string(user_bin_kmer_counts->at(insertion_idx)) + ".empty_bin"); // +size of UB?
+            user_bin_kmer_counts->insert(
+                user_bin_kmer_counts->begin() + insertion_idx,
+                user_bin_kmer_counts->at(
+                    insertion_idx)); // insert in the back of the list. or kmer_counts[idx] - kmer_counts[idx+1] to interpolate.
+            empty_bins.insert(
+                empty_bins.begin() + insertion_idx,
+                user_bin_kmer_counts->at(
+                    insertion_idx)); // insert in the back of the list. or kmer_counts[idx] - kmer_counts[idx+1] to interpolate.
+            if (hll)
+            {
+                chopper::sketch::hyperloglog empty_sketch(sketch_bits);
+                sketches.insert(sketches.begin() + insertion_idx, empty_sketch); //Insert an empty sketch.
+            }
+        }
+        // create empty_bin_cum_sizes with cumulative sizes
+        empty_bin_cum_sizes.resize(empty_bins.size());
+        if (empty_bins[0])
+            empty_bin_cum_sizes[0] = user_bin_kmer_counts->at(0);
+        for (size_t j = 1; j < sketches.size(); ++j)
+        {
+            if (empty_bins[j])
+                empty_bin_cum_sizes[j] = user_bin_kmer_counts->at(j);
+            empty_bin_cum_sizes[j] += empty_bin_cum_sizes[j - 1];
+        }
     }
 
     /*!\brief Restore the HLL sketches from the files in hll_dir and target_filenames into target container.
@@ -108,15 +158,19 @@ public:
         {
             for (auto const & filename : target_filenames)
             {
-                std::filesystem::path path = hll_dir / std::filesystem::path(filename).stem();
-                path += ".hll";
-                std::ifstream hll_fin(path, std::ios::binary);
+                if (std::filesystem::path(filename).extension() != ".empty_bin")
+                { //Myrthe
 
-                if (!hll_fin.good())
-                    throw std::runtime_error{"Could not open file " + path.string()};
+                    std::filesystem::path path = hll_dir / std::filesystem::path(filename).stem();
+                    path += ".hll";
+                    std::ifstream hll_fin(path, std::ios::binary);
 
-                // the sketch bits will be automatically read from the files
-                target.emplace_back().restore(hll_fin);
+                    if (!hll_fin.good())
+                        throw std::runtime_error{"Could not open file " + path.string()};
+
+                    // the sketch bits will be automatically read from the files
+                    target.emplace_back().restore(hll_fin);
+                }
             }
         }
         catch (std::runtime_error const & err)
@@ -128,7 +182,7 @@ public:
     }
 
     /*!\brief Estimate the cardinality of the union for a single user bin j with all prior ones j' < j.
-     * \param[out] estimates output row
+     * \param[out] estimates output row (column in the DP matrix)
      * \param[in] sketches The hyperloglog sketches of the respective user bins.
      * \param[in] counts The counts/sketch.estimates() of the respective user bins.
      * \param[in] positions The realtive positions of the input information to correctly access sketches and counts.
@@ -151,7 +205,22 @@ public:
         estimates[j] = counts[positions[j]];
 
         for (int64_t j_prime = j - 1; j_prime >= 0; --j_prime)
-            estimates[j_prime] = static_cast<uint64_t>(temp_hll.merge_and_estimate_SIMD(sketches[positions[j_prime]]));
+            if (empty_bins[positions[j_prime]] == false) // if j is not an empty bin
+            {
+                estimates[j_prime] =
+                    empty_bin_cum_sizes[positions[j]] - empty_bin_cum_sizes[positions[j_prime]]
+                    + // here you should add the difference in cumulative cardinalities of the empty bins on the interval of {j', ..., j}.
+                    static_cast<uint64_t>(temp_hll.merge_and_estimate_SIMD(sketches[positions[j_prime]]));
+            }
+            else
+            {
+                estimates[j_prime] =
+                    estimates[j_prime - 1] + empty_bin_cum_sizes[positions[j_prime]]
+                    - empty_bin_cum_sizes
+                        [positions
+                             [j_prime
+                              - 1]]; // here you should add the difference in cumulative cardinalities of the empty bins between j' and j.
+            }
     }
 
     /*!\brief Estimate the cardinality of the union for each interval [0, j] for all user bins j.
@@ -177,7 +246,23 @@ public:
         estimates[0] = counts[positions[0]];
 
         for (size_t j = 1; j < positions.size(); ++j)
-            estimates[j] = static_cast<uint64_t>(temp_hll.merge_and_estimate_SIMD(sketches[positions[j]]));
+        {
+            if (empty_bins[j] == false) // if j is not an empty bin
+            {
+                estimates[j] =
+                    empty_bin_cum_sizes[positions[j]]
+                    + static_cast<uint64_t>(temp_hll.merge_and_estimate_SIMD(
+                        sketches[positions[j]])); // add the sum of sizes of the empty bins for the range 0 to j.
+            }
+            else
+            {
+                estimates[j] =
+                    estimates[j - 1]
+                    + counts
+                        [positions
+                             [j]]; // if j is an empty bin, calculate the union estimate by adding the estimate from 0 to j-1 to the size of the empty bin.
+            }
+        }
     }
 
     /*!\brief Estimate the cardinality of the union for a single interval.
@@ -192,10 +277,16 @@ public:
 
         hyperloglog temp_hll = sketches[positions[0]];
 
+        size_t sum{0};
         for (size_t i = 1; i < positions.size(); ++i)
-            temp_hll.merge(sketches[positions[i]]);
+        {
+            if (empty_bins[positions[i]] == false)      // if i is not an empty bin
+                temp_hll.merge(sketches[positions[i]]); // merge the temporary sketch with the sketch of i.
+        }
 
-        return temp_hll.estimate();
+        return temp_hll.estimate() + empty_bin_cum_sizes[positions.back()]
+             - empty_bin_cum_sizes
+                   [positions.front()]; // in the end, add the sum of the sizes of all empty bins in the range.
     }
 
     /*!\brief Rearrange filenames, sketches and counts such that similar bins are close to each other
@@ -231,6 +322,24 @@ public:
             std::swap(positions[i], positions[swap_index]);
         }
     }
+
+protected:
+    /*!\brief Calculates the Jaccard distance
+     * \details The jaccard distance is caclulated according to the normal Jaccard formula, by first estimating the union of the sketches of i and j.
+     * Note: the empty bin kmer counts have already been added to estimates[i] and estimates[j], and do not need to be added again.
+     * Note: since empty bins have an empty sketch, it should not be a problem to merge them with another bin and caclulate the union estimate.
+     * \param[in] node_i, node_j the clustering nodes i and j
+     * \param[in] estimate_i, estimate_j the sketch size estimates of i and j
+     * \Returns Jaccard distance between node i and j.
+     * \author Myrthe Willemsen, created from the original embeded functionality
+     */
+    double jaccard_distance(clustering_node node_i, clustering_node node_j, double estimate_i, double estimate_j)
+    {
+        hyperloglog temp_hll = node_i.hll; // this must be a copy, because merging changes the hll sketch
+        double const estimate_ij =
+            temp_hll.merge_and_estimate_SIMD(node_j.hll) + node_i.empty_bin_kmers + node_j.empty_bin_kmers;
+        return 2 - (estimate_i + estimate_j) / estimate_ij; // Jaccard distance estimate
+    };
 
     /*!\brief Perform an agglomerative clustering variant on the index range [first:last)
      * \param[in] first id of the first cluster of the interval
@@ -287,8 +396,21 @@ public:
         for (size_t id = first; id < last; ++id)
         {
             // id i is at the index i - first
-            clustering.push_back({none, none, sketches[positions[id]]});
-            estimates.emplace_back(sketches[positions[id]].estimate());
+            clustering.push_back(
+                {none,
+                 none,
+                 sketches[positions[id]],
+                 counts[positions[id]]
+                     * empty_bins
+                         [positions
+                              [id]]}); // creates a leafnode in the tree. The last argument, the empty bin count, user_bin_kmer_counts[id][id] * empty_bins[id] gives the empty bin kmer count if we are dealing with an empty bin, and 0 otherwise.
+            if (empty_bins[positions[id]] == false)
+                estimates.emplace_back(sketches[positions[id]].estimate());
+            else
+                estimates.emplace_back(static_cast<double>(
+                    counts
+                        [positions
+                             [id]])); //  If we are dealing with an empty bin, we can simply add the user_bin_kmer_count. In theory one could also do this for the normal bins.
         }
 
         // if this is not the first group, we want to have one overlapping bin
@@ -306,8 +428,21 @@ public:
             ++new_id;
             previous_rightmost = new_id;
 
-            clustering.push_back({none, none, sketches[positions[actual_previous_rightmost]]});
-            estimates.emplace_back(sketches[positions[actual_previous_rightmost]].estimate());
+            clustering.push_back(
+                {none,
+                 none,
+                 sketches[positions[actual_previous_rightmost]],
+                 counts[positions[actual_previous_rightmost]]
+                     * empty_bins
+                         [positions
+                              [actual_previous_rightmost]]}); // The last argument, the bin count, user_bin_kmer_counts[id] * empty_bins[id] gives the empty bin kmer count if we are dealing with an empty bin, and 0 otherwise.
+            if (empty_bins[positions[actual_previous_rightmost]] == false)
+                estimates.emplace_back(sketches[positions[actual_previous_rightmost]].estimate());
+            else
+                estimates.emplace_back(static_cast<double>(
+                    counts
+                        [positions
+                             [actual_previous_rightmost]])); //  If we are dealing with an empty bin, we can simply add the user_bin_kmer_count. In theory one could also do this for the normal bins.
         }
 
         // initialize priority queues in the distance matrix (sequentially)
@@ -326,6 +461,8 @@ public:
 // initialize all the priority queues of the distance matrix
 // while doing that, compute the first min_id
 #pragma omp for schedule(nonmonotonic : dynamic, chunk_size)
+
+            // This loop only concerns distances between two user bins i and j.
             for (size_t i = 0; i < clustering.size(); ++i)
             {
                 for (size_t j = 0; j < clustering.size(); ++j)
@@ -333,11 +470,7 @@ public:
                     // we only want one diagonal of the distance matrix
                     if (i < j)
                     {
-                        // this must be a copy, because merging changes the hll sketch
-                        hyperloglog temp_hll = clustering[i].hll;
-                        double const estimate_ij = temp_hll.merge_and_estimate_SIMD(clustering[j].hll);
-                        // Jaccard distance estimate
-                        double const distance = 2 - (estimates[i] + estimates[j]) / estimate_ij;
+                        double distance = jaccard_distance(clustering[i], clustering[j], estimates[i], estimates[j]);
                         dist[i].pq.push({j + first, distance});
                     }
                 }
@@ -393,9 +526,14 @@ public:
                     size_t const neighbor_id = dist[min_index].pq.top().id;
 
                     // merge the two nodes with minimal distance together insert the new node into the clustering
-                    clustering.push_back({min_id, neighbor_id, std::move(clustering[min_id - first].hll)});
+                    size_t joint_empty_bin_kmers =
+                        clustering[min_id - first].empty_bin_kmers
+                        + clustering[neighbor_id - first].empty_bin_kmers; // calculate the sum of the empty bin k-mers.
+                    clustering.push_back(
+                        {min_id, neighbor_id, std::move(clustering[min_id - first].hll), joint_empty_bin_kmers});
                     estimates.emplace_back(
-                        clustering.back().hll.merge_and_estimate_SIMD(clustering[neighbor_id - first].hll));
+                        clustering.back().hll.merge_and_estimate_SIMD(clustering[neighbor_id - first].hll)
+                        + joint_empty_bin_kmers); // add the sum of the empty bin k-mers (of the childeren of both nodes) to the union estimate.
 
                     // remove old ids
                     remaining_ids.erase(min_id);
@@ -418,7 +556,7 @@ public:
                 min_ids[omp_get_thread_num()] = none;
                 min_dist = std::numeric_limits<double>::max();
 
-                hyperloglog const new_hll = clustering.back().hll;
+                clustering_node const new_node = clustering.back();
 
 // update distances in dist
 // while doing that, compute the new min_id
@@ -429,11 +567,11 @@ public:
                     if (other_id == new_id || !remaining_ids.contains(other_id))
                         continue;
 
-                    // this must be a copy, because merge_and_estimate_SIMD() changes the hll
-                    hyperloglog temp_hll = new_hll;
-                    double const estimate_ij = temp_hll.merge_and_estimate_SIMD(clustering[other_id - first].hll);
-                    // Jaccard distance estimate
-                    double const distance = 2 - (estimates[other_id - first] + estimates.back()) / estimate_ij;
+                    double distance = jaccard_distance(new_node,
+                                                       clustering[other_id - first],
+                                                       estimates.back(),
+                                                       estimates[other_id - first]);
+
                     dist[i].pq.push({new_id, distance});
 
                     // make sure the closest neighbor is not yet deleted (this is a lazy update)
