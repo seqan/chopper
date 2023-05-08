@@ -5,6 +5,7 @@
 
 #include <chopper/configuration.hpp>
 #include <chopper/layout/simple_binning.hpp>
+#include <chopper/layout/insert_empty_bins.hpp>
 #include <chopper/next_multiple_of_64.hpp>
 #include <chopper/prefixes.hpp>
 
@@ -69,8 +70,8 @@ public:
 
         if (!data->user_bins_arranged)
         {
-            sketch::toolbox sketch_toolbox{data->kmer_counts, data->sketches, data->positions};
-            sketch_toolbox.sort_by_cardinalities();
+            sketch::toolbox sketch_toolbox{data->kmer_counts, data->sketches, data->empty_bins, data->empty_bin_cum_sizes, data->positions};
+            sketch_toolbox.sort_by_cardinalities(); // sort filenames by k-mer count
 
             if (!config.disable_estimate_union && !config.disable_rearrangement)
                 sketch_toolbox.rearrange_bins(config.max_rearrangement_ratio, config.threads);
@@ -78,10 +79,8 @@ public:
             data->user_bins_arranged = true;
         }
 
-        assert(
-            num_user_bins
-            == data->positions
-                   .size()); // If this is not correct, there must be a rounding problem in the way num_user_bins is created.
+        // If this is not correct, there must be a rounding problem in the way num_user_bins is created.
+        assert(num_user_bins == data->positions.size());
 
         // technical bins (outer) = rows; user bins (inner) = columns
         std::vector<std::vector<size_t>> matrix(num_technical_bins, std::vector<size_t>(num_user_bins, max_size_t));
@@ -150,7 +149,9 @@ private:
             sketch::toolbox::precompute_initial_union_estimates(data->union_estimates,
                                                                 data->sketches,
                                                                 data->kmer_counts,
-                                                                data->positions);
+                                                                data->positions,
+                                                                data->empty_bins,
+                                                                data->empty_bin_cum_sizes);
 
             for (size_t j = 1; j < num_user_bins; ++j)
             {
@@ -229,6 +230,8 @@ private:
                                                                 data->sketches,
                                                                 data->kmer_counts,
                                                                 data->positions,
+                                                                data->empty_bins,
+                                                                data->empty_bin_cum_sizes,
                                                                 j);
 
             for (size_t i = 1; i < num_technical_bins; ++i)
@@ -429,6 +432,8 @@ private:
                              .hibf_layout = data->hibf_layout,
                              .kmer_counts = data->kmer_counts,
                              .sketches = data->sketches,
+                             .empty_bins = data->empty_bins,
+                             .empty_bin_cum_sizes = data->empty_bin_cum_sizes,
                              .positions = {data->positions[trace_j]},
                              .fp_correction = data->fp_correction};
 

@@ -58,14 +58,14 @@ public:
     //!\brief HyperLogLog sketches on the k-mer sets of the sequences from the files of filenames.
     std::vector<hyperloglog> const & sketches;
 
-    //!\brief HyperLogLog sketches on the k-mer sets of the sequences from the files of filenames.
-    std::vector<size_t> & positions;
-
     //!\brief A bitvector indicating whether a bin is empty (1) or not (0).
-    std::vector<bool> empty_bins;
+    std::vector<bool> const & empty_bins;
 
     //!\brief The cumulative k-mer count for the first empty bin until empty bin i
-    std::vector<size_t> empty_bin_cum_sizes;
+    std::vector<size_t> const & empty_bin_cum_sizes;
+
+    //!\brief HyperLogLog sketches on the k-mer sets of the sequences from the files of filenames.
+    std::vector<size_t> & positions;
 
 public:
     toolbox() = default;                            //!< Defaulted.
@@ -82,14 +82,15 @@ public:
      */
     toolbox(std::vector<size_t> const & kmer_counts_,
             std::vector<hyperloglog> const & sketches_,
+            std::vector<bool> const & empty_bins_,
+            std::vector<size_t> const & empty_bin_cum_sizes_,
             std::vector<size_t> & positions_) :
         kmer_counts{kmer_counts_},
         sketches{sketches_},
+        empty_bins{empty_bins_},
+        empty_bin_cum_sizes{empty_bin_cum_sizes_},
         positions{positions_}
-    {
-        empty_bins.resize(sketches_->size());
-        empty_bin_cum_sizes.resize(sketches_->size());
-    }
+    {}
 
     //!\brief Sorts filenames and cardinalities by looking only at the cardinalities.
     void sort_by_cardinalities()
@@ -102,46 +103,6 @@ public:
         };
 
         std::sort(positions.begin(), positions.end(), cardinality_compare);
-    }
-
-    /*!\brief insert empty bins in various datastructures based on k-mer counts.
-     * \param[in] empty_bin_fraction Currently a maximum of 1 is supported.
-     * \param[in] hll Whether HLL sketches are used in the layout algorithm
-     * \author Myrthe Willemsen
-     */
-    void insert_empty_bins(std::vector<size_t> insertion_indices, bool hll, uint8_t sketch_bits)
-    { // TODO needs adjustment
-        for (size_t idx = 0; idx < insertion_indices.size(); ++idx)
-        {
-            size_t insertion_idx =
-                insertion_indices[idx]
-                + idx; // add `idx` because the indices will be shifted because the array grows longer upon inserting.
-            filenames->insert(filenames->begin() + insertion_idx,
-                              std::to_string(user_bin_kmer_counts->at(insertion_idx)) + ".empty_bin"); // +size of UB?
-            user_bin_kmer_counts->insert(
-                user_bin_kmer_counts->begin() + insertion_idx,
-                user_bin_kmer_counts->at(
-                    insertion_idx)); // insert in the back of the list. or kmer_counts[idx] - kmer_counts[idx+1] to interpolate.
-            empty_bins.insert(
-                empty_bins.begin() + insertion_idx,
-                user_bin_kmer_counts->at(
-                    insertion_idx)); // insert in the back of the list. or kmer_counts[idx] - kmer_counts[idx+1] to interpolate.
-            if (hll)
-            {
-                chopper::sketch::hyperloglog empty_sketch(sketch_bits);
-                sketches.insert(sketches.begin() + insertion_idx, empty_sketch); //Insert an empty sketch.
-            }
-        }
-        // create empty_bin_cum_sizes with cumulative sizes
-        empty_bin_cum_sizes.resize(empty_bins.size());
-        if (empty_bins[0])
-            empty_bin_cum_sizes[0] = user_bin_kmer_counts->at(0);
-        for (size_t j = 1; j < sketches.size(); ++j)
-        {
-            if (empty_bins[j])
-                empty_bin_cum_sizes[j] = user_bin_kmer_counts->at(j);
-            empty_bin_cum_sizes[j] += empty_bin_cum_sizes[j - 1];
-        }
     }
 
     /*!\brief Restore the HLL sketches from the files in hll_dir and target_filenames into target container.
@@ -194,6 +155,8 @@ public:
                                                std::vector<hyperloglog> const & sketches,
                                                std::vector<size_t> const & counts,
                                                std::vector<size_t> const & positions,
+                                               std::vector<bool> const & empty_bins,
+                                               std::vector<size_t> const & empty_bin_cum_sizes,
                                                int64_t const j)
     {
         assert(counts.size() == sketches.size());
@@ -205,6 +168,7 @@ public:
         estimates[j] = counts[positions[j]];
 
         for (int64_t j_prime = j - 1; j_prime >= 0; --j_prime)
+        {
             if (empty_bins[positions[j_prime]] == false) // if j is not an empty bin
             {
                 estimates[j_prime] =
@@ -221,6 +185,7 @@ public:
                              [j_prime
                               - 1]]; // here you should add the difference in cumulative cardinalities of the empty bins between j' and j.
             }
+        }
     }
 
     /*!\brief Estimate the cardinality of the union for each interval [0, j] for all user bins j.
@@ -234,7 +199,9 @@ public:
     static void precompute_initial_union_estimates(std::vector<uint64_t> & estimates,
                                                    std::vector<hyperloglog> const & sketches,
                                                    std::vector<size_t> const & counts,
-                                                   std::vector<size_t> const & positions)
+                                                   std::vector<size_t> const & positions,
+                                                   std::vector<bool> const & empty_bins,
+                                                   std::vector<size_t> const & empty_bin_cum_sizes)
     {
         assert(counts.size() == sketches.size());
         assert(positions.size() <= counts.size());
@@ -270,23 +237,24 @@ public:
      * \param[in] positions The realtive positions of the input information to correctly access sketches and counts.
      * \returns The the cardinality of the union for the interval [start, end).
      */
-    static uint64_t estimate_interval(std::vector<hyperloglog> const & sketches, std::vector<size_t> const & positions)
+    static uint64_t estimate_interval(std::vector<hyperloglog> const & sketches,
+                                      std::vector<bool> const & empty_bins,
+                                      std::vector<size_t> const & empty_bin_cum_sizes,
+                                      std::vector<size_t> const & positions)
     {
         assert(positions.size() <= sketches.size());
         assert(!positions.empty());
 
         hyperloglog temp_hll = sketches[positions[0]];
 
-        size_t sum{0};
         for (size_t i = 1; i < positions.size(); ++i)
         {
             if (empty_bins[positions[i]] == false)      // if i is not an empty bin
                 temp_hll.merge(sketches[positions[i]]); // merge the temporary sketch with the sketch of i.
         }
 
-        return temp_hll.estimate() + empty_bin_cum_sizes[positions.back()]
-             - empty_bin_cum_sizes
-                   [positions.front()]; // in the end, add the sum of the sizes of all empty bins in the range.
+        // in the end, add the sum of the sizes of all empty bins in the range.
+        return temp_hll.estimate() + empty_bin_cum_sizes[positions.back()] - empty_bin_cum_sizes[positions.front()];
     }
 
     /*!\brief Rearrange filenames, sketches and counts such that similar bins are close to each other
@@ -396,21 +364,22 @@ protected:
         for (size_t id = first; id < last; ++id)
         {
             // id i is at the index i - first
+            // creates a leafnode in the tree. The last argument, the empty bin count, user_bin_kmer_counts[id][id] * empty_bins[id] gives the empty bin kmer count if we are dealing with an empty bin, and 0 otherwise.
             clustering.push_back(
                 {none,
                  none,
                  sketches[positions[id]],
-                 counts[positions[id]]
+                 kmer_counts[positions[id]]
                      * empty_bins
                          [positions
-                              [id]]}); // creates a leafnode in the tree. The last argument, the empty bin count, user_bin_kmer_counts[id][id] * empty_bins[id] gives the empty bin kmer count if we are dealing with an empty bin, and 0 otherwise.
+                              [id]]});
             if (empty_bins[positions[id]] == false)
                 estimates.emplace_back(sketches[positions[id]].estimate());
-            else
+            else //  If we are dealing with an empty bin, we can simply add the user_bin_kmer_count. In theory one could also do this for the normal bins.
                 estimates.emplace_back(static_cast<double>(
-                    counts
+                    kmer_counts
                         [positions
-                             [id]])); //  If we are dealing with an empty bin, we can simply add the user_bin_kmer_count. In theory one could also do this for the normal bins.
+                             [id]]));
         }
 
         // if this is not the first group, we want to have one overlapping bin
@@ -428,21 +397,22 @@ protected:
             ++new_id;
             previous_rightmost = new_id;
 
+            // The last argument, the bin count, user_bin_kmer_counts[id] * empty_bins[id] gives the empty bin kmer count if we are dealing with an empty bin, and 0 otherwise.
             clustering.push_back(
                 {none,
                  none,
                  sketches[positions[actual_previous_rightmost]],
-                 counts[positions[actual_previous_rightmost]]
+                 kmer_counts[positions[actual_previous_rightmost]]
                      * empty_bins
                          [positions
-                              [actual_previous_rightmost]]}); // The last argument, the bin count, user_bin_kmer_counts[id] * empty_bins[id] gives the empty bin kmer count if we are dealing with an empty bin, and 0 otherwise.
+                              [actual_previous_rightmost]]});
             if (empty_bins[positions[actual_previous_rightmost]] == false)
                 estimates.emplace_back(sketches[positions[actual_previous_rightmost]].estimate());
-            else
+            else //  If we are dealing with an empty bin, we can simply add the user_bin_kmer_count. In theory one could also do this for the normal bins.
                 estimates.emplace_back(static_cast<double>(
-                    counts
+                    kmer_counts
                         [positions
-                             [actual_previous_rightmost]])); //  If we are dealing with an empty bin, we can simply add the user_bin_kmer_count. In theory one could also do this for the normal bins.
+                             [actual_previous_rightmost]]));
         }
 
         // initialize priority queues in the distance matrix (sequentially)

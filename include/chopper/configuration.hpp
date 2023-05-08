@@ -12,7 +12,8 @@ namespace chopper
 {
 
 struct configuration
-{ /*!\name General Configuration
+{
+    /*!\name General Configuration
      * \{
      */
     //!\brief The input file to chopper. Should contain one file path per line.
