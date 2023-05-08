@@ -112,6 +112,7 @@ public:
      * \author Myrthe Willemsen
      */
     void insert_empty_bins(std::vector<size_t> insertion_indices, bool hll, uint8_t sketch_bits){
+        std::cout << "Inserting empty bins in the layout. " << std::flush;
         for (size_t idx=0; idx < insertion_indices.size(); ++idx) {
             size_t insertion_idx = insertion_indices[idx] + idx; // add `idx` because the indices will be shifted because the array grows longer upon inserting.
             filenames -> insert(filenames -> begin() + insertion_idx, std::to_string(user_bin_kmer_counts -> at(insertion_idx)) + ".empty_bin"); // +size of UB?
