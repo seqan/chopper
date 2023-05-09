@@ -114,12 +114,14 @@ int execute(chopper::configuration & config, std::vector<std::string> const & fi
     if (config.determine_best_tmax)
     {
         max_hibf_id = determine_best_number_of_technical_bins(data, config);
+        data.hibf_layout->top_level_max_bin_id = max_hibf_id;
     }
     else
     {
         size_t dummy{};
 
         max_hibf_id = chopper::layout::hierarchical_binning{data, config}.execute(); // just execute once
+        data.hibf_layout->top_level_max_bin_id = max_hibf_id;
 
         if (config.output_verbose_statistics)
         {
@@ -133,7 +135,7 @@ int execute(chopper::configuration & config, std::vector<std::string> const & fi
     // brief Write the output to the layout file.
     std::ofstream fout{config.output_filename};
     chopper::layout::write_config_to(config, fout);
-    chopper::layout::write_layout_header_to(*(data.hibf_layout), max_hibf_id, fout);
+    chopper::layout::write_layout_header_to(*(data.hibf_layout), data.hibf_layout->top_level_max_bin_id, fout);
     chopper::layout::write_layout_content_to(*(data.hibf_layout), filenames, fout);
 
     return 0;
