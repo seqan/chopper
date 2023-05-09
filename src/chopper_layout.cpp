@@ -114,6 +114,7 @@ int execute(chopper::configuration & config, std::vector<std::string> const & fi
     if (config.determine_best_tmax)
     {
         max_hibf_id = determine_best_number_of_technical_bins(data, config);
+        data.hibf_layout->top_level_max_bin_id = max_hibf_id;
     }
     else
     {
