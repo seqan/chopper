@@ -66,6 +66,7 @@ struct layout
         }
     };
 
+    size_t top_level_max_bin_id{};
     std::vector<max_bin> max_bins{};
     std::vector<user_bin> user_bins{};
 };
