@@ -4,8 +4,8 @@
 #include <cmath>
 
 #include <chopper/configuration.hpp>
-#include <chopper/layout/simple_binning.hpp>
 #include <chopper/layout/insert_empty_bins.hpp>
+#include <chopper/layout/simple_binning.hpp>
 #include <chopper/next_multiple_of_64.hpp>
 #include <chopper/prefixes.hpp>
 
@@ -70,7 +70,11 @@ public:
 
         if (!data->user_bins_arranged)
         {
-            sketch::toolbox sketch_toolbox{data->kmer_counts, data->sketches, data->empty_bins, data->empty_bin_cum_sizes, data->positions};
+            sketch::toolbox sketch_toolbox{data->kmer_counts,
+                                           data->sketches,
+                                           data->empty_bins,
+                                           data->empty_bin_cum_sizes,
+                                           data->positions};
             sketch_toolbox.sort_by_cardinalities(); // sort filenames by k-mer count
 
             if (!config.disable_estimate_union && !config.disable_rearrangement)

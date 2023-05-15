@@ -366,20 +366,11 @@ protected:
             // id i is at the index i - first
             // creates a leafnode in the tree. The last argument, the empty bin count, user_bin_kmer_counts[id][id] * empty_bins[id] gives the empty bin kmer count if we are dealing with an empty bin, and 0 otherwise.
             clustering.push_back(
-                {none,
-                 none,
-                 sketches[positions[id]],
-                 kmer_counts[positions[id]]
-                     * empty_bins
-                         [positions
-                              [id]]});
+                {none, none, sketches[positions[id]], kmer_counts[positions[id]] * empty_bins[positions[id]]});
             if (empty_bins[positions[id]] == false)
                 estimates.emplace_back(sketches[positions[id]].estimate());
             else //  If we are dealing with an empty bin, we can simply add the user_bin_kmer_count. In theory one could also do this for the normal bins.
-                estimates.emplace_back(static_cast<double>(
-                    kmer_counts
-                        [positions
-                             [id]]));
+                estimates.emplace_back(static_cast<double>(kmer_counts[positions[id]]));
         }
 
         // if this is not the first group, we want to have one overlapping bin
@@ -402,17 +393,11 @@ protected:
                 {none,
                  none,
                  sketches[positions[actual_previous_rightmost]],
-                 kmer_counts[positions[actual_previous_rightmost]]
-                     * empty_bins
-                         [positions
-                              [actual_previous_rightmost]]});
+                 kmer_counts[positions[actual_previous_rightmost]] * empty_bins[positions[actual_previous_rightmost]]});
             if (empty_bins[positions[actual_previous_rightmost]] == false)
                 estimates.emplace_back(sketches[positions[actual_previous_rightmost]].estimate());
             else //  If we are dealing with an empty bin, we can simply add the user_bin_kmer_count. In theory one could also do this for the normal bins.
-                estimates.emplace_back(static_cast<double>(
-                    kmer_counts
-                        [positions
-                             [actual_previous_rightmost]]));
+                estimates.emplace_back(static_cast<double>(kmer_counts[positions[actual_previous_rightmost]]));
         }
 
         // initialize priority queues in the distance matrix (sequentially)

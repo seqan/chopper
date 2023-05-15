@@ -27,10 +27,11 @@ void insert_empty_bins(std::vector<size_t> const & insertion_indices,
         // add `idx` because the indices will be shifted because the array grows longer upon inserting.
         size_t insertion_idx = insertion_indices[idx] + idx;
         filenames.insert(filenames.begin() + insertion_idx,
-                          std::to_string(user_bin_kmer_counts.at(insertion_idx)) + ".empty_bin"); // +size of UB?
+                         std::to_string(user_bin_kmer_counts.at(insertion_idx)) + ".empty_bin"); // +size of UB?
 
         // insert in the back of the list. or kmer_counts[idx] - kmer_counts[idx+1] to interpolate.
-        user_bin_kmer_counts.insert(user_bin_kmer_counts.begin() + insertion_idx, user_bin_kmer_counts.at(insertion_idx));
+        user_bin_kmer_counts.insert(user_bin_kmer_counts.begin() + insertion_idx,
+                                    user_bin_kmer_counts.at(insertion_idx));
         // insert in the back of the list. or kmer_counts[idx] - kmer_counts[idx+1] to interpolate.
         empty_bins.insert(empty_bins.begin() + insertion_idx, user_bin_kmer_counts.at(insertion_idx));
 

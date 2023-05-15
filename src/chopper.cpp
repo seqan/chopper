@@ -34,7 +34,7 @@ int main(int argc, char const * argv[])
     chopper::layout::layout hibf_layout{};
     std::vector<std::string> filenames{};
     std::vector<size_t> kmer_counts{};
-    std::vector<bool> empty_bins; // A bitvector indicating whether a bin is empty (1) or not (0).
+    std::vector<bool> empty_bins;            // A bitvector indicating whether a bin is empty (1) or not (0).
     std::vector<size_t> empty_bin_cum_sizes; // The cumulative k-mer count for the first empty bin until empty bin i
     std::vector<chopper::sketch::hyperloglog> sketches{};
 
@@ -50,8 +50,15 @@ int main(int argc, char const * argv[])
             std::vector<size_t> insertion_indices = empty_bin_indices(config.update_ubs, data->positions.size());
             empty_bins.resize(sketches_.size());
 
-            insert_empty_bins(insertion_indices, config.estimate_union, config.sketch_bits, filenames, sketches, kmer_counts, empty_bins);
-            data.insert_empty_bins(insertion_indices); // filenames and kmer counts are already updated in the line before
+            insert_empty_bins(insertion_indices,
+                              config.estimate_union,
+                              config.sketch_bits,
+                              filenames,
+                              sketches,
+                              kmer_counts,
+                              empty_bins);
+            data.insert_empty_bins(
+                insertion_indices); // filenames and kmer counts are already updated in the line before
 
             empty_bin_cum_sizes.resize(sketches_.size());
 
