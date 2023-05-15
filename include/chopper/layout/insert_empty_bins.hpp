@@ -14,13 +14,13 @@ namespace chopper::layout
     * \param[in] hll Whether HLL sketches are used in the layout algorithm
     * \author Myrthe Willemsen
     */
-void insert_empty_bins(std::vector<size_t> const & insertion_indices,
+inline void insert_empty_bins(std::vector<size_t> const & insertion_indices,
                        bool hll,
                        uint8_t sketch_bits,
                        std::vector<std::string> & filenames,
                        std::vector<sketch::hyperloglog> & sketches,
                        std::vector<size_t> & user_bin_kmer_counts,
-                       std::vector<size_t> & empty_bins)
+                       std::vector<bool> & empty_bins)
 {
     for (size_t idx = 0; idx < insertion_indices.size(); ++idx)
     {
