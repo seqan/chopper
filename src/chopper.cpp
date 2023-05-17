@@ -67,11 +67,11 @@ int main(int argc, char const * argv[])
         if (config.update_ubs != 0) // insert empty bins
         {
             std::vector<size_t> insertion_indices = empty_bin_indices(config.update_ubs, sketches.size());
-            empty_bins.resize(sketches.size());
 
             chopper::layout::insert_empty_bins(insertion_indices, !config.disable_estimate_union, config.sketch_bits, filenames, sketches, kmer_counts, empty_bins);
             // data.insert_empty_bins(insertion_indices); // filenames and kmer counts are already updated in the line before
 
+            empty_bins.resize(sketches.size());
             empty_bin_cum_sizes.resize(sketches.size());
 
             // create empty_bin_cum_sizes with cumulative sizes
@@ -84,6 +84,11 @@ int main(int argc, char const * argv[])
                     empty_bin_cum_sizes[j] = kmer_counts.at(j);
                 empty_bin_cum_sizes[j] += empty_bin_cum_sizes[j - 1];
             }
+        }
+        else
+        {
+            empty_bins.resize(sketches.size());
+            empty_bin_cum_sizes.resize(sketches.size());
         }
 
         chopper::data_store store{.false_positive_rate = config.false_positive_rate,

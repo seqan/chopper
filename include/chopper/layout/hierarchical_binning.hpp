@@ -65,6 +65,9 @@ public:
     {
         assert(data != nullptr);
         assert(data->positions.size() <= data->kmer_counts.size());
+        assert(data->sketches.size() == data->kmer_counts.size());
+        assert(data->sketches.size() == data->empty_bins.size());
+        assert(data->sketches.size() == data->empty_bin_cum_sizes.size());
 
         static constexpr size_t max_size_t{std::numeric_limits<size_t>::max()};
 
