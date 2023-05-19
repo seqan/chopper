@@ -40,7 +40,7 @@ size_t determine_best_number_of_technical_bins(chopper::data_store & data, chopp
     std::ofstream file_out{config.output_filename.string() + ".stats"};
 
     file_out << "## ### Parameters ###\n"
-             << "## number of user bins = " << data.kmer_counts.size() << '\n'
+            << "## number of user bins = " << data.kmer_counts.size() << '\n'
              << "## number of hash functions = " << config.num_hash_functions << '\n'
              << "## false positive rate = " << config.false_positive_rate << '\n';
     hibf_statistics::print_header_to(file_out, config.output_verbose_statistics);
@@ -87,6 +87,7 @@ size_t determine_best_number_of_technical_bins(chopper::data_store & data, chopp
 
 int execute(chopper::configuration & config, std::vector<std::string> const & filenames, chopper::data_store & data)
 {
+    std::cout << "## version = Svenja+Myrthe with empty bins " << std::flush;
     if (config.disable_estimate_union)
         config.disable_rearrangement = true;
 

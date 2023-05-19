@@ -80,20 +80,6 @@ struct data_store
     bool user_bins_arranged{false};
     //!\}
 
-    /*!\brief insert empty bins in various datastructures based on k-mer counts.
-    * \remark  filenames and kmer counts are already updated by updating it in the sketch toolbox. In order to correctly update the extra_information, make sure the sketch toolbox empty bin insertion takes place first.
-    * \param[in] insertion_indices .
-    * \author Myrthe Willemsen
-    */
-    void insert_empty_bins(std::vector<size_t> insertion_indices)
-    {
-        for (size_t idx = 0; idx < insertion_indices.size(); ++idx)
-        {
-            size_t insertion_idx = insertion_indices[idx] + idx;
-            // insert in the back of the list. or kmer_counts[idx] - kmer_counts[idx+1] to interpolate.
-            fp_correction.insert(fp_correction.begin() + insertion_idx, fp_correction[insertion_idx]);
-        }
-    }
 };
 
 } // namespace chopper
