@@ -13,6 +13,7 @@
 namespace chopper::sketch
 {
 
+
 class toolbox
 {
 public:
@@ -142,6 +143,17 @@ public:
         }
     }
 
+    static auto empty_bin_sum_sizes(size_t j, size_t j_prime, const std::vector<size_t>& positions, const std::vector<bool>& empty_bins) {
+        size_t sum = 0;
+        for (size_t pos = j_prime; pos <= j; pos++) {
+            if (empty_bins[positions[pos]]) {
+                sum += positions[pos];
+            }
+        }
+        return sum;
+    };
+
+
     /*!\brief Estimate the cardinality of the union for a single user bin j with all prior ones j' < j.
      * \param[out] estimates output row (column in the DP matrix)
      * \param[in] sketches The hyperloglog sketches of the respective user bins.
@@ -171,19 +183,12 @@ public:
         {
             if (empty_bins[positions[j_prime]] == false) // if j is not an empty bin
             {
-                estimates[j_prime] =
-                    empty_bin_cum_sizes[positions[j]] - empty_bin_cum_sizes[positions[j_prime]]
-                    + // here you should add the difference in cumulative cardinalities of the empty bins on the interval of {j', ..., j}.
-                    static_cast<uint64_t>(temp_hll.merge_and_estimate_SIMD(sketches[positions[j_prime]]));
+                estimates[j_prime] = empty_bin_sum_sizes(j, j_prime, positions, empty_bins) + //std::labs(empty_bin_cum_sizes[positions[j]] - empty_bin_cum_sizes[positions[j_prime]]) + // here you should add the difference in cumulative cardinalities of the empty bins on the interval of {j', ..., j}.
+                    static_cast<uint64_t>(temp_hll.merge_and_estimate_SIMD(sketches[positions[j_prime]])); // the abs is should as a temporary secure check. the sum of empty bin sizes should always be positive.
             }
             else
             {
-                estimates[j_prime] =
-                    estimates[j_prime - 1] + empty_bin_cum_sizes[positions[j_prime]]
-                    - empty_bin_cum_sizes
-                        [positions
-                             [j_prime
-                              - 1]]; // here you should add the difference in cumulative cardinalities of the empty bins between j' and j.
+                estimates[j_prime] =  estimates[j_prime - 1] + counts[positions[j_prime]];  // here you should add the difference in cumulative cardinalities of the empty bins between j' and j.
             }
         }
     }
@@ -214,20 +219,14 @@ public:
 
         for (size_t j = 1; j < positions.size(); ++j)
         {
-            if (empty_bins[j] == false) // if j is not an empty bin
+            if (empty_bins[positions[j]] == false) // if j is not an empty bin
             {
-                estimates[j] =
-                    empty_bin_cum_sizes[positions[j]]
-                    + static_cast<uint64_t>(temp_hll.merge_and_estimate_SIMD(
-                        sketches[positions[j]])); // add the sum of sizes of the empty bins for the range 0 to j.
+                estimates[j] = empty_bin_sum_sizes(j, 0, positions, empty_bins) + // empty_bin_cum_sizes[positions[j]] +
+                        static_cast<uint64_t>(temp_hll.merge_and_estimate_SIMD(sketches[positions[j]])); // add the sum of sizes of the empty bins for the range 0 to j.
             }
             else
             {
-                estimates[j] =
-                    estimates[j - 1]
-                    + counts
-                        [positions
-                             [j]]; // if j is an empty bin, calculate the union estimate by adding the estimate from 0 to j-1 to the size of the empty bin.
+                estimates[j] = estimates[j - 1] + counts[positions[j]]; // if j is an empty bin, calculate the union estimate by adding the estimate from 0 to j-1 to the size of the empty bin.
             }
         }
     }
@@ -254,7 +253,7 @@ public:
         }
 
         // in the end, add the sum of the sizes of all empty bins in the range.
-        return temp_hll.estimate() + empty_bin_cum_sizes[positions.back()] - empty_bin_cum_sizes[positions.front()];
+        return temp_hll.estimate() + empty_bin_sum_sizes(positions.back(), positions.front(), positions, empty_bins); //empty_bin_cum_sizes[positions.back()] - empty_bin_cum_sizes[positions.front()];
     }
 
     /*!\brief Rearrange filenames, sketches and counts such that similar bins are close to each other
@@ -287,7 +286,8 @@ public:
             while (swap_index < i)
                 swap_index = permutation[swap_index];
 
-            std::swap(positions[i], positions[swap_index]);
+            std::swap(positions[i], positions[swap_index]); //todo afterwards the empty_bin_cum_sizes should be re-generated.
+
         }
     }
 
@@ -368,18 +368,11 @@ protected:
             clustering.push_back(
                 {none,
                  none,
-                 sketches[positions[id]],
-                 kmer_counts[positions[id]]
-                     * empty_bins
-                         [positions
-                              [id]]});
+                 sketches[positions[id]], kmer_counts[positions[id]] * empty_bins[positions[id]]});
             if (empty_bins[positions[id]] == false)
                 estimates.emplace_back(sketches[positions[id]].estimate());
-            else //  If we are dealing with an empty bin, we can simply add the user_bin_kmer_count. In theory one could also do this for the normal bins.
-                estimates.emplace_back(static_cast<double>(
-                    kmer_counts
-                        [positions
-                             [id]]));
+            else //  If we are dealing with an empty bin, we can simply add the user_bin_kmer_count. In theory one could also do this for the normal bins when assuming no similarity.
+                estimates.emplace_back(static_cast<double>(kmer_counts[positions[id]]));
         }
 
         // if this is not the first group, we want to have one overlapping bin
@@ -402,17 +395,11 @@ protected:
                 {none,
                  none,
                  sketches[positions[actual_previous_rightmost]],
-                 kmer_counts[positions[actual_previous_rightmost]]
-                     * empty_bins
-                         [positions
-                              [actual_previous_rightmost]]});
+                 kmer_counts[positions[actual_previous_rightmost]] * empty_bins[positions[actual_previous_rightmost]]});
             if (empty_bins[positions[actual_previous_rightmost]] == false)
                 estimates.emplace_back(sketches[positions[actual_previous_rightmost]].estimate());
-            else //  If we are dealing with an empty bin, we can simply add the user_bin_kmer_count. In theory one could also do this for the normal bins.
-                estimates.emplace_back(static_cast<double>(
-                    kmer_counts
-                        [positions
-                             [actual_previous_rightmost]]));
+            else //  If we are dealing with an empty bin, we can simply add the user_bin_kmer_count.
+                estimates.emplace_back(static_cast<double>(kmer_counts[positions[actual_previous_rightmost]]));
         }
 
         // initialize priority queues in the distance matrix (sequentially)

@@ -70,7 +70,7 @@ inline void insert_empty_bins(std::vector<size_t> const & insertion_indices,
         empty_bin_cum_sizes.resize(sketches.size());
         if (config.update_ubs != 0) // insert empty bins
         {
-            std::vector<size_t> order(kmer_counts.size());
+            std::vector<size_t> order(kmer_counts.size()); //order of the k-mer counts if they were sorted.
             std::iota(order.begin(), order.end(), 0);
             std::sort(order.begin(), order.end(), [&](size_t i, size_t j) {
                 return kmer_counts[i] > kmer_counts[j];
@@ -89,9 +89,17 @@ inline void insert_empty_bins(std::vector<size_t> const & insertion_indices,
 
             for (size_t j = 1; j < sketches.size(); ++j) {
                 if (empty_bins[j])
-                    empty_bin_cum_sizes[j] = kmer_counts.at(j);
+                    empty_bin_cum_sizes[j] = kmer_counts.at(j);     // TODO, but this should also be done according to the positions array right? The empty bin cum sizes only works if it has the cumulative sizes are calculated according to the order of the order of the (re)arranged bins. Hence, it must be created by looping over the positions array.
                 empty_bin_cum_sizes[j] += empty_bin_cum_sizes[j - 1];
             }
+//            if (empty_bins[order[0]])
+//                empty_bin_cum_sizes[order[0]] = kmer_counts.at(order[0]); // we would first have to recreate the order vector
+//
+//            for (size_t x = 1; x < sketches.size(); ++x) {
+//                size_t j = order[x];
+//                if (empty_bins[j])
+//                    empty_bin_cum_sizes[j] = kmer_counts.at(j);     // this should also be done according to the positions array right? The empty bin cum sizes only works if it has the cumulative sizes are calculated according to the order of the order of the (re)arranged bins. Hence, it must be created by looping over the positions array.
+//                empty_bin_cum_sizes[j] += empty_bin_cum_sizes[order[x - 1]];
         }
     }
 
