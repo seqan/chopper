@@ -83,23 +83,16 @@ inline void insert_empty_bins(std::vector<size_t> const & insertion_indices,
             empty_bins.resize(sketches.size());
             empty_bin_cum_sizes.resize(sketches.size());
 
-            // create empty_bin_cum_sizes with cumulative sizes
+            // create empty_bin_cum_sizes with cumulative sizes // This is currently not used
             if (empty_bins[0])
                 empty_bin_cum_sizes[0] = kmer_counts.at(0);
 
             for (size_t j = 1; j < sketches.size(); ++j) {
                 if (empty_bins[j])
-                    empty_bin_cum_sizes[j] = kmer_counts.at(j);     // TODO, but this should also be done according to the positions array right? The empty bin cum sizes only works if it has the cumulative sizes are calculated according to the order of the order of the (re)arranged bins. Hence, it must be created by looping over the positions array.
+                    empty_bin_cum_sizes[j] = kmer_counts.at(j);     //but this should also be done according to the positions array right? The empty bin cum sizes only works if it has the cumulative sizes are calculated according to the order of the order of the (re)arranged bins. Hence, it must be created by looping over the positions array.
                 empty_bin_cum_sizes[j] += empty_bin_cum_sizes[j - 1];
             }
-//            if (empty_bins[order[0]])
-//                empty_bin_cum_sizes[order[0]] = kmer_counts.at(order[0]); // we would first have to recreate the order vector
-//
-//            for (size_t x = 1; x < sketches.size(); ++x) {
-//                size_t j = order[x];
-//                if (empty_bins[j])
-//                    empty_bin_cum_sizes[j] = kmer_counts.at(j);     // this should also be done according to the positions array right? The empty bin cum sizes only works if it has the cumulative sizes are calculated according to the order of the order of the (re)arranged bins. Hence, it must be created by looping over the positions array.
-//                empty_bin_cum_sizes[j] += empty_bin_cum_sizes[order[x - 1]];
+
         }
     }
 
