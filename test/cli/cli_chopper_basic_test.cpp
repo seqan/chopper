@@ -47,3 +47,25 @@ TEST_F(cli_test, chopper_cmd_error_empty_file)
     EXPECT_EQ(result.out, std::string{});
     EXPECT_EQ(result.err, expected);
 }
+
+TEST_F(cli_test, chopper_cmd_non_existing_path_in_input)
+{
+    seqan3::test::tmp_directory tmp_dir{};
+    std::filesystem::path non_existing_content{tmp_dir.path() / "file_with_one_path_that_does_not.exist"};
+
+    {
+        std::ofstream ofs{non_existing_content.string()}; // opens file, s.t. it exists but is empty
+        ofs << "/I/do/no/exist.fa\n";
+    }
+
+    cli_test_result result = execute_app("chopper",
+                                         "--tmax",
+                                         "64", /* required option */
+                                         "--input-file",
+                                         non_existing_content.c_str());
+
+    std::string expected{"[CHOPPER ERROR] File /I/do/no/exist.fa does not exist!\n"};
+    EXPECT_EQ(result.exit_code, 65280);
+    EXPECT_EQ(result.out, std::string{});
+    EXPECT_EQ(result.err, expected);
+}

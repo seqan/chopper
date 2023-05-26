@@ -2,13 +2,11 @@
 
 #include <chopper/sketch/check_filenames.hpp>
 
+#include "../api_test.hpp"
+
 TEST(check_filenames_test, sequence_filenames)
 {
-    std::vector<std::string> filenames{
-        "/path/to/file1.fa",
-        "/path/to/file2.fasta",
-        "/path/to/file3.fq",
-    };
+    std::vector<std::string> filenames{data("seq1.fa").string(), data("seq2.fa").string(), data("seq3.fa").string()};
 
     chopper::configuration config;
 
@@ -19,11 +17,9 @@ TEST(check_filenames_test, sequence_filenames)
 
 TEST(check_filenames_test, minimiser_filenames)
 {
-    std::vector<std::string> filenames{
-        "/path/to/file1.minimiser",
-        "/path/to/file2.minimiser",
-        "/path/to/file3.minimiser",
-    };
+    std::vector<std::string> filenames{data("small.minimiser").string(),
+                                       data("small.minimiser").string(),
+                                       data("small.minimiser").string()};
 
     chopper::configuration config;
 
@@ -34,10 +30,7 @@ TEST(check_filenames_test, minimiser_filenames)
 
 TEST(check_filenames_test, mixed_filenames_sequence_files)
 {
-    std::vector<std::string> filenames{
-        "/path/to/file2.fa",
-        "/path/to/file1.minimiser",
-    };
+    std::vector<std::string> filenames{data("seq2.fa").string(), data("small.minimiser").string()};
 
     chopper::configuration config;
 
@@ -46,10 +39,7 @@ TEST(check_filenames_test, mixed_filenames_sequence_files)
 
 TEST(check_filenames_test, mixed_filenames_minimiser_files)
 {
-    std::vector<std::string> filenames{
-        "/path/to/file1.minimiser",
-        "f.fa",
-    };
+    std::vector<std::string> filenames{data("small.minimiser").string(), data("seq2.fa").string()};
 
     chopper::configuration config;
 

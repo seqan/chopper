@@ -50,7 +50,7 @@ int main(int argc, char const * argv[])
 
         exit_code |= chopper::layout::execute(config, filenames, store);
     }
-    catch (sharg::parser_error const & ext)
+    catch (std::exception const & ext)
     {
         std::cerr << "[CHOPPER ERROR] " << ext.what() << '\n';
         return -1;

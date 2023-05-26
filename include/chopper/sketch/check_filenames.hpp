@@ -5,6 +5,7 @@
 #include <robin_hood.h>
 
 #include <chopper/configuration.hpp>
+#include <chopper/workarounds.hpp>
 
 namespace chopper::sketch
 {
@@ -20,7 +21,7 @@ inline void check_filenames(std::vector<std::string> const & filenames, configur
         size_t const str_length{str.size()};
 
         if (suffix_length > str_length)
-            return false;
+            return false; // GCOVR_EXCL_LINE
 
         for (size_t j = 0, s_start = str_length - suffix_length; j < suffix_length; ++j)
             if (std::tolower(str[s_start + j]) != std::tolower(suffix[j]))
@@ -34,6 +35,16 @@ inline void check_filenames(std::vector<std::string> const & filenames, configur
 
     for (auto const & filename : filenames)
     {
+#if CHOPPER_WORKAROUND_GCC_BOGUS_MEMCPY
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wrestrict"
+#endif // CHOPPER_WORKAROUND_GCC_BOGUS_MEMCPY
+        if (!std::filesystem::exists(filename))
+            throw std::invalid_argument{"File " + filename + " does not exist!"};
+#if CHOPPER_WORKAROUND_GCC_BOGUS_MEMCPY
+#    pragma GCC diagnostic pop
+#endif // CHOPPER_WORKAROUND_GCC_BOGUS_MEMCPY
+
         if (config.precomputed_files && !case_insensitive_string_ends_with(filename, ".minimiser"))
         {
             throw std::invalid_argument{"You are providing precomputed files but the file " + filename
