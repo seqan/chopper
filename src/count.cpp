@@ -17,7 +17,7 @@ int main(int argc, char const * argv[])
     chopper::configuration config;
     std::string counts_path;
 
-    parser.add_option(config.input_data,
+    parser.add_option(config.data_file,
                       sharg::config{.short_id = 'i',
                                     .long_id = "input-file",
                                     .description = "Fasta formatted file with sequences.",
@@ -27,7 +27,7 @@ int main(int argc, char const * argv[])
                                     .long_id = "output-file",
                                     .description = "File where the output is written to in tsv format.",
                                     .required = true});
-    parser.add_option(config.kmer_size,
+    parser.add_option(config.k,
                       sharg::config{.short_id = 'k',
                                     .long_id = "kmer-size",
                                     .description = "The size of the k-mers of which the hash values are computed."});
@@ -47,7 +47,7 @@ int main(int argc, char const * argv[])
         sharg::config{.short_id = 'b',
                       .long_id = "hll-bits",
                       .description = "Adds an integer value which is tested as HyperLogLog bits parameter.",
-                      .advances = true});
+                      .advanced = true});
 
     try
     {
@@ -65,7 +65,7 @@ int main(int argc, char const * argv[])
     std::vector<size_t> kmer_counts{};
     std::vector<chopper::sketch::hyperloglog> sketches{};
 
-    chopper::sketch::read_data_file(config.input_data, filenames);
+    chopper::sketch::read_data_file(config.data_file, filenames);
 
     chopper::sketch::execute(config, filenames, sketches);
     chopper::sketch::estimate_kmer_counts(sketches, kmer_counts);
