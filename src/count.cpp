@@ -31,7 +31,10 @@ int main(int argc, char const * argv[])
                       sharg::config{.short_id = 'k',
                                     .long_id = "kmer-size",
                                     .description = "The size of the k-mers of which the hash values are computed."});
-
+    parser.add_option(config.threads,
+                      sharg::config{.short_id = 't',
+                                    .long_id = "threads",
+                                    .description = "The number of threads to use for sketching."});
     parser.add_option(
         config.sketch_directory,
         sharg::config{
