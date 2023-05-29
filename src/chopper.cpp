@@ -36,7 +36,7 @@ int main(int argc, char const * argv[])
     std::vector<size_t> kmer_counts{};
     std::vector<chopper::sketch::hyperloglog> sketches{};
 
-    chopper::sketch::read_data_file(config, filenames);
+    chopper::sketch::read_data_file(config.data_file.string(), filenames);
 
     try
     {

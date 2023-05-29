@@ -10,12 +10,12 @@
 namespace chopper::sketch
 {
 
-inline void read_data_file(configuration const & config, std::vector<std::string> & filenames)
+inline void read_data_file(std::string const & input_filename, std::vector<std::string> & filenames)
 {
-    std::ifstream fin{config.data_file.string()};
+    std::ifstream fin{input_filename};
 
     if (!fin.good() || !fin.is_open())
-        throw std::runtime_error{"Could not open data file " + config.data_file.string() + " for reading."};
+        throw std::runtime_error{"Could not open data file " + input_filename + " for reading."};
 
     std::string line;
     while (std::getline(fin, line))
