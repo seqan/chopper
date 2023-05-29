@@ -73,15 +73,6 @@ int main(int argc, char const * argv[])
     chopper::sketch::execute(config, filenames, sketches);
     chopper::sketch::estimate_kmer_counts(sketches, kmer_counts);
 
-    bool const output_sketches = parser.is_option_set("output-sketches-to");
-
-    if (output_sketches && !std::filesystem::exists(config.sketch_directory))
-        std::filesystem::create_directory(config.sketch_directory);
-
     for (size_t i = 0; i < filenames.size(); ++i)
-    {
         fout << filenames[i] << '\t' << kmer_counts[i] << '\n';
-        if (output_sketches)
-            write_sketch_file(filenames[i], sketches[i], config.sketch_directory);
-    }
 }
