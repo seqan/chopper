@@ -26,10 +26,10 @@ inline void write_count_file_line(std::pair<std::string, std::vector<std::string
 
 inline void write_sketch_file(std::string const & filename,
                               chopper::sketch::hyperloglog const & sketch,
-                              configuration const & config)
+                              std::filesystem::path output_directory)
 {
     // For one file in the cluster, the file stem is used with the .hll ending
-    std::filesystem::path path = config.sketch_directory / std::filesystem::path(filename).stem();
+    std::filesystem::path path = output_directory / std::filesystem::path(filename).stem();
     path += ".hll";
     std::ofstream hll_fout(path, std::ios::binary);
     sketch.dump(hll_fout);

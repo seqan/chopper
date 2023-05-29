@@ -79,7 +79,7 @@ execute(configuration & config, std::vector<std::string> const & filenames, std:
 
         assert(filenames.size() == sketches.size());
         for (size_t i = 0; i < filenames.size(); ++i)
-            write_sketch_file(filenames[i], sketches[i], config);
+            write_sketch_file(filenames[i], sketches[i], config.sketch_directory);
     }
 
     return 0;
