@@ -7,9 +7,9 @@
 
 #include <sharg/parser.hpp>
 
-#include <chopper/sketch/read_data_file.hpp>
-#include <chopper/sketch/execute.hpp>
 #include <chopper/sketch/estimate_kmer_counts.hpp>
+#include <chopper/sketch/execute.hpp>
+#include <chopper/sketch/read_data_file.hpp>
 
 struct cli_args
 {
