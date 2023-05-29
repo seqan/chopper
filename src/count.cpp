@@ -62,6 +62,8 @@ int main(int argc, char const * argv[])
         return -1;
     }
 
+    config.disable_sketch_output = !parser.is_option_set("output-sketches-to");
+
     std::ofstream fout{counts_path};
 
     std::vector<std::string> filenames{};
