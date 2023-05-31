@@ -118,6 +118,11 @@ set_target_properties (xxhash PROPERTIES IMPORTED_LOCATION "${CHOPPER_XXHASH_PAT
 target_include_directories (xxhash INTERFACE "${PROJECT_BINARY_DIR}/include")
 
 # Add the application.
+set (CHOPPER_INSTALL
+     ON
+     CACHE BOOL "Install Chopper."
+)
+
 add_subdirectory (src)
 message (STATUS "${FontBold}You can run `make` to build the application.${FontReset}")
 
