@@ -63,6 +63,5 @@ int main(int argc, char const * argv[])
         std::cerr << "[CHOPPER ERROR] " << ext.what() << '\n';
         return -1;
     }
-
     return exit_code;
 }
