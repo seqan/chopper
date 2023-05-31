@@ -45,11 +45,11 @@ struct data_store
     //!\brief The hyperloglog sketches of all input files to estimate their size and similarities.
     std::vector<sketch::hyperloglog> const & sketches{};
 
-    //!\brief A bitvector indicating whether a bin is empty (1) or not (0).
-    std::vector<bool> const & empty_bins;
+    //!\brief A bitvector indicating whether a bin is empty or not.
+    std::vector<bool> const & empty_bins; // Although a bool vector is sometimes not recommended, here it suits the purpose.
 
     //!\brief The cumulative k-mer count for the first empty bin until empty bin i
-    std::vector<size_t> const & empty_bin_cum_sizes;
+    std::vector<size_t> const & empty_bin_cum_sizes; // This member is currently not used, although it could improve the code if we find some workaround to modify it in the toolbox.hpp
     //!\}
 
     /*!\name Local Storage one IBF in the HIBF.

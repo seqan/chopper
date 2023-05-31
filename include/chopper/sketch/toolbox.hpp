@@ -143,6 +143,8 @@ public:
         }
     }
 
+    //!\brief calculate the sum of the empty bin sizes over a range of indices in the positions array, from j' until j.
+    // note: this is a bit slower than having a precomputed array of cumulative empty bin sizes as before
     static auto empty_bin_sum_sizes(size_t j, size_t j_prime, const std::vector<size_t>& positions, const std::vector<bool>& empty_bins) {
         size_t sum = 0;
         for (size_t pos = j_prime; pos <= j; pos++) {
@@ -286,7 +288,7 @@ public:
             while (swap_index < i)
                 swap_index = permutation[swap_index];
 
-            std::swap(positions[i], positions[swap_index]); //todo afterwards the empty_bin_cum_sizes should be re-generated.
+            std::swap(positions[i], positions[swap_index]);
 
         }
     }
@@ -301,7 +303,7 @@ protected:
      * \Returns Jaccard distance between node i and j.
      * \author Myrthe Willemsen, created from the original embeded functionality
      */
-    double jaccard_distance(clustering_node node_i, clustering_node node_j, double estimate_i, double estimate_j)
+    double jaccard_distance(clustering_node const & node_i, clustering_node const & node_j, double estimate_i, double estimate_j)
     {
         hyperloglog temp_hll = node_i.hll; // this must be a copy, because merging changes the hll sketch
         double const estimate_ij =
@@ -484,10 +486,10 @@ protected:
 
                     // merge the two nodes with minimal distance together insert the new node into the clustering
                     size_t joint_empty_bin_kmers =
-                        clustering[min_id - first].empty_bin_kmers
+                        clustering[min_id - first].empty_bin_kmers // this can probably be a const type
                         + clustering[neighbor_id - first].empty_bin_kmers; // calculate the sum of the empty bin k-mers.
                     clustering.push_back(
-                        {min_id, neighbor_id, std::move(clustering[min_id - first].hll), joint_empty_bin_kmers});
+                        {min_id, neighbor_id, std::move(clustering[min_id - first].hll), joint_empty_bin_kmers}); // there are two copies being made here. emplace_back, gives a warning "no matching function for call to 'construct_at'.
                     estimates.emplace_back(
                         clustering.back().hll.merge_and_estimate_SIMD(clustering[neighbor_id - first].hll)
                         + joint_empty_bin_kmers); // add the sum of the empty bin k-mers (of the childeren of both nodes) to the union estimate.

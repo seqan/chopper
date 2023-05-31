@@ -65,7 +65,7 @@ public:
     {
         assert(data != nullptr);
         assert(data->positions.size() <= data->kmer_counts.size());
-        assert(data->sketches.size() == data->kmer_counts.size());
+        assert(data->sketches.size() == data->kmer_counts.size()); // note, this results in an error when --disable-estimate-union is used, because sketches are not used then. Instead the filenames size should be used here, and in creating the empty bin datastructures.
         assert(data->sketches.size() == data->empty_bins.size());
         assert(data->sketches.size() == data->empty_bin_cum_sizes.size());
 

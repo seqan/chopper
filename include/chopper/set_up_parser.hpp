@@ -25,15 +25,9 @@ inline void set_up_parser(sharg::parser & parser, chopper::configuration & confi
                       sharg::config{
                           .short_id = '\0',
                           .long_id = "update-UBs",
-                          .description = "Provide a percentage of how many extra UBs need to be sampled",
-                      }); //myrthe
+                          .description = "The percentage of extra empty user bins to be sampled and accommodated for",
+                      });
 
-    parser.add_flag(config.update_seqs,
-                    sharg::config{
-                        .short_id = '\0',
-                        .long_id = "update-sequences",
-                        .description = "", //todo
-                    });                    //myrthe
 
     parser.add_option(
         config.data_file,

@@ -87,7 +87,7 @@ size_t determine_best_number_of_technical_bins(chopper::data_store & data, chopp
 
 int execute(chopper::configuration & config, std::vector<std::string> const & filenames, chopper::data_store & data)
 {
-    std::cout << "## version = Svenja+Myrthe with empty bins " << std::flush;
+    std::cout << "## version = Svenja+Myrthe with empty bins updated" << std::flush;
     if (config.disable_estimate_union)
         config.disable_rearrangement = true;
 
