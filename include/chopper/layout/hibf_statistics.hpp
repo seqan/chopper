@@ -14,17 +14,7 @@
 #include <chopper/next_multiple_of_64.hpp>
 #include <chopper/sketch/hyperloglog.hpp>
 #include <chopper/sketch/toolbox.hpp>
-
-/*!\brief Workaround bogus memcpy errors in GCC 12.1 and 12.2. (Wrestrict and Wstringop-overflow)
- * \see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=105545
- */
-#ifndef CHOPPER_WORKAROUND_GCC_BOGUS_MEMCPY
-#    if defined(__GNUC__) && !defined(__llvm__) && !defined(__INTEL_COMPILER) && (__GNUC__ == 12 && __GNUC_MINOR__ < 3)
-#        define CHOPPER_WORKAROUND_GCC_BOGUS_MEMCPY 1
-#    else
-#        define CHOPPER_WORKAROUND_GCC_BOGUS_MEMCPY 0
-#    endif
-#endif
+#include <chopper/workarounds.hpp>
 
 namespace std
 {
