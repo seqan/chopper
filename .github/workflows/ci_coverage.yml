@@ -1,0 +1,109 @@
+name: Coverage
+
+on:
+  push:
+    branches:
+      - 'master'
+  pull_request:
+    types:
+      - unlabeled
+  workflow_dispatch:
+
+concurrency:
+  group: coverage-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+env:
+  SHARG_NO_VERSION_CHECK: 1
+  TZ: Europe/Berlin
+
+defaults:
+  run:
+    shell: bash -Eexuo pipefail {0}
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 120
+    if: github.repository_owner == 'seqan' || github.event_name == 'workflow_dispatch' || github.event.label.name == 'lint'
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - name: "gcc13"
+            compiler: "gcc-13"
+            build_type: Coverage
+
+    steps:
+      # How many commits do we need to fetch to also fetch the branch point?
+      - name: Get fetch depth
+        id: fetch_depth
+        run: echo "depth=$(( ${{ github.event.pull_request.commits }} + 2 ))" >> $GITHUB_OUTPUT
+
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: ${{ steps.fetch_depth.outputs.depth }}
+          submodules: recursive
+
+      - name: Setup toolchain
+        uses: seqan/actions/setup-toolchain@main
+        with:
+          compiler: ${{ matrix.compiler }}
+          ccache_size: 125M
+
+      - name: Install CMake
+        uses: seqan/actions/setup-cmake@main
+        with:
+          cmake: 3.16.9
+
+      - name: Install gcovr
+        run: |
+          sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/${CC/gcc/gcov} 100
+          pip install gcovr==6.0
+
+      - name: Configure tests
+        run: |
+          mkdir build
+          cd build
+          cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_FLAGS="-Wno-interference-size"
+          make -j2 gtest_build
+
+      - name: Build tests
+        env:
+          CCACHE_IGNOREOPTIONS: "-fprofile-abs-path"
+        run: |
+          ccache -z
+          cd build
+          make -k -j2 api_test cli_test
+          ccache -sv
+
+      - name: Run tests
+        run: |
+          cd build
+          ctest . -j2 --output-on-failure
+
+      - name: Generate coverage report
+        run: |
+          gcovr --gcov-executable ${{ github.workspace }}/lib/seqan3/.github/workflows/scripts/gcov.sh \
+                --root ${{ github.workspace }}/test/coverage \
+                ${{ github.workspace }}/build \
+                --filter ${{ github.workspace }}/include \
+                --filter ${{ github.workspace }}/src \
+                --exclude ${{ github.workspace }}/src/measure_hyperloglog.cpp \
+                --exclude-lines-by-pattern '^\s*$' \
+                --exclude-lines-by-pattern '^\s*};$' \
+                --exclude-lines-by-pattern '^.*GCOVR_EXCL_LINE.*$' \
+                --exclude-unreachable-branches \
+                --exclude-throw-branches \
+                -j 2 \
+                --xml \
+                --output ${{ github.workspace }}/build/coverage_report.xml
+
+      - name: Submit coverage build
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ${{ github.workspace }}/build/coverage_report.xml
+          fail_ci_if_error: false

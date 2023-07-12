@@ -1,0 +1,69 @@
+name: Documentation
+
+on:
+  push:
+    branches:
+      - 'master'
+  pull_request:
+    types:
+      - unlabeled
+  workflow_dispatch:
+
+concurrency:
+  group: documentation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'push' }}
+
+env:
+  SHARG_NO_VERSION_CHECK: 1
+  TZ: Europe/Berlin
+
+defaults:
+  run:
+    shell: bash -Eexuo pipefail {0}
+
+jobs:
+  build:
+    name: Documentation
+    runs-on: ubuntu-22.04
+    timeout-minutes: 120
+    if: github.repository_owner == 'seqan' || github.event_name == 'workflow_dispatch' || github.event.label.name == 'lint'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+          submodules: recursive
+
+      - name: Install CMake
+        uses: seqan/actions/setup-cmake@main
+        with:
+          cmake: 3.16.9
+
+      - name: Install Doxygen
+        uses: seqan/actions/setup-doxygen@main
+        with:
+          doxygen: 1.9.4
+
+      - name: Configure tests
+        run: |
+          mkdir build
+          cd build
+          cmake ..
+
+      - name: Run tests
+        run: |
+          cd build
+          make -k -j2 doc 2>doxygen_warnings.txt
+          cat doxygen_warnings.txt
+          test ! -s doxygen_warnings.txt
+
+      - name: Package documentation
+        continue-on-error: true
+        run: tar -zcf documentation.tar.gz build
+
+      - name: Upload documentation
+        continue-on-error: true
+        uses: actions/upload-artifact@v3
+        with:
+          name: documentation
+          path: documentation.tar.gz

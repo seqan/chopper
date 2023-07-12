@@ -1,4 +1,4 @@
-name: CI on Linux
+name: Unit Linux
 
 on:
   push:
@@ -7,118 +7,68 @@ on:
   pull_request:
     types:
       - unlabeled
+  workflow_dispatch:
 
 concurrency:
   group: linux-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name != 'push' }}
 
 env:
-  CMAKE_VERSION: 3.15.4
   SHARG_NO_VERSION_CHECK: 1
   TZ: Europe/Berlin
 
 defaults:
   run:
-    shell: bash -ex {0}
+    shell: bash -Eexuo pipefail {0}
 
 jobs:
   build:
     name: ${{ matrix.name }}
     runs-on: ubuntu-22.04
     timeout-minutes: 120
+    if: github.repository_owner == 'seqan' || github.event_name == 'workflow_dispatch' || github.event.label.name == 'lint'
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         include:
-          - name: "Coverage gcc12"
-            cxx: "g++-12"
-            cc: "gcc-12"
-            build: coverage
-            build_type: Coverage
-            cxx_flags: "-std=c++23"
+          - name: "gcc13"
+            compiler: "gcc-13"
+            build_type: Release
 
           - name: "gcc12"
-            cxx: "g++-12"
-            cc: "gcc-12"
+            compiler: "gcc-12"
             build_type: Release
-            cxx_flags: "-std=c++23"
 
           - name: "gcc11"
-            cxx: "g++-11"
-            cc: "gcc-11"
+            compiler: "gcc-11"
             build_type: Release
-            cxx_flags: "-std=c++23"
-
-          - name: "gcc10"
-            cxx: "g++-10"
-            cc: "gcc-10"
-            build_type: Release
-            cxx_flags: "-std=c++20"
 
     steps:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          path: chopper
-          fetch-depth: 2
+          fetch-depth: 1
           submodules: recursive
 
-      - name: Add package source
-        run: bash ./chopper/lib/seqan3/.github/workflows/scripts/configure_apt.sh
+      - name: Setup toolchain
+        uses: seqan/actions/setup-toolchain@main
+        with:
+          compiler: ${{ matrix.compiler }}
+          ccache_size: 75M
 
       - name: Install CMake
-        run: bash ./chopper/lib/seqan3/.github/workflows/scripts/install_cmake.sh
-
-      - name: Install ccache
-        run: |
-          conda install --yes --override-channels --channel conda-forge ccache
-          sudo ln -s $CONDA/bin/ccache /usr/bin/ccache
-
-      - name: Install compiler ${{ matrix.cxx }}
-        run: sudo apt-get install --yes ${{ matrix.cxx }}
-
-      - name: Install gcovr
-        if: matrix.build == 'coverage'
-        env:
-          CC: ${{ matrix.cc }}
-        run: |
-          sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/${CC/gcc/gcov} 100
-          pip install gcovr==5.0
-
-      - name: Load ccache
-        uses: actions/cache@v3
+        uses: seqan/actions/setup-cmake@main
         with:
-          path: .ccache
-          key: ${{ runner.os }}-${{ matrix.name }}-ccache-${{ github.ref }}-${{ github.run_number }}
-          # Restoring: From current branch, otherwise from base branch, otherwise from any branch.
-          restore-keys: |
-            ${{ runner.os }}-${{ matrix.name }}-ccache-${{ github.ref }}
-            ${{ runner.os }}-${{ matrix.name }}-ccache-${{ github.base_ref }}
-            ${{ runner.os }}-${{ matrix.name }}-ccache-
-
-      - name: Tool versions
-        run: |
-          env cmake --version
-          env ${{ matrix.cxx }} --version
+          cmake: 3.16.9
 
       - name: Configure tests
-        env:
-          CXX: ${{ matrix.cxx }}
-          CC: ${{ matrix.cc }}
         run: |
           mkdir build
           cd build
-          cmake ../chopper -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-                           -DCMAKE_CXX_FLAGS="-Wno-interference-size ${{ matrix.cxx_flags }}"
+          cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_FLAGS="-Wno-interference-size"
+          make -j2 gtest_build
 
       - name: Build tests
-        env:
-          CCACHE_BASEDIR: ${{ github.workspace }}
-          CCACHE_DIR: ${{ github.workspace }}/.ccache
-          CCACHE_COMPRESS: true
-          CCACHE_COMPRESSLEVEL: 12
-          CCACHE_MAXSIZE: ${{ matrix.build == 'coverage' && '125M' || '50M' }}
-          CCACHE_IGNOREOPTIONS: "-fprofile-abs-path"
         run: |
           ccache -z
           cd build
@@ -130,27 +80,3 @@ jobs:
           cd build
           ctest . -j2 --output-on-failure
 
-      - name: Generate coverage report
-        if: matrix.build == 'coverage'
-        run: |
-          gcovr --gcov-executable ${{ github.workspace }}/chopper/lib/seqan3/.github/workflows/scripts/gcov.sh \
-                --root ${{ github.workspace }}/chopper/test/coverage \
-                ${{ github.workspace }}/build \
-                --filter ${{ github.workspace }}/chopper/include \
-                --filter ${{ github.workspace }}/chopper/src \
-                --exclude ${{ github.workspace }}/chopper/src/measure_hyperloglog.cpp \
-                --exclude-lines-by-pattern '^\s*$' \
-                --exclude-lines-by-pattern '^\s*};$' \
-                --exclude-lines-by-pattern '^.*GCOVR_EXCL_LINE.*$' \
-                --exclude-unreachable-branches \
-                --exclude-throw-branches \
-                -j 2 \
-                --xml \
-                --output ${{ github.workspace }}/build/coverage_report.xml
-
-      - name: Submit coverage report
-        if: matrix.build == 'coverage'
-        uses: codecov/codecov-action@v3
-        with:
-          files: ${{ github.workspace }}/build/coverage_report.xml
-          root_dir: ${{ github.workspace }}/chopper
