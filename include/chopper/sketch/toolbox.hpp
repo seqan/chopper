@@ -8,7 +8,7 @@
 
 #include <robin_hood.h>
 
-#include <chopper/sketch/hyperloglog.hpp>
+#include <hibf/detail/sketch/hyperloglog.hpp>
 
 namespace chopper::sketch
 {

@@ -2,12 +2,12 @@
 
 #include <vector>
 
-#include <chopper/sketch/hyperloglog.hpp>
+#include <hibf/detail/sketch/hyperloglog.hpp>
 
 namespace chopper::sketch
 {
 
-inline void estimate_kmer_counts(std::vector<chopper::sketch::hyperloglog> const & sketches,
+inline void estimate_kmer_counts(std::vector<hibf::sketch::hyperloglog> const & sketches,
                                  std::vector<size_t> & kmer_counts)
 {
     kmer_counts.resize(sketches.size());

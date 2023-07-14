@@ -12,7 +12,7 @@
 #include <seqan3/search/kmer_index/shape.hpp>
 #include <seqan3/search/views/kmer_hash.hpp>
 
-#include <chopper/sketch/hyperloglog.hpp>
+#include <hibf/detail/sketch/hyperloglog.hpp>
 
 struct cli_args
 {
@@ -69,7 +69,7 @@ int main(int argc, char const * argv[])
     sequence_file_type seq_file{args.input_path};
     std::ofstream fout{args.output_path};
 
-    std::vector<chopper::sketch::hyperloglog> sketches;
+    std::vector<hibf::sketch::hyperloglog> sketches;
     std::unordered_set<uint64_t> control;
 
     // write metadata

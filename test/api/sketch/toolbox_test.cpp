@@ -18,9 +18,9 @@ struct toolbox_test : public ::testing::Test
     std::vector<std::string> test_filenames{"small.fa", "small.fa", "small2.fa", "small2.fa"};
     std::vector<size_t> test_kmer_counts{500, 600, 700, 800};
     std::vector<size_t> test_positions{0, 1, 2, 3};
-    std::vector<chopper::sketch::hyperloglog> test_sketches = [this]()
+    std::vector<hibf::sketch::hyperloglog> test_sketches = [this]()
     {
-        std::vector<chopper::sketch::hyperloglog> result;
+        std::vector<hibf::sketch::hyperloglog> result;
         chopper::sketch::toolbox::read_hll_files_into(data(""), test_filenames, result);
         return result;
     }();
@@ -57,9 +57,9 @@ TEST_F(toolbox_test, read_hll_files_into)
 {
     size_t const k{16};
     size_t const b{5};
-    chopper::sketch::hyperloglog expected{b};
+    hibf::sketch::hyperloglog expected{b};
 
-    std::vector<chopper::sketch::hyperloglog> target{};
+    std::vector<hibf::sketch::hyperloglog> target{};
 
     std::string const input_file{data("small.fa")};
     sequence_file_type seq_file{input_file};
@@ -67,7 +67,7 @@ TEST_F(toolbox_test, read_hll_files_into)
     // put every sequence in this file into the sketch
     for (auto && [seq] : seq_file)
     {
-        // we have to go C-style here for the chopper::sketch::HyperLogLog Interface
+        // we have to go C-style here for the hibf::sketch::hyperloglog Interface
         char const * it = &(*seq.begin());
         char const * const end = it + seq.size() - k + 1;
 
@@ -88,7 +88,7 @@ TEST_F(toolbox_test, read_hll_files_into_empty_dir)
     ASSERT_TRUE(std::filesystem::exists(empty_dir.path()));
     ASSERT_TRUE(std::filesystem::is_empty(empty_dir.path()));
 
-    std::vector<chopper::sketch::hyperloglog> target{};
+    std::vector<hibf::sketch::hyperloglog> target{};
     // Will throw in Release, but assert in Debug
 #ifdef NDEBUG
     EXPECT_THROW(chopper::sketch::toolbox::read_hll_files_into(empty_dir.path(), test_filenames, target),
@@ -107,7 +107,7 @@ TEST_F(toolbox_test, read_hll_files_into_file_is_missing)
         os << "Doesn't matter I just need to exist\n";
     }
 
-    std::vector<chopper::sketch::hyperloglog> target{};
+    std::vector<hibf::sketch::hyperloglog> target{};
 
     EXPECT_THROW(chopper::sketch::toolbox::read_hll_files_into(tmp_file.parent_path(), test_filenames, target),
                  std::runtime_error);
@@ -122,7 +122,7 @@ TEST_F(toolbox_test, read_hll_files_into_faulty_file)
         os << "I am not what an hll file looks like\n";
     }
 
-    std::vector<chopper::sketch::hyperloglog> target{};
+    std::vector<hibf::sketch::hyperloglog> target{};
 
     EXPECT_THROW(chopper::sketch::toolbox::read_hll_files_into(tmp_file.parent_path(), test_filenames, target),
                  std::runtime_error);
@@ -238,7 +238,7 @@ TEST_F(toolbox_test, prune)
 
 TEST_F(toolbox_test, rotate)
 {
-    chopper::sketch::hyperloglog s{5}; // default sketch for every entry in the tree as it is not important for rotate
+    hibf::sketch::hyperloglog s{5}; // default sketch for every entry in the tree as it is not important for rotate
     auto f = std::numeric_limits<size_t>::max();
 
     chopper::sketch::toolbox ubs{test_kmer_counts, test_sketches, test_positions};
@@ -284,7 +284,7 @@ TEST_F(toolbox_test, rotate)
 
 TEST_F(toolbox_test, trace)
 {
-    chopper::sketch::hyperloglog s{5}; // default sketch for every entry in the tree as it is not important for rotate
+    hibf::sketch::hyperloglog s{5}; // default sketch for every entry in the tree as it is not important for rotate
     auto f = std::numeric_limits<size_t>::max();
 
     chopper::sketch::toolbox ubs{test_kmer_counts, test_sketches, test_positions};

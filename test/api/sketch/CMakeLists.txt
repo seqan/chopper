@@ -1,8 +1,5 @@
 cmake_minimum_required (VERSION 3.18)
 
-add_api_test (hyperloglog_test.cpp)
-target_use_datasources (hyperloglog_test FILES small.fa)
-
 add_api_test (toolbox_test.cpp)
 target_use_datasources (toolbox_test FILES small.fa)
 target_use_datasources (toolbox_test FILES small2.fa)
