@@ -49,7 +49,7 @@ inline void set_up_parser(sharg::parser & parser, chopper::configuration & confi
                 "[16,32] has proven to work well."});
 
     parser.add_option(
-        config.tmax,
+        config.hibf_config.tmax,
         sharg::config{
             .short_id = '\0',
             .long_id = "tmax",
@@ -66,7 +66,7 @@ inline void set_up_parser(sharg::parser & parser, chopper::configuration & confi
             .advanced = true});
 
     parser.add_option(
-        config.num_hash_functions,
+        config.hibf_config.number_of_hash_functions,
         sharg::config{.short_id = '\0',
                       .long_id = "num-hash-functions",
                       .description =
@@ -74,7 +74,7 @@ inline void set_up_parser(sharg::parser & parser, chopper::configuration & confi
                           "This parameter is needed to correctly estimate the index size when computing the layout."});
 
     parser.add_option(
-        config.false_positive_rate,
+        config.hibf_config.maximum_false_positive_rate,
         sharg::config{.short_id = '\0',
                       .long_id = "false-positive-rate",
                       .description =
@@ -87,7 +87,7 @@ inline void set_up_parser(sharg::parser & parser, chopper::configuration & confi
                                     .description = "A file name for the resulting layout."});
 
     parser.add_option(
-        config.threads,
+        config.hibf_config.threads,
         sharg::config{
             .short_id = '\0',
             .long_id = "threads",
@@ -101,7 +101,7 @@ inline void set_up_parser(sharg::parser & parser, chopper::configuration & confi
     parser.add_line("To improve the layout, you can estimate the sequence similarities using HyperLogLog sketches.");
 
     parser.add_flag(
-        config.disable_estimate_union,
+        config.hibf_config.disable_estimate_union,
         sharg::config{
             .short_id = '\0',
             .long_id = "disable-estimate-union",
@@ -112,7 +112,7 @@ inline void set_up_parser(sharg::parser & parser, chopper::configuration & confi
                 "Attention: Also disables rearrangement which depends on union estimations."});
 
     parser.add_flag(
-        config.disable_rearrangement,
+        config.hibf_config.disable_rearrangement,
         sharg::config{
             .short_id = '\0',
             .long_id = "disable-rearrangement",
@@ -125,7 +125,7 @@ inline void set_up_parser(sharg::parser & parser, chopper::configuration & confi
     parser.add_subsection("Parameter Tweaking:");
     // -----------------------------------------------------------------------------------------------------------------
     parser.add_option(
-        config.alpha,
+        config.hibf_config.alpha,
         sharg::config{
             .short_id = '\0',
             .long_id = "alpha",
@@ -138,7 +138,7 @@ inline void set_up_parser(sharg::parser & parser, chopper::configuration & confi
             .advanced = true});
 
     parser.add_option(
-        config.max_rearrangement_ratio,
+        config.hibf_config.max_rearrangement_ratio,
         sharg::config{
             .short_id = '\0',
             .long_id = "max-rearrangement-ratio",
@@ -151,7 +151,7 @@ inline void set_up_parser(sharg::parser & parser, chopper::configuration & confi
             .validator = sharg::arithmetic_range_validator{0.0, 1.0}});
 
     parser.add_option(
-        config.sketch_bits,
+        config.hibf_config.sketch_bits,
         sharg::config{.short_id = '\0',
                       .long_id = "sketch-bits",
                       .description =

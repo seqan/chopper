@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.15)
+cmake_minimum_required (VERSION 3.18)
 
 ## CUSTOMISE
 
@@ -6,6 +6,9 @@ cmake_minimum_required (VERSION 3.15)
 project (chopper VERSION 1.0.0)
 
 ## BUILD
+
+# Optimization
+option (CHOPPER_NATIVE_BUILD "Optimize build for current architecture." ON)
 
 # Make Release default build type
 if (NOT CMAKE_BUILD_TYPE)
@@ -42,14 +45,7 @@ endif ()
 set (CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set (CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
-set (CMAKE_INSTALL_LIBDIR
-     "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}"
-     CACHE STRING ""
-)
-set (CMAKE_INSTALL_BINDIR
-     "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
-     CACHE STRING ""
-)
+set (CMAKE_INSTALL_BINDIR "bin")
 
 # Messages
 string (ASCII 27 Esc)
@@ -88,34 +84,31 @@ endif ()
 # Dependency: Sharg.
 find_package (Sharg REQUIRED QUIET HINTS ${CHOPPER_SUBMODULES_DIR}/sharg-parser/build_system)
 
+# Dependency: HIBF.
+FetchContent_Declare (chopper_hibf_project SOURCE_DIR ${CHOPPER_SUBMODULES_DIR}/Hierarchical_Interleaved_Bloomfilter)
+
+set (HIBF_NATIVE_BUILD
+     ${CHOPPER_NATIVE_BUILD}
+     CACHE BOOL "Optimize build for current architecture."
+)
+set (INSTALL_HIBF
+     OFF
+     CACHE BOOL "Install HIBF targets."
+)
+
+FetchContent_MakeAvailable (chopper_hibf_project)
+
 # Dependency: xxHash
-set (CHOPPER_XXHASH_PATH "${PROJECT_BINARY_DIR}/lib/libxxhash.a")
+FetchContent_Declare (chopper_xxhash_project SOURCE_DIR ${CHOPPER_SUBMODULES_DIR}/xxHash SOURCE_SUBDIR
+                                             "cmake_unofficial"
+)
 
-if (EXISTS "${CHOPPER_XXHASH_PATH}")
-    add_custom_target (xxhash_project)
-else ()
-    set (CHOPPER_XXHASH_ARGS "${SEQAN3_EXTERNAL_PROJECT_CMAKE_ARGS}")
-    list (APPEND CHOPPER_XXHASH_ARGS "-DXXHASH_BUILD_XXHSUM=OFF")
-    list (APPEND CHOPPER_XXHASH_ARGS "-DXXHASH_BUNDLED_MODE=OFF")
-    list (APPEND CHOPPER_XXHASH_ARGS "-DBUILD_SHARED_LIBS=OFF")
-    list (APPEND CHOPPER_XXHASH_ARGS "--no-warn-unused-cli")
+set (XXHASH_BUILD_ENABLE_INLINE_API ON)
+set (XXHASH_BUILD_XXHSUM OFF)
+set (XXHASH_BUNDLED_MODE ON)
+set (BUILD_SHARED_LIBS OFF)
 
-    include (ExternalProject)
-    ExternalProject_Add (xxhash_project
-                         PREFIX xxhash_project
-                         GIT_REPOSITORY https://github.com/Cyan4973/xxHash.git
-                         GIT_TAG "f9155bd4c57e2270a4ffbb176485e5d713de1c9b"
-                         CMAKE_ARGS "${CHOPPER_XXHASH_ARGS}"
-                         SOURCE_SUBDIR cmake_unofficial
-                         BUILD_BYPRODUCTS "${CHOPPER_XXHASH_PATH}"
-                         UPDATE_DISCONNECTED 1
-    )
-endif ()
-
-add_library (xxhash STATIC IMPORTED)
-add_dependencies (xxhash xxhash_project)
-set_target_properties (xxhash PROPERTIES IMPORTED_LOCATION "${CHOPPER_XXHASH_PATH}")
-target_include_directories (xxhash INTERFACE "${PROJECT_BINARY_DIR}/include")
+FetchContent_MakeAvailable (chopper_xxhash_project)
 
 # Add the application.
 set (CHOPPER_INSTALL

@@ -5,7 +5,7 @@
 # shipped with this file and also available at: https://github.com/seqan/chopper/blob/master/LICENSE.md
 # -----------------------------------------------------------------------------------------------------
 
-cmake_minimum_required (VERSION 3.15)
+cmake_minimum_required (VERSION 3.18)
 
 # Add a custom build type: Coverage
 

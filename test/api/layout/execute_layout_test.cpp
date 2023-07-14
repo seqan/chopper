@@ -14,20 +14,24 @@ TEST(execute_test, few_ubs)
     seqan3::test::tmp_directory tmp_dir{};
     std::filesystem::path const layout_file{tmp_dir.path() / "layout.tsv"};
 
+    auto simulated_input = [&](size_t const num, hibf::insert_iterator it)
+    {
+        size_t const desired_kmer_count = (num == 1) ? 1000 : 500;
+        for (auto hash : std::views::iota(0u, desired_kmer_count))
+            it = hash;
+    };
+
     chopper::configuration config{};
-    config.tmax = 64;
+    config.hibf_config.input_fn = simulated_input;
+    config.hibf_config.number_of_user_bins = 8;
+    config.hibf_config.tmax = 64;
     config.output_filename = layout_file;
     config.disable_sketch_output = true;
-    config.disable_estimate_union = true; // also disables rearrangement
+    config.hibf_config.disable_estimate_union = true; // also disables rearrangement
 
-    chopper::layout::layout hibf_layout{};
     std::vector<std::string> filenames{"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7"};
 
-    chopper::data_store store{.false_positive_rate = config.false_positive_rate,
-                              .hibf_layout = &hibf_layout,
-                              .kmer_counts = {500, 1000, 500, 500, 500, 500, 500, 500}};
-
-    chopper::layout::execute(config, filenames, store);
+    chopper::layout::execute(config, filenames);
 
     std::string const expected_file{"##CONFIG:\n"
                                     "##{\n"
@@ -41,7 +45,6 @@ TEST(execute_test, few_ubs)
                                     "##            \"value0\": \"\"\n"
                                     "##        },\n"
                                     "##        \"k\": 19,\n"
-                                    "##        \"sketch_bits\": 12,\n"
                                     "##        \"disable_sketch_output\": true,\n"
                                     "##        \"precomputed_files\": false,\n"
                                     "##        \"output_filename\": {\n"
@@ -49,16 +52,25 @@ TEST(execute_test, few_ubs)
                                     + layout_file.string()
                                     + "\"\n"
                                       "##        },\n"
-                                      "##        \"tmax\": 64,\n"
-                                      "##        \"num_hash_functions\": 2,\n"
-                                      "##        \"false_positive_rate\": 0.05,\n"
-                                      "##        \"alpha\": 1.2,\n"
-                                      "##        \"max_rearrangement_ratio\": 0.5,\n"
-                                      "##        \"threads\": 1,\n"
-                                      "##        \"disable_estimate_union\": true,\n"
-                                      "##        \"disable_rearrangement\": true,\n"
                                       "##        \"determine_best_tmax\": false,\n"
-                                      "##        \"force_all_binnings\": false\n"
+                                      "##        \"force_all_binnings\": false,\n"
+                                      "##        \"hibf_config\": {\n"
+                                      "##            \"version\": 1,\n"
+                                      "##            \"number_of_user_bins\": 8,\n"
+                                      "##            \"number_of_hash_functions\": 2,\n"
+                                      "##            \"maximum_false_positive_rate\": 0.05,\n"
+                                      "##            \"threads\": 1,\n"
+                                      "##            \"sketch_bits\": 12,\n"
+                                      "##            \"tmax\": 64,\n"
+                                      "##            \"alpha\": 1.2,\n"
+                                      "##            \"max_rearrangement_ratio\": 0.5,\n"
+                                      "##            \"disable_estimate_union\": true,\n"
+                                      "##            \"disable_rearrangement\": true,\n"
+                                      "##            \"disable_cutoffs\": false,\n"
+                                      "##            \"layout_file\": {\n"
+                                      "##                \"value0\": \"\"\n"
+                                      "##            }\n"
+                                      "##        }\n"
                                       "##    }\n"
                                       "##}\n"
                                       "##ENDCONFIG\n"
@@ -82,20 +94,25 @@ TEST(execute_test, set_default_tmax)
     seqan3::test::tmp_directory tmp_dir{};
     std::filesystem::path const layout_file{tmp_dir.path() / "layout.tsv"};
 
+    auto simulated_input = [&](size_t const num, hibf::insert_iterator it)
+    {
+        size_t const desired_kmer_count = (num == 1) ? 1000 : 500;
+        for (auto hash : std::views::iota(0u, desired_kmer_count))
+            it = hash;
+    };
+
     chopper::configuration config{}; // tmax == 0 triggers to set default to the sqrt(#samples)
     config.output_filename = layout_file;
     config.disable_sketch_output = true;
-    config.disable_estimate_union = true; // also disables rearrangement
+    config.hibf_config.input_fn = simulated_input;
+    config.hibf_config.number_of_user_bins = 8;
+    config.hibf_config.disable_estimate_union = true; // also disables rearrangement
 
-    chopper::layout::layout hibf_layout{};
     std::vector<std::string> filenames{"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7"};
-    chopper::data_store store{.false_positive_rate = config.false_positive_rate,
-                              .hibf_layout = &hibf_layout,
-                              .kmer_counts = {500, 1000, 500, 500, 500, 500, 500, 500}};
 
-    chopper::layout::execute(config, filenames, store);
+    chopper::layout::execute(config, filenames);
 
-    EXPECT_EQ(config.tmax, 64u);
+    EXPECT_EQ(config.hibf_config.tmax, 64u);
 }
 
 TEST(execute_test, many_ubs)
@@ -104,27 +121,27 @@ TEST(execute_test, many_ubs)
     std::filesystem::path const layout_file{tmp_dir.path() / "layout.tsv"};
 
     std::vector<std::string> many_filenames;
-    std::vector<size_t> many_kmer_counts;
+
+    for (size_t i{0}; i < 96u; ++i)
+        many_filenames.push_back(seqan3::detail::to_string("seq", i));
 
     // There are 20 files with a count of {100,200,300,400} each. There are 16 files with count 500.
-    for (size_t i{0}; i < 96u; ++i)
+    auto simulated_input = [&](size_t const num, hibf::insert_iterator it)
     {
-        many_filenames.push_back(seqan3::detail::to_string("seq", i));
-        many_kmer_counts.push_back(100 * ((i + 20) / 20));
-    }
+        size_t const desired_kmer_count = 101 * ((num + 20) / 20);
+        for (auto hash : std::views::iota(0u, desired_kmer_count))
+            it = hash;
+    };
 
     chopper::configuration config{};
-    config.tmax = 64;
     config.output_filename = layout_file;
     config.disable_sketch_output = true;
-    config.disable_estimate_union = true; // also disables rearrangement
+    config.hibf_config.tmax = 64;
+    config.hibf_config.input_fn = simulated_input;
+    config.hibf_config.number_of_user_bins = many_filenames.size();
+    config.hibf_config.disable_estimate_union = true; // also disables rearrangement
 
-    chopper::layout::layout hibf_layout{};
-    chopper::data_store data{.false_positive_rate = config.false_positive_rate,
-                             .hibf_layout = &hibf_layout,
-                             .kmer_counts = many_kmer_counts};
-
-    chopper::layout::execute(config, many_filenames, data);
+    chopper::layout::execute(config, many_filenames);
 
     std::string const expected_file{"##CONFIG:\n"
                                     "##{\n"
@@ -138,7 +155,6 @@ TEST(execute_test, many_ubs)
                                     "##            \"value0\": \"\"\n"
                                     "##        },\n"
                                     "##        \"k\": 19,\n"
-                                    "##        \"sketch_bits\": 12,\n"
                                     "##        \"disable_sketch_output\": true,\n"
                                     "##        \"precomputed_files\": false,\n"
                                     "##        \"output_filename\": {\n"
@@ -146,16 +162,25 @@ TEST(execute_test, many_ubs)
                                     + layout_file.string()
                                     + "\"\n"
                                       "##        },\n"
-                                      "##        \"tmax\": 64,\n"
-                                      "##        \"num_hash_functions\": 2,\n"
-                                      "##        \"false_positive_rate\": 0.05,\n"
-                                      "##        \"alpha\": 1.2,\n"
-                                      "##        \"max_rearrangement_ratio\": 0.5,\n"
-                                      "##        \"threads\": 1,\n"
-                                      "##        \"disable_estimate_union\": true,\n"
-                                      "##        \"disable_rearrangement\": true,\n"
                                       "##        \"determine_best_tmax\": false,\n"
-                                      "##        \"force_all_binnings\": false\n"
+                                      "##        \"force_all_binnings\": false,\n"
+                                      "##        \"hibf_config\": {\n"
+                                      "##            \"version\": 1,\n"
+                                      "##            \"number_of_user_bins\": 96,\n"
+                                      "##            \"number_of_hash_functions\": 2,\n"
+                                      "##            \"maximum_false_positive_rate\": 0.05,\n"
+                                      "##            \"threads\": 1,\n"
+                                      "##            \"sketch_bits\": 12,\n"
+                                      "##            \"tmax\": 64,\n"
+                                      "##            \"alpha\": 1.2,\n"
+                                      "##            \"max_rearrangement_ratio\": 0.5,\n"
+                                      "##            \"disable_estimate_union\": true,\n"
+                                      "##            \"disable_rearrangement\": true,\n"
+                                      "##            \"disable_cutoffs\": false,\n"
+                                      "##            \"layout_file\": {\n"
+                                      "##                \"value0\": \"\"\n"
+                                      "##            }\n"
+                                      "##        }\n"
                                       "##    }\n"
                                       "##}\n"
                                       "##ENDCONFIG\n"

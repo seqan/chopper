@@ -5,29 +5,32 @@
 #include <sharg/exceptions.hpp>
 
 #include <chopper/configuration.hpp>
-#include <chopper/layout/compute_fp_correction.hpp>
 #include <chopper/layout/hibf_statistics.hpp>
-#include <chopper/layout/hierarchical_binning.hpp>
 #include <chopper/layout/ibf_query_cost.hpp>
 #include <chopper/layout/output.hpp>
+#include <chopper/sketch/output.hpp>
+
+#include <hibf/detail/layout/compute_layout.hpp>
+#include <hibf/hierarchical_interleaved_bloom_filter.hpp>
 
 namespace chopper::layout
 {
 
-size_t determine_best_number_of_technical_bins(chopper::data_store & data, chopper::configuration & config)
+std::pair<hibf::layout::layout, std::vector<hibf::sketch::hyperloglog>>
+determine_best_number_of_technical_bins(chopper::configuration & config)
 {
-    chopper::layout::layout * original_layout = data.hibf_layout; // cache original layout
+    hibf::layout::layout best_layout;
 
     std::set<size_t> potential_t_max = [&]()
     {
         std::set<size_t> result;
 
-        for (size_t t_max = 64; t_max <= config.tmax; t_max *= 2)
+        for (size_t t_max = 64; t_max <= config.hibf_config.tmax; t_max *= 2)
             result.insert(t_max);
 
         // Additionally, add the t_max that is closest to the sqrt() of the number of
         // user bins, as it is expected to evenly spread bins and may perform well.
-        size_t const user_bin_count{std::ranges::size(data.kmer_counts)};
+        size_t const user_bin_count{config.hibf_config.number_of_user_bins};
         size_t const sqrt_t_max{next_multiple_of_64(std::ceil(std::sqrt(user_bin_count)))};
         result.insert(sqrt_t_max);
 
@@ -40,36 +43,36 @@ size_t determine_best_number_of_technical_bins(chopper::data_store & data, chopp
     std::ofstream file_out{config.output_filename.string() + ".stats"};
 
     file_out << "## ### Parameters ###\n"
-             << "## number of user bins = " << data.kmer_counts.size() << '\n'
-             << "## number of hash functions = " << config.num_hash_functions << '\n'
-             << "## false positive rate = " << config.false_positive_rate << '\n';
+             << "## number of user bins = " << config.hibf_config.number_of_user_bins << '\n'
+             << "## number of hash functions = " << config.hibf_config.number_of_hash_functions << '\n'
+             << "## false positive rate = " << config.hibf_config.maximum_false_positive_rate << '\n';
     hibf_statistics::print_header_to(file_out, config.output_verbose_statistics);
 
     double best_expected_HIBF_query_cost{std::numeric_limits<double>::infinity()};
     size_t best_t_max{};
-    size_t max_hibf_id{};
     size_t t_max_64_memory{};
+
+    std::vector<size_t> kmer_counts;
+    std::vector<hibf::sketch::hyperloglog> sketches;
 
     for (size_t const t_max : potential_t_max)
     {
-        chopper::layout::layout tmp_layout{}; // will be rewritten for every tmax
-        config.tmax = t_max;                  // overwrite tmax
-        data.hibf_layout = &tmp_layout;
-        data.previous = chopper::data_store::previous_level{}; // reset previous IBF, s.t. data refers to top level IBF
+        config.hibf_config.tmax = t_max;
 
-        // execute the actual algorithm
-        size_t const max_hibf_id_tmp = chopper::layout::hierarchical_binning{data, config}.execute();
+        kmer_counts.clear();
+        sketches.clear();
 
-        chopper::layout::hibf_statistics global_stats{config, data.fp_correction, data.sketches, data.kmer_counts};
-        global_stats.hibf_layout = *data.hibf_layout;
+        hibf::layout::layout tmp_layout = hibf::layout::compute_layout(config.hibf_config, kmer_counts, sketches);
+
+        chopper::layout::hibf_statistics global_stats{config, sketches, kmer_counts};
+        global_stats.hibf_layout = tmp_layout;
         global_stats.finalize();
         global_stats.print_summary_to(t_max_64_memory, file_out, config.output_verbose_statistics);
 
         // Use result if better than previous one.
         if (global_stats.expected_HIBF_query_cost < best_expected_HIBF_query_cost)
         {
-            *original_layout = std::move(tmp_layout);
-            max_hibf_id = max_hibf_id_tmp;
+            best_layout = std::move(tmp_layout);
             best_t_max = t_max;
             best_expected_HIBF_query_cost = global_stats.expected_HIBF_query_cost;
         }
@@ -80,63 +83,74 @@ size_t determine_best_number_of_technical_bins(chopper::data_store & data, chopp
     }
 
     file_out << "# Best t_max (regarding expected query runtime): " << best_t_max << '\n';
-    config.tmax = best_t_max;
-    data.hibf_layout = original_layout; // reset original layout
-    return max_hibf_id;
+    config.hibf_config.tmax = best_t_max;
+
+    return {best_layout, sketches};
 }
 
-int execute(chopper::configuration & config, std::vector<std::string> const & filenames, chopper::data_store & data)
+int execute(chopper::configuration & config, std::vector<std::string> const & filenames)
 {
-    if (config.disable_estimate_union)
-        config.disable_rearrangement = true;
+    assert(config.hibf_config.number_of_user_bins > 0);
 
-    if (config.tmax == 0) // no tmax was set by the user on the command line
+    if (config.hibf_config.disable_estimate_union)
+        config.hibf_config.disable_rearrangement = true;
+
+    if (config.hibf_config.tmax == 0) // no tmax was set by the user on the command line
     {
         // Set default as sqrt(#samples). Experiments showed that this is a reasonable default.
-        if (size_t number_samples = data.kmer_counts.size();
+        if (size_t number_samples = config.hibf_config.number_of_user_bins;
             number_samples >= 1ULL << 32) // sqrt is bigger than uint16_t
             throw std::invalid_argument{"Too many samples. Please set a tmax (see help via `-hh`)."}; // GCOVR_EXCL_LINE
         else
-            config.tmax = chopper::next_multiple_of_64(static_cast<uint16_t>(std::ceil(std::sqrt(number_samples))));
+            config.hibf_config.tmax =
+                chopper::next_multiple_of_64(static_cast<uint16_t>(std::ceil(std::sqrt(number_samples))));
     }
-    else if (config.tmax % 64 != 0)
+    else if (config.hibf_config.tmax % 64 != 0)
     {
-        config.tmax = chopper::next_multiple_of_64(config.tmax);
+        config.hibf_config.tmax = chopper::next_multiple_of_64(config.hibf_config.tmax);
         std::cerr << "[CHOPPER LAYOUT WARNING]: Your requested number of technical bins was not a multiple of 64. "
                   << "Due to the architecture of the HIBF, it will use up space equal to the next multiple of 64 "
-                  << "anyway, so we increased your number of technical bins to " << config.tmax << ".\n";
+                  << "anyway, so we increased your number of technical bins to " << config.hibf_config.tmax << ".\n";
     }
 
-    data.fp_correction = compute_fp_correction(config.false_positive_rate, config.num_hash_functions, config.tmax);
-
-    size_t max_hibf_id;
+    hibf::layout::layout hibf_layout;
+    std::vector<hibf::sketch::hyperloglog> sketches;
 
     if (config.determine_best_tmax)
     {
-        max_hibf_id = determine_best_number_of_technical_bins(data, config);
-        data.hibf_layout->top_level_max_bin_id = max_hibf_id;
+        std::tie(hibf_layout, sketches) = determine_best_number_of_technical_bins(config);
     }
     else
     {
-        size_t dummy{};
+        std::vector<size_t> kmer_counts;
 
-        max_hibf_id = chopper::layout::hierarchical_binning{data, config}.execute(); // just execute once
-        data.hibf_layout->top_level_max_bin_id = max_hibf_id;
+        hibf_layout = hibf::layout::compute_layout(config.hibf_config, kmer_counts, sketches);
 
         if (config.output_verbose_statistics)
         {
-            chopper::layout::hibf_statistics global_stats{config, data.fp_correction, data.sketches, data.kmer_counts};
-            global_stats.hibf_layout = *data.hibf_layout;
+            size_t dummy{};
+            chopper::layout::hibf_statistics global_stats{config, sketches, kmer_counts};
+            global_stats.hibf_layout = hibf_layout;
             global_stats.print_header_to(std::cout);
             global_stats.print_summary_to(dummy, std::cout);
         }
     }
 
+    if (!config.disable_sketch_output)
+    {
+        if (!std::filesystem::exists(config.sketch_directory))
+            std::filesystem::create_directory(config.sketch_directory);
+
+        assert(filenames.size() == sketches.size());
+        for (size_t i = 0; i < filenames.size(); ++i)
+            sketch::write_sketch_file(filenames[i], sketches[i], config);
+    }
+
     // brief Write the output to the layout file.
     std::ofstream fout{config.output_filename};
     chopper::layout::write_config_to(config, fout);
-    chopper::layout::write_layout_header_to(*(data.hibf_layout), data.hibf_layout->top_level_max_bin_id, fout);
-    chopper::layout::write_layout_content_to(*(data.hibf_layout), filenames, fout);
+    chopper::layout::write_layout_header_to(hibf_layout, hibf_layout.top_level_max_bin_id, fout);
+    chopper::layout::write_layout_content_to(hibf_layout, filenames, fout);
 
     return 0;
 }
