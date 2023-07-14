@@ -3,11 +3,11 @@
 #include <seqan3/core/debug_stream.hpp>
 
 #include <chopper/configuration.hpp>
-#include <chopper/data_store.hpp>
+#include <chopper/input_functor.hpp>
 #include <chopper/layout/execute.hpp>
 #include <chopper/set_up_parser.hpp>
-#include <chopper/sketch/estimate_kmer_counts.hpp>
-#include <chopper/sketch/execute.hpp>
+#include <chopper/sketch/check_filenames.hpp>
+#include <chopper/sketch/read_data_file.hpp>
 
 int main(int argc, char const * argv[])
 {
@@ -31,24 +31,22 @@ int main(int argc, char const * argv[])
 
     int exit_code{};
 
-    chopper::layout::layout hibf_layout{};
     std::vector<std::string> filenames{};
-    std::vector<size_t> kmer_counts{};
-    std::vector<chopper::sketch::hyperloglog> sketches{};
 
     chopper::sketch::read_data_file(config, filenames);
 
     try
     {
-        exit_code |= chopper::sketch::execute(config, filenames, sketches);
-        chopper::sketch::estimate_kmer_counts(sketches, kmer_counts);
+        if (filenames.empty())
+            throw sharg::parser_error{
+                sharg::detail::to_string("The file ", config.data_file.string(), " appears to be empty.")};
 
-        chopper::data_store store{.false_positive_rate = config.false_positive_rate,
-                                  .hibf_layout = &hibf_layout,
-                                  .kmer_counts = kmer_counts,
-                                  .sketches = sketches};
+        chopper::sketch::check_filenames(filenames, config);
 
-        exit_code |= chopper::layout::execute(config, filenames, store);
+        config.hibf_config.input_fn = chopper::input_functor{filenames, config.precomputed_files, config.k};
+        config.hibf_config.number_of_user_bins = filenames.size();
+
+        exit_code |= chopper::layout::execute(config, filenames);
     }
     catch (std::exception const & ext)
     {

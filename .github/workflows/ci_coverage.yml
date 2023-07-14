@@ -56,7 +56,7 @@ jobs:
       - name: Install CMake
         uses: seqan/actions/setup-cmake@main
         with:
-          cmake: 3.16.9
+          cmake: 3.18.6
 
       - name: Install gcovr
         run: |
@@ -67,7 +67,9 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_CXX_FLAGS="-Wno-interference-size"
+          cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+                   -DCMAKE_CXX_FLAGS="-Wno-interference-size" \
+                   -DCHOPPER_NATIVE_BUILD=OFF
           make -j2 gtest_build
 
       - name: Build tests

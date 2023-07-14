@@ -4,11 +4,14 @@
 #include <sstream>
 #include <vector>
 
+#include <seqan3/io/sequence_file/all.hpp>
+#include <seqan3/search/views/kmer_hash.hpp>
+
 #include <chopper/layout/execute.hpp>
-#include <chopper/sketch/estimate_kmer_counts.hpp>
-#include <chopper/sketch/execute.hpp>
 
 #include "../api_test.hpp"
+#include <hibf/detail/sketch/hyperloglog.hpp>
+#include <hibf/detail/sketch/toolbox.hpp>
 
 TEST(execute_estimation_test, few_ubs)
 {
@@ -16,20 +19,25 @@ TEST(execute_estimation_test, few_ubs)
     std::filesystem::path const layout_file{tmp_dir.path() / "layout.tsv"};
     std::filesystem::path const stats_file{layout_file.string() + ".stats"};
 
+    auto simulated_input = [&](size_t const num, hibf::insert_iterator it)
+    {
+        size_t const desired_kmer_count = (num == 1) ? 1000 : 500;
+        for (auto hash : std::views::iota(0u, desired_kmer_count))
+            it = hash;
+    };
+
     chopper::configuration config{};
-    config.tmax = 64;
+    config.hibf_config.tmax = 64;
+    config.hibf_config.input_fn = simulated_input;
+    config.hibf_config.number_of_user_bins = 8;
     config.determine_best_tmax = true;
     config.disable_sketch_output = true;
     config.output_filename = layout_file;
-    config.disable_estimate_union = true; // also disables rearrangement
+    config.hibf_config.disable_estimate_union = true; // also disables rearrangement
 
-    chopper::layout::layout hibf_layout{};
     std::vector<std::string> filenames{"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7"};
-    chopper::data_store store{.false_positive_rate = config.false_positive_rate,
-                              .hibf_layout = &hibf_layout,
-                              .kmer_counts = {500, 1000, 500, 500, 500, 500, 500, 500}};
 
-    chopper::layout::execute(config, filenames, store);
+    chopper::layout::execute(config, filenames);
 
     ASSERT_TRUE(std::filesystem::exists(stats_file));
 
@@ -63,29 +71,28 @@ TEST(execute_estimation_test, many_ubs)
     std::filesystem::path const stats_file{layout_file.string() + ".stats"};
 
     std::vector<std::string> many_filenames;
-    std::vector<size_t> many_kmer_counts;
+
+    for (size_t i{0}; i < 96u; ++i)
+        many_filenames.push_back(seqan3::detail::to_string("seq", i));
 
     // There are 20 files with a count of {100,200,300,400} each. There are 16 files with count 500.
-    for (size_t i{0}; i < 96u; ++i)
+    auto simulated_input = [&](size_t const num, hibf::insert_iterator it)
     {
-        many_filenames.push_back(seqan3::detail::to_string("seq", i));
-        many_kmer_counts.push_back(100 * ((i + 20) / 20));
-    }
+        size_t const desired_kmer_count = 100 * ((num + 20) / 20);
+        for (auto hash : std::views::iota(0u, desired_kmer_count))
+            it = hash;
+    };
 
     chopper::configuration config{};
-    config.tmax = 1024;
     config.determine_best_tmax = true;
     config.output_filename = layout_file;
     config.disable_sketch_output = true;
-    config.disable_estimate_union = true; // also disables rearrangement
+    config.hibf_config.tmax = 1024;
+    config.hibf_config.input_fn = simulated_input;
+    config.hibf_config.number_of_user_bins = many_filenames.size();
+    config.hibf_config.disable_estimate_union = true; // also disables rearrangement
 
-    chopper::layout::layout hibf_layout{};
-
-    chopper::data_store data{.false_positive_rate = config.false_positive_rate,
-                             .hibf_layout = &hibf_layout,
-                             .kmer_counts = many_kmer_counts};
-
-    chopper::layout::execute(config, many_filenames, data);
+    chopper::layout::execute(config, many_filenames);
 
     ASSERT_TRUE(std::filesystem::exists(stats_file));
 
@@ -107,9 +114,9 @@ TEST(execute_estimation_test, many_ubs)
 ## (l*m)_tmax : Computed by l_tmax * m_tmax
 ## size : The expected total size of an tmax-HIBF
 # tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size
-64	1.00	1.26	1.00	1.26	73.3KiB
-128	1.22	1.25	0.66	0.82	48.4KiB
-256	1.33	1.33	0.74	0.99	54.3KiB
+64	1.00	1.26	1.00	1.26	74.5KiB
+128	1.22	1.25	0.66	0.83	49.4KiB
+256	1.33	1.33	0.74	0.99	55.1KiB
 # Best t_max (regarding expected query runtime): 128
 )expected_cout");
 
@@ -127,7 +134,6 @@ TEST(execute_estimation_test, many_ubs)
 ##            "value0": ""
 ##        },
 ##        "k": 19,
-##        "sketch_bits": 12,
 ##        "disable_sketch_output": true,
 ##        "precomputed_files": false,
 ##        "output_filename": {
@@ -135,22 +141,31 @@ TEST(execute_estimation_test, many_ubs)
                   + layout_file.string() +
                   R"expected_layout("
 ##        },
-##        "tmax": 128,
-##        "num_hash_functions": 2,
-##        "false_positive_rate": 0.05,
-##        "alpha": 1.2,
-##        "max_rearrangement_ratio": 0.5,
-##        "threads": 1,
-##        "disable_estimate_union": true,
-##        "disable_rearrangement": true,
 ##        "determine_best_tmax": true,
-##        "force_all_binnings": false
+##        "force_all_binnings": false,
+##        "hibf_config": {
+##            "version": 1,
+##            "number_of_user_bins": 96,
+##            "number_of_hash_functions": 2,
+##            "maximum_false_positive_rate": 0.05,
+##            "threads": 1,
+##            "sketch_bits": 12,
+##            "tmax": 128,
+##            "alpha": 1.2,
+##            "max_rearrangement_ratio": 0.5,
+##            "disable_estimate_union": true,
+##            "disable_rearrangement": true,
+##            "disable_cutoffs": false,
+##            "layout_file": {
+##                "value0": ""
+##            }
+##        }
 ##    }
 ##}
 ##ENDCONFIG
 #HIGH_LEVEL_IBF max_bin_id:14
-#MERGED_BIN_14 max_bin_id:0
-#MERGED_BIN_15 max_bin_id:0
+#MERGED_BIN_14 max_bin_id:24
+#MERGED_BIN_15 max_bin_id:24
 #FILES	BIN_INDICES	NUMBER_OF_BINS
 seq0	0	1
 seq19	1	1
@@ -166,12 +181,12 @@ seq10	10	1
 seq9	11	1
 seq8	12	1
 seq7	13	1
-seq4	14;0	1;22
-seq5	14;22	1;21
-seq6	14;43	1;21
-seq1	15;0	1;22
-seq2	15;22	1;21
-seq3	15;43	1;21
+seq4	14;0	1;24
+seq5	14;24	1;20
+seq6	14;44	1;20
+seq1	15;0	1;24
+seq2	15;24	1;20
+seq3	15;44	1;20
 seq32	16	1
 seq33	17	1
 seq34	18	1
@@ -260,28 +275,27 @@ TEST(execute_estimation_test, many_ubs_force_all)
     std::vector<std::string> many_filenames;
     std::vector<size_t> many_kmer_counts;
 
-    // There are 20 files with a count of {100,200,300,400} each. There are 16 files with count 500.
     for (size_t i{0}; i < 96u; ++i)
-    {
         many_filenames.push_back(seqan3::detail::to_string("seq", i));
-        many_kmer_counts.push_back(100 * ((i + 20) / 20));
-    }
+
+    // There are 20 files with a count of {100,200,300,400} each. There are 16 files with count 500.
+    auto simulated_input = [&](size_t const num, hibf::insert_iterator it)
+    {
+        size_t const desired_kmer_count = 100 * ((num + 20) / 20);
+        for (auto hash : std::views::iota(0u, desired_kmer_count))
+            it = hash;
+    };
 
     chopper::configuration config{};
-    config.tmax = 256;
     config.determine_best_tmax = true;
     config.force_all_binnings = true;
     config.disable_sketch_output = true;
     config.output_filename = layout_file;
-    config.disable_estimate_union = true; // also disables rearrangement
+    config.hibf_config.input_fn = simulated_input, config.hibf_config.number_of_user_bins = many_filenames.size(),
+    config.hibf_config.tmax = 256;
+    config.hibf_config.disable_estimate_union = true; // also disables rearrangement
 
-    chopper::layout::layout hibf_layout{};
-
-    chopper::data_store data{.false_positive_rate = config.false_positive_rate,
-                             .hibf_layout = &hibf_layout,
-                             .kmer_counts = many_kmer_counts};
-
-    chopper::layout::execute(config, many_filenames, data);
+    chopper::layout::execute(config, many_filenames);
 
     ASSERT_TRUE(std::filesystem::exists(stats_file));
 
@@ -303,9 +317,9 @@ TEST(execute_estimation_test, many_ubs_force_all)
 ## (l*m)_tmax : Computed by l_tmax * m_tmax
 ## size : The expected total size of an tmax-HIBF
 # tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size
-64	1.00	1.26	1.00	1.26	73.3KiB
-128	1.22	1.25	0.66	0.82	48.4KiB
-256	1.33	1.33	0.74	0.99	54.3KiB
+64	1.00	1.26	1.00	1.26	74.5KiB
+128	1.22	1.25	0.66	0.83	49.4KiB
+256	1.33	1.33	0.74	0.99	55.1KiB
 # Best t_max (regarding expected query runtime): 128
 )expected_cout");
 
@@ -313,15 +327,25 @@ TEST(execute_estimation_test, many_ubs_force_all)
     EXPECT_NE(layout_string.find("\"tmax\": 128,"), std::string::npos);
 }
 
+struct dna4_traits3 : public seqan3::sequence_file_input_default_traits_dna
+{
+    using sequence_alphabet = seqan3::dna4;
+};
+
+using sequence_file_type3 = seqan3::sequence_file_input<dna4_traits3,
+                                                        seqan3::fields<seqan3::field::seq>,
+                                                        seqan3::type_list<seqan3::format_fasta, seqan3::format_fastq>>;
+
 TEST(execute_estimation_test, with_rearrangement)
 {
     seqan3::test::tmp_directory tmp_dir{};
     std::filesystem::path const sketches_dir{tmp_dir.path() / "test"};
     std::filesystem::path const layout_file{tmp_dir.path() / "layout.tsv"};
     std::filesystem::path const stats_file{layout_file.string() + ".stats"};
+    size_t const kmer_size{15};
 
     std::vector<std::string> filenames{};
-    std::vector<std::string> expected_filenames;
+    std::vector<std::string> hll_filenames;
     std::vector<size_t> expected_kmer_counts;
 
     for (size_t i{0}; i < 49u; ++i)
@@ -331,10 +355,10 @@ TEST(execute_estimation_test, with_rearrangement)
         filenames.push_back(data("seq3.fa").string());
         filenames.push_back(data("small.fa").string());
 
-        expected_filenames.push_back(data("seq1.fa"));
-        expected_filenames.push_back(data("seq2.fa"));
-        expected_filenames.push_back(data("seq3.fa"));
-        expected_filenames.push_back(data("small.fa"));
+        hll_filenames.push_back("seq1.hll");
+        hll_filenames.push_back("seq2.hll");
+        hll_filenames.push_back("seq3.hll");
+        hll_filenames.push_back("small.hll");
 
         expected_kmer_counts.push_back(387);
         expected_kmer_counts.push_back(465);
@@ -342,41 +366,40 @@ TEST(execute_estimation_test, with_rearrangement)
         expected_kmer_counts.push_back(571);
     }
 
+    // There are 20 files with a count of {100,200,300,400} each. There are 16 files with count 500.
+    auto data_input = [&](size_t const num, hibf::insert_iterator it)
+    {
+        sequence_file_type3 fin{filenames[num]};
+
+        for (auto && [seq] : fin)
+        {
+            for (auto hash_value : seq | seqan3::views::kmer_hash(seqan3::ungapped{kmer_size}))
+                it = hash_value;
+        }
+    };
+
     chopper::configuration config{};
-    config.threads = 1;
-    config.k = 15;
-    config.tmax = 256;
+    config.k = kmer_size;
     config.sketch_directory = sketches_dir;
+    config.disable_sketch_output = false;
     config.determine_best_tmax = true;
     config.force_all_binnings = true;
-    // config.output_verbose_statistics = true;
     config.output_filename = layout_file;
+    // config.output_verbose_statistics = true;
+    config.hibf_config.threads = 1;
+    config.hibf_config.tmax = 256;
+    config.hibf_config.input_fn = data_input;
+    config.hibf_config.number_of_user_bins = filenames.size();
 
-    chopper::layout::layout hibf_layout{};
-    std::vector<size_t> kmer_counts{};
-    std::vector<chopper::sketch::hyperloglog> sketches{};
+    chopper::layout::execute(config, filenames);
 
-    chopper::sketch::execute(config, filenames, sketches);
-    chopper::sketch::estimate_kmer_counts(sketches, kmer_counts);
     ASSERT_TRUE(std::filesystem::exists(sketches_dir));
 
-    EXPECT_RANGE_EQ(filenames, expected_filenames);
-    ASSERT_EQ(sketches.size(), expected_kmer_counts.size());
-    for (size_t i = 0; i < sketches.size(); ++i)
-    {
+    std::vector<hibf::sketch::hyperloglog> sketches{};
+    hibf::sketch::toolbox::read_hll_files_into(sketches_dir, hll_filenames, sketches);
+
+    for (size_t i = 0; i < expected_kmer_counts.size(); ++i)
         EXPECT_EQ(std::lround(sketches[i].estimate()), expected_kmer_counts[i]) << "failed at " << i;
-
-        std::filesystem::path const current_path{expected_filenames[i]};
-        std::string const filename = sketches_dir / current_path.stem().string() += ".hll";
-        EXPECT_TRUE(std::filesystem::exists(filename));
-    }
-
-    chopper::data_store store{.false_positive_rate = config.false_positive_rate,
-                              .hibf_layout = &hibf_layout,
-                              .kmer_counts = kmer_counts,
-                              .sketches = sketches};
-
-    chopper::layout::execute(config, filenames, store);
 
     ASSERT_TRUE(std::filesystem::exists(stats_file));
 

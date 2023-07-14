@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <iostream>
+#include <ranges>
 
 #include <chopper/configuration.hpp>
 #include <chopper/data_store.hpp>
@@ -42,21 +43,17 @@ TEST(hibf_statistics, only_merged_on_top_level)
 {
     // parameters for this test HIBF
     size_t const num_top_level_bins = 4u;
-    size_t const lower_level_split_bin_span = 1u;
 
     chopper::configuration config{}; // default config
-    config.tmax = 64u;
-    config.disable_estimate_union = true; /* also disable rearrangement */
+    config.hibf_config.tmax = 64u;
+    config.hibf_config.disable_estimate_union = true; /* also disable rearrangement */
     chopper::data_store data{};
-    data.fp_correction = chopper::layout::compute_fp_correction(config.false_positive_rate,
-                                                                config.num_hash_functions,
-                                                                lower_level_split_bin_span);
 
     std::vector<std::string> filenames{"s1", "s2"};
-    std::vector<chopper::sketch::hyperloglog> sketches{{}, {}};
+    std::vector<hibf::sketch::hyperloglog> sketches{{}, {}};
     std::vector<size_t> kmer_counts{50, 50};
 
-    chopper::layout::hibf_statistics stats(config, data.fp_correction, sketches, kmer_counts);
+    chopper::layout::hibf_statistics stats(config, sketches, kmer_counts);
 
     for (size_t i = 0; i < num_top_level_bins; ++i)
     {
@@ -100,31 +97,30 @@ TEST(execute_test, chopper_layout_statistics)
     std::filesystem::path const layout_file{tmp_dir.path() / "layout.tsv"};
 
     std::vector<std::string> many_filenames;
-    std::vector<size_t> many_kmer_counts;
+
+    for (size_t i{0}; i < 96u; ++i)
+        many_filenames.push_back(seqan3::detail::to_string("seq", i));
 
     // There are 20 files with a count of {100,200,300,400} each. There are 16 files with count 500.
-    for (size_t i{0}; i < 96u; ++i)
+    auto simulated_input = [&](size_t const num, hibf::insert_iterator it)
     {
-        many_filenames.push_back(seqan3::detail::to_string("seq", i));
-        many_kmer_counts.push_back(100 * ((i + 20) / 20));
-    }
+        size_t const desired_kmer_count = 101 * ((num + 20) / 20);
+        for (auto hash : std::views::iota(0u, desired_kmer_count))
+            it = hash;
+    };
 
     chopper::configuration config{.data_file = "not needed",
                                   .disable_sketch_output = true,
                                   .output_filename = layout_file.c_str(),
-                                  .tmax = 64,
-                                  .disable_estimate_union = true /* also disable rearrangement */,
-                                  .output_verbose_statistics = true};
-
-    chopper::layout::layout hibf_layout{};
-
-    chopper::data_store data{.false_positive_rate = config.false_positive_rate,
-                             .hibf_layout = &hibf_layout,
-                             .kmer_counts = many_kmer_counts};
+                                  .output_verbose_statistics = true,
+                                  .hibf_config = {.input_fn = simulated_input,
+                                                  .number_of_user_bins = many_filenames.size(),
+                                                  .tmax = 64,
+                                                  .disable_estimate_union = true /* also disable rearrangement */}};
 
     testing::internal::CaptureStdout();
     testing::internal::CaptureStderr();
-    chopper::layout::execute(config, many_filenames, data);
+    chopper::layout::execute(config, many_filenames);
     std::string layout_result_stdout = testing::internal::GetCapturedStdout();
     std::string layout_result_stderr = testing::internal::GetCapturedStderr();
 
@@ -141,7 +137,7 @@ TEST(execute_test, chopper_layout_statistics)
 ## size : The expected total size of an tmax-HIBF
 ## uncorr_size : The expected size of an tmax-HIBF without FPR correction
 # tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size	uncorr_size	level	num_ibfs	level_size	level_size_no_corr	total_num_tbs	avg_num_tbs	split_tb_percentage	max_split_tb	avg_split_tb	max_factor	avg_factor
-64	1.00	1.26	1.00	1.26	73.3KiB	44.9KiB	:0:1	:1:12	:37.0KiB:36.2KiB	:37.0KiB:7.8KiB	:64:768	:64:64	:81.25:100.00	:1:32	:1.00:17.45	:1.00:6.20	:1.00:4.87
+64	1.00	1.26	1.00	1.26	74.8KiB	45.8KiB	:0:1	:1:12	:37.8KiB:37.0KiB	:37.8KiB:8.0KiB	:64:768	:64:64	:81.25:100.00	:1:32	:1.00:17.45	:1.00:6.20	:1.00:4.84
 )expected_cout";
 
     EXPECT_EQ(layout_result_stdout, expected_cout) << layout_result_stdout;
@@ -154,23 +150,28 @@ TEST(execute_test, chopper_layout_statistics_determine_best_bins)
     std::filesystem::path const binning_filename{tmp_dir.path() / "output.binning"};
     std::filesystem::path const stats_file{binning_filename.string() + ".stats"};
 
+    std::vector<std::string> filenames{"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7", "seq8", "seq9"};
+
+    // There are 20 files with a count of {100,200,300,400} each. There are 16 files with count 500.
+    auto simulated_input = [&](size_t const num, hibf::insert_iterator it)
+    {
+        std::vector<size_t> kmer_counts{10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000};
+        for (auto hash : std::views::iota(0u, kmer_counts[num]))
+            it = hash;
+    };
+
     chopper::configuration config{.data_file = "not needed",
                                   .disable_sketch_output = true,
                                   .output_filename = binning_filename.c_str(),
-                                  .tmax = 128,
-                                  .disable_estimate_union = true /* also disable rearrangement */,
                                   .determine_best_tmax = true,
                                   .force_all_binnings = true,
-                                  .output_verbose_statistics = true};
+                                  .output_verbose_statistics = true,
+                                  .hibf_config = {.input_fn = simulated_input,
+                                                  .number_of_user_bins = filenames.size(),
+                                                  .tmax = 128,
+                                                  .disable_estimate_union = true /* also disable rearrangement */}};
 
-    chopper::layout::layout hibf_layout{};
-    std::vector<std::string> filenames{"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7", "seq8", "seq9"};
-
-    chopper::data_store data{.false_positive_rate = config.false_positive_rate,
-                             .hibf_layout = &hibf_layout,
-                             .kmer_counts = {10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000}};
-
-    chopper::layout::execute(config, filenames, data);
+    chopper::layout::execute(config, filenames);
 
     std::string expected_cout =
         R"expected_cout(## ### Parameters ###
@@ -189,8 +190,8 @@ TEST(execute_test, chopper_layout_statistics_determine_best_bins)
 ## size : The expected total size of an tmax-HIBF
 ## uncorr_size : The expected size of an tmax-HIBF without FPR correction
 # tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size	uncorr_size	level	num_ibfs	level_size	level_size_no_corr	total_num_tbs	avg_num_tbs	split_tb_percentage	max_split_tb	avg_split_tb	max_factor	avg_factor
-64	1.00	1.00	1.00	1.00	1.6MiB	1.2MiB	:0	:1	:1.6MiB	:1.2MiB	:64	:64	:100.00	:16	:6.40	:4.35	:3.06
-128	1.22	1.22	1.40	1.71	2.3MiB	1.2MiB	:0	:1	:2.3MiB	:1.2MiB	:128	:128	:100.00	:33	:12.80	:6.29	:4.38
+64	1.00	1.00	1.00	1.00	1.6MiB	1.2MiB	:0	:1	:1.6MiB	:1.2MiB	:64	:64	:100.00	:16	:6.40	:4.35	:3.05
+128	1.22	1.22	1.41	1.72	2.3MiB	1.2MiB	:0	:1	:2.3MiB	:1.2MiB	:128	:128	:100.00	:32	:12.80	:6.20	:4.37
 # Best t_max (regarding expected query runtime): 64
 )expected_cout";
 

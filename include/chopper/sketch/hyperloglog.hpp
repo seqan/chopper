@@ -14,7 +14,10 @@
 #include <cassert>
 #include <iostream>
 #include <vector>
-#include <xxh3.h>
+#ifndef XXH_INLINE_ALL
+#    define XXH_INLINE_ALL
+#endif
+#include <xxhash.h>
 
 #include <seqan3/utility/container/aligned_allocator.hpp>
 

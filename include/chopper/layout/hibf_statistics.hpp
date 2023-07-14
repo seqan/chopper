@@ -12,9 +12,11 @@
 #include <chopper/layout/ibf_query_cost.hpp>
 #include <chopper/layout/layout.hpp>
 #include <chopper/next_multiple_of_64.hpp>
-#include <chopper/sketch/hyperloglog.hpp>
-#include <chopper/sketch/toolbox.hpp>
 #include <chopper/workarounds.hpp>
+
+#include <hibf/detail/layout/compute_fpr_correction.hpp>
+#include <hibf/detail/layout/layout.hpp>
+#include <hibf/detail/sketch/hyperloglog.hpp>
 
 namespace std
 {
@@ -51,16 +53,16 @@ public:
 
     /*!\brief Construct an empty HIBF with an empty top level IBF
      * \param[in] config_ User configuration for the HIBF.
-     * \param[in] fp_correction_ The false positive correction factors to use for the statistics.
      * \param[in] sketches_ The sketches of the input.
      * \param[in] kmer_counts The original user bin weights (kmer counts).
      */
     hibf_statistics(configuration const & config_,
-                    std::vector<double> const & fp_correction_,
-                    std::vector<sketch::hyperloglog> const & sketches_,
+                    std::vector<hibf::sketch::hyperloglog> const & sketches_,
                     std::vector<size_t> const & kmer_counts) :
         config{config_},
-        fp_correction{&fp_correction_},
+        fp_correction{hibf::layout::compute_fpr_correction({.fpr = config_.hibf_config.maximum_false_positive_rate,
+                                                            .hash_count = config_.hibf_config.number_of_hash_functions,
+                                                            .t_max = config_.hibf_config.tmax})},
         sketches{sketches_},
         counts{kmer_counts},
         total_kmer_count{std::accumulate(kmer_counts.begin(), kmer_counts.end(), size_t{})}
@@ -235,7 +237,7 @@ public:
 
                 max_split_tb_str += ":" + to_string_with_precision(max_split_bin_span);
                 avg_split_tb_str += ":" + to_string_with_precision(avg_split_bin);
-                max_factor_str += ":" + to_string_with_precision((*fp_correction)[max_split_bin_span]);
+                max_factor_str += ":" + to_string_with_precision((fp_correction)[max_split_bin_span]);
                 avg_factor_str += ":" + to_string_with_precision(avg_factor);
             }
             else
@@ -249,11 +251,12 @@ public:
 
         stream << std::fixed << std::setprecision(2);
 
-        stream /*        tmax */ << config.tmax
+        stream /*        tmax */ << config.hibf_config.tmax
                                  << '\t'
                                  /*      c_tmax */
-                                 << chopper::layout::ibf_query_cost::interpolated(config.tmax,
-                                                                                  config.false_positive_rate)
+                                 << chopper::layout::ibf_query_cost::interpolated(
+                                        config.hibf_config.tmax,
+                                        config.hibf_config.maximum_false_positive_rate)
                                  << '\t'
                                  /*      l_tmax */
                                  << expected_HIBF_query_cost
@@ -415,17 +418,17 @@ public:
     double expected_HIBF_query_cost{0.0};
 
     //!\brief A reference to the input counts.
-    chopper::layout::layout hibf_layout;
+    hibf::layout::layout hibf_layout;
 
 private:
     //!\brief Copy of the user configuration for this HIBF.
     configuration const config{};
 
     //!\brief The false positive correction factors to use for the statistics.
-    std::vector<double> const * const fp_correction{nullptr};
+    std::vector<double> const fp_correction{};
 
     //!\brief A reference to the input sketches.
-    std::vector<sketch::hyperloglog> const & sketches;
+    std::vector<hibf::sketch::hyperloglog> const & sketches;
 
     //!\brief A reference to the input counts.
     std::vector<size_t> const & counts;
@@ -472,8 +475,11 @@ private:
     */
     size_t compute_bin_size(size_t const number_of_kmers_to_be_stored) const
     {
-        return std::ceil(-static_cast<double>(number_of_kmers_to_be_stored * config.num_hash_functions)
-                         / std::log(1 - std::exp(std::log(config.false_positive_rate) / config.num_hash_functions)));
+        return std::ceil(
+            -static_cast<double>(number_of_kmers_to_be_stored * config.hibf_config.number_of_hash_functions)
+            / std::log(1
+                       - std::exp(std::log(config.hibf_config.maximum_false_positive_rate)
+                                  / config.hibf_config.number_of_hash_functions)));
     }
 
     /*!\brief Compute the Bloom Filter size from `number_of_kmers_to_be_stored` and
@@ -550,7 +556,7 @@ private:
         {
             if (current_bin.kind == bin_kind::merged)
             {
-                if (config.disable_estimate_union)
+                if (config.hibf_config.disable_estimate_union)
                 {
                     size_t sum{};
                     for (size_t i = 0; i < current_bin.user_bin_indices.size(); ++i)
@@ -560,7 +566,7 @@ private:
                 else
                 {
                     assert(!current_bin.user_bin_indices.empty());
-                    sketch::hyperloglog hll = sketches[current_bin.user_bin_indices[0]];
+                    hibf::sketch::hyperloglog hll = sketches[current_bin.user_bin_indices[0]];
 
                     for (size_t i = 1; i < current_bin.user_bin_indices.size(); ++i)
                         hll.merge(sketches[current_bin.user_bin_indices[i]]);
@@ -586,7 +592,7 @@ private:
         size_t level_kmer_count{0};
         size_t index{0};
         std::vector<size_t> merged_bin_indices{};
-        std::vector<sketch::hyperloglog> merged_bin_sketches{};
+        std::vector<hibf::sketch::hyperloglog> merged_bin_sketches{};
 
         for (bin const & current_bin : curr_level.bins)
         {
@@ -595,11 +601,11 @@ private:
                 ++number_of_tbs;
                 merged_bin_indices.push_back(index);
 
-                if (!config.disable_estimate_union)
+                if (!config.hibf_config.disable_estimate_union)
                 {
                     // compute merged_bin_sketch
                     assert(!current_bin.user_bin_indices.empty());
-                    sketch::hyperloglog hll = sketches[current_bin.user_bin_indices[0]];
+                    hibf::sketch::hyperloglog hll = sketches[current_bin.user_bin_indices[0]];
 
                     for (size_t i = 1; i < current_bin.user_bin_indices.size(); ++i)
                         hll.merge(sketches[current_bin.user_bin_indices[i]]);
@@ -614,11 +620,12 @@ private:
             }
             ++index;
         }
-        assert(number_of_tbs <= config.tmax);
+        assert(number_of_tbs <= config.hibf_config.tmax);
 
         // Add cost of querying the current IBF
         // (how costly is querying number_of_tbs (e.g. 128 tbs) compared to 64 tbs given the current FPR)
-        curr_level.current_query_cost += ibf_query_cost::interpolated(number_of_tbs, config.false_positive_rate);
+        curr_level.current_query_cost +=
+            ibf_query_cost::interpolated(number_of_tbs, config.hibf_config.maximum_false_positive_rate);
 
         // Add costs of querying the HIBF for each kmer in this level.
         total_query_cost += curr_level.current_query_cost * level_kmer_count;
@@ -633,13 +640,13 @@ private:
 
             // If merged bins share kmers, we need to penalize this
             // because querying a kmer will result in multi level look-ups.
-            if (!config.disable_estimate_union)
+            if (!config.hibf_config.disable_estimate_union)
             {
                 double const current_estimate = merged_bin_sketches[i].estimate();
 
                 for (size_t j = i + 1; j < merged_bin_indices.size(); ++j)
                 {
-                    sketch::hyperloglog tmp = merged_bin_sketches[i]; // copy needed, s.t. current is not modified
+                    hibf::sketch::hyperloglog tmp = merged_bin_sketches[i]; // copy needed, s.t. current is not modified
                     double union_estimate = tmp.merge_and_estimate_SIMD(merged_bin_sketches[j]);
                     // Jaccard distance estimate
                     double distance = 2.0 - (current_estimate + merged_bin_sketches[j].estimate()) / union_estimate;
@@ -675,7 +682,7 @@ private:
             size_t const cardinality_per_split_bin =
                 (current_bin.cardinality + current_bin.num_spanning_tbs - 1) / current_bin.num_spanning_tbs; // round up
             size_t const corrected_cardinality =
-                std::ceil(cardinality_per_split_bin * (*fp_correction)[current_bin.num_spanning_tbs]);
+                std::ceil(cardinality_per_split_bin * (fp_correction)[current_bin.num_spanning_tbs]);
             max_cardinality = std::max(max_cardinality, corrected_cardinality);
             max_cardinality_no_corr = std::max(max_cardinality_no_corr, cardinality_per_split_bin);
 
