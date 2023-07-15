@@ -5,7 +5,6 @@
 #include <robin_hood.h>
 
 #include <chopper/configuration.hpp>
-#include <chopper/data_store.hpp>
 
 namespace chopper::sketch
 {

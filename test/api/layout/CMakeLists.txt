@@ -1,6 +1,5 @@
 cmake_minimum_required (VERSION 3.18)
 
-add_api_test (simple_binning_test.cpp)
 add_api_test (ibf_query_cost_test.cpp)
 add_api_test (execute_layout_test.cpp)
 
