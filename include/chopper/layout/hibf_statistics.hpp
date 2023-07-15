@@ -10,7 +10,6 @@
 
 #include <chopper/configuration.hpp>
 #include <chopper/layout/ibf_query_cost.hpp>
-#include <chopper/layout/layout.hpp>
 #include <chopper/next_multiple_of_64.hpp>
 #include <chopper/workarounds.hpp>
 
