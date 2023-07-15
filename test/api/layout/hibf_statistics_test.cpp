@@ -4,7 +4,6 @@
 #include <ranges>
 
 #include <chopper/configuration.hpp>
-#include <chopper/data_store.hpp>
 #include <chopper/layout/compute_fp_correction.hpp>
 #include <chopper/layout/execute.hpp>
 #include <chopper/layout/hibf_statistics.hpp>
@@ -47,7 +46,6 @@ TEST(hibf_statistics, only_merged_on_top_level)
     chopper::configuration config{}; // default config
     config.hibf_config.tmax = 64u;
     config.hibf_config.disable_estimate_union = true; /* also disable rearrangement */
-    chopper::data_store data{};
 
     std::vector<std::string> filenames{"s1", "s2"};
     std::vector<hibf::sketch::hyperloglog> sketches{{}, {}};
