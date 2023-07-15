@@ -4,7 +4,6 @@
 #include <ranges>
 
 #include <chopper/configuration.hpp>
-#include <chopper/layout/compute_fp_correction.hpp>
 #include <chopper/layout/execute.hpp>
 #include <chopper/layout/hibf_statistics.hpp>
 
