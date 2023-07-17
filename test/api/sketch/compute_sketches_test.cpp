@@ -29,7 +29,7 @@ TEST(compute_sketches_test, small_example)
             hashes[0].push_back(hash_value);
     }
 
-    std::vector<chopper::sketch::hyperloglog> sketches{};
+    std::vector<hibf::sketch::hyperloglog> sketches{};
 
     chopper::sketch::compute_sketches_from_hashes(hashes, 12, 1, sketches);
 
@@ -53,7 +53,7 @@ TEST(compute_sketches_test, small_example_parallel_2_threads)
         }
     }
 
-    std::vector<chopper::sketch::hyperloglog> sketches{};
+    std::vector<hibf::sketch::hyperloglog> sketches{};
 
     chopper::sketch::compute_sketches_from_hashes(hashes, 12, 2, sketches);
 

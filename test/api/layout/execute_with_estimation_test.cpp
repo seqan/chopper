@@ -8,10 +8,10 @@
 #include <seqan3/search/views/kmer_hash.hpp>
 
 #include <chopper/layout/execute.hpp>
+#include <chopper/sketch/read_hll_files_into.hpp>
 
 #include "../api_test.hpp"
 #include <hibf/detail/sketch/hyperloglog.hpp>
-#include <hibf/detail/sketch/toolbox.hpp>
 
 TEST(execute_estimation_test, few_ubs)
 {
@@ -396,7 +396,7 @@ TEST(execute_estimation_test, with_rearrangement)
     ASSERT_TRUE(std::filesystem::exists(sketches_dir));
 
     std::vector<hibf::sketch::hyperloglog> sketches{};
-    hibf::sketch::toolbox::read_hll_files_into(sketches_dir, hll_filenames, sketches);
+    chopper::sketch::read_hll_files_into(sketches_dir, hll_filenames, sketches);
 
     for (size_t i = 0; i < expected_kmer_counts.size(); ++i)
         EXPECT_EQ(std::lround(sketches[i].estimate()), expected_kmer_counts[i]) << "failed at " << i;
