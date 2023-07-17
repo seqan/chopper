@@ -3,7 +3,6 @@
 #include <cereal/archives/json.hpp>
 
 #include <chopper/configuration.hpp>
-#include <chopper/layout/layout.hpp>
 #include <chopper/prefixes.hpp>
 
 #include <hibf/detail/layout/layout.hpp>
