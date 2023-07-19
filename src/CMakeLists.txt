@@ -23,6 +23,9 @@ add_executable (measure_hyperloglog EXCLUDE_FROM_ALL measure_hyperloglog.cpp)
 target_link_libraries (measure_hyperloglog "chopper_interface")
 target_compile_options (measure_hyperloglog PRIVATE "-Werror")
 
+add_executable (display_layout EXCLUDE_FROM_ALL display_layout.cpp)
+target_link_libraries (display_layout "chopper_interface")
+
 if (CHOPPER_INSTALL)
     install (TARGETS chopper RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
 endif ()
