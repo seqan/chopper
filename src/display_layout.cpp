@@ -132,7 +132,15 @@ int execute(std::filesystem::path const & layout_file)
     hibf::layout::layout hibf_layout = chopper::stats::read_layout_file(chopper_config, filenames, layout_file);
     auto const & hibf_config = chopper_config.hibf_config;
 
-    std::ranges::sort(hibf_layout.user_bins);
+    // Sorts by the technical bin indices in the top-level IBF:
+    // split bins: storage_TB_id, previous_TB_indices is empty
+    // merged bins: previous_TB_indices[0]
+    std::ranges::sort(hibf_layout.user_bins,
+                      [](hibf::layout::layout::user_bin const & lhs, hibf::layout::layout::user_bin const & rhs)
+                      {
+                          return (lhs.previous_TB_indices.empty() ? lhs.storage_TB_id : lhs.previous_TB_indices[0])
+                               < (rhs.previous_TB_indices.empty() ? rhs.storage_TB_id : rhs.previous_TB_indices[0]);
+                      });
 
     hibf::sketch::hyperloglog sketch{hibf_config.sketch_bits};
     std::vector<uint64_t> shared_kmers{};
