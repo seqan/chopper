@@ -171,7 +171,8 @@ int execute(std::filesystem::path const & layout_file)
     size_t current_idx{}; // The current top-level technical bin index
 
     // Stats file header
-    std::cout << "tb_index\t"
+    std::cout << "# Layout: " << layout_file.c_str() << '\n' //
+              << "tb_index\t"
               << "size\t"
               << "shared_size\t"
               << "ub_count\t"
