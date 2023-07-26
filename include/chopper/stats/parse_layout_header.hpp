@@ -5,6 +5,8 @@
 // shipped with this file and also available at: https://github.com/seqan/raptor/blob/main/LICENSE.md
 // --------------------------------------------------------------------------------------------------
 
+#pragma once
+
 #include <algorithm>   // for find
 #include <cassert>     // for assert
 #include <charconv>    // for from_chars, from_chars_result
@@ -25,7 +27,8 @@
 namespace chopper::stats
 {
 
-void parse_layout_header(std::istream & layout_file, configuration & hibf_config, hibf::layout::layout & hibf_layout)
+inline void
+parse_layout_header(std::istream & layout_file, configuration & hibf_config, hibf::layout::layout & hibf_layout)
 {
     auto parse_bin_indices = [](std::string_view const & buffer)
     {

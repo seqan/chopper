@@ -5,6 +5,8 @@
 // shipped with this file and also available at: https://github.com/seqan/raptor/blob/main/LICENSE.md
 // --------------------------------------------------------------------------------------------------
 
+#pragma once
+
 #include <charconv>    // for from_chars, from_chars_result
 #include <cstddef>     // for size_t
 #include <ranges>      // for all_t, operator==, single_view, operator|, _Partial
@@ -18,8 +20,8 @@
 namespace chopper::stats
 {
 
-hibf::layout::layout::user_bin parse_layout_line(std::string const & current_line,
-                                                 std::vector<std::vector<std::string>> & user_bin_filenames)
+inline hibf::layout::layout::user_bin parse_layout_line(std::string const & current_line,
+                                                        std::vector<std::vector<std::string>> & user_bin_filenames)
 {
     hibf::layout::layout::user_bin result{};
 

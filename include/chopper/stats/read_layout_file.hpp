@@ -5,6 +5,8 @@
 // shipped with this file and also available at: https://github.com/seqan/raptor/blob/main/LICENSE.md
 // --------------------------------------------------------------------------------------------------
 
+#pragma once
+
 #include <fstream>   // for basic_istream, ifstream
 #include <stdexcept> // for logic_error
 #include <string>    // for char_traits, allocator, operator+, getline, string
@@ -19,9 +21,9 @@
 namespace chopper::stats
 {
 
-hibf::layout::layout read_layout_file(configuration & hibf_config,
-                                      std::vector<std::vector<std::string>> & filenames,
-                                      std::string const & layout_filename)
+inline hibf::layout::layout read_layout_file(configuration & hibf_config,
+                                             std::vector<std::vector<std::string>> & filenames,
+                                             std::string const & layout_filename)
 {
     hibf::layout::layout hibf_layout{};
 
