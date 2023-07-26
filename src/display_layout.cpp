@@ -39,32 +39,19 @@ using sequence_file_type = seqan3::sequence_file_input<dna4_traits,
                                                        seqan3::fields<seqan3::field::seq>,
                                                        seqan3::type_list<seqan3::format_fasta, seqan3::format_fastq>>;
 
-void keep_duplicates(std::vector<uint64_t> & shared, std::vector<uint64_t> const & current)
+// Using two sets and erasing from shared is slower
+void keep_duplicates(robin_hood::unordered_set<uint64_t> & shared, std::vector<uint64_t> const & current)
 {
-    auto shared_it = shared.begin();
-    auto dup_it = shared.begin();
-    auto current_it = current.begin();
+    // static + calling clear is slower
+    robin_hood::unordered_set<uint64_t> result{};
 
-    while (current_it != current.end() && shared_it != shared.end())
+    for (uint64_t value : current)
     {
-        if (*current_it > *shared_it)
-        {
-            ++shared_it;
-        }
-        else if (*current_it == *shared_it)
-        {
-            std::swap(*dup_it, *shared_it);
-            ++dup_it;
-            ++shared_it;
-            ++current_it;
-        }
-        else
-        {
-            ++current_it;
-        }
+        if (shared.contains(value))
+            result.emplace(value);
     }
 
-    shared.resize(dup_it - shared.begin());
+    shared = std::move(result);
 }
 
 void process_file(std::string const & filename,
@@ -143,7 +130,7 @@ int execute(std::filesystem::path const & layout_file)
                       });
 
     hibf::sketch::hyperloglog sketch{hibf_config.sketch_bits};
-    std::vector<uint64_t> shared_kmers{};
+    robin_hood::unordered_set<uint64_t> shared_kmers{};
     // We can't use `shared_kmers.size() == 0` instead of `shared_kmers_initialised`, because keep_duplicates
     // will result in a size of 0 when there are no shared k-mers.
     bool shared_kmers_initialised{false};
@@ -247,12 +234,10 @@ int execute(std::filesystem::path const & layout_file)
         // This happens for each user bin that belongs to a merged bin.
         if (fill_current_kmers)
         {
-            std::ranges::sort(current_kmers);
-
             if (!shared_kmers_initialised)
             {
                 shared_kmers_initialised = true;
-                shared_kmers = current_kmers;
+                shared_kmers.insert(current_kmers.begin(), current_kmers.end());
             }
             else
             {
