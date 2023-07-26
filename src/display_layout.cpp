@@ -119,15 +119,32 @@ int execute(std::filesystem::path const & layout_file)
     hibf::layout::layout hibf_layout = chopper::stats::read_layout_file(chopper_config, filenames, layout_file);
     auto const & hibf_config = chopper_config.hibf_config;
 
+    // Fetch all file sizes such that sorting by file size doesn't have to access the filesystem too often.
+    // n = filenames.size()
+    // Constructing this vector has `n` filesystem accesses.
+    // Sorting without pre-fetching has `O(n * log(n))` accesses.
+    std::vector<std::uintmax_t> const filesizes{[&filenames]()
+                                                {
+                                                    std::vector<std::uintmax_t> result{};
+                                                    result.reserve(filenames.size());
+                                                    for (auto const & filename : filenames)
+                                                        result.push_back(std::filesystem::file_size(filename.front()));
+                                                    return result;
+                                                }()};
+
     // Sorts by the technical bin indices in the top-level IBF:
     // split bins: storage_TB_id, previous_TB_indices is empty
     // merged bins: previous_TB_indices[0]
-    std::ranges::sort(hibf_layout.user_bins,
-                      [](hibf::layout::layout::user_bin const & lhs, hibf::layout::layout::user_bin const & rhs)
-                      {
-                          return (lhs.previous_TB_indices.empty() ? lhs.storage_TB_id : lhs.previous_TB_indices[0])
-                               < (rhs.previous_TB_indices.empty() ? rhs.storage_TB_id : rhs.previous_TB_indices[0]);
-                      });
+    // If the index is the same, sort by file sizes (happens for merged bins).
+    // Using the smallest file to initialise the shared k-mers later will be less work.
+    std::ranges::sort(
+        hibf_layout.user_bins,
+        [&filesizes](hibf::layout::layout::user_bin const & lhs, hibf::layout::layout::user_bin const & rhs)
+        {
+            size_t const first_idx = lhs.previous_TB_indices.empty() ? lhs.storage_TB_id : lhs.previous_TB_indices[0];
+            size_t const second_idx = rhs.previous_TB_indices.empty() ? rhs.storage_TB_id : rhs.previous_TB_indices[0];
+            return first_idx < second_idx || (first_idx == second_idx && filesizes[lhs.idx] < filesizes[rhs.idx]);
+        });
 
     hibf::sketch::hyperloglog sketch{hibf_config.sketch_bits};
     robin_hood::unordered_set<uint64_t> shared_kmers{};
