@@ -71,6 +71,7 @@ The resulting layout file can be used to build an HIBF index with
 There is no need to actually understand the internals of the layout file, as you can just let
 [raptor](https://github.com/seqan/raptor) build the HIBF index automatically from the layout.
 If you are interested, or you have a specific use case, here is some information about the layout.
+You will also find a [visualisation of the layout file](#visualisation-of-the-layout-file) at the end of this section.
 
 **A layout file has 3 parts: (1) The config, (2) the header, (3) the layout content.**
 
@@ -145,6 +146,14 @@ Columns of the layout content:
                   * `file2.fa` is stored in a merged bin (`1`) and in a single bin (`1`) on the lower level.
                   * `file3.fa.gz` is stored in a merged bin (`1`) and is split into `7` bins (ids:`4,5,6,7,8,9,10`)
                      on the lower level.
+
+### Visualisation of the layout file
+
+<details><summary><b><i>Click here to show a visualisation of the layout file</i></b></summary>
+
+<img src="doc/layout_file.svg" alt="Visualisation of the layout file" width="100%">
+
+</details>
 
 ## Multiple files per user bin
 
