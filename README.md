@@ -71,6 +71,7 @@ The resulting layout file can be used to build an HIBF index with
 There is no need to actually understand the internals of the layout file, as you can just let
 [raptor](https://github.com/seqan/raptor) build the HIBF index automatically from the layout.
 If you are interested, or you have a specific use case, here is some information about the layout.
+You will also find a [visualisation of the layout file](#visualisation-of-the-layout-file) at the end of this section.
 
 **A layout file has 3 parts: (1) The config, (2) the header, (3) the layout content.**
 
@@ -112,14 +113,14 @@ This information is needed to compute the size of each IBF when building the HIB
 
 Details:
 
-1. `HIGH_LEVEL_IBF max_bin_id:[X]`: Reports the id (`[X]`) of that technical bin in the Top/High level IBF that has the
-                                    highest kmer content.
+1. `HIGH_LEVEL_IBF max_bin_id:[X]`: Reports the id (`[X]`) of that technical bin in the top/high-level IBF that has the
+                                    highest k-mer content.
 2. `MERGED_BIN_[Y] max_bin_id:[X]`: Reports the id (`[X]`) of that technical bin in the IBF identified by `[Y]`.
 
 
 Following the header, the **layout content** describes the actual layout.
 Each line reports the structure for a particular user bin. In that sense, the number of content lines is exactly the
-same that of the inputs.
+same as that of the inputs.
 
 It could look like this:
 
@@ -135,16 +136,24 @@ Columns of the layout content:
 
 1. `FILES`: The file path(s) for the user bin.
 2. `BIN_INDICES`: The technical bin indices on each level that the user bin is stored in. In the example:
-                  * `file1.fa` is stored in technical bin `12` of the top level IBF.
-                  * `file2.fa` is stored in technical bin `0` of the top level IBF which is a merged bin, so it's
+                  * `file1.fa` is stored in technical bin `12` of the top-level IBF.
+                  * `file2.fa` is stored in technical bin `0` of the top-level IBF which is a merged bin, so it's
                     also stored in a lower level IBF. In this lower level IBF, it is stored in technical bin `2`.
-                  * `file3.fa.gz` is stored in technical bin `5` of the top level IBF which is a merged bin so it's
-                    also stored in a lower level IBF.  In this lower level IBF, it is stored in technical bin `4`.
+                  * `file3.fa.gz` is stored in technical bin `5` of the top-level IBF which is a merged bin, so it's
+                    also stored in a lower level IBF. In this lower level IBF, it is stored in technical bin `4`.
 3. `NUMBER_OF_BINS`: The number of technical bins the user bin is stored in on each level. For this example:
-                  * `file1.fa` split into `3` technical bins (ids:`12,13,14`) on the top level IBF.
+                  * `file1.fa` split into `3` technical bins (ids:`12,13,14`) on the top-level IBF.
                   * `file2.fa` is stored in a merged bin (`1`) and in a single bin (`1`) on the lower level.
                   * `file3.fa.gz` is stored in a merged bin (`1`) and is split into `7` bins (ids:`4,5,6,7,8,9,10`)
                      on the lower level.
+
+### Visualisation of the layout file
+
+<details><summary><b><i>Click here to show a visualisation of the layout file</i></b></summary>
+
+<img src="doc/layout_file.svg" alt="Visualisation of the layout file" width="100%">
+
+</details>
 
 ## Multiple files per user bin
 
