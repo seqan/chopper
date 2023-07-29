@@ -1,0 +1,23 @@
+	Command being timed: "/scratch/seiler/develop/chopper/build/bin/display_layout --layout-file /scratch/seiler/develop/chopper/build/clean_rerun/mantis_40k.1000.tmax192.layout"
+	User time (seconds): 794.09
+	System time (seconds): 37.69
+	Percent of CPU this job got: 98%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 14:00.67
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 1905124
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 1066815
+	Voluntary context switches: 3744
+	Involuntary context switches: 83926
+	Swaps: 0
+	File system inputs: 43600
+	File system outputs: 152
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
