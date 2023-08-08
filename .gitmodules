@@ -1,19 +1,16 @@
 [submodule "lib/seqan3"]
 	path = lib/seqan3
 	url = https://github.com/seqan/seqan3.git
-	branch = master
 [submodule "lib/robin-hood-hashing"]
 	path = lib/robin-hood-hashing
 	url = https://github.com/martinus/robin-hood-hashing
-	branch = master
 [submodule "lib/simde"]
 	path = lib/simde
 	url = https://github.com/simd-everywhere/simde
-	branch = master
 [submodule "lib/sharg-parser"]
 	path = lib/sharg-parser
 	url = https://github.com/seqan/sharg-parser.git
-[submodule "hibf"]
+[submodule "lib/hibf"]
 	path = lib/Hierarchical_Interleaved_Bloomfilter
 	url = https://github.com/seqan/Hierarchical_Interleaved_Bloomfilter.git
 [submodule "lib/xxHash"]
