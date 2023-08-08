@@ -3,7 +3,10 @@ cmake_minimum_required (VERSION 3.18)
 ## CUSTOMISE
 
 # Define the application name and version.
-project (chopper VERSION 1.0.0)
+project (chopper
+         LANGUAGES CXX C
+         VERSION 1.0.0
+)
 
 ## BUILD
 
@@ -15,6 +18,17 @@ if (NOT CMAKE_BUILD_TYPE)
     set (CMAKE_BUILD_TYPE
          Release
          CACHE STRING "Choose the type of build, options are: Debug Release Coverage RelWithDebInfo MinSizeRel." FORCE
+    )
+endif ()
+
+# Check CXX and C compiler versions (xxHash uses C).
+string (REGEX MATCH "^[0-9]+" CHOPPER_CXX_MAJOR_VERSION "${CMAKE_CXX_COMPILER_VERSION}")
+string (REGEX MATCH "^[0-9]+" CHOPPER_C_MAJOR_VERSION "${CMAKE_C_COMPILER_VERSION}")
+if (NOT "${CHOPPER_CXX_MAJOR_VERSION}" STREQUAL "${CHOPPER_C_MAJOR_VERSION}")
+    message (FATAL_ERROR "CXX and C compiler major versions differ (${CHOPPER_CXX_MAJOR_VERSION} and\
+                          ${CHOPPER_C_MAJOR_VERSION})! This will likely result in linker errors. Please set both\
+                          -DCMAKE_CXX_COMPILER and -DCMAKE_C_COMPILER to use the same major version, and/or set the\
+                          environment variables CXX and CC accordingly."
     )
 endif ()
 
