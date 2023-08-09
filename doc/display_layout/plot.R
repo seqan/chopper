@@ -19,11 +19,11 @@ common_theme<-  theme_bw(base_size=12) +
         axis.title.y = element_text(colour = "black", face="bold"),
         plot.title = element_text(colour = "black", face="bold"),
         text=element_text(colour="black"),
-        plot.margin = unit(c(0, 0, -6, 0), "pt"), # -6pt crop for bottom
+        plot.margin = unit(c(0, 0, -6, 2), "pt"), # -6pt crop for bottom
         panel.spacing = unit(c(0, 0, 0, 0), "null"))
 my.colors <- c("All k-mers.merged" = "#998ec3", "Shared k-mers.merged" = "#f1a340", "All k-mers.split" = "grey", "Shared k-mers.split" = "grey")
 
-filenames <- list("mantis_40k.1000.tmax64.stats", "mantis_40k.1000.tmax64.norearrange.stats", "mantis_40k.1000.tmax192.stats", "Refseq.k20.stats", "RefSeq.k20.prepare.stats")
+filenames <- list("mantis_40k.1000.tmax64.stats", "mantis_40k.1000.tmax64.norearrange.stats", "mantis_40k.1000.tmax192.stats", "RefSeq.k20.stats", "RefSeq.k20.prepare.stats")
 
 for (filename in filenames)
 {

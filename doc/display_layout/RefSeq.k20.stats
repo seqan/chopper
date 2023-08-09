@@ -1,4 +1,4 @@
-# Layout: /project/archive-index-data/seiler/chopper/build/clean_rerun/Refseq.k20.layout
+# Layout: /scratch/seiler/layouts/no_prepare/layout
 tb_index	size	shared_size	ub_count	kind	splits
 0	189710233	0	593	merged	1
 1	118298543	0	192	merged	1
@@ -22,7 +22,7 @@ tb_index	size	shared_size	ub_count	kind	splits
 19	219948591	0	157	merged	1
 20	216112778	0	182	merged	1
 21	12175880	2392	192	merged	1
-22	7433239	8479	192	merged	1
+22	7433239	8480	192	merged	1
 23	13178527	280	192	merged	1
 24	218805546	0	135	merged	1
 25	218379208	0	137	merged	1
