@@ -18,7 +18,7 @@
 #include <seqan3/search/views/kmer_hash.hpp>
 
 #include <chopper/layout/hibf_statistics.hpp>
-#include <chopper/stats/read_layout_file.hpp> // for read_layout_file
+#include <chopper/layout/input.hpp>
 
 #include <hibf/detail/sketch/hyperloglog.hpp>
 
@@ -127,9 +127,17 @@ void process_file(std::string const & filename,
 
 int execute(config const & cfg)
 {
-    std::vector<std::vector<std::string>> filenames;
     chopper::configuration chopper_config;
-    seqan::hibf::layout::layout hibf_layout = chopper::stats::read_layout_file(chopper_config, filenames, cfg.input);
+    std::ifstream layout_file{cfg.input};
+
+    if (!layout_file.good() || !layout_file.is_open())
+        throw std::logic_error{"Could not open file " + cfg.input.string() + " for reading"}; // GCOVR_EXCL_LINE
+
+    std::vector<std::vector<std::string>> filenames = chopper::layout::read_filenames_from(layout_file);
+    chopper::layout::read_config_from(chopper_config, layout_file);
+    chopper_config.hibf_config.read_from(layout_file);
+    seqan::hibf::layout::layout hibf_layout{};
+    hibf_layout.read_from(layout_file);
     auto const & hibf_config = chopper_config.hibf_config;
 
     std::ofstream output_stream{cfg.output};
