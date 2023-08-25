@@ -86,7 +86,7 @@ private:
         archive(CEREAL_NVP(determine_best_tmax));
         archive(CEREAL_NVP(force_all_binnings));
 
-        archive(CEREAL_NVP(hibf_config));
+        // archive(CEREAL_NVP(hibf_config));
     }
 };
 

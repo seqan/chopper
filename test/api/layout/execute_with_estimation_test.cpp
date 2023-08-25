@@ -127,150 +127,248 @@ TEST(execute_estimation_test, many_ubs)
 # Best t_max (regarding expected query runtime): 128
 )expected_cout");
 
-    std::string const layout_string{string_from_file(layout_file)};
-    EXPECT_EQ(layout_string,
-              R"expected_layout(##CONFIG:
-##{
-##    "config": {
-##        "version": 2,
-##        "data_file": {
-##            "value0": ""
-##        },
-##        "debug": false,
-##        "sketch_directory": {
-##            "value0": ""
-##        },
-##        "k": 19,
-##        "disable_sketch_output": true,
-##        "precomputed_files": false,
-##        "output_filename": {
-##            "value0": ")expected_layout"
-                  + layout_file.string() +
-                  R"expected_layout("
-##        },
-##        "determine_best_tmax": true,
-##        "force_all_binnings": false,
-##        "hibf_config": {
-##            "version": 1,
-##            "number_of_user_bins": 96,
-##            "number_of_hash_functions": 2,
-##            "maximum_false_positive_rate": 0.05,
-##            "threads": 1,
-##            "sketch_bits": 12,
-##            "tmax": 128,
-##            "alpha": 1.2,
-##            "max_rearrangement_ratio": 0.5,
-##            "disable_estimate_union": true,
-##            "disable_rearrangement": true,
-##            "disable_cutoffs": false,
-##            "layout_file": {
-##                "value0": ""
-##            }
-##        }
-##    }
-##}
-##ENDCONFIG
-#HIGH_LEVEL_IBF max_bin_id:14
-#MERGED_BIN_14 max_bin_id:24
-#MERGED_BIN_15 max_bin_id:24
-#FILES	BIN_INDICES	NUMBER_OF_BINS
-seq0	0	1
-seq19	1	1
-seq18	2	1
-seq17	3	1
-seq16	4	1
-seq15	5	1
-seq14	6	1
-seq13	7	1
-seq12	8	1
-seq11	9	1
-seq10	10	1
-seq9	11	1
-seq8	12	1
-seq7	13	1
-seq4	14;0	1;24
-seq5	14;24	1;20
-seq6	14;44	1;20
-seq1	15;0	1;24
-seq2	15;24	1;20
-seq3	15;44	1;20
-seq32	16	1
-seq33	17	1
-seq34	18	1
-seq35	19	1
-seq30	20	1
-seq36	21	1
-seq37	22	1
-seq38	23	1
-seq39	24	1
-seq31	25	1
-seq20	26	1
-seq21	27	1
-seq22	28	1
-seq23	29	1
-seq25	30	1
-seq26	31	1
-seq27	32	1
-seq28	33	1
-seq24	34	1
-seq29	35	1
-seq40	36	1
-seq41	37	1
-seq42	38	1
-seq43	39	1
-seq44	40	1
-seq45	41	1
-seq46	42	1
-seq47	43	1
-seq48	44	1
-seq59	45	1
-seq58	46	1
-seq57	47	1
-seq56	48	1
-seq55	49	1
-seq54	50	1
-seq53	51	1
-seq52	52	1
-seq51	53	1
-seq50	54	1
-seq49	55	1
-seq79	56	2
-seq78	58	2
-seq77	60	2
-seq76	62	2
-seq75	64	2
-seq74	66	2
-seq73	68	2
-seq70	70	2
-seq71	72	2
-seq72	74	2
-seq60	76	2
-seq61	78	2
-seq62	80	2
-seq63	82	2
-seq64	84	2
-seq65	86	2
-seq66	88	2
-seq67	90	2
-seq68	92	2
-seq69	94	2
-seq88	96	2
-seq94	98	2
-seq93	100	2
-seq92	102	2
-seq91	104	2
-seq90	106	2
-seq89	108	2
-seq87	110	2
-seq86	112	2
-seq85	114	2
-seq84	116	2
-seq83	118	2
-seq82	120	2
-seq81	122	2
-seq80	124	2
-seq95	126	2
-)expected_layout");
+    std::string const expected_file{"@CHOPPER_USER_BINS\n"
+                                    "@0 seq0\n"
+                                    "@1 seq1\n"
+                                    "@2 seq2\n"
+                                    "@3 seq3\n"
+                                    "@4 seq4\n"
+                                    "@5 seq5\n"
+                                    "@6 seq6\n"
+                                    "@7 seq7\n"
+                                    "@8 seq8\n"
+                                    "@9 seq9\n"
+                                    "@10 seq10\n"
+                                    "@11 seq11\n"
+                                    "@12 seq12\n"
+                                    "@13 seq13\n"
+                                    "@14 seq14\n"
+                                    "@15 seq15\n"
+                                    "@16 seq16\n"
+                                    "@17 seq17\n"
+                                    "@18 seq18\n"
+                                    "@19 seq19\n"
+                                    "@20 seq20\n"
+                                    "@21 seq21\n"
+                                    "@22 seq22\n"
+                                    "@23 seq23\n"
+                                    "@24 seq24\n"
+                                    "@25 seq25\n"
+                                    "@26 seq26\n"
+                                    "@27 seq27\n"
+                                    "@28 seq28\n"
+                                    "@29 seq29\n"
+                                    "@30 seq30\n"
+                                    "@31 seq31\n"
+                                    "@32 seq32\n"
+                                    "@33 seq33\n"
+                                    "@34 seq34\n"
+                                    "@35 seq35\n"
+                                    "@36 seq36\n"
+                                    "@37 seq37\n"
+                                    "@38 seq38\n"
+                                    "@39 seq39\n"
+                                    "@40 seq40\n"
+                                    "@41 seq41\n"
+                                    "@42 seq42\n"
+                                    "@43 seq43\n"
+                                    "@44 seq44\n"
+                                    "@45 seq45\n"
+                                    "@46 seq46\n"
+                                    "@47 seq47\n"
+                                    "@48 seq48\n"
+                                    "@49 seq49\n"
+                                    "@50 seq50\n"
+                                    "@51 seq51\n"
+                                    "@52 seq52\n"
+                                    "@53 seq53\n"
+                                    "@54 seq54\n"
+                                    "@55 seq55\n"
+                                    "@56 seq56\n"
+                                    "@57 seq57\n"
+                                    "@58 seq58\n"
+                                    "@59 seq59\n"
+                                    "@60 seq60\n"
+                                    "@61 seq61\n"
+                                    "@62 seq62\n"
+                                    "@63 seq63\n"
+                                    "@64 seq64\n"
+                                    "@65 seq65\n"
+                                    "@66 seq66\n"
+                                    "@67 seq67\n"
+                                    "@68 seq68\n"
+                                    "@69 seq69\n"
+                                    "@70 seq70\n"
+                                    "@71 seq71\n"
+                                    "@72 seq72\n"
+                                    "@73 seq73\n"
+                                    "@74 seq74\n"
+                                    "@75 seq75\n"
+                                    "@76 seq76\n"
+                                    "@77 seq77\n"
+                                    "@78 seq78\n"
+                                    "@79 seq79\n"
+                                    "@80 seq80\n"
+                                    "@81 seq81\n"
+                                    "@82 seq82\n"
+                                    "@83 seq83\n"
+                                    "@84 seq84\n"
+                                    "@85 seq85\n"
+                                    "@86 seq86\n"
+                                    "@87 seq87\n"
+                                    "@88 seq88\n"
+                                    "@89 seq89\n"
+                                    "@90 seq90\n"
+                                    "@91 seq91\n"
+                                    "@92 seq92\n"
+                                    "@93 seq93\n"
+                                    "@94 seq94\n"
+                                    "@95 seq95\n"
+                                    "@CHOPPER_USER_BINS_END\n"
+                                    "@CHOPPER_CONFIG\n"
+                                    "@{\n"
+                                    "@    \"chopper_config\": {\n"
+                                    "@        \"version\": 2,\n"
+                                    "@        \"data_file\": {\n"
+                                    "@            \"value0\": \"\"\n"
+                                    "@        },\n"
+                                    "@        \"debug\": false,\n"
+                                    "@        \"sketch_directory\": {\n"
+                                    "@            \"value0\": \"\"\n"
+                                    "@        },\n"
+                                    "@        \"k\": 19,\n"
+                                    "@        \"disable_sketch_output\": true,\n"
+                                    "@        \"precomputed_files\": false,\n"
+                                    "@        \"output_filename\": {\n"
+                                    "@            \"value0\": \""
+                                    + layout_file.string()
+                                    + "\"\n"
+                                      "@        },\n"
+                                      "@        \"determine_best_tmax\": true,\n"
+                                      "@        \"force_all_binnings\": false\n"
+                                      "@    }\n"
+                                      "@}\n"
+                                      "@CHOPPER_CONFIG_END\n"
+                                      "@HIBF_CONFIG\n"
+                                      "@{\n"
+                                      "@    \"hibf_config\": {\n"
+                                      "@        \"version\": 1,\n"
+                                      "@        \"number_of_user_bins\": 96,\n"
+                                      "@        \"number_of_hash_functions\": 2,\n"
+                                      "@        \"maximum_false_positive_rate\": 0.05,\n"
+                                      "@        \"threads\": 1,\n"
+                                      "@        \"sketch_bits\": 12,\n"
+                                      "@        \"tmax\": 128,\n"
+                                      "@        \"alpha\": 1.2,\n"
+                                      "@        \"max_rearrangement_ratio\": 0.5,\n"
+                                      "@        \"disable_estimate_union\": true,\n"
+                                      "@        \"disable_rearrangement\": true,\n"
+                                      "@        \"disable_cutoffs\": false\n"
+                                      "@    }\n"
+                                      "@}\n"
+                                      "@HIBF_CONFIG_END\n"
+                                      "#TOP_LEVEL_IBF fullest_technical_bin_idx:14\n"
+                                      "#LOWER_LEVEL_IBF_14 fullest_technical_bin_idx:24\n"
+                                      "#LOWER_LEVEL_IBF_15 fullest_technical_bin_idx:24\n"
+                                      "#USER_BIN_IDX\tTECHNICAL_BIN_INDICES\tNUMBER_OF_TECHNICAL_BINS\n"
+                                      "0\t0\t1\n"
+                                      "19\t1\t1\n"
+                                      "18\t2\t1\n"
+                                      "17\t3\t1\n"
+                                      "16\t4\t1\n"
+                                      "15\t5\t1\n"
+                                      "14\t6\t1\n"
+                                      "13\t7\t1\n"
+                                      "12\t8\t1\n"
+                                      "11\t9\t1\n"
+                                      "10\t10\t1\n"
+                                      "9\t11\t1\n"
+                                      "8\t12\t1\n"
+                                      "7\t13\t1\n"
+                                      "4\t14;0\t1;24\n"
+                                      "5\t14;24\t1;20\n"
+                                      "6\t14;44\t1;20\n"
+                                      "1\t15;0\t1;24\n"
+                                      "2\t15;24\t1;20\n"
+                                      "3\t15;44\t1;20\n"
+                                      "32\t16\t1\n"
+                                      "33\t17\t1\n"
+                                      "34\t18\t1\n"
+                                      "35\t19\t1\n"
+                                      "30\t20\t1\n"
+                                      "36\t21\t1\n"
+                                      "37\t22\t1\n"
+                                      "38\t23\t1\n"
+                                      "39\t24\t1\n"
+                                      "31\t25\t1\n"
+                                      "20\t26\t1\n"
+                                      "21\t27\t1\n"
+                                      "22\t28\t1\n"
+                                      "23\t29\t1\n"
+                                      "25\t30\t1\n"
+                                      "26\t31\t1\n"
+                                      "27\t32\t1\n"
+                                      "28\t33\t1\n"
+                                      "24\t34\t1\n"
+                                      "29\t35\t1\n"
+                                      "40\t36\t1\n"
+                                      "41\t37\t1\n"
+                                      "42\t38\t1\n"
+                                      "43\t39\t1\n"
+                                      "44\t40\t1\n"
+                                      "45\t41\t1\n"
+                                      "46\t42\t1\n"
+                                      "47\t43\t1\n"
+                                      "48\t44\t1\n"
+                                      "59\t45\t1\n"
+                                      "58\t46\t1\n"
+                                      "57\t47\t1\n"
+                                      "56\t48\t1\n"
+                                      "55\t49\t1\n"
+                                      "54\t50\t1\n"
+                                      "53\t51\t1\n"
+                                      "52\t52\t1\n"
+                                      "51\t53\t1\n"
+                                      "50\t54\t1\n"
+                                      "49\t55\t1\n"
+                                      "79\t56\t2\n"
+                                      "78\t58\t2\n"
+                                      "77\t60\t2\n"
+                                      "76\t62\t2\n"
+                                      "75\t64\t2\n"
+                                      "74\t66\t2\n"
+                                      "73\t68\t2\n"
+                                      "70\t70\t2\n"
+                                      "71\t72\t2\n"
+                                      "72\t74\t2\n"
+                                      "60\t76\t2\n"
+                                      "61\t78\t2\n"
+                                      "62\t80\t2\n"
+                                      "63\t82\t2\n"
+                                      "64\t84\t2\n"
+                                      "65\t86\t2\n"
+                                      "66\t88\t2\n"
+                                      "67\t90\t2\n"
+                                      "68\t92\t2\n"
+                                      "69\t94\t2\n"
+                                      "88\t96\t2\n"
+                                      "94\t98\t2\n"
+                                      "93\t100\t2\n"
+                                      "92\t102\t2\n"
+                                      "91\t104\t2\n"
+                                      "90\t106\t2\n"
+                                      "89\t108\t2\n"
+                                      "87\t110\t2\n"
+                                      "86\t112\t2\n"
+                                      "85\t114\t2\n"
+                                      "84\t116\t2\n"
+                                      "83\t118\t2\n"
+                                      "82\t120\t2\n"
+                                      "81\t122\t2\n"
+                                      "80\t124\t2\n"
+                                      "95\t126\t2\n"};
+    std::string const actual_file{string_from_file(layout_file)};
+    EXPECT_EQ(actual_file, expected_file);
 }
 
 TEST(execute_estimation_test, many_ubs_force_all)

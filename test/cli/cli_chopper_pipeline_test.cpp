@@ -17,6 +17,7 @@
 #include <seqan3/utility/range/to.hpp>
 #include <seqan3/utility/views/join_with.hpp>
 
+#include "../api/api_test.hpp"
 #include "cli_test.hpp"
 
 // check if each chopper submodule can work with the output of the other
@@ -53,62 +54,70 @@ TEST_F(cli_test, chopper_layout)
     EXPECT_EQ(result.out, std::string{});
     EXPECT_EQ(result.err, std::string{});
 
-    std::string expected_file{"##CONFIG:\n"
-                              "##{\n"
-                              "##    \"config\": {\n"
-                              "##        \"version\": 2,\n"
-                              "##        \"data_file\": {\n"
-                              "##            \"value0\": \""
-                              + taxa_filename.string()
-                              + "\"\n"
-                                "##        },\n"
-                                "##        \"debug\": false,\n"
-                                "##        \"sketch_directory\": {\n"
-                                "##            \"value0\": \"\"\n"
-                                "##        },\n"
-                                "##        \"k\": 15,\n"
-                                "##        \"disable_sketch_output\": true,\n"
-                                "##        \"precomputed_files\": false,\n"
-                                "##        \"output_filename\": {\n"
-                                "##            \"value0\": \""
-                              + binning_filename.string()
-                              + "\"\n"
-                                "##        },\n"
-                                "##        \"determine_best_tmax\": false,\n"
-                                "##        \"force_all_binnings\": false,\n"
-                                "##        \"hibf_config\": {\n"
-                                "##            \"version\": 1,\n"
-                                "##            \"number_of_user_bins\": 3,\n"
-                                "##            \"number_of_hash_functions\": 2,\n"
-                                "##            \"maximum_false_positive_rate\": 0.05,\n"
-                                "##            \"threads\": 2,\n"
-                                "##            \"sketch_bits\": 12,\n"
-                                "##            \"tmax\": 64,\n"
-                                "##            \"alpha\": 1.2,\n"
-                                "##            \"max_rearrangement_ratio\": 0.5,\n"
-                                "##            \"disable_estimate_union\": false,\n"
-                                "##            \"disable_rearrangement\": false,\n"
-                                "##            \"disable_cutoffs\": false,\n"
-                                "##            \"layout_file\": {\n"
-                                "##                \"value0\": \"\"\n"
-                                "##            }\n"
-                                "##        }\n"
-                                "##    }\n"
-                                "##}\n"
-                                "##ENDCONFIG\n"
-                                "#HIGH_LEVEL_IBF max_bin_id:22\n"
-                                "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\n"
-                              + seq_filename + "\t0\t22\n" + seq_filename + /* ";" + seq_filename + */ "\t22\t21\n"
-                              + seq_filename + "\t43\t21\n"};
+    std::string const expected_file{"@CHOPPER_USER_BINS\n"
+                                    "@0 "
+                                    + seq_filename
+                                    + "\n"
+                                      "@1 "
+                                    + seq_filename
+                                    + "\n"
+                                      "@2 "
+                                    + seq_filename
+                                    + "\n"
+                                      "@CHOPPER_USER_BINS_END\n"
+                                      "@CHOPPER_CONFIG\n"
+                                      "@{\n"
+                                      "@    \"chopper_config\": {\n"
+                                      "@        \"version\": 2,\n"
+                                      "@        \"data_file\": {\n"
+                                      "@            \"value0\": \""
+                                    + taxa_filename.string()
+                                    + "\"\n"
+                                      "@        },\n"
+                                      "@        \"debug\": false,\n"
+                                      "@        \"sketch_directory\": {\n"
+                                      "@            \"value0\": \"\"\n"
+                                      "@        },\n"
+                                      "@        \"k\": 15,\n"
+                                      "@        \"disable_sketch_output\": true,\n"
+                                      "@        \"precomputed_files\": false,\n"
+                                      "@        \"output_filename\": {\n"
+                                      "@            \"value0\": \""
+                                    + binning_filename.string()
+                                    + "\"\n"
+                                      "@        },\n"
+                                      "@        \"determine_best_tmax\": false,\n"
+                                      "@        \"force_all_binnings\": false\n"
+                                      "@    }\n"
+                                      "@}\n"
+                                      "@CHOPPER_CONFIG_END\n"
+                                      "@HIBF_CONFIG\n"
+                                      "@{\n"
+                                      "@    \"hibf_config\": {\n"
+                                      "@        \"version\": 1,\n"
+                                      "@        \"number_of_user_bins\": 3,\n"
+                                      "@        \"number_of_hash_functions\": 2,\n"
+                                      "@        \"maximum_false_positive_rate\": 0.05,\n"
+                                      "@        \"threads\": 2,\n"
+                                      "@        \"sketch_bits\": 12,\n"
+                                      "@        \"tmax\": 64,\n"
+                                      "@        \"alpha\": 1.2,\n"
+                                      "@        \"max_rearrangement_ratio\": 0.5,\n"
+                                      "@        \"disable_estimate_union\": false,\n"
+                                      "@        \"disable_rearrangement\": false,\n"
+                                      "@        \"disable_cutoffs\": false\n"
+                                      "@    }\n"
+                                      "@}\n"
+                                      "@HIBF_CONFIG_END\n"
+                                      "#TOP_LEVEL_IBF fullest_technical_bin_idx:22\n"
+                                      "#USER_BIN_IDX\tTECHNICAL_BIN_INDICES\tNUMBER_OF_TECHNICAL_BINS\n"};
+    // Order of IDs is not deterministic
+    // "2\t0\t22\n"
+    // "1\t22\t21\n"
+    // "0\t43\t21\n"};
 
-    ASSERT_TRUE(std::filesystem::exists(binning_filename));
-
-    {
-        std::ifstream output_file{binning_filename};
-        std::string const output_file_str((std::istreambuf_iterator<char>(output_file)),
-                                          std::istreambuf_iterator<char>());
-        ASSERT_EQ(output_file_str, expected_file);
-    }
+    std::string const actual_file{string_from_file(binning_filename)};
+    EXPECT_TRUE(actual_file.starts_with(expected_file));
 }
 
 TEST_F(cli_test, chopper_layout2)
@@ -143,60 +152,71 @@ TEST_F(cli_test, chopper_layout2)
     EXPECT_EQ(result.out, std::string{});
     EXPECT_EQ(result.err, std::string{});
 
-    std::string expected_file{"##CONFIG:\n"
-                              "##{\n"
-                              "##    \"config\": {\n"
-                              "##        \"version\": 2,\n"
-                              "##        \"data_file\": {\n"
-                              "##            \"value0\": \""
-                              + taxa_filename.string()
-                              + "\"\n"
-                                "##        },\n"
-                                "##        \"debug\": false,\n"
-                                "##        \"sketch_directory\": {\n"
-                                "##            \"value0\": \"\"\n"
-                                "##        },\n"
-                                "##        \"k\": 19,\n"
-                                "##        \"disable_sketch_output\": true,\n"
-                                "##        \"precomputed_files\": false,\n"
-                                "##        \"output_filename\": {\n"
-                                "##            \"value0\": \""
-                              + binning_filename.string()
-                              + "\"\n"
-                                "##        },\n"
-                                "##        \"determine_best_tmax\": false,\n"
-                                "##        \"force_all_binnings\": false,\n"
-                                "##        \"hibf_config\": {\n"
-                                "##            \"version\": 1,\n"
-                                "##            \"number_of_user_bins\": 4,\n"
-                                "##            \"number_of_hash_functions\": 2,\n"
-                                "##            \"maximum_false_positive_rate\": 0.05,\n"
-                                "##            \"threads\": 2,\n"
-                                "##            \"sketch_bits\": 12,\n"
-                                "##            \"tmax\": 64,\n"
-                                "##            \"alpha\": 1.2,\n"
-                                "##            \"max_rearrangement_ratio\": 0.5,\n"
-                                "##            \"disable_estimate_union\": false,\n"
-                                "##            \"disable_rearrangement\": false,\n"
-                                "##            \"disable_cutoffs\": false,\n"
-                                "##            \"layout_file\": {\n"
-                                "##                \"value0\": \"\"\n"
-                                "##            }\n"
-                                "##        }\n"
-                                "##    }\n"
-                                "##}\n"
-                                "##ENDCONFIG\n"
-                                "#HIGH_LEVEL_IBF max_bin_id:54\n"
-                                "#FILES\tBIN_INDICES\tNUMBER_OF_BINS\n"
-                              + seq3_filename + "\t0\t15\n" + seq4_filename + "\t15\t24\n" + seq2_filename
-                              + "\t39\t15\n" + seq1_filename + "\t54\t10\n"};
+    std::string const expected_file{"@CHOPPER_USER_BINS\n"
+                                    "@0 "
+                                    + seq1_filename
+                                    + "\n"
+                                      "@1 "
+                                    + seq2_filename
+                                    + "\n"
+                                      "@2 "
+                                    + seq3_filename
+                                    + "\n"
+                                      "@3 "
+                                    + seq4_filename
+                                    + "\n"
+                                      "@CHOPPER_USER_BINS_END\n"
+                                      "@CHOPPER_CONFIG\n"
+                                      "@{\n"
+                                      "@    \"chopper_config\": {\n"
+                                      "@        \"version\": 2,\n"
+                                      "@        \"data_file\": {\n"
+                                      "@            \"value0\": \""
+                                    + taxa_filename.string()
+                                    + "\"\n"
+                                      "@        },\n"
+                                      "@        \"debug\": false,\n"
+                                      "@        \"sketch_directory\": {\n"
+                                      "@            \"value0\": \"\"\n"
+                                      "@        },\n"
+                                      "@        \"k\": 19,\n"
+                                      "@        \"disable_sketch_output\": true,\n"
+                                      "@        \"precomputed_files\": false,\n"
+                                      "@        \"output_filename\": {\n"
+                                      "@            \"value0\": \""
+                                    + binning_filename.string()
+                                    + "\"\n"
+                                      "@        },\n"
+                                      "@        \"determine_best_tmax\": false,\n"
+                                      "@        \"force_all_binnings\": false\n"
+                                      "@    }\n"
+                                      "@}\n"
+                                      "@CHOPPER_CONFIG_END\n"
+                                      "@HIBF_CONFIG\n"
+                                      "@{\n"
+                                      "@    \"hibf_config\": {\n"
+                                      "@        \"version\": 1,\n"
+                                      "@        \"number_of_user_bins\": 4,\n"
+                                      "@        \"number_of_hash_functions\": 2,\n"
+                                      "@        \"maximum_false_positive_rate\": 0.05,\n"
+                                      "@        \"threads\": 2,\n"
+                                      "@        \"sketch_bits\": 12,\n"
+                                      "@        \"tmax\": 64,\n"
+                                      "@        \"alpha\": 1.2,\n"
+                                      "@        \"max_rearrangement_ratio\": 0.5,\n"
+                                      "@        \"disable_estimate_union\": false,\n"
+                                      "@        \"disable_rearrangement\": false,\n"
+                                      "@        \"disable_cutoffs\": false\n"
+                                      "@    }\n"
+                                      "@}\n"
+                                      "@HIBF_CONFIG_END\n"
+                                      "#TOP_LEVEL_IBF fullest_technical_bin_idx:54\n"
+                                      "#USER_BIN_IDX\tTECHNICAL_BIN_INDICES\tNUMBER_OF_TECHNICAL_BINS\n"
+                                      "2\t0\t15\n"
+                                      "3\t15\t24\n"
+                                      "1\t39\t15\n"
+                                      "0\t54\t10\n"};
 
-    ASSERT_TRUE(std::filesystem::exists(binning_filename));
-
-    {
-        std::ifstream output_file{binning_filename};
-        std::string const output_file_str((std::istreambuf_iterator<char>(output_file)),
-                                          std::istreambuf_iterator<char>());
-        ASSERT_EQ(output_file_str, expected_file);
-    }
+    std::string const actual_file{string_from_file(binning_filename)};
+    EXPECT_EQ(actual_file, expected_file);
 }
