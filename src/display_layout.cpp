@@ -63,7 +63,7 @@ void keep_duplicates(robin_hood::unordered_set<uint64_t> & shared, std::vector<u
 
 void process_file(std::string const & filename,
                   std::vector<uint64_t> & current_kmers,
-                  hibf::sketch::hyperloglog & sketch,
+                  seqan::hibf::sketch::hyperloglog & sketch,
                   bool const fill_current_kmers,
                   uint8_t const kmer_size)
 {
@@ -123,7 +123,7 @@ int execute(std::filesystem::path const & layout_file)
 {
     std::vector<std::vector<std::string>> filenames;
     chopper::configuration chopper_config;
-    hibf::layout::layout hibf_layout = chopper::stats::read_layout_file(chopper_config, filenames, layout_file);
+    seqan::hibf::layout::layout hibf_layout = chopper::stats::read_layout_file(chopper_config, filenames, layout_file);
     auto const & hibf_config = chopper_config.hibf_config;
 
     // Fetch all file sizes such that sorting by file size doesn't have to access the filesystem too often.
@@ -146,14 +146,15 @@ int execute(std::filesystem::path const & layout_file)
     // Using the smallest file to initialise the shared k-mers later will be less work.
     std::ranges::sort(
         hibf_layout.user_bins,
-        [&filesizes](hibf::layout::layout::user_bin const & lhs, hibf::layout::layout::user_bin const & rhs)
+        [&filesizes](seqan::hibf::layout::layout::user_bin const & lhs,
+                     seqan::hibf::layout::layout::user_bin const & rhs)
         {
             size_t const first_idx = lhs.previous_TB_indices.empty() ? lhs.storage_TB_id : lhs.previous_TB_indices[0];
             size_t const second_idx = rhs.previous_TB_indices.empty() ? rhs.storage_TB_id : rhs.previous_TB_indices[0];
             return first_idx < second_idx || (first_idx == second_idx && filesizes[lhs.idx] < filesizes[rhs.idx]);
         });
 
-    hibf::sketch::hyperloglog sketch{hibf_config.sketch_bits};
+    seqan::hibf::sketch::hyperloglog sketch{hibf_config.sketch_bits};
     robin_hood::unordered_set<uint64_t> shared_kmers{};
     // We can't use `shared_kmers.size() == 0` instead of `shared_kmers_initialised`, because keep_duplicates
     // will result in a size of 0 when there are no shared k-mers.

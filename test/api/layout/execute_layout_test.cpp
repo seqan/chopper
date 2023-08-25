@@ -21,7 +21,7 @@ TEST(execute_test, few_ubs)
     seqan3::test::tmp_directory tmp_dir{};
     std::filesystem::path const layout_file{tmp_dir.path() / "layout.tsv"};
 
-    auto simulated_input = [&](size_t const num, hibf::insert_iterator it)
+    auto simulated_input = [&](size_t const num, seqan::hibf::insert_iterator it)
     {
         size_t const desired_kmer_count = (num == 1) ? 1000 : 500;
         for (auto hash : std::views::iota(0u, desired_kmer_count))
@@ -101,7 +101,7 @@ TEST(execute_test, set_default_tmax)
     seqan3::test::tmp_directory tmp_dir{};
     std::filesystem::path const layout_file{tmp_dir.path() / "layout.tsv"};
 
-    auto simulated_input = [&](size_t const num, hibf::insert_iterator it)
+    auto simulated_input = [&](size_t const num, seqan::hibf::insert_iterator it)
     {
         size_t const desired_kmer_count = (num == 1) ? 1000 : 500;
         for (auto hash : std::views::iota(0u, desired_kmer_count))
@@ -133,7 +133,7 @@ TEST(execute_test, many_ubs)
         many_filenames.push_back(seqan3::detail::to_string("seq", i));
 
     // There are 20 files with a count of {100,200,300,400} each. There are 16 files with count 500.
-    auto simulated_input = [&](size_t const num, hibf::insert_iterator it)
+    auto simulated_input = [&](size_t const num, seqan::hibf::insert_iterator it)
     {
         size_t const desired_kmer_count = 101 * ((num + 20) / 20);
         for (auto hash : std::views::iota(0u, desired_kmer_count))

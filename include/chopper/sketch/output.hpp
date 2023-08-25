@@ -32,8 +32,9 @@ inline void write_count_file_line(std::pair<std::string, std::vector<std::string
     fout << '\t' << weight << '\t' << key << '\n';
 }
 
-inline void
-write_sketch_file(std::string const & filename, hibf::sketch::hyperloglog const & sketch, configuration const & config)
+inline void write_sketch_file(std::string const & filename,
+                              seqan::hibf::sketch::hyperloglog const & sketch,
+                              configuration const & config)
 {
     // For one file in the cluster, the file stem is used with the .hll ending
     std::filesystem::path path = config.sketch_directory / std::filesystem::path(filename).stem();

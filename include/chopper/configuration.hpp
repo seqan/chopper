@@ -64,7 +64,7 @@ struct configuration
     //!\}
 
     //!\brief The HIBF config which will be used to compute the layout within the HIBF lib.
-    hibf::config hibf_config;
+    seqan::hibf::config hibf_config;
 
 private:
     friend class cereal::access;

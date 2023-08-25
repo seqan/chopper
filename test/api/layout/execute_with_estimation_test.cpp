@@ -26,7 +26,7 @@ TEST(execute_estimation_test, few_ubs)
     std::filesystem::path const layout_file{tmp_dir.path() / "layout.tsv"};
     std::filesystem::path const stats_file{layout_file.string() + ".stats"};
 
-    auto simulated_input = [&](size_t const num, hibf::insert_iterator it)
+    auto simulated_input = [&](size_t const num, seqan::hibf::insert_iterator it)
     {
         size_t const desired_kmer_count = (num == 1) ? 1000 : 500;
         for (auto hash : std::views::iota(0u, desired_kmer_count))
@@ -83,7 +83,7 @@ TEST(execute_estimation_test, many_ubs)
         many_filenames.push_back(seqan3::detail::to_string("seq", i));
 
     // There are 20 files with a count of {100,200,300,400} each. There are 16 files with count 500.
-    auto simulated_input = [&](size_t const num, hibf::insert_iterator it)
+    auto simulated_input = [&](size_t const num, seqan::hibf::insert_iterator it)
     {
         size_t const desired_kmer_count = 100 * ((num + 20) / 20);
         for (auto hash : std::views::iota(0u, desired_kmer_count))
@@ -286,7 +286,7 @@ TEST(execute_estimation_test, many_ubs_force_all)
         many_filenames.push_back(seqan3::detail::to_string("seq", i));
 
     // There are 20 files with a count of {100,200,300,400} each. There are 16 files with count 500.
-    auto simulated_input = [&](size_t const num, hibf::insert_iterator it)
+    auto simulated_input = [&](size_t const num, seqan::hibf::insert_iterator it)
     {
         size_t const desired_kmer_count = 100 * ((num + 20) / 20);
         for (auto hash : std::views::iota(0u, desired_kmer_count))
@@ -374,7 +374,7 @@ TEST(execute_estimation_test, with_rearrangement)
     }
 
     // There are 20 files with a count of {100,200,300,400} each. There are 16 files with count 500.
-    auto data_input = [&](size_t const num, hibf::insert_iterator it)
+    auto data_input = [&](size_t const num, seqan::hibf::insert_iterator it)
     {
         sequence_file_type3 fin{filenames[num]};
 
@@ -402,7 +402,7 @@ TEST(execute_estimation_test, with_rearrangement)
 
     ASSERT_TRUE(std::filesystem::exists(sketches_dir));
 
-    std::vector<hibf::sketch::hyperloglog> sketches{};
+    std::vector<seqan::hibf::sketch::hyperloglog> sketches{};
     chopper::sketch::read_hll_files_into(sketches_dir, hll_filenames, sketches);
 
     for (size_t i = 0; i < expected_kmer_counts.size(); ++i)

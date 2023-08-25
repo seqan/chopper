@@ -36,7 +36,7 @@ struct input_functor
 
     uint8_t kmer_size{21};
 
-    void operator()(size_t const num, hibf::insert_iterator it)
+    void operator()(size_t const num, seqan::hibf::insert_iterator it)
     {
         assert(filenames.size() > num);
         if (input_are_precomputed_files)

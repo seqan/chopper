@@ -28,7 +28,7 @@ namespace chopper::stats
 {
 
 inline void
-parse_layout_header(std::istream & layout_file, configuration & hibf_config, hibf::layout::layout & hibf_layout)
+parse_layout_header(std::istream & layout_file, configuration & hibf_config, seqan::hibf::layout::layout & hibf_layout)
 {
     auto parse_bin_indices = [](std::string_view const & buffer)
     {
@@ -63,9 +63,9 @@ parse_layout_header(std::istream & layout_file, configuration & hibf_config, hib
     assert(line == "##CONFIG:");
 
     while (std::getline(layout_file, line) && line.size() >= 3
-           && std::string_view{line}.substr(0, 1) == hibf::prefix::header
-           && std::string_view{line}.substr(1, 1) == hibf::prefix::header_config && line != "##ENDCONFIG")
-        config_str << line.substr(2); // remove hibf::prefix::header & hibf::prefix::header_config
+           && std::string_view{line}.substr(0, 1) == seqan::hibf::prefix::header
+           && std::string_view{line}.substr(1, 1) == seqan::hibf::prefix::header_config && line != "##ENDCONFIG")
+        config_str << line.substr(2); // remove seqan::hibf::prefix::header & seqan::hibf::prefix::header_config
 
     assert(line == "##ENDCONFIG");
 
@@ -74,25 +74,26 @@ parse_layout_header(std::istream & layout_file, configuration & hibf_config, hib
 
     std::getline(layout_file, line); // skip "##ENDCONFIG"
     assert(line[0] == '#');          // still reading header lines
-    assert(line.substr(1, hibf::prefix::high_level.size()) == hibf::prefix::high_level);
+    assert(line.substr(1, seqan::hibf::prefix::high_level.size()) == seqan::hibf::prefix::high_level);
 
     // parse High Level max bin index
-    assert(line.substr(hibf::prefix::high_level.size() + 2, 11) == "max_bin_id:");
+    assert(line.substr(seqan::hibf::prefix::high_level.size() + 2, 11) == "max_bin_id:");
     std::string_view const hibf_max_bin_str{line.begin() + 27, line.end()};
     hibf_layout.top_level_max_bin_id = parse_first_bin(hibf_max_bin_str);
 
     // first read and parse header records, in order to sort them before adding them to the graph
     while (std::getline(layout_file, line) && line.substr(0, 6) != "#FILES")
     {
-        assert(line.substr(1, hibf::prefix::merged_bin.size()) == hibf::prefix::merged_bin);
+        assert(line.substr(1, seqan::hibf::prefix::merged_bin.size()) == seqan::hibf::prefix::merged_bin);
 
         // parse header line
         std::string_view const indices_str{
-            line.begin() + 1 /*#*/ + hibf::prefix::merged_bin.size() + 1 /*_*/,
-            std::find(line.begin() + hibf::prefix::merged_bin.size() + 2, line.end(), ' ')};
+            line.begin() + 1 /*#*/ + seqan::hibf::prefix::merged_bin.size() + 1 /*_*/,
+            std::find(line.begin() + seqan::hibf::prefix::merged_bin.size() + 2, line.end(), ' ')};
 
-        assert(line.substr(hibf::prefix::merged_bin.size() + indices_str.size() + 3, 11) == "max_bin_id:");
-        std::string_view const max_id_str{line.begin() + hibf::prefix::merged_bin.size() + indices_str.size() + 14,
+        assert(line.substr(seqan::hibf::prefix::merged_bin.size() + indices_str.size() + 3, 11) == "max_bin_id:");
+        std::string_view const max_id_str{line.begin() + seqan::hibf::prefix::merged_bin.size() + indices_str.size()
+                                              + 14,
                                           line.end()};
 
         hibf_layout.max_bins.emplace_back(parse_bin_indices(indices_str), parse_first_bin(max_id_str));

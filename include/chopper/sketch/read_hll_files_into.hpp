@@ -20,7 +20,7 @@ namespace chopper::sketch
 
 inline void read_hll_files_into(std::filesystem::path const & hll_dir,
                                 std::vector<std::string> const & target_filenames,
-                                std::vector<hibf::sketch::hyperloglog> & target)
+                                std::vector<seqan::hibf::sketch::hyperloglog> & target)
 {
     assert(std::filesystem::exists(hll_dir) && !std::filesystem::is_empty(hll_dir)); // checked in chopper_layout
 

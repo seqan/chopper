@@ -54,7 +54,7 @@ TEST(hibf_statistics, only_merged_on_top_level)
     config.hibf_config.disable_estimate_union = true; /* also disable rearrangement */
 
     std::vector<std::string> filenames{"s1", "s2"};
-    std::vector<hibf::sketch::hyperloglog> sketches{{}, {}};
+    std::vector<seqan::hibf::sketch::hyperloglog> sketches{{}, {}};
     std::vector<size_t> kmer_counts{50, 50};
 
     chopper::layout::hibf_statistics stats(config, sketches, kmer_counts);
@@ -106,7 +106,7 @@ TEST(execute_test, chopper_layout_statistics)
         many_filenames.push_back(seqan3::detail::to_string("seq", i));
 
     // There are 20 files with a count of {100,200,300,400} each. There are 16 files with count 500.
-    auto simulated_input = [&](size_t const num, hibf::insert_iterator it)
+    auto simulated_input = [&](size_t const num, seqan::hibf::insert_iterator it)
     {
         size_t const desired_kmer_count = 101 * ((num + 20) / 20);
         for (auto hash : std::views::iota(0u, desired_kmer_count))
@@ -157,7 +157,7 @@ TEST(execute_test, chopper_layout_statistics_determine_best_bins)
     std::vector<std::string> filenames{"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7", "seq8", "seq9"};
 
     // There are 20 files with a count of {100,200,300,400} each. There are 16 files with count 500.
-    auto simulated_input = [&](size_t const num, hibf::insert_iterator it)
+    auto simulated_input = [&](size_t const num, seqan::hibf::insert_iterator it)
     {
         std::vector<size_t> kmer_counts{10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000};
         for (auto hash : std::views::iota(0u, kmer_counts[num]))

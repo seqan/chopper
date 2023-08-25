@@ -63,12 +63,13 @@ public:
      * \param[in] kmer_counts The original user bin weights (kmer counts).
      */
     hibf_statistics(configuration const & config_,
-                    std::vector<hibf::sketch::hyperloglog> const & sketches_,
+                    std::vector<seqan::hibf::sketch::hyperloglog> const & sketches_,
                     std::vector<size_t> const & kmer_counts) :
         config{config_},
-        fp_correction{hibf::layout::compute_fpr_correction({.fpr = config_.hibf_config.maximum_false_positive_rate,
-                                                            .hash_count = config_.hibf_config.number_of_hash_functions,
-                                                            .t_max = config_.hibf_config.tmax})},
+        fp_correction{
+            seqan::hibf::layout::compute_fpr_correction({.fpr = config_.hibf_config.maximum_false_positive_rate,
+                                                         .hash_count = config_.hibf_config.number_of_hash_functions,
+                                                         .t_max = config_.hibf_config.tmax})},
         sketches{sketches_},
         counts{kmer_counts},
         total_kmer_count{std::accumulate(kmer_counts.begin(), kmer_counts.end(), size_t{})}
@@ -424,7 +425,7 @@ public:
     double expected_HIBF_query_cost{0.0};
 
     //!\brief A reference to the input counts.
-    hibf::layout::layout hibf_layout;
+    seqan::hibf::layout::layout hibf_layout;
 
 private:
     //!\brief Copy of the user configuration for this HIBF.
@@ -434,7 +435,7 @@ private:
     std::vector<double> const fp_correction{};
 
     //!\brief A reference to the input sketches.
-    std::vector<hibf::sketch::hyperloglog> const & sketches;
+    std::vector<seqan::hibf::sketch::hyperloglog> const & sketches;
 
     //!\brief A reference to the input counts.
     std::vector<size_t> const & counts;
@@ -572,7 +573,7 @@ private:
                 else
                 {
                     assert(!current_bin.user_bin_indices.empty());
-                    hibf::sketch::hyperloglog hll = sketches[current_bin.user_bin_indices[0]];
+                    seqan::hibf::sketch::hyperloglog hll = sketches[current_bin.user_bin_indices[0]];
 
                     for (size_t i = 1; i < current_bin.user_bin_indices.size(); ++i)
                         hll.merge(sketches[current_bin.user_bin_indices[i]]);
@@ -598,7 +599,7 @@ private:
         size_t level_kmer_count{0};
         size_t index{0};
         std::vector<size_t> merged_bin_indices{};
-        std::vector<hibf::sketch::hyperloglog> merged_bin_sketches{};
+        std::vector<seqan::hibf::sketch::hyperloglog> merged_bin_sketches{};
 
         for (bin const & current_bin : curr_level.bins)
         {
@@ -611,7 +612,7 @@ private:
                 {
                     // compute merged_bin_sketch
                     assert(!current_bin.user_bin_indices.empty());
-                    hibf::sketch::hyperloglog hll = sketches[current_bin.user_bin_indices[0]];
+                    seqan::hibf::sketch::hyperloglog hll = sketches[current_bin.user_bin_indices[0]];
 
                     for (size_t i = 1; i < current_bin.user_bin_indices.size(); ++i)
                         hll.merge(sketches[current_bin.user_bin_indices[i]]);
@@ -652,7 +653,8 @@ private:
 
                 for (size_t j = i + 1; j < merged_bin_indices.size(); ++j)
                 {
-                    hibf::sketch::hyperloglog tmp = merged_bin_sketches[i]; // copy needed, s.t. current is not modified
+                    seqan::hibf::sketch::hyperloglog tmp =
+                        merged_bin_sketches[i]; // copy needed, s.t. current is not modified
                     double union_estimate = tmp.merge_and_estimate_SIMD(merged_bin_sketches[j]);
                     // Jaccard distance estimate
                     double distance = 2.0 - (current_estimate + merged_bin_sketches[j].estimate()) / union_estimate;
