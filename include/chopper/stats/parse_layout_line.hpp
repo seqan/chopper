@@ -20,10 +20,10 @@
 namespace chopper::stats
 {
 
-inline hibf::layout::layout::user_bin parse_layout_line(std::string const & current_line,
-                                                        std::vector<std::vector<std::string>> & user_bin_filenames)
+inline seqan::hibf::layout::layout::user_bin
+parse_layout_line(std::string const & current_line, std::vector<std::vector<std::string>> & user_bin_filenames)
 {
-    hibf::layout::layout::user_bin result{};
+    seqan::hibf::layout::layout::user_bin result{};
 
     // initialize parsing
     std::string_view const buffer{current_line};

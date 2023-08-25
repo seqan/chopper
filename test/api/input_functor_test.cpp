@@ -20,7 +20,7 @@ TEST(execute_test, small_example)
     // config.disable_sketch_output = true;
 
     // std::vector<std::string> filenames{input_filename, input_filename};
-    // std::vector<hibf::sketch::hyperloglog> sketches{};
+    // std::vector<seqan::hibf::sketch::hyperloglog> sketches{};
 
     // EXPECT_NO_THROW(chopper::sketch::execute(config, filenames, sketches));
 

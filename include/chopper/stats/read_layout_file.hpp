@@ -21,11 +21,11 @@
 namespace chopper::stats
 {
 
-inline hibf::layout::layout read_layout_file(configuration & hibf_config,
-                                             std::vector<std::vector<std::string>> & filenames,
-                                             std::string const & layout_filename)
+inline seqan::hibf::layout::layout read_layout_file(configuration & hibf_config,
+                                                    std::vector<std::vector<std::string>> & filenames,
+                                                    std::string const & layout_filename)
 {
-    hibf::layout::layout hibf_layout{};
+    seqan::hibf::layout::layout hibf_layout{};
 
     std::ifstream layout_file{layout_filename};
 

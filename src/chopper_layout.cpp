@@ -23,10 +23,10 @@
 namespace chopper::layout
 {
 
-std::pair<hibf::layout::layout, std::vector<hibf::sketch::hyperloglog>>
+std::pair<seqan::hibf::layout::layout, std::vector<seqan::hibf::sketch::hyperloglog>>
 determine_best_number_of_technical_bins(chopper::configuration & config)
 {
-    hibf::layout::layout best_layout;
+    seqan::hibf::layout::layout best_layout;
 
     std::set<size_t> potential_t_max = [&]()
     {
@@ -60,7 +60,7 @@ determine_best_number_of_technical_bins(chopper::configuration & config)
     size_t t_max_64_memory{};
 
     std::vector<size_t> kmer_counts;
-    std::vector<hibf::sketch::hyperloglog> sketches;
+    std::vector<seqan::hibf::sketch::hyperloglog> sketches;
 
     for (size_t const t_max : potential_t_max)
     {
@@ -69,7 +69,8 @@ determine_best_number_of_technical_bins(chopper::configuration & config)
         kmer_counts.clear();
         sketches.clear();
 
-        hibf::layout::layout tmp_layout = hibf::layout::compute_layout(config.hibf_config, kmer_counts, sketches);
+        seqan::hibf::layout::layout tmp_layout =
+            seqan::hibf::layout::compute_layout(config.hibf_config, kmer_counts, sketches);
 
         chopper::layout::hibf_statistics global_stats{config, sketches, kmer_counts};
         global_stats.hibf_layout = tmp_layout;
@@ -120,8 +121,8 @@ int execute(chopper::configuration & config, std::vector<std::string> const & fi
                   << "anyway, so we increased your number of technical bins to " << config.hibf_config.tmax << ".\n";
     }
 
-    hibf::layout::layout hibf_layout;
-    std::vector<hibf::sketch::hyperloglog> sketches;
+    seqan::hibf::layout::layout hibf_layout;
+    std::vector<seqan::hibf::sketch::hyperloglog> sketches;
 
     if (config.determine_best_tmax)
     {
@@ -131,7 +132,7 @@ int execute(chopper::configuration & config, std::vector<std::string> const & fi
     {
         std::vector<size_t> kmer_counts;
 
-        hibf_layout = hibf::layout::compute_layout(config.hibf_config, kmer_counts, sketches);
+        hibf_layout = seqan::hibf::layout::compute_layout(config.hibf_config, kmer_counts, sketches);
 
         if (config.output_verbose_statistics)
         {
