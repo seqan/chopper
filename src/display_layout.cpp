@@ -22,6 +22,12 @@
 
 #include <hibf/detail/sketch/hyperloglog.hpp>
 
+struct config
+{
+    std::filesystem::path input{};
+    std::filesystem::path output{};
+};
+
 static void print_progress(size_t const percentage)
 {
     assert(percentage <= 100u);
@@ -119,12 +125,17 @@ void process_file(std::string const & filename,
     }
 }
 
-int execute(std::filesystem::path const & layout_file)
+int execute(config const & cfg)
 {
     std::vector<std::vector<std::string>> filenames;
     chopper::configuration chopper_config;
-    hibf::layout::layout hibf_layout = chopper::stats::read_layout_file(chopper_config, filenames, layout_file);
+    hibf::layout::layout hibf_layout = chopper::stats::read_layout_file(chopper_config, filenames, cfg.input);
     auto const & hibf_config = chopper_config.hibf_config;
+
+    std::ofstream output_stream{cfg.output};
+
+    if (!output_stream.good() || !output_stream.is_open())
+        throw std::logic_error{"Could not open file " + cfg.output.string() + " for reading"}; // GCOVR_EXCL_LINE
 
     // Fetch all file sizes such that sorting by file size doesn't have to access the filesystem too often.
     // n = filenames.size()
@@ -182,13 +193,13 @@ int execute(std::filesystem::path const & layout_file)
     size_t current_idx{}; // The current top-level technical bin index
 
     // Stats file header
-    std::cout << "# Layout: " << layout_file.c_str() << '\n' //
-              << "tb_index\t"
-              << "size\t"
-              << "shared_size\t"
-              << "ub_count\t"
-              << "kind\t"
-              << "splits" << '\n';
+    output_stream << "# Layout: " << cfg.input.c_str() << '\n' //
+                  << "tb_index\t"
+                  << "size\t"
+                  << "shared_size\t"
+                  << "ub_count\t"
+                  << "kind\t"
+                  << "splits" << '\n';
 
     auto print_result_line = [&]()
     {
@@ -197,12 +208,12 @@ int execute(std::filesystem::path const & layout_file)
 
         for (size_t i{}, total{split_count}; i < total; ++i)
         {
-            std::cout << current_idx + i << '\t'                  //
-                      << avg_kmer_count << '\t'                   //
-                      << shared_kmers.size() << '\t'              //
-                      << ub_count << '\t'                         //
-                      << (is_merged ? "merged" : "split") << '\t' //
-                      << split_count << '\n';
+            output_stream << current_idx + i << '\t'                  //
+                          << avg_kmer_count << '\t'                   //
+                          << shared_kmers.size() << '\t'              //
+                          << ub_count << '\t'                         //
+                          << (is_merged ? "merged" : "split") << '\t' //
+                          << split_count << '\n';
             split_count = 0u; // Subsequent split bins display 0, the first split bin displays the actual split count.
         }
     };
@@ -279,7 +290,7 @@ int execute(std::filesystem::path const & layout_file)
     return 0;
 }
 
-inline void set_up_parser(sharg::parser & parser, std::filesystem::path & layout_file)
+inline void set_up_parser(sharg::parser & parser, config & cfg)
 {
     parser.info.version = "1.0.0";
     parser.info.author = "Svenja Mehringer";
@@ -290,11 +301,18 @@ inline void set_up_parser(sharg::parser & parser, std::filesystem::path & layout
 
     parser.add_subsection("Main options:");
     parser.add_option(
-        layout_file,
+        cfg.input,
         sharg::config{.short_id = '\0',
-                      .long_id = "layout-file",
+                      .long_id = "input",
                       .description = "The input must be a layout file computed via chopper layout or raptor layout. ",
-                      .required = true});
+                      .required = true,
+                      .validator = sharg::input_file_validator{}});
+    parser.add_option(cfg.output,
+                      sharg::config{.short_id = '\0',
+                                    .long_id = "output",
+                                    .description = "The output. ",
+                                    .required = true,
+                                    .validator = sharg::output_file_validator{}});
 }
 
 int main(int argc, char const * argv[])
@@ -302,8 +320,8 @@ int main(int argc, char const * argv[])
     sharg::parser parser{"layout_stats", argc, argv, sharg::update_notifications::off};
     parser.info.version = "1.0.0";
 
-    std::filesystem::path layout_file{};
-    set_up_parser(parser, layout_file);
+    config cfg{};
+    set_up_parser(parser, cfg);
 
     try
     {
@@ -315,5 +333,5 @@ int main(int argc, char const * argv[])
         return -1;
     }
 
-    execute(layout_file);
+    execute(cfg);
 }

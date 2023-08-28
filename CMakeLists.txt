@@ -106,6 +106,7 @@ endif ()
 find_package (Sharg REQUIRED QUIET HINTS ${CHOPPER_SUBMODULES_DIR}/sharg-parser/build_system)
 
 # Dependency: HIBF.
+include (FetchContent)
 FetchContent_Declare (chopper_hibf_project SOURCE_DIR ${CHOPPER_SUBMODULES_DIR}/Hierarchical_Interleaved_Bloomfilter)
 
 set (HIBF_NATIVE_BUILD
