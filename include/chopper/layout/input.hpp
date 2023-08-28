@@ -14,8 +14,7 @@
 #include <cereal/archives/json.hpp>
 
 #include <chopper/configuration.hpp>
-
-#include <hibf/detail/prefixes.hpp>
+#include <chopper/prefixes.hpp>
 
 #include <hibf/detail/layout/layout.hpp>
 
@@ -27,16 +26,15 @@ inline std::vector<std::vector<std::string>> read_filenames_from(std::istream & 
     std::vector<std::vector<std::string>> filenames{};
     std::string line;
 
-    while (std::getline(stream, line) && line != "@CHOPPER_USER_BINS")
+    while (std::getline(stream, line) && line != chopper::prefix::meta_chopper_user_bins_start)
         ;
 
-    assert(line == "@CHOPPER_USER_BINS");
+    assert(line == chopper::prefix::meta_chopper_user_bins_start);
 
 #ifndef NDEBUG
     size_t counter{};
 #endif
-    // TODO ##CONFIG: as prefix
-    while (std::getline(stream, line) && line != "@CHOPPER_USER_BINS_END")
+    while (std::getline(stream, line) && line != chopper::prefix::meta_chopper_user_bins_end)
     {
         assert(line.size() >= 2);
         assert(std::string_view{line}.substr(0, 1) == seqan::hibf::prefix::meta_header);
@@ -60,7 +58,7 @@ inline std::vector<std::vector<std::string>> read_filenames_from(std::istream & 
         }
     }
 
-    assert(line == "@CHOPPER_USER_BINS_END");
+    assert(line == chopper::prefix::meta_chopper_user_bins_end);
 
     return filenames;
 }

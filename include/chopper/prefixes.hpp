@@ -9,23 +9,21 @@
 
 #include <string_view>
 
+#include <hibf/detail/prefixes.hpp>
+
 namespace chopper::prefix
 {
 
-constexpr std::string_view chopper{"chopper"};
+constexpr std::string_view meta_chopper_user_bins_start{"@CHOPPER_USER_BINS"};
+static_assert(meta_chopper_user_bins_start.starts_with(seqan::hibf::prefix::meta_header));
 
-constexpr std::string_view header{"#"};
+constexpr std::string_view meta_chopper_user_bins_end{"@CHOPPER_USER_BINS_END"};
+static_assert(meta_chopper_user_bins_end.starts_with(seqan::hibf::prefix::meta_header));
 
-constexpr std::string_view header_config{"#"};
+constexpr std::string_view meta_chopper_config_start{"@CHOPPER_CONFIG"};
+static_assert(meta_chopper_config_start.starts_with(seqan::hibf::prefix::meta_header));
 
-constexpr std::string_view high_level{"HIGH_LEVEL_IBF"};
-
-constexpr std::string_view first_header_line{"#HIGH_LEVEL_IBF"};
-static_assert(first_header_line.starts_with(header));
-static_assert(first_header_line.ends_with(high_level));
-
-constexpr std::string_view merged_bin{"MERGED_BIN"};
-
-constexpr std::string_view split_bin{"SPLIT_BIN"};
+constexpr std::string_view meta_chopper_config_end{"@CHOPPER_CONFIG_END"};
+static_assert(meta_chopper_config_end.starts_with(seqan::hibf::prefix::meta_header));
 
 } // namespace chopper::prefix

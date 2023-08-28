@@ -15,9 +15,10 @@
 #include <cereal/types/string.hpp>
 #include <cereal/types/vector.hpp>
 
+#include <chopper/prefixes.hpp>
+
 #include <hibf/config.hpp>
 #include <hibf/detail/cereal/path.hpp> // IWYU pragma: keep
-#include <hibf/detail/prefixes.hpp>
 
 namespace chopper
 {
@@ -74,20 +75,19 @@ struct configuration
         std::string line;
         std::stringstream config_str;
 
-        while (std::getline(stream, line) && line != "@CHOPPER_CONFIG")
+        while (std::getline(stream, line) && line != chopper::prefix::meta_chopper_config_start)
             ;
 
-        assert(line == "@CHOPPER_CONFIG");
+        assert(line == chopper::prefix::meta_chopper_config_start);
 
-        // TODO ##CONFIG: as prefix
-        while (std::getline(stream, line) && line != "@CHOPPER_CONFIG_END")
+        while (std::getline(stream, line) && line != chopper::prefix::meta_chopper_config_end)
         {
             assert(line.size() >= 2);
             assert(std::string_view{line}.substr(0, 1) == seqan::hibf::prefix::meta_header);
             config_str << line.substr(1); // remove seqan::hibf::prefix::meta_header
         }
 
-        assert(line == "@CHOPPER_CONFIG_END");
+        assert(line == chopper::prefix::meta_chopper_config_end);
 
         cereal::JSONInputArchive iarchive(config_str);
         iarchive(*this);
@@ -103,12 +103,12 @@ struct configuration
         output(cereal::make_nvp("chopper_config", *this));
 
         // write config
-        stream << seqan::hibf::prefix::meta_header << "CHOPPER_CONFIG\n";
+        stream << chopper::prefix::meta_chopper_config_start << '\n';
         std::string line;
         while (std::getline(config_stream, line, '\n'))
             stream << seqan::hibf::prefix::meta_header << line << '\n';
         stream << seqan::hibf::prefix::meta_header << "}\n" // last closing bracket isn't written by loop above
-               << seqan::hibf::prefix::meta_header << "CHOPPER_CONFIG_END\n";
+               << chopper::prefix::meta_chopper_config_end << '\n';
 
         hibf_config.write_to(stream);
     }

@@ -19,11 +19,11 @@ namespace chopper::layout
 
 inline void write_user_bins_to(std::vector<std::string> const & filenames, std::ostream & stream)
 {
-    stream << seqan::hibf::prefix::meta_header << "CHOPPER_USER_BINS\n";
+    stream << chopper::prefix::meta_chopper_user_bins_start << '\n';
     size_t counter{};
     for (auto const & filename : filenames)
         stream << seqan::hibf::prefix::meta_header << counter++ << ' ' << filename << '\n';
-    stream << seqan::hibf::prefix::meta_header << "CHOPPER_USER_BINS_END\n";
+    stream << chopper::prefix::meta_chopper_user_bins_end << '\n';
 }
 
 } // namespace chopper::layout
