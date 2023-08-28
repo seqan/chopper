@@ -127,16 +127,12 @@ void process_file(std::string const & filename,
 
 int execute(config const & cfg)
 {
-    chopper::configuration chopper_config;
     std::ifstream layout_file{cfg.input};
 
     if (!layout_file.good() || !layout_file.is_open())
         throw std::logic_error{"Could not open file " + cfg.input.string() + " for reading"}; // GCOVR_EXCL_LINE
 
-    std::vector<std::vector<std::string>> filenames = chopper::layout::read_filenames_from(layout_file);
-    chopper_config.read_from(layout_file);
-    seqan::hibf::layout::layout hibf_layout{};
-    hibf_layout.read_from(layout_file);
+    auto [filenames, chopper_config, hibf_layout] = chopper::layout::read_layout_file(layout_file);
     auto const & hibf_config = chopper_config.hibf_config;
 
     std::ofstream output_stream{cfg.output};

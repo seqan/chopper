@@ -17,6 +17,8 @@
 
 #include <hibf/detail/prefixes.hpp>
 
+#include <hibf/detail/layout/layout.hpp>
+
 namespace chopper::layout
 {
 
@@ -61,6 +63,16 @@ inline std::vector<std::vector<std::string>> read_filenames_from(std::istream & 
     assert(line == "@CHOPPER_USER_BINS_END");
 
     return filenames;
+}
+
+inline auto read_layout_file(std::istream & stream)
+{
+    std::vector<std::vector<std::string>> filenames = chopper::layout::read_filenames_from(stream);
+    chopper::configuration chopper_config;
+    chopper_config.read_from(stream);
+    seqan::hibf::layout::layout hibf_layout{};
+    hibf_layout.read_from(stream);
+    return std::make_tuple(std::move(filenames), std::move(chopper_config), std::move(hibf_layout));
 }
 
 } // namespace chopper::layout
