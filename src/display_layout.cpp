@@ -134,8 +134,7 @@ int execute(config const & cfg)
         throw std::logic_error{"Could not open file " + cfg.input.string() + " for reading"}; // GCOVR_EXCL_LINE
 
     std::vector<std::vector<std::string>> filenames = chopper::layout::read_filenames_from(layout_file);
-    chopper::layout::read_config_from(chopper_config, layout_file);
-    chopper_config.hibf_config.read_from(layout_file);
+    chopper_config.read_from(layout_file);
     seqan::hibf::layout::layout hibf_layout{};
     hibf_layout.read_from(layout_file);
     auto const & hibf_config = chopper_config.hibf_config;

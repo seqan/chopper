@@ -157,7 +157,7 @@ int execute(chopper::configuration & config, std::vector<std::string> const & fi
     // brief Write the output to the layout file.
     std::ofstream fout{config.output_filename};
     chopper::layout::write_user_bins_to(filenames, fout);
-    chopper::layout::write_config_to(config, fout);
+    config.write_to(fout);
     hibf_layout.write_to(fout);
 
     return 0;

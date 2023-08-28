@@ -20,30 +20,6 @@
 namespace chopper::layout
 {
 
-inline void read_config_from(configuration & config, std::istream & stream)
-{
-    std::string line;
-    std::stringstream config_str;
-
-    while (std::getline(stream, line) && line != "@CHOPPER_CONFIG")
-        ;
-
-    assert(line == "@CHOPPER_CONFIG");
-
-    // TODO ##CONFIG: as prefix
-    while (std::getline(stream, line) && line != "@CHOPPER_CONFIG_END")
-    {
-        assert(line.size() >= 2);
-        assert(std::string_view{line}.substr(0, 1) == seqan::hibf::prefix::meta_header);
-        config_str << line.substr(1); // remove seqan::hibf::prefix::meta_header
-    }
-
-    assert(line == "@CHOPPER_CONFIG_END");
-
-    cereal::JSONInputArchive iarchive(config_str);
-    iarchive(config);
-}
-
 inline std::vector<std::vector<std::string>> read_filenames_from(std::istream & stream)
 {
     std::vector<std::vector<std::string>> filenames{};
