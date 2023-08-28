@@ -7,11 +7,15 @@
 
 #pragma once
 
+#include <cassert>
 #include <filesystem>
 
+#include <cereal/archives/json.hpp>
 #include <cereal/cereal.hpp>
 #include <cereal/types/string.hpp>
 #include <cereal/types/vector.hpp>
+
+#include <chopper/prefixes.hpp>
 
 #include <hibf/config.hpp>
 #include <hibf/detail/cereal/path.hpp> // IWYU pragma: keep
@@ -64,7 +68,50 @@ struct configuration
     //!\}
 
     //!\brief The HIBF config which will be used to compute the layout within the HIBF lib.
-    hibf::config hibf_config;
+    seqan::hibf::config hibf_config;
+
+    void read_from(std::istream & stream)
+    {
+        std::string line;
+        std::stringstream config_str;
+
+        while (std::getline(stream, line) && line != chopper::prefix::meta_chopper_config_start)
+            ;
+
+        assert(line == chopper::prefix::meta_chopper_config_start);
+
+        while (std::getline(stream, line) && line != chopper::prefix::meta_chopper_config_end)
+        {
+            assert(line.size() >= 2);
+            assert(std::string_view{line}.substr(0, 1) == seqan::hibf::prefix::meta_header);
+            config_str << line.substr(1); // remove seqan::hibf::prefix::meta_header
+        }
+
+        assert(line == chopper::prefix::meta_chopper_config_end);
+
+        cereal::JSONInputArchive iarchive(config_str);
+        iarchive(*this);
+
+        hibf_config.read_from(stream);
+    }
+
+    void write_to(std::ostream & stream) const
+    {
+        // write json file to temprorary string stream with cereal
+        std::stringstream config_stream{};
+        cereal::JSONOutputArchive output(config_stream); // stream to cout
+        output(cereal::make_nvp("chopper_config", *this));
+
+        // write config
+        stream << chopper::prefix::meta_chopper_config_start << '\n';
+        std::string line;
+        while (std::getline(config_stream, line, '\n'))
+            stream << seqan::hibf::prefix::meta_header << line << '\n';
+        stream << seqan::hibf::prefix::meta_header << "}\n" // last closing bracket isn't written by loop above
+               << chopper::prefix::meta_chopper_config_end << '\n';
+
+        hibf_config.write_to(stream);
+    }
 
 private:
     friend class cereal::access;
@@ -85,8 +132,6 @@ private:
         archive(CEREAL_NVP(output_filename));
         archive(CEREAL_NVP(determine_best_tmax));
         archive(CEREAL_NVP(force_all_binnings));
-
-        archive(CEREAL_NVP(hibf_config));
     }
 };
 

@@ -18,7 +18,7 @@
 #include <seqan3/search/views/kmer_hash.hpp>
 
 #include <chopper/layout/hibf_statistics.hpp>
-#include <chopper/stats/read_layout_file.hpp> // for read_layout_file
+#include <chopper/layout/input.hpp>
 
 #include <hibf/detail/sketch/hyperloglog.hpp>
 
@@ -69,7 +69,7 @@ void keep_duplicates(robin_hood::unordered_set<uint64_t> & shared, std::vector<u
 
 void process_file(std::string const & filename,
                   std::vector<uint64_t> & current_kmers,
-                  hibf::sketch::hyperloglog & sketch,
+                  seqan::hibf::sketch::hyperloglog & sketch,
                   bool const fill_current_kmers,
                   uint8_t const kmer_size)
 {
@@ -127,9 +127,12 @@ void process_file(std::string const & filename,
 
 int execute(config const & cfg)
 {
-    std::vector<std::vector<std::string>> filenames;
-    chopper::configuration chopper_config;
-    hibf::layout::layout hibf_layout = chopper::stats::read_layout_file(chopper_config, filenames, cfg.input);
+    std::ifstream layout_file{cfg.input};
+
+    if (!layout_file.good() || !layout_file.is_open())
+        throw std::logic_error{"Could not open file " + cfg.input.string() + " for reading"}; // GCOVR_EXCL_LINE
+
+    auto [filenames, chopper_config, hibf_layout] = chopper::layout::read_layout_file(layout_file);
     auto const & hibf_config = chopper_config.hibf_config;
 
     std::ofstream output_stream{cfg.output};
@@ -157,14 +160,15 @@ int execute(config const & cfg)
     // Using the smallest file to initialise the shared k-mers later will be less work.
     std::ranges::sort(
         hibf_layout.user_bins,
-        [&filesizes](hibf::layout::layout::user_bin const & lhs, hibf::layout::layout::user_bin const & rhs)
+        [&filesizes](seqan::hibf::layout::layout::user_bin const & lhs,
+                     seqan::hibf::layout::layout::user_bin const & rhs)
         {
             size_t const first_idx = lhs.previous_TB_indices.empty() ? lhs.storage_TB_id : lhs.previous_TB_indices[0];
             size_t const second_idx = rhs.previous_TB_indices.empty() ? rhs.storage_TB_id : rhs.previous_TB_indices[0];
             return first_idx < second_idx || (first_idx == second_idx && filesizes[lhs.idx] < filesizes[rhs.idx]);
         });
 
-    hibf::sketch::hyperloglog sketch{hibf_config.sketch_bits};
+    seqan::hibf::sketch::hyperloglog sketch{hibf_config.sketch_bits};
     robin_hood::unordered_set<uint64_t> shared_kmers{};
     // We can't use `shared_kmers.size() == 0` instead of `shared_kmers_initialised`, because keep_duplicates
     // will result in a size of 0 when there are no shared k-mers.
