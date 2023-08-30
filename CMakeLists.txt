@@ -107,30 +107,36 @@ find_package (Sharg REQUIRED QUIET HINTS ${CHOPPER_SUBMODULES_DIR}/sharg-parser/
 
 # Dependency: HIBF.
 include (FetchContent)
-FetchContent_Declare (chopper_hibf_project SOURCE_DIR ${CHOPPER_SUBMODULES_DIR}/Hierarchical_Interleaved_Bloomfilter)
+if (NOT TARGET seqan::hibf)
+    FetchContent_Declare (chopper_hibf_project SOURCE_DIR
+                                               ${CHOPPER_SUBMODULES_DIR}/Hierarchical_Interleaved_Bloomfilter
+    )
 
-set (HIBF_NATIVE_BUILD
-     ${CHOPPER_NATIVE_BUILD}
-     CACHE BOOL "Optimize build for current architecture."
-)
-set (INSTALL_HIBF
-     OFF
-     CACHE BOOL "Install HIBF targets."
-)
+    set (HIBF_NATIVE_BUILD
+         ${CHOPPER_NATIVE_BUILD}
+         CACHE BOOL "Optimize build for current architecture."
+    )
+    set (INSTALL_HIBF
+         OFF
+         CACHE BOOL "Install HIBF targets."
+    )
 
-FetchContent_MakeAvailable (chopper_hibf_project)
+    FetchContent_MakeAvailable (chopper_hibf_project)
+endif ()
 
 # Dependency: xxHash
-FetchContent_Declare (chopper_xxhash_project SOURCE_DIR ${CHOPPER_SUBMODULES_DIR}/xxHash SOURCE_SUBDIR
-                                             "cmake_unofficial"
-)
+if (NOT TARGET xxHash::xxhash)
+    FetchContent_Declare (chopper_xxhash_project SOURCE_DIR ${CHOPPER_SUBMODULES_DIR}/xxHash SOURCE_SUBDIR
+                                                 "cmake_unofficial"
+    )
 
-set (XXHASH_BUILD_ENABLE_INLINE_API ON)
-set (XXHASH_BUILD_XXHSUM OFF)
-set (XXHASH_BUNDLED_MODE ON)
-set (BUILD_SHARED_LIBS OFF)
+    set (XXHASH_BUILD_ENABLE_INLINE_API ON)
+    set (XXHASH_BUILD_XXHSUM OFF)
+    set (XXHASH_BUNDLED_MODE ON)
+    set (BUILD_SHARED_LIBS OFF)
 
-FetchContent_MakeAvailable (chopper_xxhash_project)
+    FetchContent_MakeAvailable (chopper_xxhash_project)
+endif ()
 
 # Add the application.
 set (CHOPPER_INSTALL
