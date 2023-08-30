@@ -20,7 +20,7 @@
 #include <chopper/layout/hibf_statistics.hpp>
 #include <chopper/layout/input.hpp>
 
-#include <hibf/detail/sketch/hyperloglog.hpp>
+#include <hibf/sketch/hyperloglog.hpp>
 
 struct config
 {

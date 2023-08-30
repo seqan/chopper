@@ -19,7 +19,7 @@
 #include <seqan3/search/kmer_index/shape.hpp>
 #include <seqan3/search/views/kmer_hash.hpp>
 
-#include <hibf/detail/sketch/hyperloglog.hpp>
+#include <hibf/sketch/hyperloglog.hpp>
 
 struct cli_args
 {

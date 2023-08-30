@@ -9,7 +9,7 @@
 
 #include <string_view>
 
-#include <hibf/detail/prefixes.hpp>
+#include <hibf/layout/prefixes.hpp>
 
 namespace chopper::prefix
 {
