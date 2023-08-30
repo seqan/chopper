@@ -12,7 +12,7 @@
 #include <chopper/configuration.hpp>
 #include <chopper/prefixes.hpp>
 
-#include <hibf/detail/layout/layout.hpp>
+#include <hibf/layout/layout.hpp>
 
 namespace chopper::layout
 {

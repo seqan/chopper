@@ -18,7 +18,7 @@
 #include <chopper/sketch/read_hll_files_into.hpp>
 
 #include "../api_test.hpp"
-#include <hibf/detail/sketch/hyperloglog.hpp>
+#include <hibf/sketch/hyperloglog.hpp>
 
 TEST(execute_estimation_test, few_ubs)
 {

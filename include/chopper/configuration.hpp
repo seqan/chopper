@@ -17,8 +17,8 @@
 
 #include <chopper/prefixes.hpp>
 
+#include <hibf/cereal/path.hpp> // IWYU pragma: keep
 #include <hibf/config.hpp>
-#include <hibf/detail/cereal/path.hpp> // IWYU pragma: keep
 
 namespace chopper
 {

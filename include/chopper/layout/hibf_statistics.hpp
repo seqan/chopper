@@ -20,9 +20,9 @@
 #include <chopper/next_multiple_of_64.hpp>
 #include <chopper/workarounds.hpp>
 
-#include <hibf/detail/layout/compute_fpr_correction.hpp>
-#include <hibf/detail/layout/layout.hpp>
-#include <hibf/detail/sketch/hyperloglog.hpp>
+#include <hibf/layout/compute_fpr_correction.hpp>
+#include <hibf/layout/layout.hpp>
+#include <hibf/sketch/hyperloglog.hpp>
 
 namespace std
 {

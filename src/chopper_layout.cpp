@@ -17,8 +17,8 @@
 #include <chopper/layout/output.hpp>
 #include <chopper/sketch/output.hpp>
 
-#include <hibf/detail/layout/compute_layout.hpp>
 #include <hibf/hierarchical_interleaved_bloom_filter.hpp>
+#include <hibf/layout/compute_layout.hpp>
 
 namespace chopper::layout
 {

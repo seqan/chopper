@@ -13,7 +13,7 @@
 #include <string>
 #include <vector>
 
-#include <hibf/detail/sketch/hyperloglog.hpp>
+#include <hibf/sketch/hyperloglog.hpp>
 
 namespace chopper::sketch
 {
