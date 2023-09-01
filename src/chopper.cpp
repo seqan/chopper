@@ -23,6 +23,7 @@ int main(int argc, char const * argv[])
 
     chopper::configuration config;
     set_up_parser(parser, config);
+    parser.info.synopsis.front().insert(0, "chopper");
 
     try
     {

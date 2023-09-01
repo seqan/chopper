@@ -25,13 +25,17 @@ inline void set_up_parser(sharg::parser & parser, chopper::configuration & confi
                                          "(https://github.com/seqan/raptor) to build the index and "
                                          "conduct queries.");
 
+    parser.info.synopsis.emplace_back(
+        " --input <file> [--output <file>] [--threads <number>] [--kmer <number>] [--fpr <number>] [--hash <number>] "
+        "[--disable-estimate-union] [--disable-rearrangement]");
+
     parser.add_subsection("Main options:");
     // -----------------------------------------------------------------------------------------------------------------
     parser.add_option(
         config.data_file,
         sharg::config{
             .short_id = '\0',
-            .long_id = "input-file",
+            .long_id = "input",
             .description =
                 "The input must be a file containing paths to sequence data you wish to estimate; one filepath "
                 "per line. If your file contains auxiliary information (e.g. species IDs), your file must be tab-"
@@ -47,7 +51,7 @@ inline void set_up_parser(sharg::parser & parser, chopper::configuration & confi
         config.k,
         sharg::config{
             .short_id = '\0',
-            .long_id = "kmer-size",
+            .long_id = "kmer",
             .description =
                 "The k-mer size influences the size estimates of the input. "
                 "Choosing a k-mer size that is too small for "
@@ -75,7 +79,7 @@ inline void set_up_parser(sharg::parser & parser, chopper::configuration & confi
     parser.add_option(
         config.hibf_config.number_of_hash_functions,
         sharg::config{.short_id = '\0',
-                      .long_id = "num-hash-functions",
+                      .long_id = "hash",
                       .description =
                           "The number of hash functions to use when building the HIBF from the resulting layout. "
                           "This parameter is needed to correctly estimate the index size when computing the layout."});
@@ -83,15 +87,14 @@ inline void set_up_parser(sharg::parser & parser, chopper::configuration & confi
     parser.add_option(
         config.hibf_config.maximum_false_positive_rate,
         sharg::config{.short_id = '\0',
-                      .long_id = "false-positive-rate",
+                      .long_id = "fpr",
                       .description =
                           "The false positive rate you aim for when building the HIBF from the resulting layout. "
                           "This parameter is needed to correctly estimate the index size when computing the layout."});
 
-    parser.add_option(config.output_filename,
-                      sharg::config{.short_id = '\0',
-                                    .long_id = "output-filename",
-                                    .description = "A file name for the resulting layout."});
+    parser.add_option(
+        config.output_filename,
+        sharg::config{.short_id = '\0', .long_id = "output", .description = "A file name for the resulting layout."});
 
     parser.add_option(
         config.hibf_config.threads,
