@@ -55,7 +55,7 @@ struct configuration
      * \{
      */
     //!\brief The name of the layout file to write.
-    std::filesystem::path output_filename{"binning.out"};
+    std::filesystem::path output_filename{"layout.txt"};
 
     //!\brief Whether the program should determine the best number of IBF bins by doing multiple binning runs.
     bool determine_best_tmax{false};
