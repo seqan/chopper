@@ -25,6 +25,10 @@ inline void set_up_parser(sharg::parser & parser, chopper::configuration & confi
                                          "(https://github.com/seqan/raptor) to build the index and "
                                          "conduct queries.");
 
+    parser.info.synopsis.emplace_back(
+        " --input <file> [--output <file>] [--threads <number>] [--kmer <number>] [--fpr <number>] [--hash <number>] "
+        "[--disable-estimate-union] [--disable-rearrangement]");
+
     parser.add_subsection("Main options:");
     // -----------------------------------------------------------------------------------------------------------------
     parser.add_option(
