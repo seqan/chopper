@@ -33,7 +33,6 @@ chopper::configuration generate_config()
     config.hibf_config.max_rearrangement_ratio = 0.333;
     config.hibf_config.disable_estimate_union = true;
     config.hibf_config.disable_rearrangement = false;
-    config.hibf_config.disable_cutoffs = false;
 
     return config;
 }
@@ -61,8 +60,7 @@ bool operator==(chopper::configuration const & lhs, chopper::configuration const
            lhs.hibf_config.alpha == rhs.hibf_config.alpha &&                                             //
            lhs.hibf_config.max_rearrangement_ratio == rhs.hibf_config.max_rearrangement_ratio &&         //
            lhs.hibf_config.disable_estimate_union == rhs.hibf_config.disable_estimate_union &&           //
-           lhs.hibf_config.disable_rearrangement == rhs.hibf_config.disable_rearrangement &&             //
-           lhs.hibf_config.disable_cutoffs == rhs.hibf_config.disable_cutoffs;
+           lhs.hibf_config.disable_rearrangement == rhs.hibf_config.disable_rearrangement;
 }
 
 } // namespace chopper
@@ -102,8 +100,7 @@ static constexpr std::string_view config_string_view{"@CHOPPER_CONFIG\n"
                                                      "@        \"alpha\": 1.0,\n"
                                                      "@        \"max_rearrangement_ratio\": 0.333,\n"
                                                      "@        \"disable_estimate_union\": true,\n"
-                                                     "@        \"disable_rearrangement\": false,\n"
-                                                     "@        \"disable_cutoffs\": false\n"
+                                                     "@        \"disable_rearrangement\": false\n"
                                                      "@    }\n"
                                                      "@}\n"
                                                      "@HIBF_CONFIG_END\n"};
