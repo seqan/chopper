@@ -42,7 +42,7 @@ int main(int argc, char const * argv[])
 
     parser.add_option(args.input_path,
                       sharg::config{.short_id = 'i',
-                                    .long_id = "input-file",
+                                    .long_id = "input",
                                     .description = "Fasta formatted file with sequences.",
                                     .required = true});
     parser.add_option(args.output_path,
@@ -57,7 +57,7 @@ int main(int argc, char const * argv[])
                       .description = "Adds an integer value which is tested as HyperLogLog bits parameter."});
     parser.add_option(args.k,
                       sharg::config{.short_id = 'k',
-                                    .long_id = "kmer-size",
+                                    .long_id = "kmer",
                                     .description = "The size of the k-mers of which the hash values are computed."});
 
     try

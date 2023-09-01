@@ -39,15 +39,15 @@ TEST_F(cli_test, chopper_layout)
     }
 
     cli_test_result result = execute_app("chopper",
-                                         "--kmer-size",
+                                         "--kmer",
                                          "15",
                                          "--threads",
                                          "2",
-                                         "--input-file",
+                                         "--input",
                                          taxa_filename.c_str(),
                                          "--tmax",
                                          "64",
-                                         "--output-filename",
+                                         "--output",
                                          binning_filename.c_str());
 
     EXPECT_EQ(result.exit_code, 0);
@@ -141,11 +141,11 @@ TEST_F(cli_test, chopper_layout2)
                                          "2",
                                          "--sketch-bits",
                                          "12",
-                                         "--input-file",
+                                         "--input",
                                          taxa_filename.c_str(),
                                          "--tmax",
                                          "64",
-                                         "--output-filename",
+                                         "--output",
                                          binning_filename.c_str());
 
     EXPECT_EQ(result.exit_code, 0);

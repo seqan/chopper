@@ -55,7 +55,7 @@ Chopper needs an **input file** with filenames. The file could look like this:
 You can then **run chopper** with the following command:
 
 ```
-./chopper --input-file data.tsv --kmer-size 21 --output-filename chopper.layout
+./chopper --input data.tsv --kmer 21 --output chopper.layout
 ```
 
 There are **more options** to tweak the layout (with sensible defaults). You get detailed information if you run:
