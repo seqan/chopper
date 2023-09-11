@@ -108,9 +108,7 @@ find_package (Sharg REQUIRED QUIET HINTS ${CHOPPER_SUBMODULES_DIR}/sharg-parser/
 # Dependency: HIBF.
 include (FetchContent)
 if (NOT TARGET seqan::hibf)
-    FetchContent_Declare (chopper_hibf_project SOURCE_DIR
-                                               ${CHOPPER_SUBMODULES_DIR}/Hierarchical_Interleaved_Bloomfilter
-    )
+    FetchContent_Declare (chopper_hibf_project SOURCE_DIR ${CHOPPER_SUBMODULES_DIR}/hibf)
 
     set (HIBF_NATIVE_BUILD
          ${CHOPPER_NATIVE_BUILD}
