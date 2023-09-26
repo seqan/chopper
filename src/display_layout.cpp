@@ -101,11 +101,14 @@ void process_file(std::string const & filename,
     {
         sequence_file_type fin{filename};
 
+        auto minimizer_view = seqan3::views::minimiser_hash(seqan3::ungapped{kmer_size},
+                                                            seqan3::window_size{kmer_size},
+                                                            seqan3::seed{adjust_seed(seqan3::ungapped{kmer_size}.count())});
         if (fill_current_kmers)
         {
             for (auto && [seq] : fin)
             {
-                for (uint64_t hash_value : seq | seqan3::views::kmer_hash(seqan3::ungapped{kmer_size}))
+                for (uint64_t hash_value : seq | minimizer_view)
                 {
                     current_kmers.push_back(hash_value);
                     sketch.add(reinterpret_cast<char *>(&hash_value), sizeof(hash_value));
@@ -116,7 +119,7 @@ void process_file(std::string const & filename,
         {
             for (auto && [seq] : fin)
             {
-                for (uint64_t hash_value : seq | seqan3::views::kmer_hash(seqan3::ungapped{kmer_size}))
+                for (uint64_t hash_value : seq | minimizer_view)
                 {
                     sketch.add(reinterpret_cast<char *>(&hash_value), sizeof(hash_value));
                 }
