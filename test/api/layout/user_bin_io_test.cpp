@@ -9,7 +9,7 @@
 
 TEST(output, user_bins)
 {
-    std::vector<std::string> const filenames{"file1.fa", "file2.fa", "path/to/file3.fa", "file4.fastq"};
+    std::vector<std::vector<std::string>> const filenames{{"file1.fa"}, {"file2.fa"}, {"path/to/file3.fa"}, {"file4.fastq"}};
 
     std::stringstream ss{};
     chopper::layout::write_user_bins_to(filenames, ss);

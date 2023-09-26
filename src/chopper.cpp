@@ -49,7 +49,7 @@ int main(int argc, char const * argv[])
 
     int exit_code{};
 
-    std::vector<std::string> filenames{};
+    std::vector<std::vector<std::string>> filenames{};
 
     chopper::sketch::read_data_file(config, filenames);
 

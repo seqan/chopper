@@ -19,12 +19,20 @@
 namespace chopper::layout
 {
 
-void write_user_bins_to(std::vector<std::string> const & filenames, std::ostream & stream)
+void write_user_bins_to(std::vector<std::vector<std::string>> const & filenames, std::ostream & stream)
 {
     stream << chopper::prefix::meta_chopper_user_bins_start << '\n';
     size_t counter{};
-    for (auto const & filename : filenames)
-        stream << seqan::hibf::prefix::meta_header << counter++ << ' ' << filename << '\n';
+    for (auto const & filenames_of_user_bin : filenames)
+    {
+        // the below will write lines like this:
+        // @0 file1.fa file2.fa
+        // @1 fileABC.fa
+        stream << seqan::hibf::prefix::meta_header << counter++;
+        for (std::string const & filename : filenames_of_user_bin)
+            stream << ' ' << filename;
+        stream << '\n';
+    }
     stream << chopper::prefix::meta_chopper_user_bins_end << '\n';
 }
 

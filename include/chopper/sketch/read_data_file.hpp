@@ -15,6 +15,6 @@
 namespace chopper::sketch
 {
 
-void read_data_file(configuration const & config, std::vector<std::string> & filenames);
+void read_data_file(configuration const & config, std::vector<std::vector<std::string>> & filenames);
 
 } // namespace chopper::sketch
