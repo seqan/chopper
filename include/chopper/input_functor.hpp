@@ -13,9 +13,9 @@
 #include <seqan3/io/sequence_file/all.hpp>
 #include <seqan3/search/views/minimiser_hash.hpp>
 
-#include <hibf/hierarchical_interleaved_bloom_filter.hpp>
-
 #include <chopper/adjust_seed.hpp>
+
+#include <hibf/hierarchical_interleaved_bloom_filter.hpp>
 
 namespace chopper
 {
