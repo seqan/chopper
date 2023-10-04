@@ -11,7 +11,9 @@
 #include <vector>
 
 #include <seqan3/io/sequence_file/all.hpp>
-#include <seqan3/search/views/kmer_hash.hpp>
+#include <seqan3/search/views/minimiser_hash.hpp>
+
+#include <chopper/adjust_seed.hpp>
 
 #include <hibf/hierarchical_interleaved_bloom_filter.hpp>
 
@@ -54,9 +56,14 @@ struct input_functor
         {
             sequence_file_type fin{filenames[num]};
 
+            seqan3::shape shape = seqan3::ungapped{kmer_size};
+            auto minimizer_view = seqan3::views::minimiser_hash(shape,
+                                                                seqan3::window_size{kmer_size},
+                                                                seqan3::seed{adjust_seed(shape.count())});
+
             for (auto && [seq] : fin)
             {
-                for (auto hash_value : seq | seqan3::views::kmer_hash(seqan3::ungapped{kmer_size}))
+                for (auto hash_value : seq | minimizer_view)
                     it = hash_value;
             }
         }
