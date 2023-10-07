@@ -100,8 +100,10 @@ IncludeCategories:
     Priority:        9
   - Regex:           '<raptor/'
     Priority:        10
-  - Regex:           '.*'
+  - Regex:           '<hibf/'
     Priority:        11
+  - Regex:           '.*'
+    Priority:        12
 IncludeIsMainRegex: '(Test)?$'
 IncludeIsMainSourceRegex: ''
 IndentAccessModifiers: false
