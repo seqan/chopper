@@ -6,7 +6,6 @@
 // ---------------------------------------------------------------------------------------------------
 
 #include <iostream>
-#include <set>
 
 #include <robin_hood.h>
 
@@ -14,19 +13,12 @@
 #include <sharg/exceptions.hpp>
 #include <sharg/parser.hpp>
 
-#include <seqan3/io/sequence_file/all.hpp>
-#include <seqan3/search/views/kmer_hash.hpp>
-
 #include <chopper/layout/hibf_statistics.hpp>
 #include <chopper/layout/input.hpp>
 
 #include <hibf/sketch/hyperloglog.hpp>
 
-struct config
-{
-    std::filesystem::path input{};
-    std::filesystem::path output{};
-};
+#include "shared.hpp"
 
 static void print_progress(size_t const percentage)
 {
@@ -43,15 +35,6 @@ static void print_progress(size_t const percentage)
     std::cerr << "] " << percentage << " %\r" << std::flush;
 }
 
-struct dna4_traits : public seqan3::sequence_file_input_default_traits_dna
-{
-    using sequence_alphabet = seqan3::dna4;
-};
-
-using sequence_file_type = seqan3::sequence_file_input<dna4_traits,
-                                                       seqan3::fields<seqan3::field::seq>,
-                                                       seqan3::type_list<seqan3::format_fasta, seqan3::format_fastq>>;
-
 // Using two sets and erasing from shared is slower
 void keep_duplicates(robin_hood::unordered_set<uint64_t> & shared, std::vector<uint64_t> const & current)
 {
@@ -67,70 +50,12 @@ void keep_duplicates(robin_hood::unordered_set<uint64_t> & shared, std::vector<u
     shared = std::move(result);
 }
 
-void process_file(std::string const & filename,
-                  std::vector<uint64_t> & current_kmers,
-                  seqan::hibf::sketch::hyperloglog & sketch,
-                  bool const fill_current_kmers,
-                  uint8_t const kmer_size)
-{
-    if (filename.ends_with(".minimiser"))
-    {
-        uint64_t hash{};
-        char * const hash_data{reinterpret_cast<char *>(&hash)};
-        std::streamsize const hash_bytes{sizeof(hash)};
-
-        std::ifstream infile{filename, std::ios::binary};
-
-        if (fill_current_kmers)
-        {
-            while (infile.read(hash_data, hash_bytes))
-            {
-                current_kmers.push_back(hash);
-                sketch.add(hash_data, hash_bytes);
-            }
-        }
-        else
-        {
-            while (infile.read(hash_data, hash_bytes))
-            {
-                sketch.add(hash_data, hash_bytes);
-            }
-        }
-    }
-    else
-    {
-        sequence_file_type fin{filename};
-
-        if (fill_current_kmers)
-        {
-            for (auto && [seq] : fin)
-            {
-                for (uint64_t hash_value : seq | seqan3::views::kmer_hash(seqan3::ungapped{kmer_size}))
-                {
-                    current_kmers.push_back(hash_value);
-                    sketch.add(reinterpret_cast<char *>(&hash_value), sizeof(hash_value));
-                }
-            }
-        }
-        else
-        {
-            for (auto && [seq] : fin)
-            {
-                for (uint64_t hash_value : seq | seqan3::views::kmer_hash(seqan3::ungapped{kmer_size}))
-                {
-                    sketch.add(reinterpret_cast<char *>(&hash_value), sizeof(hash_value));
-                }
-            }
-        }
-    }
-}
-
 int execute(config const & cfg)
 {
     std::ifstream layout_file{cfg.input};
 
     if (!layout_file.good() || !layout_file.is_open())
-        throw std::logic_error{"Could not open file " + cfg.input.string() + " for reading"}; // GCOVR_EXCL_LINE
+        throw std::logic_error{"Could not open file " + cfg.input.string() + " for reading"};
 
     auto [filenames, chopper_config, hibf_layout] = chopper::layout::read_layout_file(layout_file);
     auto const & hibf_config = chopper_config.hibf_config;
@@ -138,7 +63,7 @@ int execute(config const & cfg)
     std::ofstream output_stream{cfg.output};
 
     if (!output_stream.good() || !output_stream.is_open())
-        throw std::logic_error{"Could not open file " + cfg.output.string() + " for reading"}; // GCOVR_EXCL_LINE
+        throw std::logic_error{"Could not open file " + cfg.output.string() + " for reading"};
 
     // Fetch all file sizes such that sorting by file size doesn't have to access the filesystem too often.
     // n = filenames.size()
@@ -294,48 +219,7 @@ int execute(config const & cfg)
     return 0;
 }
 
-inline void set_up_parser(sharg::parser & parser, config & cfg)
+void execute_general(config const & cfg)
 {
-    parser.info.version = "1.0.0";
-    parser.info.author = "Svenja Mehringer";
-    parser.info.email = "svenja.mehringer@fu-berlin.de";
-    parser.info.short_description = "Compute a top-level HIBF layout figure file";
-
-    parser.info.description.emplace_back("Computes an table to display the top-level layout.");
-
-    parser.add_subsection("Main options:");
-    parser.add_option(
-        cfg.input,
-        sharg::config{.short_id = '\0',
-                      .long_id = "input",
-                      .description = "The input must be a layout file computed via chopper layout or raptor layout. ",
-                      .required = true,
-                      .validator = sharg::input_file_validator{}});
-    parser.add_option(cfg.output,
-                      sharg::config{.short_id = '\0',
-                                    .long_id = "output",
-                                    .description = "The output. ",
-                                    .required = true,
-                                    .validator = sharg::output_file_validator{}});
-}
-
-int main(int argc, char const * argv[])
-{
-    sharg::parser parser{"layout_stats", argc, argv, sharg::update_notifications::off};
-    parser.info.version = "1.0.0";
-
-    config cfg{};
-    set_up_parser(parser, cfg);
-
-    try
-    {
-        parser.parse();
-    }
-    catch (sharg::parser_error const & ext)
-    {
-        std::cerr << "[ERROR] " << ext.what() << '\n';
-        return -1;
-    }
-
     execute(cfg);
 }
