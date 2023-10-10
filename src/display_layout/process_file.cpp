@@ -40,14 +40,14 @@ void process_file(std::string const & filename,
             while (infile.read(hash_data, hash_bytes))
             {
                 current_kmers.push_back(hash);
-                sketch.add(hash_data, hash_bytes);
+                sketch.add(hash);
             }
         }
         else
         {
             while (infile.read(hash_data, hash_bytes))
             {
-                sketch.add(hash_data, hash_bytes);
+                sketch.add(hash);
             }
         }
     }
@@ -66,7 +66,7 @@ void process_file(std::string const & filename,
                 for (uint64_t hash_value : seq | minimizer_view)
                 {
                     current_kmers.push_back(hash_value);
-                    sketch.add(reinterpret_cast<char *>(&hash_value), sizeof(hash_value));
+                    sketch.add(hash_value);
                 }
             }
         }
@@ -76,7 +76,7 @@ void process_file(std::string const & filename,
             {
                 for (uint64_t hash_value : seq | minimizer_view)
                 {
-                    sketch.add(reinterpret_cast<char *>(&hash_value), sizeof(hash_value));
+                    sketch.add(hash_value);
                 }
             }
         }

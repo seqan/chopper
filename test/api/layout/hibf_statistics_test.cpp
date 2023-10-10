@@ -64,8 +64,8 @@ TEST(hibf_statistics, only_merged_on_top_level)
         stats.hibf_layout.max_bins.emplace_back(std::vector<size_t>{0u}, 0u);
         stats.hibf_layout.max_bins.emplace_back(std::vector<size_t>{1u}, 0u);
 
-        stats.hibf_layout.user_bins.emplace_back(0u, std::vector<size_t>{0u}, 2u, 0u);
-        stats.hibf_layout.user_bins.emplace_back(1u, std::vector<size_t>{1u}, 2u, 0u);
+        stats.hibf_layout.user_bins.emplace_back(std::vector<size_t>{0u}, 0u, 2u, 0u);
+        stats.hibf_layout.user_bins.emplace_back(std::vector<size_t>{1u}, 0u, 2u, 1u);
     }
 
     testing::internal::CaptureStdout();

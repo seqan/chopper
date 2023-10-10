@@ -36,7 +36,7 @@ struct read_hll_files_into_test : public ::testing::Test
 
 TEST_F(read_hll_files_into_test, basic)
 {
-    size_t const k{16};
+    size_t const kmer_size{16};
     size_t const b{5};
     seqan::hibf::sketch::hyperloglog expected{b};
 
@@ -46,14 +46,14 @@ TEST_F(read_hll_files_into_test, basic)
     sequence_file_type seq_file{input_file};
 
     // put every sequence in this file into the sketch
-    for (auto && [seq] : seq_file)
+    for (auto && [seq_vec] : seq_file)
     {
-        // we have to go C-style here for the seqan::hibf::sketch::hyperloglog Interface
-        char const * it = &(*seq.begin());
-        char const * const end = it + seq.size() - k + 1;
+        std::string_view const seq{seq_vec.begin(), seq_vec.end()};
 
-        for (; it != end; ++it)
-            expected.add(it, k);
+        for (size_t pos = 0; pos + kmer_size <= seq.size(); ++pos) // substr is [pos, pos + len)
+        {
+            expected.add(seq.substr(pos, kmer_size));
+        }
     }
 
     chopper::sketch::read_hll_files_into(data(""), test_filenames, target);
