@@ -97,7 +97,7 @@ int main(int argc, char const * argv[])
             control.insert(hash);
             for (auto & sketch : sketches)
             {
-                sketch.add(reinterpret_cast<char *>(&hash), sizeof(hash));
+                sketch.add(hash);
             }
         }
 
