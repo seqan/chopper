@@ -210,9 +210,9 @@ TEST_F(cli_test, chopper_layout2)
                                       "@HIBF_CONFIG_END\n"
                                       "#TOP_LEVEL_IBF fullest_technical_bin_idx:54\n"
                                       "#USER_BIN_IDX\tTECHNICAL_BIN_INDICES\tNUMBER_OF_TECHNICAL_BINS\n"
-                                      "2\t0\t15\n"
+                                      "1\t0\t15\n"
                                       "3\t15\t24\n"
-                                      "1\t39\t15\n"
+                                      "2\t39\t15\n"
                                       "0\t54\t10\n"};
 
     std::string const actual_file{string_from_file(binning_filename)};

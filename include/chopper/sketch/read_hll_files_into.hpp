@@ -38,7 +38,7 @@ inline void read_hll_files_into(std::filesystem::path const & hll_dir,
                 throw std::runtime_error{"Could not open file " + path.string()};
 
             // the sketch bits will be automatically read from the files
-            target.emplace_back().restore(hll_fin);
+            target.emplace_back().load(hll_fin);
         }
     }
     catch (std::runtime_error const & err)

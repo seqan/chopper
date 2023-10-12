@@ -170,7 +170,7 @@ int execute(config const & cfg)
         if (idx != current_idx)
         {
             print_result_line();
-            sketch.clear();
+            sketch.reset();
             shared_kmers.clear();
             shared_kmers_initialised = false;
             ub_count = 0u;

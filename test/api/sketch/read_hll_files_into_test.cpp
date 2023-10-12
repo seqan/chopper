@@ -8,15 +8,16 @@
 #include <gtest/gtest.h>
 
 #include <seqan3/io/sequence_file/input.hpp>
+#include <seqan3/search/views/minimiser_hash.hpp>
 
+#include <chopper/adjust_seed.hpp>
 #include <chopper/sketch/read_hll_files_into.hpp>
 
 #include "../api_test.hpp"
 
 struct input_traits : public seqan3::sequence_file_input_default_traits_dna
 {
-    using sequence_alphabet = char;
-    using sequence_legal_alphabet = char;
+    using sequence_alphabet = seqan3::dna4;
 };
 using sequence_file_type = seqan3::sequence_file_input<input_traits, seqan3::fields<seqan3::field::seq>>;
 
@@ -45,15 +46,15 @@ TEST_F(read_hll_files_into_test, basic)
     std::string const input_file{data("small.fa")};
     sequence_file_type seq_file{input_file};
 
-    // put every sequence in this file into the sketch
-    for (auto && [seq_vec] : seq_file)
-    {
-        std::string_view const seq{seq_vec.begin(), seq_vec.end()};
+    auto minimizer_view = seqan3::views::minimiser_hash(seqan3::ungapped{kmer_size},
+                                                        seqan3::window_size{kmer_size},
+                                                        seqan3::seed{chopper::adjust_seed(kmer_size)});
 
-        for (size_t pos = 0; pos + kmer_size <= seq.size(); ++pos) // substr is [pos, pos + len)
-        {
-            expected.add(seq.substr(pos, kmer_size));
-        }
+    // put every sequence in this file into the sketch
+    for (auto && [seq] : seq_file)
+    {
+        for (auto hash : seq | minimizer_view)
+            expected.add(hash);
     }
 
     chopper::sketch::read_hll_files_into(data(""), test_filenames, target);

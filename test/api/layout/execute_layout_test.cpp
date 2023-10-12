@@ -23,7 +23,7 @@ TEST(execute_test, few_ubs)
 
     auto simulated_input = [&](size_t const num, seqan::hibf::insert_iterator it)
     {
-        size_t const desired_kmer_count = (num == 1) ? 1000 : 500;
+        size_t const desired_kmer_count = (num == 1) ? 880 : 475; // Estimate are 990.71 and 504.88
         for (auto hash : std::views::iota(0u, desired_kmer_count))
             it = hash;
     };
@@ -299,7 +299,7 @@ TEST(execute_test, many_ubs)
                                       "@    }\n"
                                       "@}\n"
                                       "@HIBF_CONFIG_END\n"
-                                      "#TOP_LEVEL_IBF fullest_technical_bin_idx:0\n"
+                                      "#TOP_LEVEL_IBF fullest_technical_bin_idx:26\n"
                                       "#LOWER_LEVEL_IBF_0 fullest_technical_bin_idx:14\n"
                                       "#LOWER_LEVEL_IBF_1 fullest_technical_bin_idx:14\n"
                                       "#LOWER_LEVEL_IBF_2 fullest_technical_bin_idx:14\n"
@@ -331,8 +331,8 @@ TEST(execute_test, many_ubs)
                                       "6\t2;34\t1;10\n"
                                       "7\t2;44\t1;10\n"
                                       "8\t2;54\t1;10\n"
-                                      "33\t3;0\t1;27\n"
-                                      "32\t3;27\t1;25\n"
+                                      "33\t3;0\t1;26\n"
+                                      "32\t3;26\t1;26\n"
                                       "1\t3;52\t1;6\n"
                                       "2\t3;58\t1;6\n"
                                       "30\t4;0\t1;22\n"
