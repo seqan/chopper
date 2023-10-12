@@ -28,7 +28,7 @@ if (NOT CMAKE_BUILD_TYPE)
     )
 endif ()
 
-# Check CXX and C compiler versions (xxHash uses C).
+# Check CXX and C compiler versions.
 string (REGEX MATCH "^[0-9]+" CHOPPER_CXX_MAJOR_VERSION "${CMAKE_CXX_COMPILER_VERSION}")
 string (REGEX MATCH "^[0-9]+" CHOPPER_C_MAJOR_VERSION "${CMAKE_C_COMPILER_VERSION}")
 if (NOT "${CHOPPER_CXX_MAJOR_VERSION}" STREQUAL "${CHOPPER_C_MAJOR_VERSION}")
@@ -120,20 +120,6 @@ if (NOT TARGET seqan::hibf)
     )
 
     FetchContent_MakeAvailable (chopper_hibf_project)
-endif ()
-
-# Dependency: xxHash
-if (NOT TARGET xxHash::xxhash)
-    FetchContent_Declare (chopper_xxhash_project SOURCE_DIR ${CHOPPER_SUBMODULES_DIR}/xxHash SOURCE_SUBDIR
-                                                 "cmake_unofficial"
-    )
-
-    set (XXHASH_BUILD_ENABLE_INLINE_API ON)
-    set (XXHASH_BUILD_XXHSUM OFF)
-    set (XXHASH_BUNDLED_MODE ON)
-    set (BUILD_SHARED_LIBS OFF)
-
-    FetchContent_MakeAvailable (chopper_xxhash_project)
 endif ()
 
 # Add the application.
