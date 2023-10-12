@@ -17,8 +17,9 @@
 #include <chopper/layout/execute.hpp>
 #include <chopper/sketch/read_hll_files_into.hpp>
 
-#include "../api_test.hpp"
 #include <hibf/sketch/hyperloglog.hpp>
+
+#include "../api_test.hpp"
 
 TEST(execute_estimation_test, few_ubs)
 {
@@ -66,7 +67,7 @@ TEST(execute_estimation_test, few_ubs)
 ## (l*m)_tmax : Computed by l_tmax * m_tmax
 ## size : The expected total size of an tmax-HIBF
 # tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size
-64	1.00	1.00	1.00	1.00	14.6KiB
+64	1.00	1.00	1.00	1.00	15.7KiB
 # Best t_max (regarding expected query runtime): 64
 )expected_cout");
 }
@@ -121,9 +122,9 @@ TEST(execute_estimation_test, many_ubs)
 ## (l*m)_tmax : Computed by l_tmax * m_tmax
 ## size : The expected total size of an tmax-HIBF
 # tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size
-64	1.00	1.26	1.00	1.26	74.5KiB
-128	1.22	1.25	0.66	0.83	49.4KiB
-256	1.33	1.33	0.74	0.99	55.1KiB
+64	1.00	1.25	1.00	1.25	75.4KiB
+128	1.22	1.24	0.69	0.86	51.9KiB
+256	1.33	1.33	0.76	1.02	57.5KiB
 # Best t_max (regarding expected query runtime): 128
 )expected_cout");
 
@@ -266,7 +267,7 @@ TEST(execute_estimation_test, many_ubs)
                                       "@    }\n"
                                       "@}\n"
                                       "@HIBF_CONFIG_END\n"
-                                      "#TOP_LEVEL_IBF fullest_technical_bin_idx:14\n"
+                                      "#TOP_LEVEL_IBF fullest_technical_bin_idx:36\n"
                                       "#LOWER_LEVEL_IBF_14 fullest_technical_bin_idx:24\n"
                                       "#LOWER_LEVEL_IBF_15 fullest_technical_bin_idx:24\n"
                                       "#USER_BIN_IDX\tTECHNICAL_BIN_INDICES\tNUMBER_OF_TECHNICAL_BINS\n"
@@ -421,9 +422,9 @@ TEST(execute_estimation_test, many_ubs_force_all)
 ## (l*m)_tmax : Computed by l_tmax * m_tmax
 ## size : The expected total size of an tmax-HIBF
 # tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size
-64	1.00	1.26	1.00	1.26	74.5KiB
-128	1.22	1.25	0.66	0.83	49.4KiB
-256	1.33	1.33	0.74	0.99	55.1KiB
+64	1.00	1.25	1.00	1.25	75.4KiB
+128	1.22	1.24	0.69	0.86	51.9KiB
+256	1.33	1.33	0.76	1.02	57.5KiB
 # Best t_max (regarding expected query runtime): 128
 )expected_cout");
 
@@ -465,9 +466,9 @@ TEST(execute_estimation_test, with_rearrangement)
         hll_filenames.push_back("small.hll");
 
         expected_kmer_counts.push_back(387);
+        expected_kmer_counts.push_back(470);
         expected_kmer_counts.push_back(465);
-        expected_kmer_counts.push_back(465);
-        expected_kmer_counts.push_back(571);
+        expected_kmer_counts.push_back(578);
     }
 
     // There are 20 files with a count of {100,200,300,400} each. There are 16 files with count 500.
@@ -503,7 +504,7 @@ TEST(execute_estimation_test, with_rearrangement)
     chopper::sketch::read_hll_files_into(sketches_dir, hll_filenames, sketches);
 
     for (size_t i = 0; i < expected_kmer_counts.size(); ++i)
-        EXPECT_EQ(std::lround(sketches[i].estimate()), expected_kmer_counts[i]) << "failed at " << i;
+        ASSERT_EQ(std::lround(sketches[i].estimate()), expected_kmer_counts[i]) << "failed at " << i;
 
     ASSERT_TRUE(std::filesystem::exists(stats_file));
 
@@ -525,9 +526,9 @@ TEST(execute_estimation_test, with_rearrangement)
 ## (l*m)_tmax : Computed by l_tmax * m_tmax
 ## size : The expected total size of an tmax-HIBF
 # tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size
-64	1.00	2.23	1.00	2.23	116.5KiB
-128	1.22	1.95	1.15	2.24	133.7KiB
-256	1.33	1.53	1.19	1.82	138.7KiB
+64	1.00	2.22	1.00	2.22	117.1KiB
+128	1.22	1.95	1.15	2.23	134.3KiB
+256	1.33	1.52	1.18	1.81	138.7KiB
 # Best t_max (regarding expected query runtime): 256
 )expected_cout");
 

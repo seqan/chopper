@@ -14,7 +14,6 @@ target_link_libraries (chopper_interface INTERFACE "seqan::hibf")
 target_include_directories (chopper_interface INTERFACE ../include)
 target_include_directories (chopper_interface INTERFACE ${CHOPPER_SUBMODULES_DIR}/robin-hood-hashing/src/include)
 target_include_directories (chopper_interface INTERFACE ${CHOPPER_SUBMODULES_DIR}/simde/simde)
-target_link_libraries (chopper_interface INTERFACE xxHash::xxhash)
 target_compile_options (chopper_interface INTERFACE "-pedantic" "-Wall" "-Wextra")
 
 add_library (chopper_layout_lib STATIC chopper_layout.cpp)

@@ -655,7 +655,7 @@ private:
                 {
                     seqan::hibf::sketch::hyperloglog tmp =
                         merged_bin_sketches[i]; // copy needed, s.t. current is not modified
-                    double union_estimate = tmp.merge_and_estimate_SIMD(merged_bin_sketches[j]);
+                    double union_estimate = tmp.merge_and_estimate(merged_bin_sketches[j]);
                     // Jaccard distance estimate
                     double distance = 2.0 - (current_estimate + merged_bin_sketches[j].estimate()) / union_estimate;
                     // Since the sizes are estimates, the distance might be slighlty above 1.0 or below 0.0

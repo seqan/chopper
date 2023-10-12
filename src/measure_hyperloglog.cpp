@@ -103,18 +103,18 @@ int main(int argc, char const * argv[])
 
         for (auto & sketch : sketches)
         {
-            double const expected_error = 1.04 / std::sqrt(sketch.registerSize());
+            double const expected_error = 1.04 / std::sqrt(sketch.data_size());
             double const actual_error =
                 std::abs(1.0 - std::round(sketch.estimate()) / static_cast<double>(control.size()));
 
-            fout << id << '\t' << seq.size() << '\t' << sketch.registerSize() << '\t'
+            fout << id << '\t' << seq.size() << '\t' << sketch.data_size() << '\t'
                  << static_cast<uint64_t>(sketch.estimate()) << '\t' << control.size() << '\t' << expected_error << '\t'
                  << actual_error << '\n';
         }
 
         // clear for the next sequence
         for (auto & sketch : sketches)
-            sketch.clear();
+            sketch.reset();
 
         control.clear();
     }

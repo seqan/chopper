@@ -40,7 +40,7 @@ inline void write_sketch_file(std::string const & filename,
     std::filesystem::path path = config.sketch_directory / std::filesystem::path(filename).stem();
     path += ".hll";
     std::ofstream hll_fout(path, std::ios::binary);
-    sketch.dump(hll_fout);
+    sketch.store(hll_fout);
 }
 
 } // namespace chopper::sketch

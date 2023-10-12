@@ -141,7 +141,7 @@ TEST(execute_test, chopper_layout_statistics)
 ## size : The expected total size of an tmax-HIBF
 ## uncorr_size : The expected size of an tmax-HIBF without FPR correction
 # tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size	uncorr_size	level	num_ibfs	level_size	level_size_no_corr	total_num_tbs	avg_num_tbs	split_tb_percentage	max_split_tb	avg_split_tb	max_factor	avg_factor
-64	1.00	1.26	1.00	1.26	74.8KiB	45.8KiB	:0:1	:1:12	:37.8KiB:37.0KiB	:37.8KiB:8.0KiB	:64:768	:64:64	:81.25:100.00	:1:32	:1.00:17.45	:1.00:6.20	:1.00:4.84
+64	1.00	1.25	1.00	1.25	75.5KiB	46.8KiB	:0:1	:1:12	:38.8KiB:36.7KiB	:38.8KiB:8.0KiB	:64:768	:64:64	:81.25:100.00	:1:32	:1.00:17.45	:1.00:6.20	:1.00:4.84
 )expected_cout";
 
     EXPECT_EQ(layout_result_stdout, expected_cout) << layout_result_stdout;
@@ -194,8 +194,8 @@ TEST(execute_test, chopper_layout_statistics_determine_best_bins)
 ## size : The expected total size of an tmax-HIBF
 ## uncorr_size : The expected size of an tmax-HIBF without FPR correction
 # tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size	uncorr_size	level	num_ibfs	level_size	level_size_no_corr	total_num_tbs	avg_num_tbs	split_tb_percentage	max_split_tb	avg_split_tb	max_factor	avg_factor
-64	1.00	1.00	1.00	1.00	1.6MiB	1.2MiB	:0	:1	:1.6MiB	:1.2MiB	:64	:64	:100.00	:16	:6.40	:4.35	:3.05
-128	1.22	1.22	1.41	1.72	2.3MiB	1.2MiB	:0	:1	:2.3MiB	:1.2MiB	:128	:128	:100.00	:32	:12.80	:6.20	:4.37
+64	1.00	1.00	1.00	1.00	3.1MiB	2.2MiB	:0	:1	:3.1MiB	:2.2MiB	:64	:64	:100.00	:15	:6.40	:4.20	:3.06
+128	1.22	1.22	1.40	1.72	4.3MiB	2.2MiB	:0	:1	:4.3MiB	:2.2MiB	:128	:128	:100.00	:31	:12.80	:6.10	:4.39
 # Best t_max (regarding expected query runtime): 64
 )expected_cout";
 
