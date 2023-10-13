@@ -19,6 +19,7 @@
 
 #include <hibf/hierarchical_interleaved_bloom_filter.hpp>
 #include <hibf/layout/compute_layout.hpp>
+#include <hibf/sketch/compute_sketches.hpp>
 
 namespace chopper::layout
 {
@@ -69,6 +70,7 @@ determine_best_number_of_technical_bins(chopper::configuration & config)
         kmer_counts.clear();
         sketches.clear();
 
+        seqan::hibf::sketch::compute_sketches(config.hibf_config, kmer_counts, sketches);
         seqan::hibf::layout::layout tmp_layout =
             seqan::hibf::layout::compute_layout(config.hibf_config, kmer_counts, sketches);
 
@@ -132,6 +134,7 @@ int execute(chopper::configuration & config, std::vector<std::string> const & fi
     {
         std::vector<size_t> kmer_counts;
 
+        seqan::hibf::sketch::compute_sketches(config.hibf_config, kmer_counts, sketches);
         hibf_layout = seqan::hibf::layout::compute_layout(config.hibf_config, kmer_counts, sketches);
 
         if (config.output_verbose_statistics)
