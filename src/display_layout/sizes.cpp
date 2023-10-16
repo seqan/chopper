@@ -112,7 +112,7 @@ void compute_kmers(robin_hood::unordered_flat_set<uint64_t> & kmers,
                    seqan::hibf::build::build_data const & data,
                    seqan::hibf::layout::layout::user_bin const & record)
 {
-    data.config.input_fn(record.idx, std::inserter(kmers, kmers.begin()));
+    data.config.input_fn(record.idx, seqan::hibf::insert_iterator(kmers));
 }
 
 void update_parent_kmers(robin_hood::unordered_flat_set<uint64_t> & parent_kmers,
