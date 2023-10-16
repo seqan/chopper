@@ -78,7 +78,7 @@ jobs:
         run: |
           ccache -z
           cd build
-          make -k -j2 api_test cli_test
+          make -k -j2 api_test cli_test display_layout measure_hyperloglog
           ccache -sv
 
       - name: Run tests
