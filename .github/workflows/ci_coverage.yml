@@ -94,6 +94,7 @@ jobs:
                 --filter ${{ github.workspace }}/include \
                 --filter ${{ github.workspace }}/src \
                 --exclude ${{ github.workspace }}/src/measure_hyperloglog.cpp \
+                --exclude ${{ github.workspace }}/src/display_layout \
                 --exclude-lines-by-pattern '^\s*$' \
                 --exclude-lines-by-pattern '^\s*};$' \
                 --exclude-lines-by-pattern '^.*GCOVR_EXCL_LINE.*$' \
