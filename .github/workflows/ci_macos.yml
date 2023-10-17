@@ -54,7 +54,7 @@ jobs:
         uses: seqan/actions/setup-toolchain@main
         with:
           compiler: ${{ matrix.compiler }}
-          ccache_size: 75M
+          ccache_size: 125M
 
       - name: Install CMake
         uses: seqan/actions/setup-cmake@main
