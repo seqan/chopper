@@ -7,6 +7,14 @@
 
 #include <gtest/gtest.h>
 
+#include <cstddef>
+#include <filesystem>
+#include <fstream>
+#include <ranges>
+#include <stdexcept>
+#include <string>
+#include <vector>
+
 #include <seqan3/io/sequence_file/input.hpp>
 #include <seqan3/search/views/minimiser_hash.hpp>
 

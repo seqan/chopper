@@ -7,7 +7,9 @@
 
 #include <gtest/gtest.h>
 
-#include <sstream>
+#include <filesystem>
+#include <stdexcept>
+#include <string>
 #include <vector>
 
 #include <chopper/configuration.hpp>

@@ -5,9 +5,19 @@
 // shipped with this file and also available at: https://github.com/seqan/chopper/blob/main/LICENSE.md
 // ---------------------------------------------------------------------------------------------------
 
+#include <cinttypes>
+#include <filesystem>
+#include <fstream>
+#include <ranges>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include <chopper/configuration.hpp>
 #include <chopper/sketch/output.hpp>
 
 #include <hibf/contrib/std/join_with_view.hpp>
+#include <hibf/sketch/hyperloglog.hpp>
 
 namespace chopper::sketch
 {

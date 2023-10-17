@@ -6,7 +6,15 @@
 // ---------------------------------------------------------------------------------------------------
 
 #include <cassert>
+#include <cctype>
+#include <cstddef>
+#include <filesystem>
+#include <stdexcept>
+#include <string>
+#include <string_view>
+#include <vector>
 
+#include <chopper/configuration.hpp>
 #include <chopper/sketch/check_filenames.hpp>
 
 namespace chopper::sketch

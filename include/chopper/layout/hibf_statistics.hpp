@@ -9,18 +9,16 @@
 
 #include <algorithm>
 #include <cassert>
-#include <cmath>
-#include <iostream>
+#include <cstddef>
+#include <iosfwd>
 #include <map>
 #include <numeric>
+#include <string>
+#include <typeindex>
 #include <vector>
 
 #include <chopper/configuration.hpp>
-#include <chopper/layout/ibf_query_cost.hpp>
-#include <chopper/next_multiple_of_64.hpp>
-#include <chopper/workarounds.hpp>
 
-#include <hibf/layout/compute_fpr_correction.hpp>
 #include <hibf/layout/layout.hpp>
 #include <hibf/sketch/hyperloglog.hpp>
 

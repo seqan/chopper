@@ -5,23 +5,30 @@
 // shipped with this file and also available at: https://github.com/seqan/chopper/blob/main/LICENSE.md
 // ---------------------------------------------------------------------------------------------------
 
+#include <cassert>
+#include <cinttypes>
+#include <cmath>
+#include <cstddef>
+#include <filesystem>
+#include <fstream>
 #include <iostream>
-#include <set>
-
-#include <sharg/detail/to_string.hpp>
-#include <sharg/exceptions.hpp>
+#include <stdexcept>
+#include <string>
+#include <tuple>
+#include <vector>
 
 #include <chopper/configuration.hpp>
 #include <chopper/layout/determine_best_number_of_technical_bins.hpp>
 #include <chopper/layout/execute.hpp>
 #include <chopper/layout/hibf_statistics.hpp>
-#include <chopper/layout/ibf_query_cost.hpp>
 #include <chopper/layout/output.hpp>
+#include <chopper/next_multiple_of_64.hpp>
 #include <chopper/sketch/output.hpp>
 
-#include <hibf/hierarchical_interleaved_bloom_filter.hpp>
 #include <hibf/layout/compute_layout.hpp>
+#include <hibf/layout/layout.hpp>
 #include <hibf/sketch/compute_sketches.hpp>
+#include <hibf/sketch/hyperloglog.hpp>
 
 namespace chopper::layout
 {

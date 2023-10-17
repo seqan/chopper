@@ -5,7 +5,15 @@
 // shipped with this file and also available at: https://github.com/seqan/chopper/blob/main/LICENSE.md
 // ---------------------------------------------------------------------------------------------------
 
+#include <cassert>
+#include <sstream>
+#include <string>
+#include <string_view>
+
+#include <cereal/archives/json.hpp>
+
 #include <chopper/configuration.hpp>
+#include <chopper/prefixes.hpp>
 
 namespace chopper
 {

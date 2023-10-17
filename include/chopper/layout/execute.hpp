@@ -7,6 +7,9 @@
 
 #pragma once
 
+#include <string>
+#include <vector>
+
 #include <chopper/configuration.hpp>
 
 namespace chopper::layout

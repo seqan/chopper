@@ -10,8 +10,8 @@
 #include <array>
 #include <bit>
 #include <cassert>
+#include <cstddef>
 #include <map>
-#include <stdexcept>
 
 namespace chopper::layout
 {

@@ -7,9 +7,12 @@
 
 #include <gtest/gtest.h>
 
-#include <chopper/layout/ibf_query_cost.hpp>
+#include <bit>
+#include <cstddef>
+#include <stdexcept>
+#include <string>
 
-#include "../api_test.hpp"
+#include <chopper/layout/ibf_query_cost.hpp>
 
 TEST(ibf_query_cost_test, exact)
 {

@@ -7,15 +7,11 @@
 
 #pragma once
 
-#include <cassert>
+#include <cinttypes>
 #include <filesystem>
+#include <iosfwd>
 
-#include <cereal/archives/json.hpp>
 #include <cereal/cereal.hpp>
-#include <cereal/types/string.hpp>
-#include <cereal/types/vector.hpp>
-
-#include <chopper/prefixes.hpp>
 
 #include <hibf/cereal/path.hpp> // IWYU pragma: keep
 #include <hibf/config.hpp>

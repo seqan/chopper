@@ -5,10 +5,14 @@
 // shipped with this file and also available at: https://github.com/seqan/chopper/blob/main/LICENSE.md
 // ---------------------------------------------------------------------------------------------------
 
+#include <cinttypes>
 #include <cmath>
 #include <filesystem>
 #include <fstream>
+#include <iostream>
+#include <ranges>
 #include <string>
+#include <tuple>
 #include <unordered_set>
 #include <vector>
 

@@ -5,17 +5,13 @@
 // shipped with this file and also available at: https://github.com/seqan/chopper/blob/main/LICENSE.md
 // ---------------------------------------------------------------------------------------------------
 
+#include <gtest/gtest.h>
+
+#include <filesystem>
 #include <fstream>
-#include <ranges> // range comparisons
 #include <string> // strings
-#include <vector> // vectors
 
-#include <cereal/archives/binary.hpp>
-
-#include <seqan3/search/dream_index/interleaved_bloom_filter.hpp>
 #include <seqan3/test/tmp_directory.hpp>
-#include <seqan3/utility/range/to.hpp>
-#include <seqan3/utility/views/join_with.hpp>
 
 #include "../api/api_test.hpp"
 #include "cli_test.hpp"

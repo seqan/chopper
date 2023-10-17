@@ -9,8 +9,6 @@
 
 #include <vector>
 
-#include <chopper/input_functor.hpp>
-
 TEST(execute_test, small_example)
 {
     // std::string input_filename = data("small.fa");

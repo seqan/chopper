@@ -8,6 +8,9 @@
 #pragma once
 
 #include <iosfwd>
+#include <string>
+#include <tuple>
+#include <vector>
 
 #include <chopper/configuration.hpp>
 

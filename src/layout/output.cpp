@@ -5,10 +5,16 @@
 // shipped with this file and also available at: https://github.com/seqan/chopper/blob/main/LICENSE.md
 // ---------------------------------------------------------------------------------------------------
 
+#include <cstddef>
 #include <iostream>
+#include <string>
+#include <string_view>
+#include <vector>
 
 #include <chopper/layout/output.hpp>
 #include <chopper/prefixes.hpp>
+
+#include <hibf/layout/prefixes.hpp>
 
 namespace chopper::layout
 {

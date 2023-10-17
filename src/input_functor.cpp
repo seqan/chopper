@@ -5,6 +5,12 @@
 // shipped with this file and also available at: https://github.com/seqan/chopper/blob/main/LICENSE.md
 // ---------------------------------------------------------------------------------------------------
 
+#include <cassert>
+#include <cinttypes>
+#include <cstddef>
+#include <filesystem>
+#include <fstream>
+#include <ranges>
 #include <string>
 #include <vector>
 
@@ -13,8 +19,6 @@
 
 #include <chopper/adjust_seed.hpp>
 #include <chopper/input_functor.hpp>
-
-#include <hibf/hierarchical_interleaved_bloom_filter.hpp>
 
 namespace chopper
 {

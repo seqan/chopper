@@ -5,9 +5,14 @@
 // shipped with this file and also available at: https://github.com/seqan/chopper/blob/main/LICENSE.md
 // ---------------------------------------------------------------------------------------------------
 
-#include <sharg/parser.hpp>
+#include <exception>
+#include <filesystem>
+#include <functional>
+#include <iostream>
+#include <string>
+#include <vector>
 
-#include <seqan3/core/debug_stream.hpp>
+#include <sharg/parser.hpp>
 
 #include <chopper/configuration.hpp>
 #include <chopper/input_functor.hpp>

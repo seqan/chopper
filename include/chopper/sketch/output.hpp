@@ -7,8 +7,10 @@
 
 #pragma once
 
-#include <fstream>
+#include <cinttypes>
+#include <iosfwd>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <chopper/configuration.hpp>

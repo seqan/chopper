@@ -5,6 +5,12 @@
 // shipped with this file and also available at: https://github.com/seqan/chopper/blob/main/LICENSE.md
 // ---------------------------------------------------------------------------------------------------
 
+#include <cstddef>
+#include <filesystem>
+#include <limits>
+#include <string>
+#include <vector>
+
 #include <chopper/set_up_parser.hpp>
 
 namespace chopper

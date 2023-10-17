@@ -5,22 +5,32 @@
 // shipped with this file and also available at: https://github.com/seqan/chopper/blob/main/LICENSE.md
 // ---------------------------------------------------------------------------------------------------
 
+#include <algorithm>
 #include <atomic>
 #include <cassert>
-#include <iostream>
+#include <cinttypes>
+#include <cmath>
+#include <cstddef>
+#include <filesystem>
+#include <fstream>
+#include <functional>
+#include <iomanip>
+#include <mutex>
+#include <numeric>
+#include <optional>
+#include <random>
+#include <stdexcept>
+#include <string>
+#include <tuple>
+#include <utility>
+#include <vector>
 
-#include <robin_hood.h>
-
-#include <sharg/detail/to_string.hpp>
-#include <sharg/exceptions.hpp>
-#include <sharg/parser.hpp>
-
-#include <chopper/layout/hibf_statistics.hpp>
 #include <chopper/layout/input.hpp>
 
 #include <hibf/build/bin_size_in_bits.hpp>
 #include <hibf/build/build_data.hpp>
-#include <hibf/interleaved_bloom_filter.hpp>
+#include <hibf/config.hpp>
+#include <hibf/contrib/robin_hood.hpp>
 #include <hibf/layout/compute_fpr_correction.hpp>
 #include <hibf/layout/graph.hpp>
 #include <hibf/sketch/hyperloglog.hpp>

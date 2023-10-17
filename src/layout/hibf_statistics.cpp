@@ -5,20 +5,34 @@
 // shipped with this file and also available at: https://github.com/seqan/chopper/blob/main/LICENSE.md
 // ---------------------------------------------------------------------------------------------------
 
+// clang-format off
+#include <chopper/workarounds.hpp>
+// clang-format on
+
 #include <algorithm>
 #include <cassert>
+#include <cinttypes>
 #include <cmath>
+#include <cstddef>
+#if CHOPPER_WORKAROUND_GCC_BOGUS_MEMCPY
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wrestrict"
+#endif // CHOPPER_WORKAROUND_GCC_BOGUS_MEMCPY
 #include <iostream>
+#if CHOPPER_WORKAROUND_GCC_BOGUS_MEMCPY
+#    pragma GCC diagnostic pop
+#endif // CHOPPER_WORKAROUND_GCC_BOGUS_MEMCPY
 #include <map>
 #include <numeric>
+#include <string>
+#include <utility>
 #include <vector>
 
 #include <chopper/configuration.hpp>
 #include <chopper/layout/hibf_statistics.hpp>
 #include <chopper/layout/ibf_query_cost.hpp>
-#include <chopper/next_multiple_of_64.hpp>
-#include <chopper/workarounds.hpp>
 
+#include <hibf/contrib/robin_hood.hpp>
 #include <hibf/layout/compute_fpr_correction.hpp>
 #include <hibf/layout/layout.hpp>
 #include <hibf/sketch/hyperloglog.hpp>

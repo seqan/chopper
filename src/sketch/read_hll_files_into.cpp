@@ -5,8 +5,13 @@
 // shipped with this file and also available at: https://github.com/seqan/chopper/blob/main/LICENSE.md
 // ---------------------------------------------------------------------------------------------------
 
+#include <algorithm>
 #include <cassert>
+#include <filesystem>
 #include <fstream>
+#include <stdexcept>
+#include <string>
+#include <vector>
 
 #include <chopper/sketch/read_hll_files_into.hpp>
 

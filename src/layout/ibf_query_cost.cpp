@@ -8,8 +8,10 @@
 #include <array>
 #include <bit>
 #include <cassert>
+#include <cstddef>
 #include <map>
 #include <stdexcept>
+#include <utility>
 
 #include <chopper/layout/ibf_query_cost.hpp>
 

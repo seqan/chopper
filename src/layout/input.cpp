@@ -7,10 +7,19 @@
 
 #include <cassert>
 #include <charconv>
+#include <istream>
 #include <ranges>
+#include <string>
+#include <string_view>
+#include <tuple>
+#include <utility>
+#include <vector>
 
+#include <chopper/configuration.hpp>
 #include <chopper/layout/input.hpp>
 #include <chopper/prefixes.hpp>
+
+#include <hibf/layout/layout.hpp>
 
 namespace chopper::layout
 {

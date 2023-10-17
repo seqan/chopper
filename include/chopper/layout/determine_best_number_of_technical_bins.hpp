@@ -5,6 +5,7 @@
 // shipped with this file and also available at: https://github.com/seqan/chopper/blob/main/LICENSE.md
 // ---------------------------------------------------------------------------------------------------
 
+#include <utility>
 #include <vector>
 
 #include <chopper/configuration.hpp>
