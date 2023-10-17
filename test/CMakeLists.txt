@@ -96,6 +96,4 @@ else ()
     add_subdirectory (coverage)
 endif ()
 
-add_dependencies (cli_test measure_hyperloglog)
-
 message (STATUS "${FontBold}You can run `make test` to build and run tests.${FontReset}")

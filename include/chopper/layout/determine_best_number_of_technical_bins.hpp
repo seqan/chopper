@@ -5,13 +5,17 @@
 // shipped with this file and also available at: https://github.com/seqan/chopper/blob/main/LICENSE.md
 // ---------------------------------------------------------------------------------------------------
 
-#pragma once
+#include <vector>
 
 #include <chopper/configuration.hpp>
 
-namespace chopper::sketch
+#include <hibf/layout/layout.hpp>
+#include <hibf/sketch/hyperloglog.hpp>
+
+namespace chopper::layout
 {
 
-void read_data_file(configuration const & config, std::vector<std::string> & filenames);
+std::pair<seqan::hibf::layout::layout, std::vector<seqan::hibf::sketch::hyperloglog>>
+determine_best_number_of_technical_bins(chopper::configuration & config);
 
-} // namespace chopper::sketch
+}
