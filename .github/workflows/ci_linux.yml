@@ -34,14 +34,17 @@ jobs:
           - name: "gcc13"
             compiler: "gcc-13"
             build_type: Release
+            cxx_flags: -Wno-interference-size
 
           - name: "gcc12"
             compiler: "gcc-12"
             build_type: Release
+            cxx_flags: -Wno-interference-size
 
           - name: "gcc11"
             compiler: "gcc-11"
             build_type: Release
+            cxx_flags: -Wno-interference-size
 
     steps:
       - name: Checkout
@@ -66,7 +69,7 @@ jobs:
           mkdir build
           cd build
           cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-                   -DCMAKE_CXX_FLAGS="-Wno-interference-size" \
+                   -DCMAKE_CXX_FLAGS="-Werror ${{ matrix.cxx_flags }}" \
                    -DCHOPPER_NATIVE_BUILD=OFF
           make -j2 gtest_build
 

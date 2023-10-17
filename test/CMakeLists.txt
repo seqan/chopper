@@ -43,7 +43,13 @@ macro (add_app_test test_filename test_alternative)
     # Create the test target.
     add_executable (${target} ${test_filename})
     target_link_libraries (${target} "${PROJECT_NAME}_lib" seqan3::seqan3 gtest gtest_main)
-    target_compile_options (${target} PRIVATE "-Werror")
+
+    # GCC12 and above: Disable warning about std::hardware_destructive_interference_size not being ABI-stable.
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 12)
+            target_compile_options (${target} PRIVATE "-Wno-interference-size")
+        endif ()
+    endif ()
 
     # Make seqan3::test available for both cli and api tests.
     target_include_directories (${target} PUBLIC "${SEQAN3_CLONE_DIR}/test/include")
