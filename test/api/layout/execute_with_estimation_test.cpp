@@ -267,7 +267,7 @@ TEST(execute_estimation_test, many_ubs)
                                       "@    }\n"
                                       "@}\n"
                                       "@HIBF_CONFIG_END\n"
-                                      "#TOP_LEVEL_IBF fullest_technical_bin_idx:36\n"
+                                      "#TOP_LEVEL_IBF fullest_technical_bin_idx:96\n"
                                       "#LOWER_LEVEL_IBF_14 fullest_technical_bin_idx:24\n"
                                       "#LOWER_LEVEL_IBF_15 fullest_technical_bin_idx:24\n"
                                       "#USER_BIN_IDX\tTECHNICAL_BIN_INDICES\tNUMBER_OF_TECHNICAL_BINS\n"
