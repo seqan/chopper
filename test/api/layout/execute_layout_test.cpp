@@ -91,7 +91,7 @@ TEST(execute_test, few_ubs)
                                       "@    }\n"
                                       "@}\n"
                                       "@HIBF_CONFIG_END\n"
-                                      "#TOP_LEVEL_IBF fullest_technical_bin_idx:0\n"
+                                      "#TOP_LEVEL_IBF fullest_technical_bin_idx:42\n"
                                       "#USER_BIN_IDX\tTECHNICAL_BIN_INDICES\tNUMBER_OF_TECHNICAL_BINS\n"
                                       "7\t0\t6\n"
                                       "6\t6\t6\n"
