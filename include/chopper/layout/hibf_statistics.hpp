@@ -50,12 +50,12 @@ namespace chopper::layout
 class hibf_statistics
 {
 public:
-    hibf_statistics() = default;                                    //!< Defaulted.
-    hibf_statistics(hibf_statistics const & b) = default;           //!< Defaulted.
-    hibf_statistics & operator=(hibf_statistics const &) = default; //!< Defaulted.
-    hibf_statistics(hibf_statistics && b) = default;                //!< Defaulted.
-    hibf_statistics & operator=(hibf_statistics &&) = default;      //!< Defaulted.
-    ~hibf_statistics() = default;                                   //!< Defaulted.
+    hibf_statistics() = delete;                                    //!< Deleted. Holds reference members.
+    hibf_statistics(hibf_statistics const & b) = delete;           //!< Deleted. Holds const member.
+    hibf_statistics & operator=(hibf_statistics const &) = delete; //!< Deleted. Holds const member.
+    hibf_statistics(hibf_statistics && b) = delete;                //!< Deleted. Holds const member.
+    hibf_statistics & operator=(hibf_statistics &&) = delete;      //!< Deleted. Holds const member.
+    ~hibf_statistics() = default;                                  //!< Defaulted.
 
     /*!\brief Construct an empty HIBF with an empty top level IBF
      * \param[in] config_ User configuration for the HIBF.
@@ -66,7 +66,8 @@ public:
                     std::vector<seqan::hibf::sketch::hyperloglog> const & sketches_,
                     std::vector<size_t> const & kmer_counts);
 
-    class bin; // forward declaration
+    //!\brief Represents a (set) of user bins (see ibf_statistics::bin_kind).
+    class bin;
 
     //!\brief A representation of an IBF level that gathers information about bins in an IBF.
     struct level
@@ -84,9 +85,6 @@ public:
         split, //!< A single user bin, split into 1 or more bins (even though 1 is not technically split).
         merged //!< Multiple user bins are merged into a single technical bin.
     };
-
-    //!\brief Represents a (set) of user bins (see ibf_statistics::bin_kind).
-    class bin;
 
     //!\brief Gather all statistics to have all members ready.
     void finalize();

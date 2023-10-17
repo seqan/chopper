@@ -298,7 +298,15 @@ void execute_general_stats(config const & cfg)
     if (!layout_file.good() || !layout_file.is_open())
         throw std::logic_error{"Could not open file " + cfg.input.string() + " for reading"};
 
+// https://godbolt.org/z/PeKnxzjn1
+#if defined(__clang__)
+    auto tuple = chopper::layout::read_layout_file(layout_file);
+    auto filenames = std::get<0>(tuple);
+    auto chopper_config = std::get<1>(tuple);
+    auto hibf_layout = std::get<2>(tuple);
+#else
     auto [filenames, chopper_config, hibf_layout] = chopper::layout::read_layout_file(layout_file);
+#endif
 
     // Prepare configs
     chopper_config.hibf_config.threads = cfg.threads;
