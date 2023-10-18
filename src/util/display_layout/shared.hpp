@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 
+#include <hibf/contrib/robin_hood.hpp>
 #include <hibf/sketch/hyperloglog.hpp>
 
 struct config
@@ -24,7 +25,10 @@ struct config
 void execute_general(config const & cfg);
 void execute_sizes(config const & cfg);
 
+void process_file(std::string const & filename, std::vector<uint64_t> & current_kmers, uint8_t const kmer_size);
+
 void process_file(std::string const & filename,
+                  robin_hood::unordered_set<uint64_t> & current_kmer_set,
                   std::vector<uint64_t> & current_kmers,
                   seqan::hibf::sketch::hyperloglog & sketch,
                   bool const fill_current_kmers,

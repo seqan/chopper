@@ -324,12 +324,11 @@ void execute_general_stats(config const & cfg)
     auto input_lambda = [&filenames, &chopper_config](size_t const user_bin_id, seqan::hibf::insert_iterator it)
     {
         std::vector<uint64_t> current_kmers;
-        seqan::hibf::sketch::hyperloglog sketch;
 
         if (filenames[user_bin_id].size() > 1)
             throw std::runtime_error{"No multi files accepted yet."};
 
-        process_file(filenames[user_bin_id][0], current_kmers, sketch, true, chopper_config.k);
+        process_file(filenames[user_bin_id][0], current_kmers, chopper_config.k);
 
         for (auto const kmer : current_kmers)
             it = kmer;
