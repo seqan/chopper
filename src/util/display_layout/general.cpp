@@ -194,7 +194,7 @@ int execute(config const & cfg)
         {
             print_result_line();
             sketch.reset();
-            current_kmers.clear();
+            current_kmer_set.clear();
             shared_kmers.clear();
             shared_kmers_initialised = false;
             ub_count = 0u;
