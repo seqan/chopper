@@ -5,10 +5,11 @@
 // shipped with this file and also available at: https://github.com/seqan/chopper/blob/main/LICENSE.md
 // ---------------------------------------------------------------------------------------------------
 
+#include <gtest/gtest.h>
+
+#include <filesystem>
 #include <fstream>
-#include <ranges> // range comparisons
 #include <string> // strings
-#include <vector> // vectors
 
 #include <seqan3/test/tmp_directory.hpp>
 

@@ -5,28 +5,15 @@
 // shipped with this file and also available at: https://github.com/seqan/chopper/blob/main/LICENSE.md
 // ---------------------------------------------------------------------------------------------------
 
+#include <cstdlib>
+#include <filesystem>
 #include <iostream>
-#include <set>
+#include <string>
+#include <string_view>
+#include <vector>
 
-#include <robin_hood.h>
-
-#include <sharg/detail/to_string.hpp>
 #include <sharg/exceptions.hpp>
 #include <sharg/parser.hpp>
-
-#include <seqan3/io/sequence_file/all.hpp>
-#include <seqan3/search/views/minimiser_hash.hpp>
-
-#include <chopper/adjust_seed.hpp>
-#include <chopper/layout/hibf_statistics.hpp>
-#include <chopper/layout/input.hpp>
-
-#include <hibf/build/bin_size_in_bits.hpp>
-#include <hibf/build/build_data.hpp>
-#include <hibf/interleaved_bloom_filter.hpp>
-#include <hibf/layout/compute_fpr_correction.hpp>
-#include <hibf/layout/graph.hpp>
-#include <hibf/sketch/hyperloglog.hpp>
 
 #include "shared.hpp"
 

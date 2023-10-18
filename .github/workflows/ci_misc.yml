@@ -64,7 +64,7 @@ jobs:
           mkdir build
           cd build
           cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-                   -DCMAKE_CXX_FLAGS="-Wno-interference-size" \
+                   -DCMAKE_CXX_FLAGS="-Werror -Wno-interference-size" \
                    -DCHOPPER_HEADER_TEST_ONLY=ON \
                    -DCHOPPER_NATIVE_BUILD=OFF
 

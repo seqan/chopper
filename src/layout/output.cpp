@@ -5,16 +5,27 @@
 // shipped with this file and also available at: https://github.com/seqan/chopper/blob/main/LICENSE.md
 // ---------------------------------------------------------------------------------------------------
 
-#pragma once
-
+#include <cstddef>
+#include <iostream>
 #include <string>
+#include <string_view>
 #include <vector>
 
-#include <chopper/configuration.hpp>
+#include <chopper/layout/output.hpp>
+#include <chopper/prefixes.hpp>
+
+#include <hibf/layout/prefixes.hpp>
 
 namespace chopper::layout
 {
 
-int execute(chopper::configuration & config, std::vector<std::string> const & filenames);
+void write_user_bins_to(std::vector<std::string> const & filenames, std::ostream & stream)
+{
+    stream << chopper::prefix::meta_chopper_user_bins_start << '\n';
+    size_t counter{};
+    for (auto const & filename : filenames)
+        stream << seqan::hibf::prefix::meta_header << counter++ << ' ' << filename << '\n';
+    stream << chopper::prefix::meta_chopper_user_bins_end << '\n';
+}
 
 } // namespace chopper::layout

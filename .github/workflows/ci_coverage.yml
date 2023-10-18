@@ -51,7 +51,7 @@ jobs:
         uses: seqan/actions/setup-toolchain@main
         with:
           compiler: ${{ matrix.compiler }}
-          ccache_size: 125M
+          ccache_size: 200M
 
       - name: Install CMake
         uses: seqan/actions/setup-cmake@main
@@ -68,7 +68,7 @@ jobs:
           mkdir build
           cd build
           cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-                   -DCMAKE_CXX_FLAGS="-Wno-interference-size" \
+                   -DCMAKE_CXX_FLAGS="-Werror -Wno-interference-size" \
                    -DCHOPPER_NATIVE_BUILD=OFF
           make -j2 gtest_build
 
@@ -93,8 +93,7 @@ jobs:
                 ${{ github.workspace }}/build \
                 --filter ${{ github.workspace }}/include \
                 --filter ${{ github.workspace }}/src \
-                --exclude ${{ github.workspace }}/src/measure_hyperloglog.cpp \
-                --exclude ${{ github.workspace }}/src/display_layout \
+                --exclude ${{ github.workspace }}/src/util \
                 --exclude-lines-by-pattern '^\s*$' \
                 --exclude-lines-by-pattern '^\s*};$' \
                 --exclude-lines-by-pattern '^.*GCOVR_EXCL_LINE.*$' \

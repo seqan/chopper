@@ -5,22 +5,32 @@
 // shipped with this file and also available at: https://github.com/seqan/chopper/blob/main/LICENSE.md
 // ---------------------------------------------------------------------------------------------------
 
+#include <algorithm>
 #include <atomic>
 #include <cassert>
-#include <iostream>
+#include <cinttypes>
+#include <cmath>
+#include <cstddef>
+#include <filesystem>
+#include <fstream>
+#include <functional>
+#include <iomanip>
+#include <mutex>
+#include <numeric>
+#include <optional>
+#include <random>
+#include <stdexcept>
+#include <string>
+#include <tuple>
+#include <utility>
+#include <vector>
 
-#include <robin_hood.h>
-
-#include <sharg/detail/to_string.hpp>
-#include <sharg/exceptions.hpp>
-#include <sharg/parser.hpp>
-
-#include <chopper/layout/hibf_statistics.hpp>
 #include <chopper/layout/input.hpp>
 
 #include <hibf/build/bin_size_in_bits.hpp>
 #include <hibf/build/build_data.hpp>
-#include <hibf/interleaved_bloom_filter.hpp>
+#include <hibf/config.hpp>
+#include <hibf/contrib/robin_hood.hpp>
 #include <hibf/layout/compute_fpr_correction.hpp>
 #include <hibf/layout/graph.hpp>
 #include <hibf/sketch/hyperloglog.hpp>
@@ -298,7 +308,15 @@ void execute_general_stats(config const & cfg)
     if (!layout_file.good() || !layout_file.is_open())
         throw std::logic_error{"Could not open file " + cfg.input.string() + " for reading"};
 
+// https://godbolt.org/z/PeKnxzjn1
+#if defined(__clang__)
+    auto tuple = chopper::layout::read_layout_file(layout_file);
+    auto filenames = std::get<0>(tuple);
+    auto chopper_config = std::get<1>(tuple);
+    auto hibf_layout = std::get<2>(tuple);
+#else
     auto [filenames, chopper_config, hibf_layout] = chopper::layout::read_layout_file(layout_file);
+#endif
 
     // Prepare configs
     chopper_config.hibf_config.threads = cfg.threads;

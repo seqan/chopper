@@ -11,7 +11,7 @@ include (seqan3_test_files)
 include (seqan3_test_component)
 
 add_library ("chopper_header_test_lib" INTERFACE)
-target_link_libraries ("chopper_header_test_lib" INTERFACE "${PROJECT_NAME}_interface" gtest gtest_main)
+target_link_libraries ("chopper_header_test_lib" INTERFACE "chopper_shared" gtest gtest_main)
 target_include_directories ("chopper_header_test_lib" INTERFACE "${SEQAN3_TEST_CLONE_DIR}/googletest/include/")
 # SeqAn3 script adds an include for <bechmark/benchmark.h>, which we do not use in Chopper
 target_include_directories ("chopper_header_test_lib" INTERFACE ./dummy_include)
@@ -66,7 +66,7 @@ foreach (header ${header_files})
             target_include_directories (${header_target}
                                         PRIVATE $<TARGET_PROPERTY:chopper_header_test_lib,INTERFACE_INCLUDE_DIRECTORIES>
             )
-            add_dependencies (${header_target} "${PROJECT_NAME}_interface" gtest gtest_main)
+            add_dependencies (${header_target} "chopper_shared" gtest gtest_main)
         else ()
             target_link_libraries (${header_target} chopper_header_test_lib)
         endif ()

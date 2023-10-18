@@ -7,23 +7,13 @@
 
 #pragma once
 
-#include <cereal/archives/json.hpp>
-
-#include <chopper/configuration.hpp>
-#include <chopper/prefixes.hpp>
-
-#include <hibf/layout/layout.hpp>
+#include <iosfwd>
+#include <string>
+#include <vector>
 
 namespace chopper::layout
 {
 
-inline void write_user_bins_to(std::vector<std::string> const & filenames, std::ostream & stream)
-{
-    stream << chopper::prefix::meta_chopper_user_bins_start << '\n';
-    size_t counter{};
-    for (auto const & filename : filenames)
-        stream << seqan::hibf::prefix::meta_header << counter++ << ' ' << filename << '\n';
-    stream << chopper::prefix::meta_chopper_user_bins_end << '\n';
-}
+void write_user_bins_to(std::vector<std::string> const & filenames, std::ostream & stream);
 
 } // namespace chopper::layout

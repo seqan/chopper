@@ -7,6 +7,11 @@
 
 #include <gtest/gtest.h>
 
+#include <filesystem>
+#include <stdexcept>
+#include <string>
+#include <vector>
+
 #include <chopper/sketch/check_filenames.hpp>
 
 #include "../api_test.hpp"

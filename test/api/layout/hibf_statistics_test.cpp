@@ -7,8 +7,14 @@
 
 #include <gtest/gtest.h>
 
+#include <cstddef>
+#include <filesystem>
+#include <functional>
 #include <iostream>
+#include <limits>
 #include <ranges>
+#include <string>
+#include <vector>
 
 #include <chopper/configuration.hpp>
 #include <chopper/layout/execute.hpp>

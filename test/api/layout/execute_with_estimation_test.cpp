@@ -7,13 +7,19 @@
 
 #include <gtest/gtest.h>
 
-#include <fstream>
-#include <sstream>
+#include <cmath>
+#include <cstddef>
+#include <filesystem>
+#include <functional>
+#include <ranges>
+#include <string>
+#include <tuple>
 #include <vector>
 
 #include <seqan3/io/sequence_file/all.hpp>
 #include <seqan3/search/views/kmer_hash.hpp>
 
+#include <chopper/configuration.hpp>
 #include <chopper/layout/execute.hpp>
 #include <chopper/sketch/read_hll_files_into.hpp>
 

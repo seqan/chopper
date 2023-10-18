@@ -8,4 +8,4 @@
 cmake_minimum_required (VERSION 3.18)
 
 add_executable (display_layout EXCLUDE_FROM_ALL display_layout.cpp general.cpp process_file.cpp sizes.cpp)
-target_link_libraries (display_layout "chopper_interface")
+target_link_libraries (display_layout PUBLIC chopper_lib)

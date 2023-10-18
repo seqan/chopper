@@ -54,7 +54,7 @@ jobs:
         uses: seqan/actions/setup-toolchain@main
         with:
           compiler: ${{ matrix.compiler }}
-          ccache_size: 75M
+          ccache_size: 125M
 
       - name: Install CMake
         uses: seqan/actions/setup-cmake@main
@@ -66,7 +66,7 @@ jobs:
           mkdir build
           cd build
           cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-                   -DCMAKE_CXX_FLAGS="-Wno-interference-size" \
+                   -DCMAKE_CXX_FLAGS="-Werror -Wno-interference-size" \
                    -DCHOPPER_NATIVE_BUILD=OFF
           make -j3 gtest_build
 

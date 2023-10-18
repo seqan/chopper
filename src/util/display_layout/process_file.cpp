@@ -5,6 +5,14 @@
 // shipped with this file and also available at: https://github.com/seqan/chopper/blob/main/LICENSE.md
 // ---------------------------------------------------------------------------------------------------
 
+#include <algorithm>
+#include <cinttypes>
+#include <filesystem>
+#include <fstream>
+#include <ranges>
+#include <string>
+#include <vector>
+
 #include <seqan3/io/sequence_file/all.hpp>
 #include <seqan3/search/views/minimiser_hash.hpp>
 

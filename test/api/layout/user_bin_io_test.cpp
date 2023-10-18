@@ -1,10 +1,8 @@
 #include <gtest/gtest.h> // for Test, TestInfo, EXPECT_EQ, Message, TEST, TestPartResult
 
-#include <cstddef>     // for size_t
-#include <sstream>     // for operator<<, char_traits, basic_ostream, basic_stringstream, strings...
-#include <string>      // for allocator, string
-#include <string_view> // for operator<<
-#include <vector>      // for vector
+#include <sstream> // for operator<<, char_traits, basic_ostream, basic_stringstream, strings...
+#include <string>  // for allocator, string
+#include <vector>  // for vector
 
 #include <chopper/layout/input.hpp>
 #include <chopper/layout/output.hpp>

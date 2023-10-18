@@ -5,15 +5,18 @@
 // shipped with this file and also available at: https://github.com/seqan/chopper/blob/main/LICENSE.md
 // ---------------------------------------------------------------------------------------------------
 
-#pragma once
-
-#include <sharg/parser.hpp>
+#include <utility>
+#include <vector>
 
 #include <chopper/configuration.hpp>
 
-namespace chopper
+#include <hibf/layout/layout.hpp>
+#include <hibf/sketch/hyperloglog.hpp>
+
+namespace chopper::layout
 {
 
-void set_up_parser(sharg::parser & parser, configuration & config);
+std::pair<seqan::hibf::layout::layout, std::vector<seqan::hibf::sketch::hyperloglog>>
+determine_best_number_of_technical_bins(chopper::configuration & config);
 
 }

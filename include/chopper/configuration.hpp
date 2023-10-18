@@ -7,15 +7,11 @@
 
 #pragma once
 
-#include <cassert>
+#include <cinttypes>
 #include <filesystem>
+#include <iosfwd>
 
-#include <cereal/archives/json.hpp>
 #include <cereal/cereal.hpp>
-#include <cereal/types/string.hpp>
-#include <cereal/types/vector.hpp>
-
-#include <chopper/prefixes.hpp>
 
 #include <hibf/cereal/path.hpp> // IWYU pragma: keep
 #include <hibf/config.hpp>
@@ -70,48 +66,9 @@ struct configuration
     //!\brief The HIBF config which will be used to compute the layout within the HIBF lib.
     seqan::hibf::config hibf_config;
 
-    void read_from(std::istream & stream)
-    {
-        std::string line;
-        std::stringstream config_str;
+    void read_from(std::istream & stream);
 
-        while (std::getline(stream, line) && line != chopper::prefix::meta_chopper_config_start)
-            ;
-
-        assert(line == chopper::prefix::meta_chopper_config_start);
-
-        while (std::getline(stream, line) && line != chopper::prefix::meta_chopper_config_end)
-        {
-            assert(line.size() >= 2);
-            assert(std::string_view{line}.substr(0, 1) == seqan::hibf::prefix::meta_header);
-            config_str << line.substr(1); // remove seqan::hibf::prefix::meta_header
-        }
-
-        assert(line == chopper::prefix::meta_chopper_config_end);
-
-        cereal::JSONInputArchive iarchive(config_str);
-        iarchive(*this);
-
-        hibf_config.read_from(stream);
-    }
-
-    void write_to(std::ostream & stream) const
-    {
-        // write json file to temprorary string stream with cereal
-        std::stringstream config_stream{};
-        cereal::JSONOutputArchive output(config_stream); // stream to cout
-        output(cereal::make_nvp("chopper_config", *this));
-
-        // write config
-        stream << chopper::prefix::meta_chopper_config_start << '\n';
-        std::string line;
-        while (std::getline(config_stream, line, '\n'))
-            stream << seqan::hibf::prefix::meta_header << line << '\n';
-        stream << seqan::hibf::prefix::meta_header << "}\n" // last closing bracket isn't written by loop above
-               << chopper::prefix::meta_chopper_config_end << '\n';
-
-        hibf_config.write_to(stream);
-    }
+    void write_to(std::ostream & stream) const;
 
 private:
     friend class cereal::access;
