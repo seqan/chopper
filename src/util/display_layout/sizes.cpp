@@ -87,9 +87,10 @@ struct per_level_stats
 
         for (size_t i = 0; i < number_of_levels; ++i)
         {
+            assert(num_ibfs[i] > 0u);
             load_factor[i] /= num_ibfs[i];
             max_elements[i] /= num_ibfs[i];
-            tbs_too_many_elements[i] /= tbs_too_big[i];
+            tbs_too_many_elements[i] /= tbs_too_big[i] ? tbs_too_big[i] : 1u;
         }
     }
 
