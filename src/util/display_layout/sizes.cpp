@@ -89,7 +89,7 @@ struct per_level_stats
         {
             load_factor[i] /= num_ibfs[i];
             max_elements[i] /= num_ibfs[i];
-            tbs_too_many_elements[i] /= num_ibfs[i];
+            tbs_too_many_elements[i] /= tbs_too_big[i];
         }
     }
 
