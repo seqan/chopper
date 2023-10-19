@@ -109,7 +109,11 @@ int execute(config const & cfg)
             return first_idx < second_idx || (first_idx == second_idx && filesizes[lhs.idx] < filesizes[rhs.idx]);
         });
 
+    // Estimates the cardinality of one technical bin. For merged bins, user bins will be iteratively added.
     seqan::hibf::sketch::hyperloglog sketch{hibf_config.sketch_bits};
+    // Used to determine the exact cardinality for one technical bin.
+    robin_hood::unordered_set<uint64_t> current_kmer_set{};
+    // Stores shared k-mers across user bins of a merged technical bin.
     robin_hood::unordered_set<uint64_t> shared_kmers{};
     // We can't use `shared_kmers.size() == 0` instead of `shared_kmers_initialised`, because keep_duplicates
     // will result in a size of 0 when there are no shared k-mers.
@@ -140,21 +144,24 @@ int execute(config const & cfg)
     // Stats file header
     output_stream << "# Layout: " << cfg.input.c_str() << '\n' //
                   << "tb_index\t"
-                  << "size\t"
+                  << "exact_size\t"
+                  << "estimated_size\t"
                   << "shared_size\t"
                   << "ub_count\t"
                   << "kind\t"
-                  << "splits" << '\n';
+                  << "splits\n";
 
     auto print_result_line = [&]()
     {
         bool const is_merged{bin_kinds[current_idx] == chopper::layout::hibf_statistics::bin_kind::merged};
-        size_t const avg_kmer_count = (sketch.estimate() + split_count - 1u) / split_count;
+        size_t const avg_kmer_count = (current_kmer_set.size() + split_count - 1u) / split_count;
+        size_t const sketch_estimate = (sketch.estimate() + split_count - 1u) / split_count;
 
         for (size_t i{}, total{split_count}; i < total; ++i)
         {
             output_stream << current_idx + i << '\t'                  //
                           << avg_kmer_count << '\t'                   //
+                          << sketch_estimate << '\t'                  //
                           << shared_kmers.size() << '\t'              //
                           << ub_count << '\t'                         //
                           << (is_merged ? "merged" : "split") << '\t' //
@@ -182,11 +189,12 @@ int execute(config const & cfg)
             (user_bin.previous_TB_indices.size() == 0) ? user_bin.storage_TB_id : user_bin.previous_TB_indices[0];
 
         // We processed all user bins that belong to the `current_idx`th top-level technical bin.
-        // Print results and update data.
+        // Print results, advance the current index, and reset all user bin-specific data.
         if (idx != current_idx)
         {
             print_result_line();
             sketch.reset();
+            current_kmer_set.clear();
             shared_kmers.clear();
             shared_kmers_initialised = false;
             ub_count = 0u;
@@ -207,7 +215,7 @@ int execute(config const & cfg)
         {
             ++ub_count; // This assumes that each user bin has exactly one associated file. Currently the case.
 
-            process_file(filename, current_kmers, sketch, fill_current_kmers, chopper_config.k);
+            process_file(filename, current_kmer_set, current_kmers, sketch, fill_current_kmers, chopper_config.k);
         }
 
         // Compute set intersection: shared_kmers = shared_kmers ∩ current_kmers
