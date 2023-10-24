@@ -317,10 +317,8 @@ void execute_general_stats(config const & cfg)
     seqan::hibf::build::build_data data{.config = hibf_config, .ibf_graph = {hibf_layout}};
     seqan::hibf::layout::graph::node const & root_node = data.ibf_graph.root;
     size_t const t_max{root_node.number_of_technical_bins};
-    data.fpr_correction =
-        seqan::hibf::layout::compute_fpr_correction({.fpr = hibf_config.maximum_false_positive_rate,
-                                                     .hash_count = hibf_config.number_of_hash_functions,
-                                                     .t_max = t_max});
+    data.fpr_correction = seqan::hibf::layout::compute_fpr_correction(
+        {.fpr = hibf_config.maximum_fpr, .hash_count = hibf_config.number_of_hash_functions, .t_max = t_max});
 
     // Get stats
     hierarchical_stats(stats, root_node, data);

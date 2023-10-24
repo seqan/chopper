@@ -46,7 +46,7 @@ hibf_statistics::hibf_statistics(configuration const & config_,
                                  std::vector<size_t> const & kmer_counts) :
     config{config_},
     fp_correction{
-        seqan::hibf::layout::compute_fpr_correction({.fpr = config_.hibf_config.maximum_false_positive_rate,
+        seqan::hibf::layout::compute_fpr_correction({.fpr = config_.hibf_config.maximum_fpr,
                                                      .hash_count = config_.hibf_config.number_of_hash_functions,
                                                      .t_max = config_.hibf_config.tmax})},
     sketches{sketches_},
@@ -187,9 +187,8 @@ void hibf_statistics::print_summary_to(size_t & t_max_64_memory, std::ostream & 
     stream /*        tmax */ << config.hibf_config.tmax
                              << '\t'
                              /*      c_tmax */
-                             << chopper::layout::ibf_query_cost::interpolated(
-                                    config.hibf_config.tmax,
-                                    config.hibf_config.maximum_false_positive_rate)
+                             << chopper::layout::ibf_query_cost::interpolated(config.hibf_config.tmax,
+                                                                              config.hibf_config.maximum_fpr)
                              << '\t'
                              /*      l_tmax */
                              << expected_HIBF_query_cost
@@ -260,7 +259,7 @@ size_t hibf_statistics::total_hibf_size_in_byte()
     }
 
     size_t const size_in_bits =
-        seqan::hibf::build::bin_size_in_bits({.fpr = config.hibf_config.maximum_false_positive_rate,
+        seqan::hibf::build::bin_size_in_bits({.fpr = config.hibf_config.maximum_fpr,
                                               .hash_count = config.hibf_config.number_of_hash_functions,
                                               .elements = total_size});
 
@@ -349,7 +348,7 @@ size_t hibf_statistics::total_hibf_size_in_byte()
 std::string hibf_statistics::to_formatted_BF_size(size_t const number_of_kmers_to_be_stored) const
 {
     size_t const size_in_bits =
-        seqan::hibf::build::bin_size_in_bits({.fpr = config.hibf_config.maximum_false_positive_rate,
+        seqan::hibf::build::bin_size_in_bits({.fpr = config.hibf_config.maximum_fpr,
                                               .hash_count = config.hibf_config.number_of_hash_functions,
                                               .elements = number_of_kmers_to_be_stored});
     return byte_size_to_formatted_str(size_in_bits / 8);
@@ -486,8 +485,7 @@ void hibf_statistics::compute_total_query_cost(level & curr_level)
 
     // Add cost of querying the current IBF
     // (how costly is querying number_of_tbs (e.g. 128 tbs) compared to 64 tbs given the current FPR)
-    curr_level.current_query_cost +=
-        ibf_query_cost::interpolated(number_of_tbs, config.hibf_config.maximum_false_positive_rate);
+    curr_level.current_query_cost += ibf_query_cost::interpolated(number_of_tbs, config.hibf_config.maximum_fpr);
 
     // Add costs of querying the HIBF for each kmer in this level.
     total_query_cost += curr_level.current_query_cost * level_kmer_count;

@@ -57,7 +57,7 @@ determine_best_number_of_technical_bins(chopper::configuration & config)
     file_out << "## ### Parameters ###\n"
              << "## number of user bins = " << config.hibf_config.number_of_user_bins << '\n'
              << "## number of hash functions = " << config.hibf_config.number_of_hash_functions << '\n'
-             << "## false positive rate = " << config.hibf_config.maximum_false_positive_rate << '\n';
+             << "## false positive rate = " << config.hibf_config.maximum_fpr << '\n';
     hibf_statistics::print_header_to(file_out, config.output_verbose_statistics);
 
     double best_expected_HIBF_query_cost{std::numeric_limits<double>::infinity()};

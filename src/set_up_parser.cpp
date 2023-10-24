@@ -90,7 +90,7 @@ void set_up_parser(sharg::parser & parser, configuration & config)
                           "This parameter is needed to correctly estimate the index size when computing the layout."});
 
     parser.add_option(
-        config.hibf_config.maximum_false_positive_rate,
+        config.hibf_config.maximum_fpr,
         sharg::config{.short_id = '\0',
                       .long_id = "fpr",
                       .description =

@@ -25,7 +25,8 @@ chopper::configuration generate_config()
 
     config.hibf_config.number_of_user_bins = 123456789;
     config.hibf_config.number_of_hash_functions = 4;
-    config.hibf_config.maximum_false_positive_rate = 0.0001;
+    config.hibf_config.maximum_fpr = 0.0001;
+    config.hibf_config.relaxed_fpr = 0.2;
     config.hibf_config.threads = 31;
     config.hibf_config.sketch_bits = 8;
     config.hibf_config.tmax = 128;
@@ -42,24 +43,25 @@ namespace chopper
 
 bool operator==(chopper::configuration const & lhs, chopper::configuration const & rhs)
 {
-    return lhs.data_file == rhs.data_file &&                                                             //
-           lhs.debug == rhs.debug &&                                                                     //
-           lhs.sketch_directory == rhs.sketch_directory &&                                               //
-           lhs.k == rhs.k &&                                                                             //
-           lhs.disable_sketch_output == rhs.disable_sketch_output &&                                     //
-           lhs.precomputed_files == rhs.precomputed_files &&                                             //
-           lhs.output_filename == rhs.output_filename &&                                                 //
-           lhs.determine_best_tmax == rhs.determine_best_tmax &&                                         //
-           lhs.force_all_binnings == rhs.force_all_binnings &&                                           //
-           lhs.hibf_config.number_of_user_bins == rhs.hibf_config.number_of_user_bins &&                 //
-           lhs.hibf_config.number_of_hash_functions == rhs.hibf_config.number_of_hash_functions &&       //
-           lhs.hibf_config.maximum_false_positive_rate == rhs.hibf_config.maximum_false_positive_rate && //
-           lhs.hibf_config.threads == rhs.hibf_config.threads &&                                         //
-           lhs.hibf_config.sketch_bits == rhs.hibf_config.sketch_bits &&                                 //
-           lhs.hibf_config.tmax == rhs.hibf_config.tmax &&                                               //
-           lhs.hibf_config.alpha == rhs.hibf_config.alpha &&                                             //
-           lhs.hibf_config.max_rearrangement_ratio == rhs.hibf_config.max_rearrangement_ratio &&         //
-           lhs.hibf_config.disable_estimate_union == rhs.hibf_config.disable_estimate_union &&           //
+    return lhs.data_file == rhs.data_file &&                                                       //
+           lhs.debug == rhs.debug &&                                                               //
+           lhs.sketch_directory == rhs.sketch_directory &&                                         //
+           lhs.k == rhs.k &&                                                                       //
+           lhs.disable_sketch_output == rhs.disable_sketch_output &&                               //
+           lhs.precomputed_files == rhs.precomputed_files &&                                       //
+           lhs.output_filename == rhs.output_filename &&                                           //
+           lhs.determine_best_tmax == rhs.determine_best_tmax &&                                   //
+           lhs.force_all_binnings == rhs.force_all_binnings &&                                     //
+           lhs.hibf_config.number_of_user_bins == rhs.hibf_config.number_of_user_bins &&           //
+           lhs.hibf_config.number_of_hash_functions == rhs.hibf_config.number_of_hash_functions && //
+           lhs.hibf_config.maximum_fpr == rhs.hibf_config.maximum_fpr &&                           //
+           lhs.hibf_config.relaxed_fpr == rhs.hibf_config.relaxed_fpr &&                           //
+           lhs.hibf_config.threads == rhs.hibf_config.threads &&                                   //
+           lhs.hibf_config.sketch_bits == rhs.hibf_config.sketch_bits &&                           //
+           lhs.hibf_config.tmax == rhs.hibf_config.tmax &&                                         //
+           lhs.hibf_config.alpha == rhs.hibf_config.alpha &&                                       //
+           lhs.hibf_config.max_rearrangement_ratio == rhs.hibf_config.max_rearrangement_ratio &&   //
+           lhs.hibf_config.disable_estimate_union == rhs.hibf_config.disable_estimate_union &&     //
            lhs.hibf_config.disable_rearrangement == rhs.hibf_config.disable_rearrangement;
 }
 
@@ -93,7 +95,8 @@ static constexpr std::string_view config_string_view{"@CHOPPER_CONFIG\n"
                                                      "@        \"version\": 1,\n"
                                                      "@        \"number_of_user_bins\": 123456789,\n"
                                                      "@        \"number_of_hash_functions\": 4,\n"
-                                                     "@        \"maximum_false_positive_rate\": 0.0001,\n"
+                                                     "@        \"maximum_fpr\": 0.0001,\n"
+                                                     "@        \"relaxed_fpr\": 0.2,\n"
                                                      "@        \"threads\": 31,\n"
                                                      "@        \"sketch_bits\": 8,\n"
                                                      "@        \"tmax\": 128,\n"
