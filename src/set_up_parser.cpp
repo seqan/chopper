@@ -98,6 +98,16 @@ void set_up_parser(sharg::parser & parser, configuration & config)
                           "This parameter is needed to correctly estimate the index size when computing the layout."});
 
     parser.add_option(
+        config.hibf_config.relaxed_fpr,
+        sharg::config{.short_id = '\0',
+                      .long_id = "relaxed-fpr",
+                      .description =
+                          "The relaxed false positive rate (fpr) for parts that are not critical for the maximum fpr. "
+                          "Choosing a higher relaxed FPR can lower the memory requirement but increases the runtime. "
+                          "Experiments show that the decrease in memory is significant while the the runtime suffers "
+                          "only slightly. We still guarantee that we never exceed the maximum fpr (--fpr)."});
+
+    parser.add_option(
         config.output_filename,
         sharg::config{.short_id = '\0', .long_id = "output", .description = "A file name for the resulting layout."});
 
