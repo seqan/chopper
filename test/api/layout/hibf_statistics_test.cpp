@@ -120,8 +120,8 @@ TEST(execute_test, chopper_layout_statistics)
     };
 
     chopper::configuration config{.data_file = "not needed",
-                                  .disable_sketch_output = true,
                                   .output_filename = layout_file.c_str(),
+                                  .disable_sketch_output = true,
                                   .output_verbose_statistics = true,
                                   .hibf_config = {.input_fn = simulated_input,
                                                   .number_of_user_bins = many_filenames.size(),
@@ -171,8 +171,8 @@ TEST(execute_test, chopper_layout_statistics_determine_best_bins)
     };
 
     chopper::configuration config{.data_file = "not needed",
-                                  .disable_sketch_output = true,
                                   .output_filename = binning_filename.c_str(),
+                                  .disable_sketch_output = true,
                                   .determine_best_tmax = true,
                                   .force_all_binnings = true,
                                   .output_verbose_statistics = true,
