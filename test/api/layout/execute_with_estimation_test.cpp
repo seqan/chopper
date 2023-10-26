@@ -61,7 +61,8 @@ TEST(execute_estimation_test, few_ubs)
               R"expected_cout(## ### Parameters ###
 ## number of user bins = 8
 ## number of hash functions = 2
-## false positive rate = 0.05
+## maximum false positive rate = 0.05
+## relaxed false positive rate = 0.3
 ## ### Notation ###
 ## X-IBF = An IBF with X number of bins.
 ## X-HIBF = An HIBF with tmax = X, e.g a maximum of X technical bins on each level.
@@ -116,7 +117,8 @@ TEST(execute_estimation_test, many_ubs)
               R"expected_cout(## ### Parameters ###
 ## number of user bins = 96
 ## number of hash functions = 2
-## false positive rate = 0.05
+## maximum false positive rate = 0.05
+## relaxed false positive rate = 0.3
 ## ### Notation ###
 ## X-IBF = An IBF with X number of bins.
 ## X-HIBF = An HIBF with tmax = X, e.g a maximum of X technical bins on each level.
@@ -417,7 +419,8 @@ TEST(execute_estimation_test, many_ubs_force_all)
               R"expected_cout(## ### Parameters ###
 ## number of user bins = 96
 ## number of hash functions = 2
-## false positive rate = 0.05
+## maximum false positive rate = 0.05
+## relaxed false positive rate = 0.3
 ## ### Notation ###
 ## X-IBF = An IBF with X number of bins.
 ## X-HIBF = An HIBF with tmax = X, e.g a maximum of X technical bins on each level.
@@ -521,7 +524,8 @@ TEST(execute_estimation_test, with_rearrangement)
               R"expected_cout(## ### Parameters ###
 ## number of user bins = 196
 ## number of hash functions = 2
-## false positive rate = 0.05
+## maximum false positive rate = 0.05
+## relaxed false positive rate = 0.3
 ## ### Notation ###
 ## X-IBF = An IBF with X number of bins.
 ## X-HIBF = An HIBF with tmax = X, e.g a maximum of X technical bins on each level.
