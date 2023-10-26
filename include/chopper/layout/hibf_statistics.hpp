@@ -133,18 +133,6 @@ private:
     //!\brief The gathered summary of statistics for each level of this HIBF.
     std::map<size_t, level_summary> summaries;
 
-    /*!\brief Computes the bin size in bits.
-    *
-    * -NUM_ELEM*HASHES
-    * ----------------------  = SIZE
-    * LN(1-FPR^(1/HASHES))
-    *
-    * -NUM_ELEMS*HASHES
-    * -----------------------
-    * LN(1 - e^(LN(FPR) / HASHES) )
-    */
-    size_t compute_bin_size(size_t const number_of_kmers_to_be_stored) const;
-
     /*!\brief Compute the Bloom Filter size from `number_of_kmers_to_be_stored` and
      *        return it as a formatted string with the appropriate unit.
      * \param[in] number_of_kmers_to_be_stored

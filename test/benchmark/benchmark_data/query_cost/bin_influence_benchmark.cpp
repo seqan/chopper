@@ -22,6 +22,8 @@
 
 #include <raptor/adjust_seed.hpp>
 
+#include <hibf/build/bin_size_in_bits.hpp>
+
 #define USE_UNIT_TEST_PARAMETERS 0
 
 static constexpr size_t operator""_MiB(unsigned long long int number)
@@ -73,14 +75,6 @@ static std::vector<std::vector<seqan3::dna4>> const reads{
 
 using ibf_t = seqan3::interleaved_bloom_filter<seqan3::data_layout::uncompressed>;
 
-static constexpr size_t compute_bin_size(size_t const max_bin_size, double const fpr)
-{
-    double const numerator{-static_cast<double>(max_bin_size * hash_num)};
-    double const denominator{std::log(1 - std::exp(std::log(fpr) / hash_num))};
-    double const result{std::ceil(numerator / denominator)};
-    return result;
-}
-
 static std::vector<size_t> cardinality(size_t const bin_count, auto && hash_adaptor)
 {
     std::vector<size_t> cardinalities(bin_count);
@@ -105,7 +99,7 @@ static std::vector<size_t> cardinality(size_t const bin_count, auto && hash_adap
 
 static ibf_t construct_ibf(size_t const bin_count, auto && hash_adaptor, double const fpr)
 {
-    size_t const bin_size{compute_bin_size(std::ranges::max(cardinality(bin_count, hash_adaptor)), fpr)};
+    size_t const bin_size{seqan::hibf::build::bin_size_in_bits({.fpr = fpr, .hash_count = hash_num, .elements = cardinality(bin_count, hash_adaptor)});
 
     if (bin_size * bin_count > max_ibf_size)
         throw std::runtime_error{"Resulting IBF would be too big. " + std::to_string(bin_size * bin_count)};
@@ -197,4 +191,3 @@ BENCHMARK_CAPTURE(bulk_count, "0.3125", 0.3125)->RangeMultiplier(2)->Range(64, 6
 #endif
 
 BENCHMARK_MAIN();
-// clang-format on
