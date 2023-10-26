@@ -32,6 +32,7 @@
 #include <chopper/layout/hibf_statistics.hpp>
 #include <chopper/layout/ibf_query_cost.hpp>
 
+#include <hibf/build/bin_size_in_bits.hpp>
 #include <hibf/contrib/robin_hood.hpp>
 #include <hibf/layout/compute_fpr_correction.hpp>
 #include <hibf/layout/layout.hpp>
@@ -258,7 +259,12 @@ size_t hibf_statistics::total_hibf_size_in_byte()
         total_size += std::reduce(summary.ibf_mem_size.begin(), summary.ibf_mem_size.end());
     }
 
-    return compute_bin_size(total_size) / 8;
+    size_t const size_in_bits =
+        seqan::hibf::build::bin_size_in_bits({.fpr = config.hibf_config.maximum_false_positive_rate,
+                                              .hash_count = config.hibf_config.number_of_hash_functions,
+                                              .elements = total_size});
+
+    return size_in_bits / 8;
 }
 
 //!\brief Round bytes to the appropriate unit and convert to string with unit.
@@ -340,18 +346,13 @@ size_t hibf_statistics::total_hibf_size_in_byte()
     return result;
 }
 
-size_t hibf_statistics::compute_bin_size(size_t const number_of_kmers_to_be_stored) const
-{
-    return std::ceil(-static_cast<double>(number_of_kmers_to_be_stored * config.hibf_config.number_of_hash_functions)
-                     / std::log(1
-                                - std::exp(std::log(config.hibf_config.maximum_false_positive_rate)
-                                           / config.hibf_config.number_of_hash_functions)));
-}
-
 std::string hibf_statistics::to_formatted_BF_size(size_t const number_of_kmers_to_be_stored) const
 {
-    size_t const size_in_bytes = compute_bin_size(number_of_kmers_to_be_stored) / 8;
-    return byte_size_to_formatted_str(size_in_bytes);
+    size_t const size_in_bits =
+        seqan::hibf::build::bin_size_in_bits({.fpr = config.hibf_config.maximum_false_positive_rate,
+                                              .hash_count = config.hibf_config.number_of_hash_functions,
+                                              .elements = number_of_kmers_to_be_stored});
+    return byte_size_to_formatted_str(size_in_bits / 8);
 }
 
 void hibf_statistics::collect_bins()
