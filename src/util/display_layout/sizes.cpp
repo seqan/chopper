@@ -27,7 +27,6 @@
 
 #include <chopper/layout/input.hpp>
 
-#include <hibf/build/bin_size_in_bits.hpp>
 #include <hibf/build/build_data.hpp>
 #include <hibf/config.hpp>
 #include <hibf/contrib/robin_hood.hpp>
@@ -35,6 +34,7 @@
 #include <hibf/layout/graph.hpp>
 #include <hibf/sketch/hyperloglog.hpp>
 
+#include "compute_ibf_size.hpp"
 #include "shared.hpp"
 
 struct ibf_stats
@@ -124,34 +124,6 @@ void compute_kmers(robin_hood::unordered_flat_set<uint64_t> & kmers,
                    seqan::hibf::layout::layout::user_bin const & record)
 {
     data.config.input_fn(record.idx, seqan::hibf::insert_iterator{kmers});
-}
-
-void update_parent_kmers(robin_hood::unordered_flat_set<uint64_t> & parent_kmers,
-                         robin_hood::unordered_flat_set<uint64_t> const & kmers)
-{
-    parent_kmers.insert(kmers.begin(), kmers.end());
-}
-
-size_t compute_ibf_size(robin_hood::unordered_flat_set<uint64_t> & parent_kmers,
-                        robin_hood::unordered_flat_set<uint64_t> & kmers,
-                        size_t const number_of_bins,
-                        seqan::hibf::layout::graph::node const & ibf_node,
-                        seqan::hibf::build::build_data & data,
-                        size_t const current_hibf_level)
-{
-    size_t const kmers_per_bin = std::ceil(static_cast<double>(kmers.size()) / number_of_bins);
-    size_t const bin_size =
-        std::ceil(seqan::hibf::build::bin_size_in_bits({.fpr = data.config.maximum_false_positive_rate,
-                                                        .hash_count = data.config.number_of_hash_functions,
-                                                        .elements = kmers_per_bin})
-                  * data.fpr_correction[number_of_bins]);
-
-    size_t const ibf_size = ibf_node.number_of_technical_bins * bin_size;
-
-    if (current_hibf_level > 0 /* not top level */)
-        update_parent_kmers(parent_kmers, kmers);
-
-    return ibf_size;
 }
 
 size_t hierarchical_stats(std::vector<ibf_stats> & stats,
