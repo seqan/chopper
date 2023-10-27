@@ -61,7 +61,8 @@ TEST(execute_estimation_test, few_ubs)
               R"expected_cout(## ### Parameters ###
 ## number of user bins = 8
 ## number of hash functions = 2
-## false positive rate = 0.05
+## maximum false positive rate = 0.05
+## relaxed false positive rate = 0.3
 ## ### Notation ###
 ## X-IBF = An IBF with X number of bins.
 ## X-HIBF = An HIBF with tmax = X, e.g a maximum of X technical bins on each level.
@@ -116,7 +117,8 @@ TEST(execute_estimation_test, many_ubs)
               R"expected_cout(## ### Parameters ###
 ## number of user bins = 96
 ## number of hash functions = 2
-## false positive rate = 0.05
+## maximum false positive rate = 0.05
+## relaxed false positive rate = 0.3
 ## ### Notation ###
 ## X-IBF = An IBF with X number of bins.
 ## X-HIBF = An HIBF with tmax = X, e.g a maximum of X technical bins on each level.
@@ -128,9 +130,9 @@ TEST(execute_estimation_test, many_ubs)
 ## (l*m)_tmax : Computed by l_tmax * m_tmax
 ## size : The expected total size of an tmax-HIBF
 # tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size
-64	1.00	1.25	1.00	1.25	75.4KiB
-128	1.22	1.24	0.69	0.86	51.9KiB
-256	1.33	1.33	0.76	1.02	57.5KiB
+64	1.00	1.25	1.00	1.25	75.1KiB
+128	1.22	1.24	0.68	0.85	51.4KiB
+256	1.33	1.33	0.77	1.02	57.5KiB
 # Best t_max (regarding expected query runtime): 128
 )expected_cout");
 
@@ -262,7 +264,8 @@ TEST(execute_estimation_test, many_ubs)
                                       "@        \"version\": 1,\n"
                                       "@        \"number_of_user_bins\": 96,\n"
                                       "@        \"number_of_hash_functions\": 2,\n"
-                                      "@        \"maximum_false_positive_rate\": 0.05,\n"
+                                      "@        \"maximum_fpr\": 0.05,\n"
+                                      "@        \"relaxed_fpr\": 0.3,\n"
                                       "@        \"threads\": 1,\n"
                                       "@        \"sketch_bits\": 12,\n"
                                       "@        \"tmax\": 128,\n"
@@ -274,8 +277,8 @@ TEST(execute_estimation_test, many_ubs)
                                       "@}\n"
                                       "@HIBF_CONFIG_END\n"
                                       "#TOP_LEVEL_IBF fullest_technical_bin_idx:96\n"
-                                      "#LOWER_LEVEL_IBF_14 fullest_technical_bin_idx:24\n"
-                                      "#LOWER_LEVEL_IBF_15 fullest_technical_bin_idx:24\n"
+                                      "#LOWER_LEVEL_IBF_14 fullest_technical_bin_idx:0\n"
+                                      "#LOWER_LEVEL_IBF_15 fullest_technical_bin_idx:0\n"
                                       "#USER_BIN_IDX\tTECHNICAL_BIN_INDICES\tNUMBER_OF_TECHNICAL_BINS\n"
                                       "0\t0\t1\n"
                                       "19\t1\t1\n"
@@ -291,12 +294,12 @@ TEST(execute_estimation_test, many_ubs)
                                       "9\t11\t1\n"
                                       "8\t12\t1\n"
                                       "7\t13\t1\n"
-                                      "4\t14;0\t1;24\n"
-                                      "5\t14;24\t1;20\n"
-                                      "6\t14;44\t1;20\n"
-                                      "1\t15;0\t1;24\n"
-                                      "2\t15;24\t1;20\n"
-                                      "3\t15;44\t1;20\n"
+                                      "4\t14;0\t1;22\n"
+                                      "5\t14;22\t1;21\n"
+                                      "6\t14;43\t1;21\n"
+                                      "1\t15;0\t1;22\n"
+                                      "2\t15;22\t1;21\n"
+                                      "3\t15;43\t1;21\n"
                                       "32\t16\t1\n"
                                       "33\t17\t1\n"
                                       "34\t18\t1\n"
@@ -416,7 +419,8 @@ TEST(execute_estimation_test, many_ubs_force_all)
               R"expected_cout(## ### Parameters ###
 ## number of user bins = 96
 ## number of hash functions = 2
-## false positive rate = 0.05
+## maximum false positive rate = 0.05
+## relaxed false positive rate = 0.3
 ## ### Notation ###
 ## X-IBF = An IBF with X number of bins.
 ## X-HIBF = An HIBF with tmax = X, e.g a maximum of X technical bins on each level.
@@ -428,9 +432,9 @@ TEST(execute_estimation_test, many_ubs_force_all)
 ## (l*m)_tmax : Computed by l_tmax * m_tmax
 ## size : The expected total size of an tmax-HIBF
 # tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size
-64	1.00	1.25	1.00	1.25	75.4KiB
-128	1.22	1.24	0.69	0.86	51.9KiB
-256	1.33	1.33	0.76	1.02	57.5KiB
+64	1.00	1.25	1.00	1.25	75.1KiB
+128	1.22	1.24	0.68	0.85	51.4KiB
+256	1.33	1.33	0.77	1.02	57.5KiB
 # Best t_max (regarding expected query runtime): 128
 )expected_cout");
 
@@ -520,7 +524,8 @@ TEST(execute_estimation_test, with_rearrangement)
               R"expected_cout(## ### Parameters ###
 ## number of user bins = 196
 ## number of hash functions = 2
-## false positive rate = 0.05
+## maximum false positive rate = 0.05
+## relaxed false positive rate = 0.3
 ## ### Notation ###
 ## X-IBF = An IBF with X number of bins.
 ## X-HIBF = An HIBF with tmax = X, e.g a maximum of X technical bins on each level.

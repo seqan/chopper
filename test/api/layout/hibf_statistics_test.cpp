@@ -187,7 +187,8 @@ TEST(execute_test, chopper_layout_statistics_determine_best_bins)
         R"expected_cout(## ### Parameters ###
 ## number of user bins = 10
 ## number of hash functions = 2
-## false positive rate = 0.05
+## maximum false positive rate = 0.05
+## relaxed false positive rate = 0.3
 ## ### Notation ###
 ## X-IBF = An IBF with X number of bins.
 ## X-HIBF = An HIBF with tmax = X, e.g a maximum of X technical bins on each level.

@@ -39,7 +39,7 @@ TEST(compute_ibf_size_test, merged_bin_is_max_bin)
     seqan::hibf::build::build_data data{
         .config = {.number_of_user_bins = 123,
                    .number_of_hash_functions = hash,
-                   .maximum_false_positive_rate = fpr,
+                   .maximum_fpr = fpr,
                    .threads = 1,
                    .tmax = tmax},
         .fpr_correction = seqan::hibf::layout::compute_fpr_correction({.fpr = fpr, .hash_count = hash, .t_max = tmax})};
@@ -79,7 +79,7 @@ TEST(compute_ibf_size_test, split_bin_is_max_bin)
     seqan::hibf::build::build_data data{
         .config = {.number_of_user_bins = 123,
                    .number_of_hash_functions = hash,
-                   .maximum_false_positive_rate = fpr,
+                   .maximum_fpr = fpr,
                    .threads = 1,
                    .tmax = tmax},
         .fpr_correction = seqan::hibf::layout::compute_fpr_correction({.fpr = fpr, .hash_count = hash, .t_max = tmax})};
