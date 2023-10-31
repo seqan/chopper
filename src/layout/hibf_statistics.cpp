@@ -387,7 +387,15 @@ void hibf_statistics::collect_bins()
 
             if (!found_merged_bin)
             {
+#if CHOPPER_WORKAROUND_GCC_BOGUS_MEMMOV
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Warray-bounds="
+#    pragma GCC diagnostic ignored "-Wstringop-overflow="
+#endif // CHOPPER_WORKAROUND_GCC_BOGUS_MEMMOV
                 ibf.bins.emplace_back(hibf_statistics::bin_kind::merged, 1, std::vector<size_t>{user_bin_info.idx});
+#if CHOPPER_WORKAROUND_GCC_BOGUS_MEMMOV
+#    pragma GCC diagnostic pop
+#endif // CHOPPER_WORKAROUND_GCC_BOGUS_MEMMOV
                 ibf.bins.back().tb_index = target_tb_index;
                 auto next = prev;
                 next.push_back(target_tb_index);
@@ -398,9 +406,17 @@ void hibf_statistics::collect_bins()
 
         // emplace a split bin at last since every user bin is on its lowest level single or split
         auto & ibf = ibfs[id_to_pos.at(prev)];
+#if CHOPPER_WORKAROUND_GCC_BOGUS_MEMMOV
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Warray-bounds="
+#    pragma GCC diagnostic ignored "-Wstringop-overflow="
+#endif // CHOPPER_WORKAROUND_GCC_BOGUS_MEMMOV
         ibf.bins.emplace_back(hibf_statistics::bin_kind::split,
                               user_bin_info.number_of_technical_bins,
                               std::vector<size_t>{user_bin_info.idx});
+#if CHOPPER_WORKAROUND_GCC_BOGUS_MEMMOV
+#    pragma GCC diagnostic pop
+#endif // CHOPPER_WORKAROUND_GCC_BOGUS_MEMMOV
         ibf.bins.back().tb_index = user_bin_info.storage_TB_id;
     }
 
