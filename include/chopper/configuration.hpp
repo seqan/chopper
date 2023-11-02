@@ -41,7 +41,7 @@ struct configuration
     uint8_t k{19};
 
     //!\brief The window size to compute minimizers before computing a HyperLogLog sketch from them.
-    uint8_t window_size{19};
+    uint8_t window_size{k};
 
     //!\brief Do not write the sketches into a dedicated directory.
     bool disable_sketch_output{false};

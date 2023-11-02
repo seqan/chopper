@@ -75,7 +75,9 @@ void set_up_parser(sharg::parser & parser, configuration & config)
                 "runtime performance. On the other hand, it also decreases accuracy and might cause false negatives."
                 "For DNA sequences, a window size of 2-4 positions more than the kmers size, e.g. (42,20)-minimizers, "
                 "has proven to reduce the computational effort significantly while only slightly descreasing the "
-                "accuracy."});
+                "accuracy.",
+            .default_message = "k-mer size",
+        });
 
     parser.add_option(
         config.hibf_config.tmax,

@@ -34,6 +34,11 @@ int main(int argc, char const * argv[])
     {
         parser.parse();
 
+        if (!parser.is_option_set("window"))
+            config.window_size = config.k;
+        else if (config.k > config.window_size)
+            throw sharg::parser_error{"The k-mer size cannot be bigger than the window size."};
+
         config.disable_sketch_output = !parser.is_option_set("output-sketches-to");
     }
     catch (sharg::parser_error const & ext) // the user did something wrong

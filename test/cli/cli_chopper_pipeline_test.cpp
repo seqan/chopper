@@ -75,6 +75,7 @@ TEST_F(cli_test, chopper_layout)
                                       "@            \"value0\": \"\"\n"
                                       "@        },\n"
                                       "@        \"k\": 15,\n"
+                                      "@        \"window_size\": 15,\n"
                                       "@        \"disable_sketch_output\": true,\n"
                                       "@        \"precomputed_files\": false,\n"
                                       "@        \"output_filename\": {\n"
