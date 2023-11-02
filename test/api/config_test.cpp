@@ -16,6 +16,7 @@ chopper::configuration generate_config()
     config.data_file = "/path/to/data.file";
     config.sketch_directory = "/path/to/sketch/directory";
     config.k = 20;
+    config.window_size = 24;
     config.disable_sketch_output = true;
     config.precomputed_files = true;
     config.output_filename = "file.layout";
@@ -47,6 +48,7 @@ bool operator==(chopper::configuration const & lhs, chopper::configuration const
            lhs.debug == rhs.debug &&                                                               //
            lhs.sketch_directory == rhs.sketch_directory &&                                         //
            lhs.k == rhs.k &&                                                                       //
+           lhs.window_size == rhs.window_size &&                                                   //
            lhs.disable_sketch_output == rhs.disable_sketch_output &&                               //
            lhs.precomputed_files == rhs.precomputed_files &&                                       //
            lhs.output_filename == rhs.output_filename &&                                           //
@@ -79,6 +81,7 @@ static constexpr std::string_view config_string_view{"@CHOPPER_CONFIG\n"
                                                      "@            \"value0\": \"/path/to/sketch/directory\"\n"
                                                      "@        },\n"
                                                      "@        \"k\": 20,\n"
+                                                     "@        \"window_size\": 24,\n"
                                                      "@        \"disable_sketch_output\": true,\n"
                                                      "@        \"precomputed_files\": true,\n"
                                                      "@        \"output_filename\": {\n"

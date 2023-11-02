@@ -34,7 +34,8 @@ void process_file(std::string const & filename,
                   std::vector<uint64_t> & current_kmers,
                   seqan::hibf::sketch::hyperloglog & sketch,
                   bool const fill_current_kmers,
-                  uint8_t const kmer_size)
+                  uint8_t const kmer_size,
+                  uint8_t const window_size)
 {
     if (filename.ends_with(".minimiser"))
     {
@@ -68,7 +69,7 @@ void process_file(std::string const & filename,
 
         seqan3::shape shape{seqan3::ungapped{kmer_size}};
         auto minimizer_view = seqan3::views::minimiser_hash(shape,
-                                                            seqan3::window_size{kmer_size},
+                                                            seqan3::window_size{window_size},
                                                             seqan3::seed{chopper::adjust_seed(shape.count())});
         if (fill_current_kmers)
         {
@@ -96,7 +97,10 @@ void process_file(std::string const & filename,
     }
 }
 
-void process_file(std::string const & filename, std::vector<uint64_t> & current_kmers, uint8_t const kmer_size)
+void process_file(std::string const & filename,
+                  std::vector<uint64_t> & current_kmers,
+                  uint8_t const kmer_size,
+                  uint8_t const window_size)
 {
     if (filename.ends_with(".minimiser"))
     {
@@ -115,7 +119,7 @@ void process_file(std::string const & filename, std::vector<uint64_t> & current_
 
         seqan3::shape shape{seqan3::ungapped{kmer_size}};
         auto minimizer_view = seqan3::views::minimiser_hash(shape,
-                                                            seqan3::window_size{kmer_size},
+                                                            seqan3::window_size{window_size},
                                                             seqan3::seed{chopper::adjust_seed(shape.count())});
 
         for (auto && [seq] : fin)

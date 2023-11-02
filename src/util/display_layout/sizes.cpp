@@ -301,7 +301,7 @@ void execute_general_stats(config const & cfg)
         if (filenames[user_bin_id].size() > 1)
             throw std::runtime_error{"No multi files accepted yet."};
 
-        process_file(filenames[user_bin_id][0], current_kmers, chopper_config.k);
+        process_file(filenames[user_bin_id][0], current_kmers, chopper_config.k, chopper_config.window_size);
 
         for (auto const kmer : current_kmers)
             it = kmer;

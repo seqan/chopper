@@ -34,6 +34,11 @@ int main(int argc, char const * argv[])
     {
         parser.parse();
 
+        if (!parser.is_option_set("window"))
+            config.window_size = config.k;
+        else if (config.k > config.window_size)
+            throw sharg::parser_error{"The k-mer size cannot be bigger than the window size."};
+
         config.disable_sketch_output = !parser.is_option_set("output-sketches-to");
     }
     catch (sharg::parser_error const & ext) // the user did something wrong
@@ -56,7 +61,8 @@ int main(int argc, char const * argv[])
 
         chopper::sketch::check_filenames(filenames, config);
 
-        config.hibf_config.input_fn = chopper::input_functor{filenames, config.precomputed_files, config.k};
+        config.hibf_config.input_fn =
+            chopper::input_functor{filenames, config.precomputed_files, config.k, config.window_size};
         config.hibf_config.number_of_user_bins = filenames.size();
 
         exit_code |= chopper::layout::execute(config, filenames);

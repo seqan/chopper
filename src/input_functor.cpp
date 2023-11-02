@@ -43,7 +43,7 @@ void input_functor::operator()(size_t const num, seqan::hibf::insert_iterator it
 
         seqan3::shape shape = seqan3::ungapped{kmer_size};
         auto minimizer_view = seqan3::views::minimiser_hash(shape,
-                                                            seqan3::window_size{kmer_size},
+                                                            seqan3::window_size{window_size},
                                                             seqan3::seed{adjust_seed(shape.count())});
 
         for (auto && [seq] : fin)
