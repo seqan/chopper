@@ -37,6 +37,8 @@ struct input_functor
 
     uint8_t kmer_size{21};
 
+    uint8_t window_size{21};
+
     void operator()(size_t const num, seqan::hibf::insert_iterator it);
 };
 

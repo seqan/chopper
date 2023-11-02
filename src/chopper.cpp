@@ -56,7 +56,8 @@ int main(int argc, char const * argv[])
 
         chopper::sketch::check_filenames(filenames, config);
 
-        config.hibf_config.input_fn = chopper::input_functor{filenames, config.precomputed_files, config.k};
+        config.hibf_config.input_fn =
+            chopper::input_functor{filenames, config.precomputed_files, config.k, config.window_size};
         config.hibf_config.number_of_user_bins = filenames.size();
 
         exit_code |= chopper::layout::execute(config, filenames);

@@ -297,7 +297,13 @@ int execute(config const & cfg)
 
             for (auto const & filename : filenames[user_bin.idx])
             {
-                process_file(filename, current_kmer_set, current_kmers, sketch, fill_current_kmers, chopper_config.k);
+                process_file(filename,
+                             current_kmer_set,
+                             current_kmers,
+                             sketch,
+                             fill_current_kmers,
+                             chopper_config.k,
+                             chopper_config.window_size);
             }
 
             // Compute set intersection: shared_kmers = shared_kmers ∩ current_kmers

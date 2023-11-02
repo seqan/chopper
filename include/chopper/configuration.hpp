@@ -40,6 +40,9 @@ struct configuration
     //!\brief The kmer size to hash the input sequences before computing a HyperLogLog sketch from them.
     uint8_t k{19};
 
+    //!\brief The window size to compute minimizers before computing a HyperLogLog sketch from them.
+    uint8_t window_size{19};
+
     //!\brief Do not write the sketches into a dedicated directory.
     bool disable_sketch_output{false};
 
@@ -83,6 +86,7 @@ private:
         archive(CEREAL_NVP(debug));
         archive(CEREAL_NVP(sketch_directory));
         archive(CEREAL_NVP(k));
+        archive(CEREAL_NVP(window_size));
         archive(CEREAL_NVP(disable_sketch_output));
         archive(CEREAL_NVP(precomputed_files));
 

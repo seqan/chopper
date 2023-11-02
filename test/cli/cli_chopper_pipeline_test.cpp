@@ -176,6 +176,7 @@ TEST_F(cli_test, chopper_layout2)
                                       "@            \"value0\": \"\"\n"
                                       "@        },\n"
                                       "@        \"k\": 19,\n"
+                                      "@        \"window_size\": 19,\n"
                                       "@        \"disable_sketch_output\": true,\n"
                                       "@        \"precomputed_files\": false,\n"
                                       "@        \"output_filename\": {\n"

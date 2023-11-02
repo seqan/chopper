@@ -246,6 +246,7 @@ TEST(execute_estimation_test, many_ubs)
                                     "@            \"value0\": \"\"\n"
                                     "@        },\n"
                                     "@        \"k\": 19,\n"
+                                    "@        \"window_size\": 19,\n"
                                     "@        \"disable_sketch_output\": true,\n"
                                     "@        \"precomputed_files\": false,\n"
                                     "@        \"output_filename\": {\n"
