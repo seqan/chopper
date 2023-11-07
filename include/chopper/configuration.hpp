@@ -29,6 +29,9 @@ struct configuration
 
     //!\brief Internal parameter that triggers some verbose debug output.
     bool debug{false};
+
+    //!\brief If specified, layout timings are written to the specified file.
+    std::filesystem::path output_timings{};
     //!\}
 
     /*!\name Configuration of size estimates (chopper::count)
