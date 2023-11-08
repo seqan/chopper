@@ -61,6 +61,11 @@ int execute(chopper::configuration & config, std::vector<std::string> const & fi
     seqan::hibf::layout::layout hibf_layout;
     std::vector<seqan::hibf::sketch::hyperloglog> sketches;
 
+    seqan::hibf::concurrent_timer compute_sketches_timer{};
+    seqan::hibf::concurrent_timer union_estimation_timer{};
+    seqan::hibf::concurrent_timer rearrangement_timer{};
+    seqan::hibf::concurrent_timer dp_algorithm_timer{};
+
     if (config.determine_best_tmax)
     {
         std::tie(hibf_layout, sketches) = determine_best_number_of_technical_bins(config);
@@ -69,8 +74,16 @@ int execute(chopper::configuration & config, std::vector<std::string> const & fi
     {
         std::vector<size_t> kmer_counts;
 
+        compute_sketches_timer.start();
         seqan::hibf::sketch::compute_sketches(config.hibf_config, kmer_counts, sketches);
-        hibf_layout = seqan::hibf::layout::compute_layout(config.hibf_config, kmer_counts, sketches);
+        compute_sketches_timer.stop();
+        dp_algorithm_timer.start();
+        hibf_layout = seqan::hibf::layout::compute_layout(config.hibf_config,
+                                                          kmer_counts,
+                                                          sketches,
+                                                          union_estimation_timer,
+                                                          rearrangement_timer);
+        dp_algorithm_timer.stop();
 
         if (config.output_verbose_statistics)
         {
@@ -97,6 +110,20 @@ int execute(chopper::configuration & config, std::vector<std::string> const & fi
     chopper::layout::write_user_bins_to(filenames, fout);
     config.write_to(fout);
     hibf_layout.write_to(fout);
+
+    if (!config.output_timings.empty())
+    {
+        std::ofstream output_stream{config.output_timings};
+        output_stream << std::fixed << std::setprecision(2);
+        output_stream << "sketching_in_seconds\t"
+                      << "layouting_in_seconds\t"
+                      << "union_estimation_in_seconds\t"
+                      << "rearrangement_in_seconds\n";
+        output_stream << compute_sketches_timer.in_seconds() << '\t';
+        output_stream << dp_algorithm_timer.in_seconds() << '\t';
+        output_stream << union_estimation_timer.in_seconds() << '\t';
+        output_stream << rearrangement_timer.in_seconds() << '\t';
+    }
 
     return 0;
 }

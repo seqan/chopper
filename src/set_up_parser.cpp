@@ -78,6 +78,12 @@ void set_up_parser(sharg::parser & parser, configuration & config)
                 "accuracy.",
             .default_message = "k-mer size",
         });
+    parser.add_option(config.output_timings,
+                      sharg::config{.short_id = '\0',
+                                    .long_id = "timing-output",
+                                    .description = "Write time and memory usage to specified file (TSV format). ",
+                                    .default_message = "",
+                                    .validator = sharg::output_file_validator{}});
 
     parser.add_option(
         config.hibf_config.tmax,
