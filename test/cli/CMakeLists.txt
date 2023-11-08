@@ -14,3 +14,6 @@ target_use_datasources (cli_chopper_pipeline_test FILES seq1.fa)
 target_use_datasources (cli_chopper_pipeline_test FILES small.fa)
 target_use_datasources (cli_chopper_pipeline_test FILES small2.fa)
 target_use_datasources (cli_chopper_pipeline_test FILES small.split)
+
+add_cli_test (cli_timing_output_test.cpp)
+target_use_datasources (cli_chopper_pipeline_test FILES small.fa)
