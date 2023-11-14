@@ -94,10 +94,11 @@ struct per_level_stats
         }
     }
 
-    void print(std::ostream & stream) const
+    void print(std::ostream & stream, size_t const number_of_user_bins) const
     {
         stream << std::fixed << std::setprecision(2);
         stream << "# Levels: " << number_of_levels << '\n';
+        stream << "# User bins: " << number_of_user_bins << '\n';
         stream << "LEVEL\t"                    //
                << "BIT_SIZE\t"                 //
                << "IBFS\t"                     //
@@ -331,7 +332,7 @@ void execute_general_stats(config const & cfg)
     if (!output_stream.good() || !output_stream.is_open())
         throw std::logic_error{"Could not open file " + cfg.output.string() + " for reading"};
 
-    level_stats.print(output_stream);
+    level_stats.print(output_stream, hibf_layout.user_bins.size());
 }
 
 void execute_sizes(config const & cfg)
