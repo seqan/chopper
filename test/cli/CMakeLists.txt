@@ -17,3 +17,10 @@ target_use_datasources (cli_chopper_pipeline_test FILES small.split)
 
 add_cli_test (cli_timing_output_test.cpp)
 target_use_datasources (cli_chopper_pipeline_test FILES small.fa)
+
+add_cli_test (util_display_layout_test.cpp)
+target_use_datasources (cli_chopper_pipeline_test FILES seq1.fa)
+target_use_datasources (cli_chopper_pipeline_test FILES seq2.fa)
+target_use_datasources (cli_chopper_pipeline_test FILES seq3.fa)
+target_use_datasources (cli_chopper_pipeline_test FILES small.fa)
+add_dependencies (util_display_layout_test display_layout)

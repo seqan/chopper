@@ -30,6 +30,8 @@ protected:
     {
         std::string out{};
         std::string err{};
+        std::string command{};
+        std::string pwd{};
         int exit_code{};
     };
 
@@ -40,17 +42,22 @@ protected:
         cli_test_result result{};
 
         // Assemble the command string and disable version check.
-        std::ostringstream command{};
-        command << "SHARG_NO_VERSION_CHECK=1 " << BINDIR;
-        int a[] = {0, ((void)(command << command_items << ' '), 0)...};
-        (void)a;
+        result.command = [&command_items...]()
+        {
+            std::ostringstream command{};
+            command << "SHARG_NO_VERSION_CHECK=1 " << BINDIR;
+            (void)((command << command_items << ' '), ...); // (void) silences "state has no effect" warning if no items
+            return command.str();
+        }();
+
+        result.pwd = std::filesystem::current_path().string();
 
         // Always capture the output streams.
         testing::internal::CaptureStdout();
         testing::internal::CaptureStderr();
 
         // Run the command and return results.
-        result.exit_code = std::system(command.str().c_str());
+        result.exit_code = std::system(result.command.c_str());
         result.out = testing::internal::GetCapturedStdout();
         result.err = testing::internal::GetCapturedStderr();
         return result;
