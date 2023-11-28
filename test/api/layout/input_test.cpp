@@ -71,16 +71,7 @@ TEST(layout_test, read_single_layout)
 5	1;2;3;4;22	1;1;1;1;21
 )layout_file"};
 
-// https://godbolt.org/z/PeKnxzjn1
-#if defined(__clang__)
-    auto tuple = chopper::layout::read_layout_file(layout_file);
-    // https://godbolt.org/z/WoWf55KPb
-    auto filenames = std::move(std::get<0>(tuple));
-    auto chopper_config = std::move(std::get<1>(tuple));
-    auto hibf_layouts = std::move(std::get<2>(tuple));
-#else
     auto [filenames, chopper_config, layout] = chopper::layout::read_layout_file(ss);
-#endif
 
     EXPECT_EQ(layout.top_level_max_bin_id, 111);
     EXPECT_EQ(layout.max_bins[0], (seqan::hibf::layout::layout::max_bin{{0}, 0}));
