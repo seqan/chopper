@@ -79,7 +79,7 @@ TEST(layout_test, read_single_layout)
     auto chopper_config = std::move(std::get<1>(tuple));
     auto hibf_layouts = std::move(std::get<2>(tuple));
 #else
-    auto [filenames, chopper_config, hibf_layouts] = chopper::layout::read_layouts_file(ss);
+    auto [filenames, chopper_config, hibf_layouts] = chopper::layout::read_layout_file(ss);
 #endif
 
     auto layout = hibf_layouts[0];
