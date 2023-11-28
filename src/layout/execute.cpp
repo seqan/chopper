@@ -53,8 +53,9 @@ void partition_user_bins(chopper::configuration const & config,
     if (config.partitioning_approach == partitioning_scheme::blocked)
     {
         size_t const u_bins_per_part = seqan::hibf::divide_and_ceil(cardinalities.size(), config.number_of_partitions);
-        size_t const block_size = std::min(u_bins_per_part,
-            chopper::next_multiple_of_64(static_cast<uint16_t>(std::ceil(std::sqrt(u_bins_per_part)))));
+        size_t const block_size =
+            std::min(u_bins_per_part,
+                     chopper::next_multiple_of_64(static_cast<uint16_t>(std::ceil(std::sqrt(u_bins_per_part)))));
 
         size_t current_part{0u};
         size_t current_block_count{0};
