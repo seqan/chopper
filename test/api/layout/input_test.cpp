@@ -79,10 +79,8 @@ TEST(layout_test, read_single_layout)
     auto chopper_config = std::move(std::get<1>(tuple));
     auto hibf_layouts = std::move(std::get<2>(tuple));
 #else
-    auto [filenames, chopper_config, hibf_layouts] = chopper::layout::read_layout_file(ss);
+    auto [filenames, chopper_config, layout] = chopper::layout::read_layout_file(ss);
 #endif
-
-    auto layout = hibf_layouts[0];
 
     EXPECT_EQ(layout.top_level_max_bin_id, 111);
     EXPECT_EQ(layout.max_bins[0], (seqan::hibf::layout::layout::max_bin{{0}, 0}));
