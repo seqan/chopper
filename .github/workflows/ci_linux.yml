@@ -35,21 +35,27 @@ jobs:
             compiler: "clang-17"
             build: unit
             build_type: Release
+            cxx_flags: "-stdlib=libc++"
 
           - name: "gcc13"
             compiler: "gcc-13"
             build_type: Release
-            cxx_flags: -Wno-interference-size
+            cxx_flags: "-Wno-interference-size"
 
           - name: "gcc12"
             compiler: "gcc-12"
             build_type: Release
-            cxx_flags: -Wno-interference-size
+            cxx_flags: "-Wno-interference-size"
 
           - name: "gcc11"
             compiler: "gcc-11"
             build_type: Release
-            cxx_flags: -Wno-interference-size
+            cxx_flags: "-Wno-interference-size"
+
+          - name: "IntelLLVM"
+            compiler: "intel"
+            build_type: Release
+            cxx_flags: "-fp-model=strict"
 
     steps:
       - name: Checkout
@@ -64,11 +70,8 @@ jobs:
           compiler: ${{ matrix.compiler }}
           ccache_size: 125M
 
-      - name: Install OpenMP
-        if: contains(matrix.name, 'clang')
-        run: install libomp-17-dev
-
       - name: Install CMake
+        if: contains(matrix.compiler, 'intel') == false
         uses: seqan/actions/setup-cmake@main
         with:
           cmake: 3.18.6
@@ -78,8 +81,7 @@ jobs:
           mkdir build
           cd build
           cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-                   -DCMAKE_CXX_FLAGS="-Werror ${{ matrix.cxx_flags }}" \
-                   -DCHOPPER_NATIVE_BUILD=OFF
+                   -DCMAKE_CXX_FLAGS="-Werror ${{ matrix.cxx_flags }}"
           make -j2 gtest_build
 
       - name: Build tests
