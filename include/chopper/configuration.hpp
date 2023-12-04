@@ -27,7 +27,7 @@ enum partitioning_scheme
 
 struct configuration
 {
-    int partitioning_approach;
+    int partitioning_approach{};
     /*!\name General Configuration
      * \{
      */
