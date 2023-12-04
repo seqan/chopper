@@ -25,9 +25,9 @@ std::string get_layout_with_correct_filenames(std::string_view const seq1_filena
             + std::string{seq1_filename}
             + "\n" //
               "@1 "
-            + seq2_filename.data()
-            + "\n" //
-              "@2 "
+            + seq2_filename.data() + " " + seq2_filename.data() + // ensure that multi filename works
+            +"\n"                                                 //
+             "@2 "
             + seq3_filename.data()
             + "\n" //
               "@3 "
