@@ -40,12 +40,13 @@ TEST(execute_test, few_ubs)
     config.disable_sketch_output = true;
     config.hibf_config.disable_estimate_union = true; // also disables rearrangement
 
-    std::vector<std::vector<std::string>> filenames{{"seq0"}, {"seq1"}, {"seq2"}, {"seq3"}, {"seq4"}, {"seq5"}, {"seq6"}, {"seq7"}};
+    std::vector<std::vector<std::string>>
+        filenames{{"seq0a", "seq0b"}, {"seq1"}, {"seq2"}, {"seq3"}, {"seq4"}, {"seq5"}, {"seq6"}, {"seq7"}};
 
     chopper::layout::execute(config, filenames);
 
     std::string const expected_file{"@CHOPPER_USER_BINS\n"
-                                    "@0 seq0\n"
+                                    "@0 seq0a seq0b\n"
                                     "@1 seq1\n"
                                     "@2 seq2\n"
                                     "@3 seq3\n"
