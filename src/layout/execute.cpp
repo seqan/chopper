@@ -225,11 +225,12 @@ int execute(chopper::configuration & config, std::vector<std::vector<std::string
             seqan::hibf::concurrent_timer dp_algorithm_timer{};
 
             // reset tmax to fit number of user bins in layout
-            config.hibf_config.tmax =
+            auto local_hibf_config = config.hibf_config; // every thread needs to set individual tmax
+            local_hibf_config.tmax =
                 chopper::next_multiple_of_64(static_cast<uint16_t>(std::ceil(std::sqrt(positions[i].size()))));
 
             dp_algorithm_timer.start();
-            hibf_layouts[i] = seqan::hibf::layout::compute_layout(config.hibf_config,
+            hibf_layouts[i] = seqan::hibf::layout::compute_layout(local_hibf_config,
                                                                   cardinalities,
                                                                   sketches,
                                                                   std::move(positions[i]),
