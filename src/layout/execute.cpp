@@ -95,6 +95,41 @@ void partition_user_bins(chopper::configuration const & config,
             }
         }
     }
+    else if (config.partitioning_approach == partitioning_scheme::folded)
+    {
+        size_t const sum_of_cardinalities = std::accumulate(cardinalities.begin(), cardinalities.end(), size_t{});
+        size_t const cardinality_per_part =
+            seqan::hibf::divide_and_ceil(sum_of_cardinalities, config.number_of_partitions);
+
+        size_t current_cardinality{0u};
+        size_t current_part{0};
+        size_t current_pos = 0;
+        size_t end_pos = sorted_positions.size();
+
+        while (current_pos < end_pos)
+        {
+            size_t const current_user_bin_id = sorted_positions[current_pos];
+
+            // check if adding next UB would surpass the `cardinality_per_part`
+            if (current_cardinality + cardinalities[current_user_bin_id] > cardinality_per_part)
+            {
+                // if so, fill the remaining space with small UBs from the right hand side.
+                while (end_pos > (current_pos + 1) && current_cardinality < cardinality_per_part)
+                {
+                    size_t const smallest_user_bin_id = sorted_positions[end_pos - 1];
+                    current_cardinality += cardinalities[smallest_user_bin_id];
+                    positions[current_part].push_back(smallest_user_bin_id);
+                    --end_pos;
+                }
+
+                current_cardinality = 0;
+                ++current_part;
+            }
+
+            current_cardinality += cardinalities[current_user_bin_id];
+            positions[current_part].push_back(current_user_bin_id);
+        }
+    }
 }
 
 int execute(chopper::configuration & config, std::vector<std::vector<std::string>> const & filenames)

@@ -22,7 +22,8 @@ namespace chopper
 enum partitioning_scheme
 {
     blocked,
-    sorted
+    sorted,
+    folded
 };
 
 struct configuration
