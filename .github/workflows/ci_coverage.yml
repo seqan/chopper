@@ -68,8 +68,7 @@ jobs:
           mkdir build
           cd build
           cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-                   -DCMAKE_CXX_FLAGS="-Werror -Wno-interference-size" \
-                   -DCHOPPER_NATIVE_BUILD=OFF
+                   -DCMAKE_CXX_FLAGS="-Werror -Wno-interference-size"
           make -j2 gtest_build
 
       - name: Build tests

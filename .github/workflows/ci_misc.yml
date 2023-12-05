@@ -29,17 +29,25 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - name: "Header clang17"
+            compiler: "clang-17"
+            build_type: Release
+            cxx_flags: "-stdlib=libc++"
+
           - name: "Header gcc13"
             compiler: "gcc-13"
             build_type: Release
+            cxx_flags: "-Wno-interference-size"
 
           - name: "Header gcc12"
             compiler: "gcc-12"
             build_type: Release
+            cxx_flags: "-Wno-interference-size"
 
           - name: "Header gcc11"
             compiler: "gcc-11"
             build_type: Release
+            cxx_flags: "-Wno-interference-size"
 
     steps:
       - name: Checkout
@@ -64,9 +72,8 @@ jobs:
           mkdir build
           cd build
           cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-                   -DCMAKE_CXX_FLAGS="-Werror -Wno-interference-size" \
-                   -DCHOPPER_HEADER_TEST_ONLY=ON \
-                   -DCHOPPER_NATIVE_BUILD=OFF
+                   -DCMAKE_CXX_FLAGS="-Werror ${{ matrix.cxx_flags }}" \
+                   -DCHOPPER_HEADER_TEST_ONLY=ON
 
       - name: Build tests
         env:

@@ -12,6 +12,7 @@ include (seqan3_test_component)
 
 add_library ("chopper_header_test_lib" INTERFACE)
 target_link_libraries ("chopper_header_test_lib" INTERFACE "chopper_shared" gtest gtest_main)
+target_compile_options ("chopper_header_test_lib" INTERFACE "-Wno-unused-function")
 target_include_directories ("chopper_header_test_lib" INTERFACE "${SEQAN3_TEST_CLONE_DIR}/googletest/include/")
 # SeqAn3 script adds an include for <bechmark/benchmark.h>, which we do not use in Chopper
 target_include_directories ("chopper_header_test_lib" INTERFACE ./dummy_include)
@@ -26,7 +27,7 @@ file (GLOB_RECURSE header_files
 
 file (WRITE "${PROJECT_BINARY_DIR}/${target}.cpp" "")
 add_executable (${target} ${PROJECT_BINARY_DIR}/${target}.cpp)
-target_link_libraries (${target} chopper_header_test_lib)
+target_link_libraries (${target} chopper_shared chopper_header_test_lib)
 add_test (NAME "header/${target}" COMMAND ${target})
 
 foreach (header ${header_files})
@@ -68,7 +69,7 @@ foreach (header ${header_files})
             )
             add_dependencies (${header_target} "chopper_shared" gtest gtest_main)
         else ()
-            target_link_libraries (${header_target} chopper_header_test_lib)
+            target_link_libraries (${header_target} chopper_shared chopper_header_test_lib)
         endif ()
 
         target_sources (${target} PRIVATE $<TARGET_OBJECTS:${header_target}>)

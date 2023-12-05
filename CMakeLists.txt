@@ -11,7 +11,7 @@ cmake_minimum_required (VERSION 3.18)
 
 # Define the application name and version.
 project (chopper
-         LANGUAGES CXX C
+         LANGUAGES CXX
          VERSION 1.0.0
 )
 
@@ -28,39 +28,10 @@ if (NOT CMAKE_BUILD_TYPE)
     )
 endif ()
 
-# Check CXX and C compiler versions.
-string (REGEX MATCH "^[0-9]+" CHOPPER_CXX_MAJOR_VERSION "${CMAKE_CXX_COMPILER_VERSION}")
-string (REGEX MATCH "^[0-9]+" CHOPPER_C_MAJOR_VERSION "${CMAKE_C_COMPILER_VERSION}")
-if (NOT "${CHOPPER_CXX_MAJOR_VERSION}" STREQUAL "${CHOPPER_C_MAJOR_VERSION}")
-    message (FATAL_ERROR "CXX and C compiler major versions differ (${CHOPPER_CXX_MAJOR_VERSION} and\
-                          ${CHOPPER_C_MAJOR_VERSION})! This will likely result in linker errors. Please set both\
-                          -DCMAKE_CXX_COMPILER and -DCMAKE_C_COMPILER to use the same major version, and/or set the\
-                          environment variables CXX and CC accordingly."
-    )
-endif ()
-
 set (CHOPPER_SUBMODULES_DIR
      "${CMAKE_CURRENT_LIST_DIR}/lib"
      CACHE STRING "Directory containing submodules."
 )
-
-# Flag checks
-include (CheckCXXCompilerFlag)
-
-check_cxx_compiler_flag ("-fopenmp" CHOPPER_HAS_OPENMP)
-if (CHOPPER_HAS_OPENMP)
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
-endif ()
-
-check_cxx_compiler_flag ("-fopenmp-simd" CHOPPER_HAS_OPENMP_SIMD)
-if (CHOPPER_HAS_OPENMP_SIMD)
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp-simd -DSIMDE_ENABLE_OPENMP")
-endif ()
-
-check_cxx_compiler_flag ("-fopenmp-simd" CHOPPER_SUPPRESS_GCC4_ABI)
-if (CHOPPER_SUPPRESS_GCC4_ABI)
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-psabi")
-endif ()
 
 # Specify the directories where to store the built archives, libraries and executables
 set (CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")

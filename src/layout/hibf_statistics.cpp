@@ -24,6 +24,7 @@
 #endif // CHOPPER_WORKAROUND_GCC_BOGUS_MEMCPY
 #include <map>
 #include <numeric>
+#include <sstream>
 #include <string>
 #include <utility>
 #include <vector>

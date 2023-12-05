@@ -281,6 +281,104 @@ TEST(execute_estimation_test, many_ubs)
                                       "#LOWER_LEVEL_IBF_14 fullest_technical_bin_idx:0\n"
                                       "#LOWER_LEVEL_IBF_15 fullest_technical_bin_idx:0\n"
                                       "#USER_BIN_IDX\tTECHNICAL_BIN_INDICES\tNUMBER_OF_TECHNICAL_BINS\n"
+#ifdef _LIBCPP_VERSION // seqan::hibf::sketch::toolbox::sort_by_cardinalities is not stable
+                                      "0\t0\t1\n"
+                                      "1\t1\t1\n"
+                                      "2\t2\t1\n"
+                                      "3\t3\t1\n"
+                                      "4\t4\t1\n"
+                                      "5\t5\t1\n"
+                                      "6\t6\t1\n"
+                                      "7\t7\t1\n"
+                                      "8\t8\t1\n"
+                                      "9\t9\t1\n"
+                                      "10\t10\t1\n"
+                                      "11\t11\t1\n"
+                                      "12\t12\t1\n"
+                                      "13\t13\t1\n"
+                                      "16\t14;0\t1;22\n"
+                                      "15\t14;22\t1;21\n"
+                                      "14\t14;43\t1;21\n"
+                                      "19\t15;0\t1;22\n"
+                                      "18\t15;22\t1;21\n"
+                                      "17\t15;43\t1;21\n"
+                                      "20\t16\t1\n"
+                                      "21\t17\t1\n"
+                                      "22\t18\t1\n"
+                                      "23\t19\t1\n"
+                                      "24\t20\t1\n"
+                                      "25\t21\t1\n"
+                                      "26\t22\t1\n"
+                                      "27\t23\t1\n"
+                                      "28\t24\t1\n"
+                                      "29\t25\t1\n"
+                                      "30\t26\t1\n"
+                                      "31\t27\t1\n"
+                                      "32\t28\t1\n"
+                                      "33\t29\t1\n"
+                                      "34\t30\t1\n"
+                                      "35\t31\t1\n"
+                                      "38\t32\t1\n"
+                                      "39\t33\t1\n"
+                                      "36\t34\t1\n"
+                                      "37\t35\t1\n"
+                                      "55\t36\t1\n"
+                                      "54\t37\t1\n"
+                                      "53\t38\t1\n"
+                                      "52\t39\t1\n"
+                                      "51\t40\t1\n"
+                                      "50\t41\t1\n"
+                                      "49\t42\t1\n"
+                                      "57\t43\t1\n"
+                                      "47\t44\t1\n"
+                                      "46\t45\t1\n"
+                                      "45\t46\t1\n"
+                                      "44\t47\t1\n"
+                                      "43\t48\t1\n"
+                                      "42\t49\t1\n"
+                                      "41\t50\t1\n"
+                                      "40\t51\t1\n"
+                                      "58\t52\t1\n"
+                                      "59\t53\t1\n"
+                                      "56\t54\t1\n"
+                                      "48\t55\t1\n"
+                                      "60\t56\t2\n"
+                                      "61\t58\t2\n"
+                                      "62\t60\t2\n"
+                                      "63\t62\t2\n"
+                                      "64\t64\t2\n"
+                                      "65\t66\t2\n"
+                                      "66\t68\t2\n"
+                                      "67\t70\t2\n"
+                                      "68\t72\t2\n"
+                                      "69\t74\t2\n"
+                                      "70\t76\t2\n"
+                                      "71\t78\t2\n"
+                                      "72\t80\t2\n"
+                                      "73\t82\t2\n"
+                                      "74\t84\t2\n"
+                                      "75\t86\t2\n"
+                                      "76\t88\t2\n"
+                                      "79\t90\t2\n"
+                                      "78\t92\t2\n"
+                                      "77\t94\t2\n"
+                                      "80\t96\t2\n"
+                                      "81\t98\t2\n"
+                                      "82\t100\t2\n"
+                                      "83\t102\t2\n"
+                                      "84\t104\t2\n"
+                                      "85\t106\t2\n"
+                                      "86\t108\t2\n"
+                                      "87\t110\t2\n"
+                                      "88\t112\t2\n"
+                                      "89\t114\t2\n"
+                                      "90\t116\t2\n"
+                                      "91\t118\t2\n"
+                                      "92\t120\t2\n"
+                                      "93\t122\t2\n"
+                                      "94\t124\t2\n"
+                                      "95\t126\t2\n"};
+#else
                                       "0\t0\t1\n"
                                       "19\t1\t1\n"
                                       "18\t2\t1\n"
@@ -377,6 +475,7 @@ TEST(execute_estimation_test, many_ubs)
                                       "81\t122\t2\n"
                                       "80\t124\t2\n"
                                       "95\t126\t2\n"};
+#endif
     std::string const actual_file{string_from_file(layout_file)};
     EXPECT_EQ(actual_file, expected_file);
 }
@@ -521,8 +620,10 @@ TEST(execute_estimation_test, with_rearrangement)
 
     std::string const written_file{string_from_file(stats_file)};
 
-    EXPECT_EQ(written_file,
-              R"expected_cout(## ### Parameters ###
+    std::string const expected = []()
+    {
+        std::string result =
+            R"expected_cout(## ### Parameters ###
 ## number of user bins = 196
 ## number of hash functions = 2
 ## maximum false positive rate = 0.05
@@ -538,11 +639,28 @@ TEST(execute_estimation_test, with_rearrangement)
 ## (l*m)_tmax : Computed by l_tmax * m_tmax
 ## size : The expected total size of an tmax-HIBF
 # tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size
-64	1.00	2.22	1.00	2.22	117.1KiB
+)expected_cout";
+
+#ifdef _LIBCPP_VERSION // seqan::hibf::sketch::toolbox::sort_by_cardinalities is not stable
+        result +=
+            R"expected_cout(64	1.00	2.08	1.00	2.08	117.1KiB
+128	1.22	1.75	1.10	1.93	128.7KiB
+256	1.33	1.52	1.18	1.81	138.7KiB
+# Best t_max (regarding expected query runtime): 256
+)expected_cout";
+#else
+        result +=
+            R"expected_cout(64	1.00	2.22	1.00	2.22	117.1KiB
 128	1.22	1.95	1.15	2.23	134.3KiB
 256	1.33	1.52	1.18	1.81	138.7KiB
 # Best t_max (regarding expected query runtime): 256
-)expected_cout");
+)expected_cout";
+#endif
+
+        return result;
+    }();
+
+    EXPECT_EQ(written_file, expected);
 
     std::string const layout_string{string_from_file(layout_file)};
     EXPECT_NE(layout_string.find("\"tmax\": 256,"), std::string::npos);
