@@ -49,7 +49,8 @@ TEST(execute_estimation_test, few_ubs)
     config.output_filename = layout_file;
     config.hibf_config.disable_estimate_union = true; // also disables rearrangement
 
-    std::vector<std::string> filenames{"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7"};
+    std::vector<std::vector<std::string>>
+        filenames{{"seq0"}, {"seq1"}, {"seq2"}, {"seq3"}, {"seq4"}, {"seq5"}, {"seq6"}, {"seq7"}};
 
     chopper::layout::execute(config, filenames);
 
@@ -85,10 +86,10 @@ TEST(execute_estimation_test, many_ubs)
     std::filesystem::path const layout_file{tmp_dir.path() / "layout.tsv"};
     std::filesystem::path const stats_file{layout_file.string() + ".stats"};
 
-    std::vector<std::string> many_filenames;
+    std::vector<std::vector<std::string>> many_filenames;
 
     for (size_t i{0}; i < 96u; ++i)
-        many_filenames.push_back(seqan3::detail::to_string("seq", i));
+        many_filenames.push_back({seqan3::detail::to_string("seq", i)});
 
     // There are 20 files with a count of {100,200,300,400} each. There are 16 files with count 500.
     auto simulated_input = [&](size_t const num, seqan::hibf::insert_iterator it)
@@ -486,11 +487,11 @@ TEST(execute_estimation_test, many_ubs_force_all)
     std::filesystem::path const layout_file{tmp_dir.path() / "layout.tsv"};
     std::filesystem::path const stats_file{layout_file.string() + ".stats"};
 
-    std::vector<std::string> many_filenames;
+    std::vector<std::vector<std::string>> many_filenames;
     std::vector<size_t> many_kmer_counts;
 
     for (size_t i{0}; i < 96u; ++i)
-        many_filenames.push_back(seqan3::detail::to_string("seq", i));
+        many_filenames.push_back({seqan3::detail::to_string("seq", i)});
 
     // There are 20 files with a count of {100,200,300,400} each. There are 16 files with count 500.
     auto simulated_input = [&](size_t const num, seqan::hibf::insert_iterator it)
@@ -559,16 +560,16 @@ TEST(execute_estimation_test, with_rearrangement)
     std::filesystem::path const stats_file{layout_file.string() + ".stats"};
     size_t const kmer_size{15};
 
-    std::vector<std::string> filenames{};
+    std::vector<std::vector<std::string>> filenames{};
     std::vector<std::string> hll_filenames;
     std::vector<size_t> expected_kmer_counts;
 
     for (size_t i{0}; i < 49u; ++i)
     {
-        filenames.push_back(data("seq1.fa").string());
-        filenames.push_back(data("seq2.fa").string());
-        filenames.push_back(data("seq3.fa").string());
-        filenames.push_back(data("small.fa").string());
+        filenames.push_back({data("seq1.fa").string()});
+        filenames.push_back({data("seq2.fa").string()});
+        filenames.push_back({data("seq3.fa").string()});
+        filenames.push_back({data("small.fa").string()});
 
         hll_filenames.push_back("seq1.hll");
         hll_filenames.push_back("seq2.hll");
@@ -584,12 +585,15 @@ TEST(execute_estimation_test, with_rearrangement)
     // There are 20 files with a count of {100,200,300,400} each. There are 16 files with count 500.
     auto data_input = [&](size_t const num, seqan::hibf::insert_iterator it)
     {
-        sequence_file_type3 fin{filenames[num]};
-
-        for (auto && [seq] : fin)
+        for (std::string const & filename : filenames[num])
         {
-            for (auto hash_value : seq | seqan3::views::kmer_hash(seqan3::ungapped{kmer_size}))
-                it = hash_value;
+            sequence_file_type3 fin{filename};
+
+            for (auto && [seq] : fin)
+            {
+                for (auto hash_value : seq | seqan3::views::kmer_hash(seqan3::ungapped{kmer_size}))
+                    it = hash_value;
+            }
         }
     };
 

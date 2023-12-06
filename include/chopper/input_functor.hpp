@@ -31,7 +31,7 @@ struct input_functor
                                     seqan3::fields<seqan3::field::seq>,
                                     seqan3::type_list<seqan3::format_fasta, seqan3::format_fastq>>;
 
-    std::vector<std::string> filenames;
+    std::vector<std::vector<std::string>> filenames;
 
     bool input_are_precomputed_files{false};
 

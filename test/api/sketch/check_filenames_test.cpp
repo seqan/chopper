@@ -27,6 +27,19 @@ TEST(check_filenames_test, sequence_filenames)
     EXPECT_FALSE(config.precomputed_files);
 }
 
+TEST(check_filenames_test, overload)
+{
+    std::vector<std::vector<std::string>> filenames{{data("seq1.fa").string()},
+                                                    {data("seq2.fa").string()},
+                                                    {data("seq3.fa").string()}};
+
+    chopper::configuration config;
+
+    EXPECT_NO_THROW(chopper::sketch::check_filenames(filenames, config));
+
+    EXPECT_FALSE(config.precomputed_files);
+}
+
 TEST(check_filenames_test, minimiser_filenames)
 {
     std::vector<std::string> filenames{data("small.minimiser").string(),

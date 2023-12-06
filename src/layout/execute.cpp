@@ -33,7 +33,7 @@
 namespace chopper::layout
 {
 
-int execute(chopper::configuration & config, std::vector<std::string> const & filenames)
+int execute(chopper::configuration & config, std::vector<std::vector<std::string>> const & filenames)
 {
     assert(config.hibf_config.number_of_user_bins > 0);
 
@@ -102,7 +102,7 @@ int execute(chopper::configuration & config, std::vector<std::string> const & fi
 
         assert(filenames.size() == sketches.size());
         for (size_t i = 0; i < filenames.size(); ++i)
-            sketch::write_sketch_file(filenames[i], sketches[i], config);
+            sketch::write_sketch_file(filenames[i][0], sketches[i], config);
     }
 
     // brief Write the output to the layout file.

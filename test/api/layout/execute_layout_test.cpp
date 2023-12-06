@@ -40,12 +40,13 @@ TEST(execute_test, few_ubs)
     config.disable_sketch_output = true;
     config.hibf_config.disable_estimate_union = true; // also disables rearrangement
 
-    std::vector<std::string> filenames{"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7"};
+    std::vector<std::vector<std::string>>
+        filenames{{"seq0a", "seq0b"}, {"seq1"}, {"seq2"}, {"seq3"}, {"seq4"}, {"seq5"}, {"seq6"}, {"seq7"}};
 
     chopper::layout::execute(config, filenames);
 
     std::string const expected_file{"@CHOPPER_USER_BINS\n"
-                                    "@0 seq0\n"
+                                    "@0 seq0a seq0b\n"
                                     "@1 seq1\n"
                                     "@2 seq2\n"
                                     "@3 seq3\n"
@@ -131,7 +132,8 @@ TEST(execute_test, set_default_tmax)
     config.hibf_config.number_of_user_bins = 8;
     config.hibf_config.disable_estimate_union = true; // also disables rearrangement
 
-    std::vector<std::string> filenames{"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7"};
+    std::vector<std::vector<std::string>>
+        filenames{{"seq0"}, {"seq1"}, {"seq2"}, {"seq3"}, {"seq4"}, {"seq5"}, {"seq6"}, {"seq7"}};
 
     chopper::layout::execute(config, filenames);
 
@@ -143,10 +145,10 @@ TEST(execute_test, many_ubs)
     seqan3::test::tmp_directory tmp_dir{};
     std::filesystem::path const layout_file{tmp_dir.path() / "layout.tsv"};
 
-    std::vector<std::string> many_filenames;
+    std::vector<std::vector<std::string>> many_filenames;
 
     for (size_t i{0}; i < 96u; ++i)
-        many_filenames.push_back(seqan3::detail::to_string("seq", i));
+        many_filenames.push_back({seqan3::detail::to_string("seq", i)});
 
     // There are 20 files with a count of {100,200,300,400} each. There are 16 files with count 500.
     auto simulated_input = [&](size_t const num, seqan::hibf::insert_iterator it)

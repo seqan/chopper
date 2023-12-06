@@ -70,4 +70,10 @@ void check_filenames(std::vector<std::string> const & filenames, configuration &
     }
 }
 
+void check_filenames(std::vector<std::vector<std::string>> const & filenames, configuration & config)
+{
+    for (auto const & filenames_per_user_bin : filenames)
+        check_filenames(filenames_per_user_bin, config);
+}
+
 } // namespace chopper::sketch

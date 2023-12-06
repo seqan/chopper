@@ -106,10 +106,10 @@ TEST(execute_test, chopper_layout_statistics)
     seqan3::test::tmp_directory tmp_dir{};
     std::filesystem::path const layout_file{tmp_dir.path() / "layout.tsv"};
 
-    std::vector<std::string> many_filenames;
+    std::vector<std::vector<std::string>> many_filenames;
 
     for (size_t i{0}; i < 96u; ++i)
-        many_filenames.push_back(seqan3::detail::to_string("seq", i));
+        many_filenames.push_back({seqan3::detail::to_string("seq", i)});
 
     // There are 20 files with a count of {100,200,300,400} each. There are 16 files with count 500.
     auto simulated_input = [&](size_t const num, seqan::hibf::insert_iterator it)
@@ -160,7 +160,8 @@ TEST(execute_test, chopper_layout_statistics_determine_best_bins)
     std::filesystem::path const binning_filename{tmp_dir.path() / "output.binning"};
     std::filesystem::path const stats_file{binning_filename.string() + ".stats"};
 
-    std::vector<std::string> filenames{"seq0", "seq1", "seq2", "seq3", "seq4", "seq5", "seq6", "seq7", "seq8", "seq9"};
+    std::vector<std::vector<std::string>>
+        filenames{{"seq0"}, {"seq1"}, {"seq2"}, {"seq3"}, {"seq4"}, {"seq5"}, {"seq6"}, {"seq7"}, {"seq8"}, {"seq9"}};
 
     // There are 20 files with a count of {100,200,300,400} each. There are 16 files with count 500.
     auto simulated_input = [&](size_t const num, seqan::hibf::insert_iterator it)

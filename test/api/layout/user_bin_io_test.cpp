@@ -9,13 +9,16 @@
 
 TEST(output, user_bins)
 {
-    std::vector<std::string> const filenames{"file1.fa", "file2.fa", "path/to/file3.fa", "file4.fastq"};
+    std::vector<std::vector<std::string>> const filenames{{"file1.fa", "fileB.fa"},
+                                                          {"file2.fa"},
+                                                          {"path/to/file3.fa"},
+                                                          {"file4.fastq"}};
 
     std::stringstream ss{};
     chopper::layout::write_user_bins_to(filenames, ss);
 
     std::string const expected{"@CHOPPER_USER_BINS\n"
-                               "@0 file1.fa\n"
+                               "@0 file1.fa fileB.fa\n"
                                "@1 file2.fa\n"
                                "@2 path/to/file3.fa\n"
                                "@3 file4.fastq\n"
@@ -27,14 +30,14 @@ TEST(output, user_bins)
 TEST(input, user_bins)
 {
     std::stringstream ss{"@CHOPPER_USER_BINS\n"
-                         "@0 file1.fa\n"
+                         "@0 file1.fa fileB.fa\n"
                          "@1 file2.fa\n"
                          "@2 path/to/file3.fa\n"
                          "@3 file4.fastq\n"
                          "@CHOPPER_USER_BINS_END\n"};
 
     std::vector<std::vector<std::string>> filenames = chopper::layout::read_filenames_from(ss);
-    std::vector<std::vector<std::string>> const expected{{"file1.fa"},
+    std::vector<std::vector<std::string>> const expected{{"file1.fa", "fileB.fa"},
                                                          {"file2.fa"},
                                                          {"path/to/file3.fa"},
                                                          {"file4.fastq"}};
