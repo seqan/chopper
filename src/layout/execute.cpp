@@ -124,10 +124,15 @@ void partition_user_bins(chopper::configuration const & config,
 
                 current_cardinality = 0;
                 ++current_part;
+
+                // In the while loop above, we always slightly overfill the current partition.
+                // That way, it shouldn't happen that the last user bin cannot fit into the last partition.
+                assert(current_part < config.number_of_partitions);
             }
 
             current_cardinality += cardinalities[current_user_bin_id];
             positions[current_part].push_back(current_user_bin_id);
+            ++current_pos;
         }
     }
 }
