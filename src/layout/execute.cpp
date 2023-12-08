@@ -146,9 +146,10 @@ void partition_user_bins(chopper::configuration const & config,
                 double const amount =
                     static_cast<double>(positions[current_part].size() + small_bins.size() + new_small_bin_addition)
                     / u_bins_per_part;
-                return (std::abs(1 - weight) + std::abs(1 - amount)) / 2;
+                return std::abs(1.0 - weight) + std::abs(1.0 - amount);
             };
 
+            // first add all large bins that fit
             while (current_cardinality < cardinality_per_part)
             {
                 positions[current_part].push_back(sorted_positions[current_big_pos]);
@@ -158,20 +159,12 @@ void partition_user_bins(chopper::configuration const & config,
 
             double local_optimum = compute_score();
 
+            // then remove big bins and add small bins until a local optima is reached
             while (true)
             {
                 size_t const cache_last_small_pos{current_small_pos};
                 // remove a big user bin and fill the partition with small user bins
-                // fill the partition until either the maximum cardinality or the maximum amount of bins is reached
                 current_cardinality -= cardinalities[sorted_positions[current_big_pos]];
-                while (current_cardinality < cardinality_per_part
-                       && (positions[current_part].size() + small_bins.size() + new_small_bin_addition)
-                              < u_bins_per_part)
-                {
-                    current_cardinality += cardinalities[sorted_positions[current_small_pos]];
-                    --current_small_pos;
-                    ++new_small_bin_addition;
-                }
 
                 // can we further improve the ratio by adding more small bins?
                 double improved_score{};
