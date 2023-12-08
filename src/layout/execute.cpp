@@ -134,7 +134,7 @@ void partition_user_bins(chopper::configuration const & config,
         size_t current_big_pos{0};                          // the next largest user bin to assign to a partition
         size_t current_small_pos{cardinalities.size() - 1}; // the next small user bin
 
-        for (size_t current_part = 0; current_part < config.number_of_partitions - 1; ++current_part)
+        for (size_t current_part = 0; current_part + 1 < config.number_of_partitions; ++current_part)
         {
             size_t current_cardinality{0};
             std::vector<size_t> small_bins;
@@ -142,11 +142,9 @@ void partition_user_bins(chopper::configuration const & config,
 
             auto compute_score = [&]()
             {
-                double const correct_weight = static_cast<double>(current_cardinality) / cardinality_per_part;
-                double const correct_amount =
-                    static_cast<double>(positions[current_part].size() + small_bins.size() + new_small_bin_addition)
-                    / u_bins_per_part;
-                return (correct_amount + correct_weight) / 2;
+                double const weight = static_cast<double>(current_cardinality) / cardinality_per_part;
+                double const amount = static_cast<double>(positions[current_part].size() + small_bins.size() + new_small_bin_addition) / u_bins_per_part;
+                return (std::abs(1 - weight) + std::abs(1 - amount)) / 2;
             };
 
             while (current_cardinality < cardinality_per_part)
@@ -161,6 +159,8 @@ void partition_user_bins(chopper::configuration const & config,
             while (true)
             {
                 size_t const cache_last_small_pos{current_small_pos};
+                // remove a big user bin and fill the partition with small user bins
+                // fill the partition until either the maximum cardinality or the maximum amount of bins is reached
                 current_cardinality -= cardinalities[sorted_positions[current_big_pos]];
                 while (current_cardinality < cardinality_per_part
                        && (positions[current_part].size() + small_bins.size() + new_small_bin_addition)
@@ -180,13 +180,13 @@ void partition_user_bins(chopper::configuration const & config,
                     --current_small_pos;
                     ++new_small_bin_addition;
                 }
-                while (compute_score() > improved_score);
+                while (compute_score() < improved_score); // smaller is better
                 // remove overstep
                 ++current_small_pos;
                 current_cardinality -= cardinalities[sorted_positions[current_small_pos]];
                 --new_small_bin_addition;
 
-                if (local_optimum > compute_score()) // score would decrease. Stop
+                if (local_optimum < compute_score()) // score would increase. Stop
                 {
                     current_small_pos = cache_last_small_pos;
                     break;
