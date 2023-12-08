@@ -143,7 +143,9 @@ void partition_user_bins(chopper::configuration const & config,
             auto compute_score = [&]()
             {
                 double const weight = static_cast<double>(current_cardinality) / cardinality_per_part;
-                double const amount = static_cast<double>(positions[current_part].size() + small_bins.size() + new_small_bin_addition) / u_bins_per_part;
+                double const amount =
+                    static_cast<double>(positions[current_part].size() + small_bins.size() + new_small_bin_addition)
+                    / u_bins_per_part;
                 return (std::abs(1 - weight) + std::abs(1 - amount)) / 2;
             };
 
