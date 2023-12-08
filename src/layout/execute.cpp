@@ -287,7 +287,7 @@ int execute(chopper::configuration & config, std::vector<std::vector<std::string
 
             assert(filenames.size() == sketches.size());
             for (size_t i = 0; i < filenames.size(); ++i)
-            sketch::write_sketch_file(filenames[i][0], sketches[i], config);
+                sketch::write_sketch_file(filenames[i][0], sketches[i], config);
         }
 
         // brief Write the output to the layout file.
