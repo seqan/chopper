@@ -124,6 +124,87 @@ void partition_user_bins(chopper::configuration const & config,
             }
         }
     }
+    else if (config.partitioning_approach == partitioning_scheme::weighted_fold)
+    {
+        size_t const sum_of_cardinalities = std::accumulate(cardinalities.begin(), cardinalities.end(), size_t{});
+        size_t const cardinality_per_part =
+            seqan::hibf::divide_and_ceil(sum_of_cardinalities, config.number_of_partitions);
+        size_t const u_bins_per_part = seqan::hibf::divide_and_ceil(cardinalities.size(), config.number_of_partitions);
+
+        size_t current_big_pos{0}; // the next largest user bin to assign to a partition
+        size_t current_small_pos{cardinalities.size() - 1}; // the next small user bin
+
+        for (size_t current_part = 0; current_part < config.number_of_partitions - 1; ++current_part)
+        {
+            size_t current_cardinality{0};
+            std::vector<size_t> small_bins;
+            size_t new_small_bin_addition{0};
+
+            auto compute_score = [&]()
+            {
+                double const correct_weight = static_cast<double>(current_cardinality) / cardinality_per_part;
+                double const correct_amount = static_cast<double>(positions[current_part].size() + small_bins.size() + new_small_bin_addition) / u_bins_per_part;
+                return (correct_amount + correct_weight) / 2;
+            };
+
+            while (current_cardinality < cardinality_per_part)
+            {
+                positions[current_part].push_back(sorted_positions[current_big_pos]);
+                current_cardinality += cardinalities[sorted_positions[current_big_pos]];
+                ++current_big_pos;
+            }
+
+            double local_optimum = compute_score();
+
+            while(true)
+            {
+                size_t const cache_last_small_pos{current_small_pos};
+                current_cardinality -= cardinalities[sorted_positions[current_big_pos]];
+                while (current_cardinality < cardinality_per_part &&
+                       (positions[current_part].size() + small_bins.size() + new_small_bin_addition) < u_bins_per_part)
+                {
+                    current_cardinality += cardinalities[sorted_positions[current_small_pos]];
+                    --current_small_pos;
+                    ++new_small_bin_addition;
+                }
+
+                // can we further improve the ratio by adding more small bins?
+                double improved_score{};
+                do
+                {
+                    improved_score = compute_score();
+                    current_cardinality += cardinalities[sorted_positions[current_small_pos]];
+                    --current_small_pos;
+                    ++new_small_bin_addition;
+                } while (compute_score() > improved_score);
+                // remove overstep
+                ++current_small_pos;
+                current_cardinality -= cardinalities[sorted_positions[current_small_pos]];
+                --new_small_bin_addition;
+
+                if (local_optimum > compute_score()) // score would decrease. Stop
+                {
+                    current_small_pos = cache_last_small_pos;
+                    break;
+                }
+                else // update
+                {
+                    positions[current_part].pop_back();
+                    --current_big_pos;
+                    for (size_t pos = cache_last_small_pos; pos > current_small_pos; --pos)
+                        small_bins.push_back(sorted_positions[pos]);
+                }
+            }
+            positions[current_part].insert(positions[current_part].end(), small_bins.begin(), small_bins.end());
+        }
+
+        // remaining user bins go to last partition
+        while (current_big_pos <= current_small_pos)
+        {
+            positions[config.number_of_partitions - 1].push_back(sorted_positions[current_big_pos]);
+            ++current_big_pos;
+        }
+    }
 }
 
 int execute(chopper::configuration & config, std::vector<std::vector<std::string>> const & filenames)

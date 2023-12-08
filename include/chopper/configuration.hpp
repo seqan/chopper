@@ -23,7 +23,8 @@ enum partitioning_scheme
 {
     blocked,
     sorted,
-    folded
+    folded,
+    weighted_fold
 };
 
 struct configuration
