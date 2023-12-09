@@ -312,7 +312,7 @@ void execute_general_stats(config const & cfg)
 
     // Prepare stats
     assert(hibf_layouts.size() > 0);
-    size_t part = (hibf_layouts.size() == 1) ? 0 : 1;
+    // size_t part = (hibf_layouts.size() == 1) ? 0 : 1;
     for (auto const & hibf_layout : hibf_layouts)
     {
         size_t const number_of_ibfs = hibf_layout.max_bins.size() + 1u;
@@ -337,7 +337,7 @@ void execute_general_stats(config const & cfg)
             throw std::logic_error{"Could not open file " + cfg.output.string() + " for reading (appending)."};
 
         level_stats.print(output_stream, hibf_layout.user_bins.size());
-        ++part;
+        // ++part;
     }
 }
 

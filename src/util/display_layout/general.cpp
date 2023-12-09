@@ -190,7 +190,7 @@ int execute(config const & cfg)
     // https://godbolt.org/z/WoWf55KPb
     auto filenames = std::move(std::get<0>(tuple));
     auto chopper_config = std::move(std::get<1>(tuple));
-    auto hibf_layout = std::move(std::get<2>(tuple));
+    auto hibf_layouts = std::move(std::get<2>(tuple));
 #else
     auto [filenames, chopper_config, hibf_layouts] = chopper::layout::read_layouts_file(layout_file);
 #endif
