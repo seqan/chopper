@@ -71,7 +71,7 @@ TEST(layout_test, read_single_layout)
 5	1;2;3;4;22	1;1;1;1;21
 )layout_file"};
 
-    auto [filenames, chopper_config, layouts] = chopper::layout::read_layout_file(ss);
+    auto [filenames, chopper_config, layouts] = chopper::layout::read_layouts_file(ss);
 
     auto const & layout = layouts[0];
 

@@ -284,7 +284,7 @@ void execute_general_stats(config const & cfg)
 
 // https://godbolt.org/z/PeKnxzjn1
 #if defined(__clang__)
-    auto tuple = chopper::layout::read_layout_file(layout_file);
+    auto tuple = chopper::layout::read_layouts_file(layout_file);
     // https://godbolt.org/z/WoWf55KPb
     auto filenames = std::move(std::get<0>(tuple));
     auto chopper_config = std::move(std::get<1>(tuple));
