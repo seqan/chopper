@@ -177,27 +177,14 @@ void process_and_write_records_to(std::vector<record> & records, std::ostream & 
     stream << std::flush;
 }
 
-int execute(config const & cfg)
+int execute(config const & cfg,
+            std::vector<std::vector<std::string>> const & filenames,
+            chopper::configuration const & chopper_config,
+            seqan::hibf::layout::layout & hibf_layout)
 {
-    std::ifstream layout_file{cfg.input};
-
-    if (!layout_file.good() || !layout_file.is_open())
-        throw std::logic_error{"Could not open file " + cfg.input.string() + " for reading"};
-
-// https://godbolt.org/z/PeKnxzjn1
-#if defined(__clang__)
-    auto tuple = chopper::layout::read_layouts_file(layout_file);
-    // https://godbolt.org/z/WoWf55KPb
-    auto filenames = std::move(std::get<0>(tuple));
-    auto chopper_config = std::move(std::get<1>(tuple));
-    auto hibf_layouts = std::move(std::get<2>(tuple));
-#else
-    auto [filenames, chopper_config, hibf_layouts] = chopper::layout::read_layouts_file(layout_file);
-#endif
     auto const & hibf_config = chopper_config.hibf_config;
 
-    layout_file.close();
-    std::ofstream output_stream{cfg.output};
+    std::ofstream output_stream{cfg.output, std::ios_base::app};
 
     if (!output_stream.good() || !output_stream.is_open())
         throw std::logic_error{"Could not open file " + cfg.output.string() + " for reading"};
@@ -223,7 +210,7 @@ int execute(config const & cfg)
     // If the index is the same, sort by file sizes (happens for merged bins).
     // Using the smallest file to initialise the shared k-mers later will be less work.
     std::ranges::sort(
-        hibf_layouts[0].user_bins,
+        hibf_layout.user_bins,
         [&filesizes](seqan::hibf::layout::layout::user_bin const & lhs,
                      seqan::hibf::layout::layout::user_bin const & rhs)
         {
@@ -232,7 +219,7 @@ int execute(config const & cfg)
             return first_idx < second_idx || (first_idx == second_idx && filesizes[lhs.idx] < filesizes[rhs.idx]);
         });
 
-    size_t const total_ub_count = hibf_layouts[0].user_bins.size();
+    size_t const total_ub_count = hibf_layout.user_bins.size();
     progress_bar progress{total_ub_count};
 
     // Create chunks containing user bin indices for one technical bin.
@@ -249,8 +236,8 @@ int execute(config const & cfg)
         // Two user bins belong to the same chunk if they are in the same technical bin.
         auto predicate = [&](size_t const lhs, size_t const rhs)
         {
-            auto const & lhs_ub = hibf_layouts[0].user_bins[lhs];
-            auto const & rhs_ub = hibf_layouts[0].user_bins[rhs];
+            auto const & lhs_ub = hibf_layout.user_bins[lhs];
+            auto const & rhs_ub = hibf_layout.user_bins[rhs];
             // The top-level technical bin index for the current user bin.
             // user_bin.previous_TB_indices.size() == 0: true for split bins, false for merged bins
             // user_bin.storage_TB_id: technical bin index on the lowest level
@@ -289,7 +276,7 @@ int execute(config const & cfg)
 
         for (size_t const ub_index : chunk)
         {
-            auto const & user_bin = hibf_layouts[0].user_bins[ub_index];
+            auto const & user_bin = hibf_layout.user_bins[ub_index];
             current_kmers.clear();
 
             // We don't need to keep the current_kmers if there are no shared k-mers to merge them with.
@@ -325,7 +312,7 @@ int execute(config const & cfg)
         }
 
         // Into how many techincal bins is the user bin split? Always 1 for merged bins.
-        size_t const split_count{is_merged ? 1u : hibf_layouts[0].user_bins[chunk[0]].number_of_technical_bins};
+        size_t const split_count{is_merged ? 1u : hibf_layout.user_bins[chunk[0]].number_of_technical_bins};
         size_t const avg_kmer_count = (current_kmer_set.size() + split_count - 1u) / split_count;
         size_t const sketch_estimate = (sketch.estimate() + split_count - 1u) / split_count;
 
@@ -348,5 +335,15 @@ int execute(config const & cfg)
 
 void execute_general(config const & cfg)
 {
-    execute(cfg);
+    std::ifstream layout_file{cfg.input};
+
+    if (!layout_file.good() || !layout_file.is_open())
+        throw std::logic_error{"Could not open file " + cfg.input.string() + " for reading"};
+
+    auto [filenames, chopper_config, hibf_layouts] = chopper::layout::read_layouts_file(layout_file);
+
+    layout_file.close();
+
+    for (auto & hibf_layout : hibf_layouts)
+        execute(cfg, filenames, chopper_config, hibf_layout);
 }
