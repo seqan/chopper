@@ -38,6 +38,7 @@ namespace chopper::layout
 
 void partition_user_bins(chopper::configuration const & config,
                          std::vector<size_t> const & cardinalities,
+                         std::vector<seqan::hibf::sketch::hyperloglog> const & sketches,
                          std::vector<std::vector<size_t>> & positions)
 {
     // all approaches need sorted positions
@@ -202,6 +203,66 @@ void partition_user_bins(chopper::configuration const & config,
         {
             positions[config.number_of_partitions - 1].push_back(sorted_positions[current_big_pos]);
             ++current_big_pos;
+        }
+    }
+    else if (config.partitioning_approach == partitioning_scheme::similarity)
+    {
+        uint8_t sketch_bits{10};
+        std::vector<seqan::hibf::sketch::hyperloglog> partition_sketches(config.number_of_partitions, seqan::hibf::sketch::hyperloglog(sketch_bits));
+        size_t const u_bins_per_part = seqan::hibf::divide_and_ceil(cardinalities.size(), config.number_of_partitions);
+        size_t const block_size =
+            std::min(u_bins_per_part,
+                     chopper::next_multiple_of_64(static_cast<uint16_t>(std::ceil(std::sqrt(u_bins_per_part)))));
+        size_t const number_of_blocks = seqan::hibf::divide_and_ceil(cardinalities.size(), block_size);
+
+        size_t current_part{0u};
+        size_t current_block_count{0};
+        seqan::hibf::sketch::hyperloglog current_sketch(sketch_bits);
+
+        size_t current_pos{0};
+
+        // initialise partitions with the first config.number_of_partitions blocks
+        assert(number_of_blocks >= config.number_of_partitions);
+        for (size_t i = 0; i < config.number_of_partitions; ++i)
+        {
+            do
+            {
+                partition_sketches[i].merge(sketches[sorted_positions[current_pos]]);
+                positions[i].push_back(sorted_positions[current_pos]);
+                ++current_pos;
+            }
+            while (current_pos % block_size != 0);
+        }
+
+        // assign the rest by similarity
+        for (size_t i = config.number_of_partitions; i < number_of_blocks; ++i)
+        {
+            size_t count{}; // we need to track count for the last partition that is not block_size long
+            do // init sketch
+            {
+                current_sketch.merge(sketches[sorted_positions[current_pos]]);
+                ++current_pos;
+                ++count;
+            }
+            while (current_pos % block_size != 0 && current_pos < cardinalities.size());
+
+            // search best parition fit
+            size_t smallest_change{std::numeric_limits<size_t>::max()};
+            size_t best_p{0};
+            for (size_t p = 0; p < config.number_of_partitions; ++p)
+            {
+                seqan::hibf::sketch::hyperloglog tmp = current_sketch;
+                tmp.merge(partition_sketches[p]);
+
+                if (tmp.estimate() < smallest_change)
+                {
+                    smallest_change = tmp.estimate();
+                    best_p = p;
+                }
+            }
+
+            for (size_t add = current_pos - count; add < count; ++add)
+                positions[best_p].push_back(add);
         }
     }
 }

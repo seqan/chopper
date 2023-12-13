@@ -24,7 +24,8 @@ enum partitioning_scheme
     blocked,
     sorted,
     folded,
-    weighted_fold
+    weighted_fold,
+    similarity
 };
 
 struct configuration
