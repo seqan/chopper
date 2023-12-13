@@ -260,7 +260,7 @@ void partition_user_bins(chopper::configuration const & config,
                 }
             }
 
-            for (size_t add = current_pos - count; add < count; ++add)
+            for (size_t add = current_pos - count; add < current_pos; ++add)
                 positions[best_p].push_back(add);
         }
     }
