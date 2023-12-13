@@ -216,8 +216,6 @@ void partition_user_bins(chopper::configuration const & config,
                      chopper::next_multiple_of_64(static_cast<uint16_t>(std::ceil(std::sqrt(u_bins_per_part)))));
         size_t const number_of_blocks = seqan::hibf::divide_and_ceil(cardinalities.size(), block_size);
 
-        size_t current_part{0u};
-        size_t current_block_count{0};
         seqan::hibf::sketch::hyperloglog current_sketch(sketch_bits);
 
         size_t current_pos{0};
@@ -384,7 +382,7 @@ int execute(chopper::configuration & config, std::vector<std::vector<std::string
         seqan::hibf::sketch::compute_sketches(config.hibf_config, cardinalities, sketches);
         compute_sketches_timer.stop();
 
-        partition_user_bins(config, cardinalities, positions);
+        partition_user_bins(config, cardinalities, sketches, positions);
 
         std::vector<seqan::hibf::layout::layout> hibf_layouts(config.number_of_partitions); // multiple layouts
 
