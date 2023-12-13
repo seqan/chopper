@@ -208,7 +208,8 @@ void partition_user_bins(chopper::configuration const & config,
     else if (config.partitioning_approach == partitioning_scheme::similarity)
     {
         uint8_t sketch_bits{10};
-        std::vector<seqan::hibf::sketch::hyperloglog> partition_sketches(config.number_of_partitions, seqan::hibf::sketch::hyperloglog(sketch_bits));
+        std::vector<seqan::hibf::sketch::hyperloglog> partition_sketches(config.number_of_partitions,
+                                                                         seqan::hibf::sketch::hyperloglog(sketch_bits));
         size_t const u_bins_per_part = seqan::hibf::divide_and_ceil(cardinalities.size(), config.number_of_partitions);
         size_t const block_size =
             std::min(u_bins_per_part,
@@ -238,7 +239,7 @@ void partition_user_bins(chopper::configuration const & config,
         for (size_t i = config.number_of_partitions; i < number_of_blocks; ++i)
         {
             size_t count{}; // we need to track count for the last partition that is not block_size long
-            do // init sketch
+            do              // init sketch
             {
                 current_sketch.merge(sketches[sorted_positions[current_pos]]);
                 ++current_pos;
