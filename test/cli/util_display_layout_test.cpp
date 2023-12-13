@@ -91,8 +91,9 @@ TEST_F(cli_test, display_layout_general)
     std::string const seq2_filename = data("seq2.fa");
     std::string const seq3_filename = data("seq3.fa");
     std::string const small_filename = data("small.fa");
-    std::filesystem::path const layout_filename{"small.layout"};
-    std::filesystem::path const general_filename{"small.layout.general"};
+    seqan3::test::tmp_directory tmp_dir{};
+    std::filesystem::path const layout_filename{tmp_dir.path() / "small.layout"};
+    std::filesystem::path const general_filename{tmp_dir.path() / "small.layout.general"};
 
     {
         std::ofstream fout{layout_filename};
@@ -102,6 +103,8 @@ TEST_F(cli_test, display_layout_general)
                                                   small_filename,
                                                   layout_filename.string());
     }
+
+    ASSERT_TRUE(std::filesystem::exists(layout_filename));
 
     cli_test_result result = execute_app("display_layout",
                                          "general",
