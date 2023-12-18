@@ -118,6 +118,50 @@ TEST_F(cli_test, display_layout_general)
 
     std::string expected_general_file{"# Layout: " + layout_filename.string() + "\n" +
                                       R"(tb_index	exact_size	estimated_size	shared_size	ub_count	kind	splits
+0	479	483	0	2	merged	1
+1	466	466	0	1	split	1
+2	287	289	0	1	split	2
+3	287	289	0	1	split	0
+)"};
+
+    std::string const actual_file{string_from_file(general_filename)};
+    EXPECT_EQ(expected_general_file, actual_file);
+}
+
+TEST_F(cli_test, display_layout_general_with_shared_kmers)
+{
+    std::string const seq1_filename = data("seq1.fa");
+    std::string const seq2_filename = data("seq2.fa");
+    std::string const seq3_filename = data("seq3.fa");
+    std::string const small_filename = data("small.fa");
+    std::filesystem::path const layout_filename{"small.layout"};
+    std::filesystem::path const general_filename{"small.layout.general"};
+
+    {
+        std::ofstream fout{layout_filename};
+        fout << get_layout_with_correct_filenames(seq1_filename,
+                                                  seq2_filename,
+                                                  seq3_filename,
+                                                  small_filename,
+                                                  layout_filename.string());
+    }
+
+    cli_test_result result = execute_app("display_layout",
+                                         "general",
+                                         "--output-shared-kmers",
+                                         "--input",
+                                         layout_filename.c_str(),
+                                         "--output",
+                                         general_filename.c_str());
+
+    ASSERT_EQ(result.exit_code, 0) << "PWD: " << result.pwd << "\nCMD: " << result.command;
+    EXPECT_EQ(result.out, std::string{});
+    // std err will have a progress bar
+
+    ASSERT_TRUE(std::filesystem::exists(general_filename));
+
+    std::string expected_general_file{"# Layout: " + layout_filename.string() + "\n" +
+                                      R"(tb_index	exact_size	estimated_size	shared_size	ub_count	kind	splits
 0	479	483	371	2	merged	1
 1	466	466	0	1	split	1
 2	287	289	0	1	split	2

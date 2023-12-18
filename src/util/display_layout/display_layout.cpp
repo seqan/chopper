@@ -26,6 +26,15 @@ void init_shared_meta(sharg::parser & parser)
     parser.info.description.emplace_back("Computes an table to display the top-level layout.");
 }
 
+void general_only_options(sharg::parser & parser, config & cfg)
+{
+    parser.add_flag(cfg.output_shared_kmers,
+                    sharg::config{.short_id = '\0',
+                                  .long_id = "output-shared-kmers",
+                                  .description = "Additionally compute shared k-mers for each merged bin. "
+                                                 "This might be computationally expensive."});
+}
+
 void init_options(sharg::parser & parser, config & cfg)
 {
     parser.add_subsection("Main options:");
@@ -42,6 +51,10 @@ void init_options(sharg::parser & parser, config & cfg)
                                     .description = "The output. ",
                                     .required = true,
                                     .validator = sharg::output_file_validator{}});
+
+    if (parser.info.app_name == std::string_view{"layout_stats-general"})
+        general_only_options(parser, cfg);
+
     parser.add_option(
         cfg.threads,
         sharg::config{.short_id = '\0', .long_id = "threads", .description = "The number of threads to use."});
