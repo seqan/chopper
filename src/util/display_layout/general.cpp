@@ -292,8 +292,10 @@ int execute(config const & cfg)
             auto const & user_bin = hibf_layout.user_bins[ub_index];
             current_kmers.clear();
 
-            // We don't need to keep the current_kmers if there are no shared k-mers to merge them with.
-            bool const fill_current_kmers = is_merged && !(shared_kmers_initialised && shared_kmers.empty());
+            // We don't need to keep the current_kmers if there are no shared k-mers to merge them with, or if we
+            // were not requested to output shared k-mers.
+            bool const fill_current_kmers =
+                cfg.output_shared_kmers && is_merged && !(shared_kmers_initialised && shared_kmers.empty());
 
             for (auto const & filename : filenames[user_bin.idx])
             {

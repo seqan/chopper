@@ -19,6 +19,7 @@ struct config
 {
     std::filesystem::path input{};
     std::filesystem::path output{};
+    bool output_shared_kmers{false};
     uint8_t threads{1u};
 };
 
