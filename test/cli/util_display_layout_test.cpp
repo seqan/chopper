@@ -77,7 +77,8 @@ std::string get_layout_with_correct_filenames(std::string_view const seq1_filena
               "@    }\n"
               "@}\n"
               "@HIBF_CONFIG_END\n"
-              "#TOP_LEVEL_IBF fullest_technical_bin_idx:22\n"
+              "#TOP_LEVEL_IBF fullest_technical_bin_idx:0\n"
+              "#LOWER_LEVEL_IBF_0 fullest_technical_bin_idx:0\n"
               "#USER_BIN_IDX\tTECHNICAL_BIN_INDICES\tNUMBER_OF_TECHNICAL_BINS\n"
               "0\t0;0\t2\n"
               "1\t0;2\t2\n"
@@ -91,8 +92,9 @@ TEST_F(cli_test, display_layout_general)
     std::string const seq2_filename = data("seq2.fa");
     std::string const seq3_filename = data("seq3.fa");
     std::string const small_filename = data("small.fa");
-    std::filesystem::path const layout_filename{"small.layout"};
-    std::filesystem::path const general_filename{"small.layout.general"};
+    seqan3::test::tmp_directory tmp_dir{};
+    std::filesystem::path const layout_filename{tmp_dir.path() / "small.layout"};
+    std::filesystem::path const general_filename{tmp_dir.path() / "small.layout.general"};
 
     {
         std::ofstream fout{layout_filename};
@@ -102,6 +104,8 @@ TEST_F(cli_test, display_layout_general)
                                                   small_filename,
                                                   layout_filename.string());
     }
+
+    ASSERT_TRUE(std::filesystem::exists(layout_filename));
 
     cli_test_result result = execute_app("display_layout",
                                          "general",
@@ -169,5 +173,46 @@ TEST_F(cli_test, display_layout_general_with_shared_kmers)
 )"};
 
     std::string const actual_file{string_from_file(general_filename)};
+    EXPECT_EQ(expected_general_file, actual_file);
+}
+
+TEST_F(cli_test, display_layout_sizes)
+{
+    std::string const seq1_filename = data("seq1.fa");
+    std::string const seq2_filename = data("seq2.fa");
+    std::string const seq3_filename = data("seq3.fa");
+    std::string const small_filename = data("small.fa");
+    seqan3::test::tmp_directory tmp_dir{};
+    std::filesystem::path const layout_filename{tmp_dir.path() / "small.layout"};
+    std::filesystem::path const sizes_filename{tmp_dir.path() / "small.layout.sizes"};
+
+    {
+        std::ofstream fout{layout_filename};
+        fout << get_layout_with_correct_filenames(seq1_filename,
+                                                  seq2_filename,
+                                                  seq3_filename,
+                                                  small_filename,
+                                                  layout_filename.string());
+    }
+
+    ASSERT_TRUE(std::filesystem::exists(layout_filename));
+
+    cli_test_result result =
+        execute_app("display_layout", "sizes", "--input", layout_filename.c_str(), "--output", sizes_filename.c_str());
+
+    ASSERT_EQ(result.exit_code, 0) << "PWD: " << result.pwd << "\nCMD: " << result.command;
+    EXPECT_EQ(result.out, std::string{});
+    // std err will have a progress bar
+
+    ASSERT_TRUE(std::filesystem::exists(sizes_filename));
+
+    std::string expected_general_file{R"(# Levels: 2
+# User bins: 4
+LEVEL	BIT_SIZE	IBFS	AVG_LOAD_FACTOR	TBS_TOO_BIG	AVG_TBS_TOO_BIG_ELEMENTS	AVG_MAX_ELEMENTS
+0	4832	1	79.44	0	0	479
+1	8916	1	80.26	0	0	385
+)"};
+
+    std::string const actual_file{string_from_file(sizes_filename)};
     EXPECT_EQ(expected_general_file, actual_file);
 }
