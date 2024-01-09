@@ -218,36 +218,37 @@ void partition_user_bins(chopper::configuration const & config,
                      chopper::next_multiple_of_64(static_cast<uint16_t>(std::ceil(std::sqrt(u_bins_per_part)))));
         size_t const number_of_blocks = seqan::hibf::divide_and_ceil(cardinalities.size(), block_size);
 
-        seqan::hibf::sketch::hyperloglog current_sketch(sketch_bits);
-
-        size_t current_pos{0};
-
         // initialise partitions with the first config.number_of_partitions blocks
         assert(number_of_blocks >= config.number_of_partitions);
         for (size_t i = 0; i < config.number_of_partitions; ++i)
         {
-            do
+            for (size_t x = 0; x < block_size; ++x)
             {
-                partition_sketches[i].merge(sketches[sorted_positions[current_pos]]);
-                positions[i].push_back(sorted_positions[current_pos]);
-                ++current_pos;
+                partition_sketches[i].merge(sketches[sorted_positions[i + x]]);
+                positions[i].push_back(sorted_positions[i + x]);
             }
-            while (current_pos % block_size != 0);
         }
 
         // assign the rest by similarity
-        for (size_t i = config.number_of_partitions; i < number_of_blocks; ++i)
-        {
-            size_t count{}; // we need to track count for the last partition that is not block_size long
-            do              // init sketch
-            {
-                current_sketch.merge(sketches[sorted_positions[current_pos]]);
-                ++current_pos;
-                ++count;
-            }
-            while (current_pos % block_size != 0 && current_pos < cardinalities.size());
+        // but don't move from largest to smallest but pick the next block to process randomly.
+        // this probably leads to more evenly distributed partitions (evenly in terms of number of user bins)
+        std::vector<size_t> indices(number_of_blocks - config.number_of_partitions);
+        std::iota(indices.begin(), indices.end(), config.number_of_partitions);
+        std::random_device shuffle_random_device;
+        std::mt19937 shuffle_engine(shuffle_random_device());
+        std::shuffle(indices.begin(), indices.end(), shuffle_engine);
 
-            // search best parition fit
+        for (size_t const i : indices)
+        {
+            seqan::hibf::sketch::hyperloglog current_sketch(sketch_bits);
+
+            // initialise sketch of the current block of indices
+            for (size_t x = 0; x < block_size && (i + x) < sorted_positions.size(); ++x)
+                current_sketch.merge(sketches[sorted_positions[i + x]]);
+
+            // search best partition fit by similarity
+            // similarity here is defined as:
+            // "whose (<-partition) effective text size will increase the least when current_block is added to it"
             size_t smallest_change{std::numeric_limits<size_t>::max()};
             size_t best_p{0};
             for (size_t p = 0; p < config.number_of_partitions; ++p)
@@ -262,8 +263,9 @@ void partition_user_bins(chopper::configuration const & config,
                 }
             }
 
-            for (size_t add = current_pos - count; add < current_pos; ++add)
-                positions[best_p].push_back(add);
+            // now that we know which partition fits best (`best_p`), add those indices to it
+            for (size_t x = 0; x < block_size && (i + x) < sorted_positions.size(); ++x)
+                positions[best_p].push_back(i + x);
         }
     }
 }
