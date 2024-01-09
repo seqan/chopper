@@ -210,6 +210,8 @@ void partition_user_bins(chopper::configuration const & config,
         uint8_t sketch_bits{10};
         std::vector<seqan::hibf::sketch::hyperloglog> partition_sketches(config.number_of_partitions,
                                                                          seqan::hibf::sketch::hyperloglog(sketch_bits));
+        size_t const cardinality_per_part =
+            seqan::hibf::divide_and_ceil(sum_of_cardinalities, config.number_of_partitions);
         size_t const u_bins_per_part = seqan::hibf::divide_and_ceil(cardinalities.size(), config.number_of_partitions);
         size_t const block_size =
             std::min(u_bins_per_part,
@@ -253,7 +255,7 @@ void partition_user_bins(chopper::configuration const & config,
                 seqan::hibf::sketch::hyperloglog tmp = current_sketch;
                 tmp.merge(partition_sketches[p]);
 
-                if (tmp.estimate() < smallest_change)
+                if (tmp.estimate() < smallest_change && partition_sketches[p].estimate() < cardinality_per_part)
                 {
                     smallest_change = tmp.estimate();
                     best_p = p;
