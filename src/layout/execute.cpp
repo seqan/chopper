@@ -17,6 +17,7 @@
 #include <string>
 #include <tuple>
 #include <vector>
+#include <random>
 
 #include <chopper/configuration.hpp>
 #include <chopper/layout/determine_best_number_of_technical_bins.hpp>
@@ -210,6 +211,7 @@ void partition_user_bins(chopper::configuration const & config,
         uint8_t sketch_bits{10};
         std::vector<seqan::hibf::sketch::hyperloglog> partition_sketches(config.number_of_partitions,
                                                                          seqan::hibf::sketch::hyperloglog(sketch_bits));
+        size_t const sum_of_cardinalities = std::accumulate(cardinalities.begin(), cardinalities.end(), size_t{});
         size_t const cardinality_per_part =
             seqan::hibf::divide_and_ceil(sum_of_cardinalities, config.number_of_partitions);
         size_t const u_bins_per_part = seqan::hibf::divide_and_ceil(cardinalities.size(), config.number_of_partitions);
@@ -266,6 +268,7 @@ void partition_user_bins(chopper::configuration const & config,
             // now that we know which partition fits best (`best_p`), add those indices to it
             for (size_t x = 0; x < block_size && (i + x) < sorted_positions.size(); ++x)
                 positions[best_p].push_back(i + x);
+            partition_sketches[best_p].merge(current_sketch);
         }
     }
 }
