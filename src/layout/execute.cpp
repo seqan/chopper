@@ -13,11 +13,11 @@
 #include <fstream>
 #include <iostream>
 #include <numeric>
+#include <random>
 #include <stdexcept>
 #include <string>
 #include <tuple>
 #include <vector>
-#include <random>
 
 #include <chopper/configuration.hpp>
 #include <chopper/layout/determine_best_number_of_technical_bins.hpp>
