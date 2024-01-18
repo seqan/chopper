@@ -19,7 +19,6 @@
 #include <string>
 #include <tuple>
 #include <vector>
-#include <random>
 
 #include <chopper/configuration.hpp>
 #include <chopper/layout/determine_best_number_of_technical_bins.hpp>
@@ -281,7 +280,6 @@ void partition_user_bins(chopper::configuration const & config,
         }
     }
 }
-
 
 int execute(chopper::configuration & config, std::vector<std::vector<std::string>> const & filenames)
 {
