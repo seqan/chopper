@@ -5,6 +5,7 @@
 // shipped with this file and also available at: https://github.com/seqan/chopper/blob/main/LICENSE.md
 // ---------------------------------------------------------------------------------------------------
 
+#include <algorithm>
 #include <cassert>
 #include <cinttypes>
 #include <cmath>
@@ -18,6 +19,7 @@
 #include <string>
 #include <tuple>
 #include <vector>
+#include <random>
 
 #include <chopper/configuration.hpp>
 #include <chopper/layout/determine_best_number_of_technical_bins.hpp>
@@ -208,9 +210,11 @@ void partition_user_bins(chopper::configuration const & config,
     }
     else if (config.partitioning_approach == partitioning_scheme::similarity)
     {
-        uint8_t sketch_bits{10};
+        uint8_t const sketch_bits{config.hibf_config.sketch_bits};
         std::vector<seqan::hibf::sketch::hyperloglog> partition_sketches(config.number_of_partitions,
                                                                          seqan::hibf::sketch::hyperloglog(sketch_bits));
+        std::vector<size_t> partition_cardinality(config.number_of_partitions, 0u);
+
         size_t const sum_of_cardinalities = std::accumulate(cardinalities.begin(), cardinalities.end(), size_t{});
         size_t const cardinality_per_part =
             seqan::hibf::divide_and_ceil(sum_of_cardinalities, config.number_of_partitions);
@@ -222,12 +226,13 @@ void partition_user_bins(chopper::configuration const & config,
 
         // initialise partitions with the first config.number_of_partitions blocks
         assert(number_of_blocks >= config.number_of_partitions);
-        for (size_t i = 0; i < config.number_of_partitions; ++i)
+        for (size_t p = 0; p < config.number_of_partitions; ++p)
         {
             for (size_t x = 0; x < block_size; ++x)
             {
-                partition_sketches[i].merge(sketches[sorted_positions[i + x]]);
-                positions[i].push_back(sorted_positions[i + x]);
+                partition_sketches[p].merge(sketches[sorted_positions[block_size * p + x]]);
+                partition_cardinality[p] += cardinalities[sorted_positions[block_size * p + x]];
+                positions[p].push_back(sorted_positions[block_size * p + x]);
             }
         }
 
@@ -235,6 +240,7 @@ void partition_user_bins(chopper::configuration const & config,
         // but don't move from largest to smallest but pick the next block to process randomly.
         // this probably leads to more evenly distributed partitions (evenly in terms of number of user bins)
         std::vector<size_t> indices(number_of_blocks - config.number_of_partitions);
+
         std::iota(indices.begin(), indices.end(), config.number_of_partitions);
         std::random_device shuffle_random_device;
         std::mt19937 shuffle_engine(shuffle_random_device());
@@ -245,8 +251,8 @@ void partition_user_bins(chopper::configuration const & config,
             seqan::hibf::sketch::hyperloglog current_sketch(sketch_bits);
 
             // initialise sketch of the current block of indices
-            for (size_t x = 0; x < block_size && (i + x) < sorted_positions.size(); ++x)
-                current_sketch.merge(sketches[sorted_positions[i + x]]);
+            for (size_t x = 0; x < block_size && ((block_size * i + x) < sorted_positions.size()); ++x)
+                current_sketch.merge(sketches[sorted_positions[block_size * i + x]]);
 
             // search best partition fit by similarity
             // similarity here is defined as:
@@ -258,7 +264,7 @@ void partition_user_bins(chopper::configuration const & config,
                 seqan::hibf::sketch::hyperloglog tmp = current_sketch;
                 tmp.merge(partition_sketches[p]);
 
-                if (tmp.estimate() < smallest_change && partition_sketches[p].estimate() < cardinality_per_part)
+                if (tmp.estimate() < smallest_change && partition_cardinality[p] < cardinality_per_part)
                 {
                     smallest_change = tmp.estimate();
                     best_p = p;
@@ -266,12 +272,16 @@ void partition_user_bins(chopper::configuration const & config,
             }
 
             // now that we know which partition fits best (`best_p`), add those indices to it
-            for (size_t x = 0; x < block_size && (i + x) < sorted_positions.size(); ++x)
-                positions[best_p].push_back(i + x);
+            for (size_t x = 0; x < block_size && ((block_size * i + x) < sorted_positions.size()); ++x)
+            {
+                positions[best_p].push_back(sorted_positions[block_size * i + x]);
+                partition_cardinality[best_p] += cardinalities[sorted_positions[block_size * i + x]];
+            }
             partition_sketches[best_p].merge(current_sketch);
         }
     }
 }
+
 
 int execute(chopper::configuration & config, std::vector<std::vector<std::string>> const & filenames)
 {
