@@ -223,28 +223,29 @@ void partition_user_bins(chopper::configuration const & config,
                      chopper::next_multiple_of_64(static_cast<uint16_t>(std::ceil(std::sqrt(u_bins_per_part)))));
         size_t const number_of_blocks = seqan::hibf::divide_and_ceil(cardinalities.size(), block_size);
 
-        // initialise partitions with the first config.number_of_partitions blocks
-        assert(number_of_blocks >= config.number_of_partitions);
-        for (size_t p = 0; p < config.number_of_partitions; ++p)
-        {
-            for (size_t x = 0; x < block_size; ++x)
-            {
-                partition_sketches[p].merge(sketches[sorted_positions[block_size * p + x]]);
-                partition_cardinality[p] += cardinalities[sorted_positions[block_size * p + x]];
-                positions[p].push_back(sorted_positions[block_size * p + x]);
-            }
-        }
-
-        // assign the rest by similarity
-        // but don't move from largest to smallest but pick the next block to process randomly.
+        // don't move from largest to smallest but pick the next block to process randomly.
         // this probably leads to more evenly distributed partitions (evenly in terms of number of user bins)
-        std::vector<size_t> indices(number_of_blocks - config.number_of_partitions);
-
-        std::iota(indices.begin(), indices.end(), config.number_of_partitions);
+        std::vector<size_t> indices(number_of_blocks);
+        std::iota(indices.begin(), indices.end(), 0);
         std::random_device shuffle_random_device;
         std::mt19937 shuffle_engine(shuffle_random_device());
         std::shuffle(indices.begin(), indices.end(), shuffle_engine);
 
+        // initialise partitions with the first random config.number_of_partitions blocks
+        assert(number_of_blocks >= config.number_of_partitions);
+        for (size_t p = 0; p < config.number_of_partitions; ++p)
+        {
+            size_t const i = indices[p];
+            for (size_t x = 0; x < block_size; ++x)
+            {
+                partition_sketches[p].merge(sketches[sorted_positions[block_size * i + x]]);
+                partition_cardinality[p] += cardinalities[sorted_positions[block_size * i + x]];
+                positions[p].push_back(sorted_positions[block_size * i + x]);
+            }
+        }
+        indices.erase(indices.begin(), indices.begin() + config.number_of_partitions);
+
+        // assign the rest by similarity
         for (size_t const i : indices)
         {
             seqan::hibf::sketch::hyperloglog current_sketch(sketch_bits);
@@ -255,17 +256,24 @@ void partition_user_bins(chopper::configuration const & config,
 
             // search best partition fit by similarity
             // similarity here is defined as:
-            // "whose (<-partition) effective text size will increase the least when current_block is added to it"
-            size_t smallest_change{std::numeric_limits<size_t>::max()};
+            // "whose (<-partition) effective text size is subsumed most by the current user bin"
+            // or in other words:
+            // "which partition has the largest intersection with user bin b compared to its own (partition) size."
+            double best_subsume_ratio{0.0};
             size_t best_p{0};
             for (size_t p = 0; p < config.number_of_partitions; ++p)
             {
                 seqan::hibf::sketch::hyperloglog tmp = current_sketch;
                 tmp.merge(partition_sketches[p]);
+                size_t const tmp_estimate = tmp.estimate();
+                assert(tmp_estimate >= partition_cardinality[p]);
+                size_t const change = tmp_estimate - partition_cardinality[p];
+                size_t const intersection = current_sketch.estimate() - change;
+                double const subsume_ratio = static_cast<double>(intersection) / partition_cardinality[p];
 
-                if (tmp.estimate() < smallest_change && partition_cardinality[p] < cardinality_per_part)
+                if (subsume_ratio > best_subsume_ratio && partition_cardinality[p] < cardinality_per_part)
                 {
-                    smallest_change = tmp.estimate();
+                    best_subsume_ratio = subsume_ratio;
                     best_p = p;
                 }
             }
