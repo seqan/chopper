@@ -31,6 +31,8 @@ std::string const layout_header{"@CHOPPER_USER_BINS\n"
                                 "@        \"window_size\": 15,\n"
                                 "@        \"disable_sketch_output\": true,\n"
                                 "@        \"precomputed_files\": false,\n"
+                                "@        \"maximum_index_size\": 0,\n"
+                                "@        \"number_of_partitions\": 0,\n"
                                 "@        \"output_filename\": {\n"
                                 "@            \"value0\": \"foo.layout\"\n"
                                 "@        },\n"
@@ -71,7 +73,9 @@ TEST(layout_test, read_single_layout)
 5	1;2;3;4;22	1;1;1;1;21
 )layout_file"};
 
-    auto [filenames, chopper_config, layout] = chopper::layout::read_layout_file(ss);
+    auto [filenames, chopper_config, layouts] = chopper::layout::read_layouts_file(ss);
+
+    auto const & layout = layouts[0];
 
     EXPECT_EQ(layout.top_level_max_bin_id, 111);
     EXPECT_EQ(layout.max_bins[0], (seqan::hibf::layout::layout::max_bin{{0}, 0}));
@@ -80,4 +84,50 @@ TEST(layout_test, read_single_layout)
     EXPECT_EQ(layout.user_bins[0], (seqan::hibf::layout::layout::user_bin{std::vector<size_t>{}, 0, 1, 7}));
     EXPECT_EQ(layout.user_bins[1], (seqan::hibf::layout::layout::user_bin{std::vector<size_t>{1}, 0, 22, 4}));
     EXPECT_EQ(layout.user_bins[2], (seqan::hibf::layout::layout::user_bin{std::vector<size_t>{1, 2, 3, 4}, 22, 21, 5}));
+}
+
+TEST(layout_test, read_from_partitioned_layout)
+{
+    // layout consists of three partitions, written one after the other
+    std::stringstream ss{layout_header + R"layout_file(#TOP_LEVEL_IBF fullest_technical_bin_idx:111
+#LOWER_LEVEL_IBF_0 fullest_technical_bin_idx:0
+#LOWER_LEVEL_IBF_2 fullest_technical_bin_idx:2
+#LOWER_LEVEL_IBF_1;2;3;4 fullest_technical_bin_idx:22
+#USER_BIN_IDX	TECHNICAL_BIN_INDICES	NUMBER_OF_TECHNICAL_BINS
+7	0	1
+4	1;0	1;22
+5	1;2;3;4;22	1;1;1;1;21
+#TOP_LEVEL_IBF fullest_technical_bin_idx:111
+#LOWER_LEVEL_IBF_0 fullest_technical_bin_idx:0
+#LOWER_LEVEL_IBF_2 fullest_technical_bin_idx:2
+#LOWER_LEVEL_IBF_1;2;3;4 fullest_technical_bin_idx:22
+#USER_BIN_IDX	TECHNICAL_BIN_INDICES	NUMBER_OF_TECHNICAL_BINS
+7	0	1
+4	1;0	1;22
+5	1;2;3;4;22	1;1;1;1;21
+#TOP_LEVEL_IBF fullest_technical_bin_idx:111
+#LOWER_LEVEL_IBF_0 fullest_technical_bin_idx:0
+#LOWER_LEVEL_IBF_2 fullest_technical_bin_idx:2
+#LOWER_LEVEL_IBF_1;2;3;4 fullest_technical_bin_idx:22
+#USER_BIN_IDX	TECHNICAL_BIN_INDICES	NUMBER_OF_TECHNICAL_BINS
+7	0	1
+4	1;0	1;22
+5	1;2;3;4;22	1;1;1;1;21
+)layout_file"};
+
+    auto [filenames, chopper_config, hibf_layouts] = chopper::layout::read_layouts_file(ss);
+
+    for (size_t i = 0; i < 3; ++i)
+    {
+        auto layout = hibf_layouts[i];
+
+        EXPECT_EQ(layout.top_level_max_bin_id, 111);
+        EXPECT_EQ(layout.max_bins[0], (seqan::hibf::layout::layout::max_bin{{0}, 0}));
+        EXPECT_EQ(layout.max_bins[1], (seqan::hibf::layout::layout::max_bin{{2}, 2}));
+        EXPECT_EQ(layout.max_bins[2], (seqan::hibf::layout::layout::max_bin{{1, 2, 3, 4}, 22}));
+        EXPECT_EQ(layout.user_bins[0], (seqan::hibf::layout::layout::user_bin{std::vector<size_t>{}, 0, 1, 7}));
+        EXPECT_EQ(layout.user_bins[1], (seqan::hibf::layout::layout::user_bin{std::vector<size_t>{1}, 0, 22, 4}));
+        EXPECT_EQ(layout.user_bins[2],
+                  (seqan::hibf::layout::layout::user_bin{std::vector<size_t>{1, 2, 3, 4}, 22, 21, 5}));
+    }
 }

@@ -84,6 +84,8 @@ static constexpr std::string_view config_string_view{"@CHOPPER_CONFIG\n"
                                                      "@        \"window_size\": 24,\n"
                                                      "@        \"disable_sketch_output\": true,\n"
                                                      "@        \"precomputed_files\": true,\n"
+                                                     "@        \"maximum_index_size\": 0,\n"
+                                                     "@        \"number_of_partitions\": 0,\n"
                                                      "@        \"output_filename\": {\n"
                                                      "@            \"value0\": \"file.layout\"\n"
                                                      "@        },\n"
@@ -149,7 +151,7 @@ TEST(config_test, read_from_with_more_meta)
 }
 
 // Easier to do in the config_test because of existing helper functions
-TEST(input, read_layout_file)
+TEST(input, read_layouts_file)
 {
     std::string config_string{"@CHOPPER_USER_BINS\n"
                               "@0 file1.fa\n"
@@ -169,7 +171,9 @@ TEST(input, read_layout_file)
 
     std::stringstream ss{config_string};
 
-    auto [filenames, config, layout] = chopper::layout::read_layout_file(ss);
+    auto [filenames, config, layouts] = chopper::layout::read_layouts_file(ss);
+
+    auto const & layout = layouts[0];
 
     std::vector<std::vector<std::string>> const expected_filenames{{"file1.fa"},
                                                                    {"file2.fa"},

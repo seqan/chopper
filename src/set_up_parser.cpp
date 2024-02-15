@@ -78,12 +78,39 @@ void set_up_parser(sharg::parser & parser, configuration & config)
                 "accuracy.",
             .default_message = "k-mer size",
         });
+
     parser.add_option(config.output_timings,
                       sharg::config{.short_id = '\0',
                                     .long_id = "timing-output",
                                     .description = "Write time and memory usage to specified file (TSV format). ",
                                     .default_message = "",
                                     .validator = sharg::output_file_validator{}});
+
+    parser.add_option(
+        config.maximum_index_size,
+        sharg::config{
+            .short_id = '\0',
+            .long_id = "maximum-index-size",
+            .description =
+                "You can restrict the hibf index to have a maximum index size which will partition the index into "
+                "several partitions if needed. The number of partitions is computed based on your input data. "
+                "you can manually set the number of partitions with --number-of-partitions"});
+
+    parser.add_option(
+        config.number_of_partitions,
+        sharg::config{
+            .short_id = '\0',
+            .long_id = "number-of-partitions",
+            .description =
+                "The number of partitions of the HIBF. We recommend to instead use the option maximum-index-size if "
+                "your goal is to reduce the index size and thereby peak mempry usage of searching with the HIBF.",
+            .advanced = true});
+
+    parser.add_option(config.partitioning_approach,
+                      sharg::config{.short_id = '\0',
+                                    .long_id = "partitioning-approach",
+                                    .description = "this is only configurable for debugging.",
+                                    .advanced = true});
 
     parser.add_option(
         config.hibf_config.tmax,

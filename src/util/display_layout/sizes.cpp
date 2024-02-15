@@ -284,13 +284,13 @@ void execute_general_stats(config const & cfg)
 
 // https://godbolt.org/z/PeKnxzjn1
 #if defined(__clang__)
-    auto tuple = chopper::layout::read_layout_file(layout_file);
+    auto tuple = chopper::layout::read_layouts_file(layout_file);
     // https://godbolt.org/z/WoWf55KPb
     auto filenames = std::move(std::get<0>(tuple));
     auto chopper_config = std::move(std::get<1>(tuple));
-    auto hibf_layout = std::move(std::get<2>(tuple));
+    auto hibf_layouts = std::move(std::get<2>(tuple));
 #else
-    auto [filenames, chopper_config, hibf_layout] = chopper::layout::read_layout_file(layout_file);
+    auto [filenames, chopper_config, hibf_layouts] = chopper::layout::read_layouts_file(layout_file);
 #endif
 
     // Prepare configs
@@ -309,28 +309,34 @@ void execute_general_stats(config const & cfg)
     auto const & hibf_config = chopper_config.hibf_config;
 
     // Prepare stats
-    size_t const number_of_ibfs = hibf_layout.max_bins.size() + 1u;
-    std::vector<ibf_stats> stats(number_of_ibfs);
+    assert(hibf_layouts.size() > 0);
+    // size_t part = (hibf_layouts.size() == 1) ? 0 : 1;
+    for (auto const & hibf_layout : hibf_layouts)
+    {
+        size_t const number_of_ibfs = hibf_layout.max_bins.size() + 1u;
+        std::vector<ibf_stats> stats(number_of_ibfs);
 
-    // Prepare data
-    seqan::hibf::build::build_data data{.config = hibf_config, .ibf_graph = {hibf_layout}};
-    seqan::hibf::layout::graph::node const & root_node = data.ibf_graph.root;
-    size_t const t_max{root_node.number_of_technical_bins};
-    data.fpr_correction = seqan::hibf::layout::compute_fpr_correction(
-        {.fpr = hibf_config.maximum_fpr, .hash_count = hibf_config.number_of_hash_functions, .t_max = t_max});
+        // Prepare data
+        seqan::hibf::build::build_data data{.config = hibf_config, .ibf_graph = {hibf_layout}};
+        seqan::hibf::layout::graph::node const & root_node = data.ibf_graph.root;
+        size_t const t_max{root_node.number_of_technical_bins};
+        data.fpr_correction = seqan::hibf::layout::compute_fpr_correction(
+            {.fpr = hibf_config.maximum_fpr, .hash_count = hibf_config.number_of_hash_functions, .t_max = t_max});
 
-    // Get stats
-    hierarchical_stats(stats, root_node, data);
+        // Get stats
+        hierarchical_stats(stats, root_node, data);
 
-    // Get stats per level
-    per_level_stats const level_stats{stats};
+        // Get stats per level
+        per_level_stats const level_stats{stats};
 
-    // Output
-    std::ofstream output_stream{cfg.output};
-    if (!output_stream.good() || !output_stream.is_open())
-        throw std::logic_error{"Could not open file " + cfg.output.string() + " for reading"};
+        // Output
+        std::ofstream output_stream(cfg.output.string(), std::ios::app);
+        if (!output_stream.good() || !output_stream.is_open())
+            throw std::logic_error{"Could not open file " + cfg.output.string() + " for reading (appending)."};
 
-    level_stats.print(output_stream, hibf_layout.user_bins.size());
+        level_stats.print(output_stream, hibf_layout.user_bins.size());
+        // ++part;
+    }
 }
 
 void execute_sizes(config const & cfg)

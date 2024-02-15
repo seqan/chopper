@@ -20,7 +20,8 @@ namespace chopper::layout
 {
 
 std::vector<std::vector<std::string>> read_filenames_from(std::istream & stream);
-std::tuple<std::vector<std::vector<std::string>>, configuration, seqan::hibf::layout::layout>
-read_layout_file(std::istream & stream);
+
+std::tuple<std::vector<std::vector<std::string>>, configuration, std::vector<seqan::hibf::layout::layout>>
+read_layouts_file(std::istream & stream);
 
 } // namespace chopper::layout

@@ -70,6 +70,8 @@ TEST(execute_test, few_ubs)
                                     "@        \"window_size\": 19,\n"
                                     "@        \"disable_sketch_output\": true,\n"
                                     "@        \"precomputed_files\": false,\n"
+                                    "@        \"maximum_index_size\": 0,\n"
+                                    "@        \"number_of_partitions\": 0,\n"
                                     "@        \"output_filename\": {\n"
                                     "@            \"value0\": \""
                                     + layout_file.string()
@@ -281,6 +283,8 @@ TEST(execute_test, many_ubs)
                                     "@        \"window_size\": 19,\n"
                                     "@        \"disable_sketch_output\": true,\n"
                                     "@        \"precomputed_files\": false,\n"
+                                    "@        \"maximum_index_size\": 0,\n"
+                                    "@        \"number_of_partitions\": 0,\n"
                                     "@        \"output_filename\": {\n"
                                     "@            \"value0\": \""
                                     + layout_file.string()
