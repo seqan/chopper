@@ -10,11 +10,11 @@ cmake_minimum_required (VERSION 3.18)
 # Add a custom build type: Coverage
 
 set (CMAKE_CXX_FLAGS_COVERAGE
-     "${CMAKE_CXX_FLAGS_DEBUG} --coverage -fprofile-arcs -ftest-coverage ${CHOPPER_FPROFILE_ABS_PATH}"
+     "${CMAKE_CXX_FLAGS_DEBUG} --coverage -fprofile-arcs -ftest-coverage -fprofile-abs-path"
      CACHE STRING "Flags used by the C++ compiler during coverage builds." FORCE
 )
 set (CMAKE_C_FLAGS_COVERAGE
-     "${CMAKE_C_FLAGS_DEBUG} --coverage -fprofile-arcs -ftest-coverage ${CHOPPER_FPROFILE_ABS_PATH}"
+     "${CMAKE_C_FLAGS_DEBUG} --coverage -fprofile-arcs -ftest-coverage -fprofile-abs-path"
      CACHE STRING "Flags used by the C compiler during coverage builds." FORCE
 )
 set (CMAKE_EXE_LINKER_FLAGS_COVERAGE

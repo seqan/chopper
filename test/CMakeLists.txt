@@ -13,8 +13,7 @@ add_definitions (-DOUTPUTDIR=\"${CMAKE_CURRENT_BINARY_DIR}/output/\")
 add_definitions (-DDATADIR=\"${CMAKE_CURRENT_BINARY_DIR}/data/\")
 add_definitions (-DBINDIR=\"${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/\")
 
-include (chopper_require_test)
-chopper_require_test ()
+CPMGetPackage (googletest)
 
 # Build tests just before their execution, because they have not been built with "all" target.
 # The trick is here to provide a cmake file as a directory property that executes the build command.
@@ -42,7 +41,7 @@ macro (add_app_test test_filename test_alternative)
 
     # Create the test target.
     add_executable (${target} ${test_filename})
-    target_link_libraries (${target} "${PROJECT_NAME}_lib" seqan3::seqan3 gtest gtest_main)
+    target_link_libraries (${target} "${PROJECT_NAME}_lib" "GTest::gtest_main")
 
     # GCC12 and above: Disable warning about std::hardware_destructive_interference_size not being ABI-stable.
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
@@ -51,9 +50,16 @@ macro (add_app_test test_filename test_alternative)
         endif ()
     endif ()
 
+    # GCC12 has some bogus warnings. They will not be fixed in googletest.
+    # https://github.com/google/googletest/issues/4232
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 12 AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 13)
+            target_compile_options (${target} PRIVATE "-Wno-restrict")
+        endif ()
+    endif ()
+
     # Make seqan3::test available for both cli and api tests.
-    target_include_directories (${target} PUBLIC "${SEQAN3_CLONE_DIR}/test/include")
-    target_include_directories (${target} PUBLIC "${SEQAN3_TEST_CLONE_DIR}/googletest/include/")
+    target_include_directories (${target} PUBLIC "${seqan3_SOURCE_DIR}/test/include")
 
     # Add the test to its general target (cli or api).
     if (${test_alternative} STREQUAL "CLI_TEST")
