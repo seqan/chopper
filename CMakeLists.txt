@@ -44,54 +44,18 @@ string (ASCII 27 Esc)
 set (FontBold "${Esc}[1m")
 set (FontReset "${Esc}[m")
 
-# Dependency: SeqAn3.
-find_package (SeqAn3 REQUIRED QUIET HINTS ${CHOPPER_SUBMODULES_DIR}/seqan3/build_system)
+set (CPM_INDENT "CMake Package Manager CPM: ")
+include (${chopper_SOURCE_DIR}/cmake/CPM.cmake)
+CPMUsePackageLock (${chopper_SOURCE_DIR}/cmake/package-lock.cmake)
+
+CPMGetPackage (use_ccache)
+CPMGetPackage (hibf)
+CPMGetPackage (sharg)
+CPMGetPackage (seqan3)
 
 # Allow to include CMake scripts from seqan3.
-list (APPEND CMAKE_MODULE_PATH "${SEQAN3_CLONE_DIR}/test/cmake/")
+list (APPEND CMAKE_MODULE_PATH "${seqan3_SOURCE_DIR}/test/cmake/")
 list (APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/test/cmake/")
-
-# Define cmake configuration flags to configure and build external projects with the same flags as specified for
-# this project.
-set (SEQAN3_EXTERNAL_PROJECT_CMAKE_ARGS "")
-list (APPEND SEQAN3_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}")
-list (APPEND SEQAN3_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}")
-list (APPEND SEQAN3_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}")
-list (APPEND SEQAN3_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}")
-list (APPEND SEQAN3_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
-list (APPEND SEQAN3_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}")
-list (APPEND SEQAN3_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_VERBOSE_MAKEFILE=${CMAKE_VERBOSE_MAKEFILE}")
-list (APPEND SEQAN3_EXTERNAL_PROJECT_CMAKE_ARGS "-DCMAKE_INSTALL_LIBDIR=lib")
-
-# Use ccache.
-set (CHOPPER_USE_CCACHE
-     ON
-     CACHE BOOL "Use ccache if available."
-)
-if (CHOPPER_USE_CCACHE)
-    include (chopper_require_ccache)
-    chopper_require_ccache ()
-endif ()
-
-# Dependency: Sharg.
-find_package (Sharg REQUIRED QUIET HINTS ${CHOPPER_SUBMODULES_DIR}/sharg-parser/build_system)
-
-# Dependency: HIBF.
-include (FetchContent)
-if (NOT TARGET seqan::hibf)
-    FetchContent_Declare (chopper_hibf_project SOURCE_DIR ${CHOPPER_SUBMODULES_DIR}/hibf)
-
-    set (HIBF_NATIVE_BUILD
-         ${CHOPPER_NATIVE_BUILD}
-         CACHE BOOL "Optimize build for current architecture."
-    )
-    set (INSTALL_HIBF
-         OFF
-         CACHE BOOL "Install HIBF targets."
-    )
-
-    FetchContent_MakeAvailable (chopper_hibf_project)
-endif ()
 
 # Add the application.
 set (CHOPPER_INSTALL
