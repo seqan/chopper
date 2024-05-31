@@ -285,7 +285,9 @@ int execute(config const & cfg)
         std::vector<uint64_t> current_kmers{};
         // How many user bins are stored in the current technical bin? Always 1 for split bins.
         size_t const ub_count{chunk.size()};
-        bool const is_merged{ub_count > 1u};
+        // The current technical bin is a merged bin if it contains more than one user bin or if the (only) user bin
+        // has previous technical bins.
+        bool const is_merged{ub_count > 1u || hibf_layout.user_bins[chunk[0]].previous_TB_indices.size() != 0};
 
         for (size_t const ub_index : chunk)
         {
@@ -326,7 +328,8 @@ int execute(config const & cfg)
             progress.report();
         }
 
-        // Into how many techincal bins is the user bin split? Always 1 for merged bins.
+        // Into how many techincal bins is the user bin split? Always 1 for merged bins. If it is a split bin,
+        // there is only one user bin.
         size_t const split_count{is_merged ? 1u : hibf_layout.user_bins[chunk[0]].number_of_technical_bins};
         size_t const avg_kmer_count = (current_kmer_set.size() + split_count - 1u) / split_count;
         size_t const sketch_estimate = (sketch.estimate() + split_count - 1u) / split_count;
