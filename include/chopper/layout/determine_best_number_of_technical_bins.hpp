@@ -16,7 +16,9 @@
 namespace chopper::layout
 {
 
-std::pair<seqan::hibf::layout::layout, std::vector<seqan::hibf::sketch::hyperloglog>>
-determine_best_number_of_technical_bins(chopper::configuration & config);
+seqan::hibf::layout::layout
+determine_best_number_of_technical_bins(chopper::configuration & config,
+                                        std::vector<size_t> const & kmer_counts,
+                                        std::vector<seqan::hibf::sketch::hyperloglog> const & sketches);
 
 }

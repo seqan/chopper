@@ -28,8 +28,10 @@
 namespace chopper::layout
 {
 
-std::pair<seqan::hibf::layout::layout, std::vector<seqan::hibf::sketch::hyperloglog>>
-determine_best_number_of_technical_bins(chopper::configuration & config)
+seqan::hibf::layout::layout
+determine_best_number_of_technical_bins(chopper::configuration & config,
+                                        std::vector<size_t> const & kmer_counts,
+                                        std::vector<seqan::hibf::sketch::hyperloglog> const & sketches)
 {
     seqan::hibf::layout::layout best_layout;
 
@@ -65,17 +67,10 @@ determine_best_number_of_technical_bins(chopper::configuration & config)
     size_t best_t_max{};
     size_t t_max_64_memory{};
 
-    std::vector<size_t> kmer_counts;
-    std::vector<seqan::hibf::sketch::hyperloglog> sketches;
-
     for (size_t const t_max : potential_t_max)
     {
         config.hibf_config.tmax = t_max;
 
-        kmer_counts.clear();
-        sketches.clear();
-
-        seqan::hibf::sketch::compute_sketches(config.hibf_config, kmer_counts, sketches);
         seqan::hibf::layout::layout tmp_layout =
             seqan::hibf::layout::compute_layout(config.hibf_config, kmer_counts, sketches);
 
@@ -100,7 +95,7 @@ determine_best_number_of_technical_bins(chopper::configuration & config)
     file_out << "# Best t_max (regarding expected query runtime): " << best_t_max << '\n';
     config.hibf_config.tmax = best_t_max;
 
-    return {best_layout, sketches};
+    return best_layout;
 }
 
 } // namespace chopper::layout
