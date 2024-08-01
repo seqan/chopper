@@ -25,9 +25,9 @@
 #include <chopper/next_multiple_of_64.hpp>
 #include <chopper/sketch/output.hpp>
 
-#include <hibf/misc/iota_vector.hpp>
 #include <hibf/layout/compute_layout.hpp>
 #include <hibf/layout/layout.hpp>
+#include <hibf/misc/iota_vector.hpp>
 #include <hibf/sketch/compute_sketches.hpp>
 #include <hibf/sketch/hyperloglog.hpp>
 
