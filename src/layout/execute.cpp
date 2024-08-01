@@ -61,23 +61,23 @@ int execute(chopper::configuration & config, std::vector<std::vector<std::string
 
     seqan::hibf::layout::layout hibf_layout;
     std::vector<seqan::hibf::sketch::hyperloglog> sketches;
+    std::vector<size_t> kmer_counts;
 
     seqan::hibf::concurrent_timer compute_sketches_timer{};
     seqan::hibf::concurrent_timer union_estimation_timer{};
     seqan::hibf::concurrent_timer rearrangement_timer{};
     seqan::hibf::concurrent_timer dp_algorithm_timer{};
 
+    compute_sketches_timer.start();
+    seqan::hibf::sketch::compute_sketches(config.hibf_config, kmer_counts, sketches);
+    compute_sketches_timer.stop();
+
     if (config.determine_best_tmax)
     {
-        std::tie(hibf_layout, sketches) = determine_best_number_of_technical_bins(config);
+        hibf_layout = determine_best_number_of_technical_bins(config, kmer_counts, sketches);
     }
     else
     {
-        std::vector<size_t> kmer_counts;
-
-        compute_sketches_timer.start();
-        seqan::hibf::sketch::compute_sketches(config.hibf_config, kmer_counts, sketches);
-        compute_sketches_timer.stop();
         dp_algorithm_timer.start();
         hibf_layout = seqan::hibf::layout::compute_layout(config.hibf_config,
                                                           kmer_counts,
