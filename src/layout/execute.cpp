@@ -25,6 +25,7 @@
 #include <chopper/next_multiple_of_64.hpp>
 #include <chopper/sketch/output.hpp>
 
+#include <hibf/misc/iota_vector.hpp>
 #include <hibf/layout/compute_layout.hpp>
 #include <hibf/layout/layout.hpp>
 #include <hibf/sketch/compute_sketches.hpp>
@@ -81,6 +82,7 @@ int execute(chopper::configuration & config, std::vector<std::vector<std::string
         hibf_layout = seqan::hibf::layout::compute_layout(config.hibf_config,
                                                           kmer_counts,
                                                           sketches,
+                                                          seqan::hibf::iota_vector(sketches.size()),
                                                           union_estimation_timer,
                                                           rearrangement_timer);
         dp_algorithm_timer.stop();
