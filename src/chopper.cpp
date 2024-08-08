@@ -20,6 +20,9 @@
 #include <chopper/set_up_parser.hpp>
 #include <chopper/sketch/check_filenames.hpp>
 #include <chopper/sketch/read_data_file.hpp>
+#include <chopper/sketch/output.hpp>
+
+#include <hibf/sketch/compute_sketches.hpp>
 
 int main(int argc, char const * argv[])
 {
@@ -53,6 +56,13 @@ int main(int argc, char const * argv[])
 
     chopper::sketch::read_data_file(config, filenames);
 
+    std::vector<seqan::hibf::sketch::hyperloglog> sketches;
+
+    seqan::hibf::concurrent_timer compute_sketches_timer{};
+    seqan::hibf::concurrent_timer union_estimation_timer{};
+    seqan::hibf::concurrent_timer rearrangement_timer{};
+    seqan::hibf::concurrent_timer dp_algorithm_timer{};
+
     try
     {
         if (filenames.empty())
@@ -65,12 +75,40 @@ int main(int argc, char const * argv[])
             chopper::input_functor{filenames, config.precomputed_files, config.k, config.window_size};
         config.hibf_config.number_of_user_bins = filenames.size();
 
-        exit_code |= chopper::layout::execute(config, filenames);
+        compute_sketches_timer.start();
+        seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches);
+        compute_sketches_timer.stop();
+
+        exit_code |= chopper::layout::execute(config, filenames, sketches, union_estimation_timer, rearrangement_timer, dp_algorithm_timer);
     }
     catch (std::exception const & ext)
     {
         std::cerr << "[CHOPPER ERROR] " << ext.what() << '\n';
         return -1;
+    }
+
+    if (!config.disable_sketch_output)
+    {
+        if (!std::filesystem::exists(config.sketch_directory))
+            std::filesystem::create_directory(config.sketch_directory);
+
+        assert(filenames.size() == sketches.size());
+        for (size_t i = 0; i < filenames.size(); ++i)
+            chopper::sketch::write_sketch_file(filenames[i][0], sketches[i], config);
+    }
+
+    if (!config.output_timings.empty())
+    {
+        std::ofstream output_stream{config.output_timings};
+        output_stream << std::fixed << std::setprecision(2);
+        output_stream << "sketching_in_seconds\t"
+                      << "layouting_in_seconds\t"
+                      << "union_estimation_in_seconds\t"
+                      << "rearrangement_in_seconds\n";
+        output_stream << compute_sketches_timer.in_seconds() << '\t';
+        output_stream << dp_algorithm_timer.in_seconds() << '\t';
+        output_stream << union_estimation_timer.in_seconds() << '\t';
+        output_stream << rearrangement_timer.in_seconds() << '\t';
     }
 
     return exit_code;
