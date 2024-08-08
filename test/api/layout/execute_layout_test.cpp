@@ -15,6 +15,8 @@
 #include <string>
 #include <vector>
 
+#include <hibf/sketch/compute_sketches.hpp>
+
 #include <chopper/layout/execute.hpp>
 
 #include "../api_test.hpp"
@@ -43,7 +45,14 @@ TEST(execute_test, few_ubs)
     std::vector<std::vector<std::string>>
         filenames{{"seq0a", "seq0b"}, {"seq1"}, {"seq2"}, {"seq3"}, {"seq4"}, {"seq5"}, {"seq6"}, {"seq7"}};
 
-    chopper::layout::execute(config, filenames);
+    std::vector<seqan::hibf::sketch::hyperloglog> sketches;
+    seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches);
+
+    seqan::hibf::concurrent_timer union_estimation_timer{};
+    seqan::hibf::concurrent_timer rearrangement_timer{};
+    seqan::hibf::concurrent_timer dp_algorithm_timer{};
+
+    chopper::layout::execute(config, filenames, sketches, union_estimation_timer, rearrangement_timer, dp_algorithm_timer);
 
     std::string const expected_file{"@CHOPPER_USER_BINS\n"
                                     "@0 seq0a seq0b\n"
@@ -135,7 +144,14 @@ TEST(execute_test, set_default_tmax)
     std::vector<std::vector<std::string>>
         filenames{{"seq0"}, {"seq1"}, {"seq2"}, {"seq3"}, {"seq4"}, {"seq5"}, {"seq6"}, {"seq7"}};
 
-    chopper::layout::execute(config, filenames);
+    std::vector<seqan::hibf::sketch::hyperloglog> sketches;
+    seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches);
+
+    seqan::hibf::concurrent_timer union_estimation_timer{};
+    seqan::hibf::concurrent_timer rearrangement_timer{};
+    seqan::hibf::concurrent_timer dp_algorithm_timer{};
+
+    chopper::layout::execute(config, filenames, sketches, union_estimation_timer, rearrangement_timer, dp_algorithm_timer);
 
     EXPECT_EQ(config.hibf_config.tmax, 64u);
 }
@@ -166,7 +182,14 @@ TEST(execute_test, many_ubs)
     config.hibf_config.number_of_user_bins = many_filenames.size();
     config.hibf_config.disable_estimate_union = true; // also disables rearrangement
 
-    chopper::layout::execute(config, many_filenames);
+    std::vector<seqan::hibf::sketch::hyperloglog> sketches;
+    seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches);
+
+    seqan::hibf::concurrent_timer union_estimation_timer{};
+    seqan::hibf::concurrent_timer rearrangement_timer{};
+    seqan::hibf::concurrent_timer dp_algorithm_timer{};
+
+    chopper::layout::execute(config, many_filenames, sketches, union_estimation_timer, rearrangement_timer, dp_algorithm_timer);
 
     std::string const expected_file{"@CHOPPER_USER_BINS\n"
                                     "@0 seq0\n"
