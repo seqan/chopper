@@ -15,9 +15,9 @@
 #include <string>
 #include <vector>
 
-#include <hibf/sketch/compute_sketches.hpp>
-
 #include <chopper/layout/execute.hpp>
+
+#include <hibf/sketch/compute_sketches.hpp>
 
 #include "../api_test.hpp"
 #include "print_debug_file.hpp"
@@ -52,7 +52,12 @@ TEST(execute_test, few_ubs)
     seqan::hibf::concurrent_timer rearrangement_timer{};
     seqan::hibf::concurrent_timer dp_algorithm_timer{};
 
-    chopper::layout::execute(config, filenames, sketches, union_estimation_timer, rearrangement_timer, dp_algorithm_timer);
+    chopper::layout::execute(config,
+                             filenames,
+                             sketches,
+                             union_estimation_timer,
+                             rearrangement_timer,
+                             dp_algorithm_timer);
 
     std::string const expected_file{"@CHOPPER_USER_BINS\n"
                                     "@0 seq0a seq0b\n"
@@ -151,7 +156,12 @@ TEST(execute_test, set_default_tmax)
     seqan::hibf::concurrent_timer rearrangement_timer{};
     seqan::hibf::concurrent_timer dp_algorithm_timer{};
 
-    chopper::layout::execute(config, filenames, sketches, union_estimation_timer, rearrangement_timer, dp_algorithm_timer);
+    chopper::layout::execute(config,
+                             filenames,
+                             sketches,
+                             union_estimation_timer,
+                             rearrangement_timer,
+                             dp_algorithm_timer);
 
     EXPECT_EQ(config.hibf_config.tmax, 64u);
 }
@@ -189,7 +199,12 @@ TEST(execute_test, many_ubs)
     seqan::hibf::concurrent_timer rearrangement_timer{};
     seqan::hibf::concurrent_timer dp_algorithm_timer{};
 
-    chopper::layout::execute(config, many_filenames, sketches, union_estimation_timer, rearrangement_timer, dp_algorithm_timer);
+    chopper::layout::execute(config,
+                             many_filenames,
+                             sketches,
+                             union_estimation_timer,
+                             rearrangement_timer,
+                             dp_algorithm_timer);
 
     std::string const expected_file{"@CHOPPER_USER_BINS\n"
                                     "@0 seq0\n"

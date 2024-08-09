@@ -60,7 +60,12 @@ TEST(execute_estimation_test, few_ubs)
     seqan::hibf::concurrent_timer rearrangement_timer{};
     seqan::hibf::concurrent_timer dp_algorithm_timer{};
 
-    chopper::layout::execute(config, filenames, sketches, union_estimation_timer, rearrangement_timer, dp_algorithm_timer);
+    chopper::layout::execute(config,
+                             filenames,
+                             sketches,
+                             union_estimation_timer,
+                             rearrangement_timer,
+                             dp_algorithm_timer);
 
     ASSERT_TRUE(std::filesystem::exists(stats_file));
 
@@ -123,7 +128,12 @@ TEST(execute_estimation_test, many_ubs)
     seqan::hibf::concurrent_timer rearrangement_timer{};
     seqan::hibf::concurrent_timer dp_algorithm_timer{};
 
-    chopper::layout::execute(config, many_filenames, sketches, union_estimation_timer, rearrangement_timer, dp_algorithm_timer);
+    chopper::layout::execute(config,
+                             many_filenames,
+                             sketches,
+                             union_estimation_timer,
+                             rearrangement_timer,
+                             dp_algorithm_timer);
 
     ASSERT_TRUE(std::filesystem::exists(stats_file));
 
@@ -532,7 +542,12 @@ TEST(execute_estimation_test, many_ubs_force_all)
     seqan::hibf::concurrent_timer rearrangement_timer{};
     seqan::hibf::concurrent_timer dp_algorithm_timer{};
 
-    chopper::layout::execute(config, many_filenames, sketches, union_estimation_timer, rearrangement_timer, dp_algorithm_timer);
+    chopper::layout::execute(config,
+                             many_filenames,
+                             sketches,
+                             union_estimation_timer,
+                             rearrangement_timer,
+                             dp_algorithm_timer);
 
     ASSERT_TRUE(std::filesystem::exists(stats_file));
 
@@ -638,7 +653,12 @@ TEST(execute_estimation_test, with_rearrangement)
     seqan::hibf::concurrent_timer rearrangement_timer{};
     seqan::hibf::concurrent_timer dp_algorithm_timer{};
 
-    chopper::layout::execute(config, filenames, sketches, union_estimation_timer, rearrangement_timer, dp_algorithm_timer);
+    chopper::layout::execute(config,
+                             filenames,
+                             sketches,
+                             union_estimation_timer,
+                             rearrangement_timer,
+                             dp_algorithm_timer);
 
     ASSERT_TRUE(std::filesystem::exists(stats_file));
 
