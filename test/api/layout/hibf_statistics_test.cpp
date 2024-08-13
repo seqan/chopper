@@ -16,11 +16,11 @@
 #include <string>
 #include <vector>
 
-#include <hibf/sketch/compute_sketches.hpp>
-
 #include <chopper/configuration.hpp>
 #include <chopper/layout/execute.hpp>
 #include <chopper/layout/hibf_statistics.hpp>
+
+#include <hibf/sketch/compute_sketches.hpp>
 
 #include "../api_test.hpp"
 
@@ -139,7 +139,12 @@ TEST(execute_test, chopper_layout_statistics)
 
     testing::internal::CaptureStdout();
     testing::internal::CaptureStderr();
-    chopper::layout::execute(config, many_filenames, sketches, union_estimation_timer, rearrangement_timer, dp_algorithm_timer);
+    chopper::layout::execute(config,
+                             many_filenames,
+                             sketches,
+                             union_estimation_timer,
+                             rearrangement_timer,
+                             dp_algorithm_timer);
     std::string layout_result_stdout = testing::internal::GetCapturedStdout();
     std::string layout_result_stderr = testing::internal::GetCapturedStderr();
 
@@ -198,7 +203,12 @@ TEST(execute_test, chopper_layout_statistics_determine_best_bins)
     seqan::hibf::concurrent_timer rearrangement_timer{};
     seqan::hibf::concurrent_timer dp_algorithm_timer{};
 
-    chopper::layout::execute(config, filenames, sketches, union_estimation_timer, rearrangement_timer, dp_algorithm_timer);
+    chopper::layout::execute(config,
+                             filenames,
+                             sketches,
+                             union_estimation_timer,
+                             rearrangement_timer,
+                             dp_algorithm_timer);
 
     std::string expected_cout =
         R"expected_cout(## ### Parameters ###

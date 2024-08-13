@@ -19,8 +19,8 @@
 #include <chopper/layout/execute.hpp>
 #include <chopper/set_up_parser.hpp>
 #include <chopper/sketch/check_filenames.hpp>
-#include <chopper/sketch/read_data_file.hpp>
 #include <chopper/sketch/output.hpp>
+#include <chopper/sketch/read_data_file.hpp>
 
 #include <hibf/sketch/compute_sketches.hpp>
 
@@ -79,7 +79,12 @@ int main(int argc, char const * argv[])
         seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches);
         compute_sketches_timer.stop();
 
-        exit_code |= chopper::layout::execute(config, filenames, sketches, union_estimation_timer, rearrangement_timer, dp_algorithm_timer);
+        exit_code |= chopper::layout::execute(config,
+                                              filenames,
+                                              sketches,
+                                              union_estimation_timer,
+                                              rearrangement_timer,
+                                              dp_algorithm_timer);
     }
     catch (std::exception const & ext)
     {
