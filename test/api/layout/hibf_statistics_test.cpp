@@ -133,18 +133,9 @@ TEST(execute_test, chopper_layout_statistics)
     std::vector<seqan::hibf::sketch::hyperloglog> sketches;
     seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches);
 
-    seqan::hibf::concurrent_timer union_estimation_timer{};
-    seqan::hibf::concurrent_timer rearrangement_timer{};
-    seqan::hibf::concurrent_timer dp_algorithm_timer{};
-
     testing::internal::CaptureStdout();
     testing::internal::CaptureStderr();
-    chopper::layout::execute(config,
-                             many_filenames,
-                             sketches,
-                             union_estimation_timer,
-                             rearrangement_timer,
-                             dp_algorithm_timer);
+    chopper::layout::execute(config, many_filenames, sketches);
     std::string layout_result_stdout = testing::internal::GetCapturedStdout();
     std::string layout_result_stderr = testing::internal::GetCapturedStderr();
 
@@ -199,16 +190,7 @@ TEST(execute_test, chopper_layout_statistics_determine_best_bins)
     std::vector<seqan::hibf::sketch::hyperloglog> sketches;
     seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches);
 
-    seqan::hibf::concurrent_timer union_estimation_timer{};
-    seqan::hibf::concurrent_timer rearrangement_timer{};
-    seqan::hibf::concurrent_timer dp_algorithm_timer{};
-
-    chopper::layout::execute(config,
-                             filenames,
-                             sketches,
-                             union_estimation_timer,
-                             rearrangement_timer,
-                             dp_algorithm_timer);
+    chopper::layout::execute(config, filenames, sketches);
 
     std::string expected_cout =
         R"expected_cout(## ### Parameters ###
