@@ -56,16 +56,7 @@ TEST(execute_estimation_test, few_ubs)
     std::vector<seqan::hibf::sketch::hyperloglog> sketches;
     seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches);
 
-    seqan::hibf::concurrent_timer union_estimation_timer{};
-    seqan::hibf::concurrent_timer rearrangement_timer{};
-    seqan::hibf::concurrent_timer dp_algorithm_timer{};
-
-    chopper::layout::execute(config,
-                             filenames,
-                             sketches,
-                             union_estimation_timer,
-                             rearrangement_timer,
-                             dp_algorithm_timer);
+    chopper::layout::execute(config, filenames, sketches);
 
     ASSERT_TRUE(std::filesystem::exists(stats_file));
 
@@ -124,16 +115,7 @@ TEST(execute_estimation_test, many_ubs)
     std::vector<seqan::hibf::sketch::hyperloglog> sketches;
     seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches);
 
-    seqan::hibf::concurrent_timer union_estimation_timer{};
-    seqan::hibf::concurrent_timer rearrangement_timer{};
-    seqan::hibf::concurrent_timer dp_algorithm_timer{};
-
-    chopper::layout::execute(config,
-                             many_filenames,
-                             sketches,
-                             union_estimation_timer,
-                             rearrangement_timer,
-                             dp_algorithm_timer);
+    chopper::layout::execute(config, many_filenames, sketches);
 
     ASSERT_TRUE(std::filesystem::exists(stats_file));
 
@@ -538,16 +520,7 @@ TEST(execute_estimation_test, many_ubs_force_all)
     std::vector<seqan::hibf::sketch::hyperloglog> sketches;
     seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches);
 
-    seqan::hibf::concurrent_timer union_estimation_timer{};
-    seqan::hibf::concurrent_timer rearrangement_timer{};
-    seqan::hibf::concurrent_timer dp_algorithm_timer{};
-
-    chopper::layout::execute(config,
-                             many_filenames,
-                             sketches,
-                             union_estimation_timer,
-                             rearrangement_timer,
-                             dp_algorithm_timer);
+    chopper::layout::execute(config, many_filenames, sketches);
 
     ASSERT_TRUE(std::filesystem::exists(stats_file));
 
@@ -649,16 +622,7 @@ TEST(execute_estimation_test, with_rearrangement)
     std::vector<seqan::hibf::sketch::hyperloglog> sketches;
     seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches);
 
-    seqan::hibf::concurrent_timer union_estimation_timer{};
-    seqan::hibf::concurrent_timer rearrangement_timer{};
-    seqan::hibf::concurrent_timer dp_algorithm_timer{};
-
-    chopper::layout::execute(config,
-                             filenames,
-                             sketches,
-                             union_estimation_timer,
-                             rearrangement_timer,
-                             dp_algorithm_timer);
+    chopper::layout::execute(config, filenames, sketches);
 
     ASSERT_TRUE(std::filesystem::exists(stats_file));
 
