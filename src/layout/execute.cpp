@@ -35,10 +35,7 @@ namespace chopper::layout
 
 int execute(chopper::configuration & config,
             std::vector<std::vector<std::string>> const & filenames,
-            std::vector<seqan::hibf::sketch::hyperloglog> const & sketches,
-            seqan::hibf::concurrent_timer & union_estimation_timer,
-            seqan::hibf::concurrent_timer & rearrangement_timer,
-            seqan::hibf::concurrent_timer & dp_algorithm_timer)
+            std::vector<seqan::hibf::sketch::hyperloglog> const & sketches)
 {
     assert(config.hibf_config.number_of_user_bins > 0);
 
@@ -74,14 +71,14 @@ int execute(chopper::configuration & config,
     }
     else
     {
-        dp_algorithm_timer.start();
+        config.dp_algorithm_timer.start();
         hibf_layout = seqan::hibf::layout::compute_layout(config.hibf_config,
                                                           kmer_counts,
                                                           sketches,
                                                           seqan::hibf::iota_vector(sketches.size()),
-                                                          union_estimation_timer,
-                                                          rearrangement_timer);
-        dp_algorithm_timer.stop();
+                                                          config.union_estimation_timer,
+                                                          config.rearrangement_timer);
+        config.dp_algorithm_timer.stop();
 
         if (config.output_verbose_statistics)
         {

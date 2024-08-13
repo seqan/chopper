@@ -12,7 +12,6 @@
 
 #include <chopper/configuration.hpp>
 
-#include <hibf/misc/timer.hpp>
 #include <hibf/sketch/hyperloglog.hpp>
 
 namespace chopper::layout
@@ -20,9 +19,6 @@ namespace chopper::layout
 
 int execute(chopper::configuration & config,
             std::vector<std::vector<std::string>> const & filenames,
-            std::vector<seqan::hibf::sketch::hyperloglog> const & sketches,
-            seqan::hibf::concurrent_timer & union_estimation_timer,
-            seqan::hibf::concurrent_timer & rearrangement_timer,
-            seqan::hibf::concurrent_timer & dp_algorithm_timer);
+            std::vector<seqan::hibf::sketch::hyperloglog> const & sketches);
 
 } // namespace chopper::layout

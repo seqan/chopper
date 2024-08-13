@@ -58,11 +58,6 @@ int main(int argc, char const * argv[])
 
     std::vector<seqan::hibf::sketch::hyperloglog> sketches;
 
-    seqan::hibf::concurrent_timer compute_sketches_timer{};
-    seqan::hibf::concurrent_timer union_estimation_timer{};
-    seqan::hibf::concurrent_timer rearrangement_timer{};
-    seqan::hibf::concurrent_timer dp_algorithm_timer{};
-
     try
     {
         if (filenames.empty())
@@ -75,16 +70,11 @@ int main(int argc, char const * argv[])
             chopper::input_functor{filenames, config.precomputed_files, config.k, config.window_size};
         config.hibf_config.number_of_user_bins = filenames.size();
 
-        compute_sketches_timer.start();
+        config.compute_sketches_timer.start();
         seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches);
-        compute_sketches_timer.stop();
+        config.compute_sketches_timer.stop();
 
-        exit_code |= chopper::layout::execute(config,
-                                              filenames,
-                                              sketches,
-                                              union_estimation_timer,
-                                              rearrangement_timer,
-                                              dp_algorithm_timer);
+        exit_code |= chopper::layout::execute(config, filenames, sketches);
     }
     catch (std::exception const & ext)
     {
@@ -110,10 +100,10 @@ int main(int argc, char const * argv[])
                       << "layouting_in_seconds\t"
                       << "union_estimation_in_seconds\t"
                       << "rearrangement_in_seconds\n";
-        output_stream << compute_sketches_timer.in_seconds() << '\t';
-        output_stream << dp_algorithm_timer.in_seconds() << '\t';
-        output_stream << union_estimation_timer.in_seconds() << '\t';
-        output_stream << rearrangement_timer.in_seconds() << '\t';
+        output_stream << config.compute_sketches_timer.in_seconds() << '\t';
+        output_stream << config.dp_algorithm_timer.in_seconds() << '\t';
+        output_stream << config.union_estimation_timer.in_seconds() << '\t';
+        output_stream << config.rearrangement_timer.in_seconds() << '\t';
     }
 
     return exit_code;
