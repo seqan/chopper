@@ -62,7 +62,6 @@ int execute(chopper::configuration & config,
 
     seqan::hibf::layout::layout hibf_layout;
     std::vector<size_t> kmer_counts;
-    kmer_counts.resize(config.hibf_config.number_of_user_bins);
     seqan::hibf::sketch::estimate_kmer_counts(sketches, kmer_counts);
 
     if (config.determine_best_tmax)
