@@ -14,6 +14,7 @@
 
 #include <sharg/parser.hpp>
 
+#include <chopper/chopper_layout.hpp>
 #include <chopper/configuration.hpp>
 #include <chopper/input_functor.hpp>
 #include <chopper/layout/execute.hpp>
