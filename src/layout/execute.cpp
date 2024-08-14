@@ -23,18 +23,19 @@
 #include <chopper/layout/hibf_statistics.hpp>
 #include <chopper/layout/output.hpp>
 #include <chopper/next_multiple_of_64.hpp>
-#include <chopper/sketch/output.hpp>
 
 #include <hibf/layout/compute_layout.hpp>
 #include <hibf/layout/layout.hpp>
 #include <hibf/misc/iota_vector.hpp>
-#include <hibf/sketch/compute_sketches.hpp>
+#include <hibf/sketch/estimate_kmer_counts.hpp> // for estimate_kmer_counts
 #include <hibf/sketch/hyperloglog.hpp>
 
 namespace chopper::layout
 {
 
-int execute(chopper::configuration & config, std::vector<std::vector<std::string>> const & filenames)
+int execute(chopper::configuration & config,
+            std::vector<std::vector<std::string>> const & filenames,
+            std::vector<seqan::hibf::sketch::hyperloglog> const & sketches)
 {
     assert(config.hibf_config.number_of_user_bins > 0);
 
@@ -60,17 +61,8 @@ int execute(chopper::configuration & config, std::vector<std::vector<std::string
     }
 
     seqan::hibf::layout::layout hibf_layout;
-    std::vector<seqan::hibf::sketch::hyperloglog> sketches;
     std::vector<size_t> kmer_counts;
-
-    seqan::hibf::concurrent_timer compute_sketches_timer{};
-    seqan::hibf::concurrent_timer union_estimation_timer{};
-    seqan::hibf::concurrent_timer rearrangement_timer{};
-    seqan::hibf::concurrent_timer dp_algorithm_timer{};
-
-    compute_sketches_timer.start();
-    seqan::hibf::sketch::compute_sketches(config.hibf_config, kmer_counts, sketches);
-    compute_sketches_timer.stop();
+    seqan::hibf::sketch::estimate_kmer_counts(sketches, kmer_counts);
 
     if (config.determine_best_tmax)
     {
@@ -78,14 +70,14 @@ int execute(chopper::configuration & config, std::vector<std::vector<std::string
     }
     else
     {
-        dp_algorithm_timer.start();
+        config.dp_algorithm_timer.start();
         hibf_layout = seqan::hibf::layout::compute_layout(config.hibf_config,
                                                           kmer_counts,
                                                           sketches,
                                                           seqan::hibf::iota_vector(sketches.size()),
-                                                          union_estimation_timer,
-                                                          rearrangement_timer);
-        dp_algorithm_timer.stop();
+                                                          config.union_estimation_timer,
+                                                          config.rearrangement_timer);
+        config.dp_algorithm_timer.stop();
 
         if (config.output_verbose_statistics)
         {
@@ -97,35 +89,11 @@ int execute(chopper::configuration & config, std::vector<std::vector<std::string
         }
     }
 
-    if (!config.disable_sketch_output)
-    {
-        if (!std::filesystem::exists(config.sketch_directory))
-            std::filesystem::create_directory(config.sketch_directory);
-
-        assert(filenames.size() == sketches.size());
-        for (size_t i = 0; i < filenames.size(); ++i)
-            sketch::write_sketch_file(filenames[i][0], sketches[i], config);
-    }
-
     // brief Write the output to the layout file.
     std::ofstream fout{config.output_filename};
     chopper::layout::write_user_bins_to(filenames, fout);
     config.write_to(fout);
     hibf_layout.write_to(fout);
-
-    if (!config.output_timings.empty())
-    {
-        std::ofstream output_stream{config.output_timings};
-        output_stream << std::fixed << std::setprecision(2);
-        output_stream << "sketching_in_seconds\t"
-                      << "layouting_in_seconds\t"
-                      << "union_estimation_in_seconds\t"
-                      << "rearrangement_in_seconds\n";
-        output_stream << compute_sketches_timer.in_seconds() << '\t';
-        output_stream << dp_algorithm_timer.in_seconds() << '\t';
-        output_stream << union_estimation_timer.in_seconds() << '\t';
-        output_stream << rearrangement_timer.in_seconds() << '\t';
-    }
 
     return 0;
 }

@@ -23,6 +23,7 @@
 #include <chopper/layout/execute.hpp>
 #include <chopper/sketch/read_hll_files_into.hpp>
 
+#include <hibf/sketch/compute_sketches.hpp>
 #include <hibf/sketch/hyperloglog.hpp>
 
 #include "../api_test.hpp"
@@ -52,7 +53,10 @@ TEST(execute_estimation_test, few_ubs)
     std::vector<std::vector<std::string>>
         filenames{{"seq0"}, {"seq1"}, {"seq2"}, {"seq3"}, {"seq4"}, {"seq5"}, {"seq6"}, {"seq7"}};
 
-    chopper::layout::execute(config, filenames);
+    std::vector<seqan::hibf::sketch::hyperloglog> sketches;
+    seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches);
+
+    chopper::layout::execute(config, filenames, sketches);
 
     ASSERT_TRUE(std::filesystem::exists(stats_file));
 
@@ -108,7 +112,10 @@ TEST(execute_estimation_test, many_ubs)
     config.hibf_config.number_of_user_bins = many_filenames.size();
     config.hibf_config.disable_estimate_union = true; // also disables rearrangement
 
-    chopper::layout::execute(config, many_filenames);
+    std::vector<seqan::hibf::sketch::hyperloglog> sketches;
+    seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches);
+
+    chopper::layout::execute(config, many_filenames, sketches);
 
     ASSERT_TRUE(std::filesystem::exists(stats_file));
 
@@ -510,7 +517,10 @@ TEST(execute_estimation_test, many_ubs_force_all)
     config.hibf_config.tmax = 256;
     config.hibf_config.disable_estimate_union = true; // also disables rearrangement
 
-    chopper::layout::execute(config, many_filenames);
+    std::vector<seqan::hibf::sketch::hyperloglog> sketches;
+    seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches);
+
+    chopper::layout::execute(config, many_filenames, sketches);
 
     ASSERT_TRUE(std::filesystem::exists(stats_file));
 
@@ -600,7 +610,6 @@ TEST(execute_estimation_test, with_rearrangement)
     chopper::configuration config{};
     config.k = kmer_size;
     config.sketch_directory = sketches_dir;
-    config.disable_sketch_output = false;
     config.determine_best_tmax = true;
     config.force_all_binnings = true;
     config.output_filename = layout_file;
@@ -610,15 +619,10 @@ TEST(execute_estimation_test, with_rearrangement)
     config.hibf_config.input_fn = data_input;
     config.hibf_config.number_of_user_bins = filenames.size();
 
-    chopper::layout::execute(config, filenames);
+    std::vector<seqan::hibf::sketch::hyperloglog> sketches;
+    seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches);
 
-    ASSERT_TRUE(std::filesystem::exists(sketches_dir));
-
-    std::vector<seqan::hibf::sketch::hyperloglog> sketches{};
-    chopper::sketch::read_hll_files_into(sketches_dir, hll_filenames, sketches);
-
-    for (size_t i = 0; i < expected_kmer_counts.size(); ++i)
-        ASSERT_EQ(std::lround(sketches[i].estimate()), expected_kmer_counts[i]) << "failed at " << i;
+    chopper::layout::execute(config, filenames, sketches);
 
     ASSERT_TRUE(std::filesystem::exists(stats_file));
 

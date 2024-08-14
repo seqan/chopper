@@ -20,6 +20,8 @@
 #include <chopper/layout/execute.hpp>
 #include <chopper/layout/hibf_statistics.hpp>
 
+#include <hibf/sketch/compute_sketches.hpp>
+
 #include "../api_test.hpp"
 
 TEST(byte_size_to_formatted_str, storage_unit)
@@ -128,9 +130,12 @@ TEST(execute_test, chopper_layout_statistics)
                                                   .tmax = 64,
                                                   .disable_estimate_union = true /* also disable rearrangement */}};
 
+    std::vector<seqan::hibf::sketch::hyperloglog> sketches;
+    seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches);
+
     testing::internal::CaptureStdout();
     testing::internal::CaptureStderr();
-    chopper::layout::execute(config, many_filenames);
+    chopper::layout::execute(config, many_filenames, sketches);
     std::string layout_result_stdout = testing::internal::GetCapturedStdout();
     std::string layout_result_stderr = testing::internal::GetCapturedStderr();
 
@@ -182,7 +187,10 @@ TEST(execute_test, chopper_layout_statistics_determine_best_bins)
                                                   .tmax = 128,
                                                   .disable_estimate_union = true /* also disable rearrangement */}};
 
-    chopper::layout::execute(config, filenames);
+    std::vector<seqan::hibf::sketch::hyperloglog> sketches;
+    seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches);
+
+    chopper::layout::execute(config, filenames, sketches);
 
     std::string expected_cout =
         R"expected_cout(## ### Parameters ###

@@ -15,6 +15,7 @@
 
 #include <hibf/cereal/path.hpp> // IWYU pragma: keep
 #include <hibf/config.hpp>
+#include <hibf/misc/timer.hpp>
 
 namespace chopper
 {
@@ -71,6 +72,11 @@ struct configuration
 
     //!\brief The HIBF config which will be used to compute the layout within the HIBF lib.
     seqan::hibf::config hibf_config;
+
+    mutable seqan::hibf::concurrent_timer compute_sketches_timer{};
+    mutable seqan::hibf::concurrent_timer union_estimation_timer{};
+    mutable seqan::hibf::concurrent_timer rearrangement_timer{};
+    mutable seqan::hibf::concurrent_timer dp_algorithm_timer{};
 
     void read_from(std::istream & stream);
 

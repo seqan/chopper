@@ -5,17 +5,13 @@
 // shipped with this file and also available at: https://github.com/seqan/chopper/blob/main/LICENSE.md
 // ---------------------------------------------------------------------------------------------------
 
-#include <chopper/chopper_layout.hpp>
-#include <chopper/set_up_parser.hpp>
+#include <sharg/parser.hpp>
 
-int main(int argc, char const * argv[])
+#include <chopper/configuration.hpp>
+
+namespace chopper
 {
-    sharg::parser parser{"chopper", argc, argv, sharg::update_notifications::off};
-    parser.info.version = "1.0.0";
 
-    chopper::configuration config;
-    set_up_parser(parser, config);
-    parser.info.synopsis.front().insert(0, "chopper");
+int chopper_layout(chopper::configuration & config, sharg::parser & parser);
 
-    return chopper::chopper_layout(config, parser);
 }

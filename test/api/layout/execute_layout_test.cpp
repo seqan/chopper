@@ -17,6 +17,8 @@
 
 #include <chopper/layout/execute.hpp>
 
+#include <hibf/sketch/compute_sketches.hpp>
+
 #include "../api_test.hpp"
 #include "print_debug_file.hpp"
 
@@ -43,7 +45,10 @@ TEST(execute_test, few_ubs)
     std::vector<std::vector<std::string>>
         filenames{{"seq0a", "seq0b"}, {"seq1"}, {"seq2"}, {"seq3"}, {"seq4"}, {"seq5"}, {"seq6"}, {"seq7"}};
 
-    chopper::layout::execute(config, filenames);
+    std::vector<seqan::hibf::sketch::hyperloglog> sketches;
+    seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches);
+
+    chopper::layout::execute(config, filenames, sketches);
 
     std::string const expected_file{"@CHOPPER_USER_BINS\n"
                                     "@0 seq0a seq0b\n"
@@ -135,7 +140,10 @@ TEST(execute_test, set_default_tmax)
     std::vector<std::vector<std::string>>
         filenames{{"seq0"}, {"seq1"}, {"seq2"}, {"seq3"}, {"seq4"}, {"seq5"}, {"seq6"}, {"seq7"}};
 
-    chopper::layout::execute(config, filenames);
+    std::vector<seqan::hibf::sketch::hyperloglog> sketches;
+    seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches);
+
+    chopper::layout::execute(config, filenames, sketches);
 
     EXPECT_EQ(config.hibf_config.tmax, 64u);
 }
@@ -166,7 +174,10 @@ TEST(execute_test, many_ubs)
     config.hibf_config.number_of_user_bins = many_filenames.size();
     config.hibf_config.disable_estimate_union = true; // also disables rearrangement
 
-    chopper::layout::execute(config, many_filenames);
+    std::vector<seqan::hibf::sketch::hyperloglog> sketches;
+    seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches);
+
+    chopper::layout::execute(config, many_filenames, sketches);
 
     std::string const expected_file{"@CHOPPER_USER_BINS\n"
                                     "@0 seq0\n"

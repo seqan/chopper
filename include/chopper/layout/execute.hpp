@@ -12,9 +12,13 @@
 
 #include <chopper/configuration.hpp>
 
+#include <hibf/sketch/hyperloglog.hpp>
+
 namespace chopper::layout
 {
 
-int execute(chopper::configuration & config, std::vector<std::vector<std::string>> const & filenames);
+int execute(chopper::configuration & config,
+            std::vector<std::vector<std::string>> const & filenames,
+            std::vector<seqan::hibf::sketch::hyperloglog> const & sketches);
 
 } // namespace chopper::layout
