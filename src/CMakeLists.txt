@@ -17,7 +17,7 @@ if (NOT TARGET chopper_shared)
     target_compile_options (chopper_shared PUBLIC "-pedantic" "-Wall" "-Wextra")
 endif ()
 
-add_library (chopper_lib STATIC set_up_parser.cpp chopper_layout.cpp)
+add_library (chopper_lib STATIC chopper_layout.cpp set_up_parser.cpp)
 target_link_libraries (chopper_lib PUBLIC chopper_layout chopper_sketch)
 
 add_executable (chopper chopper.cpp)
