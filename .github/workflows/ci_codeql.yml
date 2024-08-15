@@ -1,0 +1,41 @@
+name: CodeQL
+
+on:
+  schedule:
+    - cron: "0 6 * * SAT"
+  workflow_dispatch:
+
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  SHARG_NO_VERSION_CHECK: 1
+  TZ: Europe/Berlin
+
+defaults:
+  run:
+    shell: bash -Eeuxo pipefail {0}
+
+jobs:
+  codeql:
+    name: CodeQL
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: cpp
+
+    - name: Autobuild
+      uses: github/codeql-action/autobuild@v3
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:cpp"
