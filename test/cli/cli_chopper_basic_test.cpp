@@ -31,7 +31,7 @@ TEST_F(cli_test, no_options)
 TEST_F(cli_test, chopper_cmd_error_unknown_option)
 {
     cli_test_result result = execute_app("chopper", "--unkown-option");
-    std::string expected{"[CHOPPER ERROR] Option --input is required but not set.\n"};
+    std::string expected{"[ERROR] Option --input is required but not set.\n"};
     EXPECT_EQ(result.exit_code, 65280);
     EXPECT_EQ(result.out, std::string{});
     EXPECT_EQ(result.err, expected);
@@ -52,7 +52,7 @@ TEST_F(cli_test, chopper_cmd_error_empty_file)
                                          "--input",
                                          empty_file.c_str());
 
-    std::string expected{"[CHOPPER ERROR] The file " + empty_file.string() + " appears to be empty.\n"};
+    std::string expected{"[ERROR] The file " + empty_file.string() + " appears to be empty.\n"};
     EXPECT_EQ(result.exit_code, 65280);
     EXPECT_EQ(result.out, std::string{});
     EXPECT_EQ(result.err, expected);
@@ -74,7 +74,7 @@ TEST_F(cli_test, chopper_cmd_non_existing_path_in_input)
                                          "--input",
                                          non_existing_content.c_str());
 
-    std::string expected{"[CHOPPER ERROR] File /I/do/no/exist.fa does not exist!\n"};
+    std::string expected{"[ERROR] File /I/do/no/exist.fa does not exist!\n"};
     EXPECT_EQ(result.exit_code, 65280);
     EXPECT_EQ(result.out, std::string{});
     EXPECT_EQ(result.err, expected);
