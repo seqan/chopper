@@ -73,7 +73,7 @@ jobs:
           deploy_host: ${{ secrets.DEPLOY_HOST }}
           deploy_user: ${{ secrets.DEPLOY_USER }}
           deploy_ssh_key: ${{ secrets.DEPLOY_SSH_KEY }}
-          source_path_user_doc: build/doc/html
+          source_path_user_doc: build/doc/html/
           deploy_path_user_doc: ${{ secrets.DEPLOY_PRODUCTION_BASE_PATH }}/main
   delete:
       name: Delete Preview

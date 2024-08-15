@@ -74,6 +74,9 @@ jobs:
                 --exclude ${GITHUB_WORKSPACE}/src/util \
                 --exclude-lines-by-pattern '^\s*$' \
                 --exclude-lines-by-pattern '^\s*};$' \
+                --exclude-lines-by-pattern '^\s*\.[^\s]* = .*[\n,]$' \
+                --exclude-lines-by-pattern '^\s*\.[^\s]* = .*}\);$' \
+                --exclude-lines-by-pattern '^\s*\.[^\s]* =(\s+\".*\")+' \
                 --exclude-unreachable-branches \
                 --exclude-throw-branches \
                 --exclude-noncode-lines \
