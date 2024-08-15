@@ -4,9 +4,10 @@ on:
   push:
     branches:
       - 'main'
-  pull_request:
+  pull_request_target:
     types:
       - unlabeled
+      - closed
   workflow_dispatch:
 
 concurrency:
@@ -14,29 +15,28 @@ concurrency:
   cancel-in-progress: ${{ github.event_name != 'push' }}
 
 env:
-  SHARG_NO_VERSION_CHECK: 1
   TZ: Europe/Berlin
 
 defaults:
   run:
-    shell: bash -Eexuo pipefail {0}
+    shell: bash -Eeuxo pipefail {0}
 
 jobs:
   build:
     name: Documentation
-    runs-on: ubuntu-22.04
-    timeout-minutes: 120
-    if: github.repository_owner == 'seqan' || github.event_name == 'workflow_dispatch' || github.event.label.name == 'lint'
+    runs-on: ubuntu-latest
+    if: ( github.repository_owner == 'seqan' || github.event_name == 'workflow_dispatch' || github.event.label.name == 'lint' ) && github.event.action != 'closed'
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 1
+        if: github.event_name != 'pull_request_target'
+        uses: actions/checkout@v4
 
-      - name: Install CMake
-        uses: seqan/actions/setup-cmake@main
+      # pull_request_target does not checkout the merge commit by default
+      - name: Checkout
+        if: github.event_name == 'pull_request_target'
+        uses: actions/checkout@v4
         with:
-          cmake: 3.25.3
+          ref: "refs/pull/${{ github.event.number }}/merge"
 
       - name: Install Doxygen
         uses: seqan/actions/setup-doxygen@main
@@ -45,24 +45,45 @@ jobs:
 
       - name: Configure tests
         run: |
-          mkdir build
-          cd build
+          mkdir build && cd build
           cmake ..
 
       - name: Run tests
+        working-directory: build
         run: |
-          cd build
-          make -k -j2 doc 2>doxygen_warnings.txt
+          make -k doc 2>doxygen_warnings.txt
           cat doxygen_warnings.txt
           test ! -s doxygen_warnings.txt
 
-      - name: Package documentation
-        continue-on-error: true
-        run: tar -zcf documentation.tar.gz build
-
-      - name: Upload documentation
-        continue-on-error: true
-        uses: actions/upload-artifact@v3
+      - name: Deploy Preview
+        if: github.event_name == 'pull_request_target'
+        uses: seqan/actions/documentation_deploy_preview@main
         with:
-          name: documentation
-          path: documentation.tar.gz
+          deploy_host: ${{ secrets.DEPLOY_HOST }}
+          deploy_user: ${{ secrets.DEPLOY_USER }}
+          deploy_ssh_key: ${{ secrets.DEPLOY_SSH_KEY }}
+          deploy_base_path: ${{ secrets.DEPLOY_PREVIEW_BASE_PATH }}
+          source_path_user_doc: build/doc/html
+          token: ${{ secrets.SEQAN_ACTIONS_PAT }}
+
+      - name: Deploy Documentation
+        if: github.event_name == 'push'
+        uses: seqan/actions/documentation_deploy_production@main
+        with:
+          deploy_host: ${{ secrets.DEPLOY_HOST }}
+          deploy_user: ${{ secrets.DEPLOY_USER }}
+          deploy_ssh_key: ${{ secrets.DEPLOY_SSH_KEY }}
+          source_path_user_doc: build/doc/html
+          deploy_path_user_doc: ${{ secrets.DEPLOY_PRODUCTION_BASE_PATH }}/main
+  delete:
+      name: Delete Preview
+      runs-on: ubuntu-latest
+      if: github.repository_owner == 'seqan' && github.event_name == 'pull_request_target' && github.event.action == 'closed'
+      steps:
+      - name: Delete Preview
+        uses: seqan/actions/documentation_delete_preview@main
+        with:
+          deploy_host: ${{ secrets.DEPLOY_HOST }}
+          deploy_user: ${{ secrets.DEPLOY_USER }}
+          deploy_ssh_key: ${{ secrets.DEPLOY_SSH_KEY }}
+          deploy_base_path: ${{ secrets.DEPLOY_PREVIEW_BASE_PATH }}
