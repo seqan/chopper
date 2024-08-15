@@ -16,17 +16,17 @@ CPMDeclarePackage (hibf
                    OPTIONS "INSTALL_HIBF OFF"
 )
 # sharg
-set (CHOPPER_SHARG_VERSION 39f65a4890f8c5108af2b5c7974893ff6ed87e50)
+set (CHOPPER_SHARG_VERSION 420193a9642ab34c87c21a8b9ba1dd3e23d2c83a)
 CPMDeclarePackage (sharg
                    NAME sharg
                    GIT_TAG ${CHOPPER_SHARG_VERSION}
                    GITHUB_REPOSITORY seqan/sharg-parser
                    SYSTEM TRUE
                    EXCLUDE_FROM_ALL TRUE
-                   OPTIONS "INSTALL_SHARG OFF" "INSTALL_TDL OFF" "CMAKE_MESSAGE_LOG_LEVEL WARNING"
+                   OPTIONS "INSTALL_SHARG OFF" "INSTALL_TDL OFF" "CMAKE_MESSAGE_LOG_LEVEL WARNING" "BUILD_TESTING OFF"
 )
 # seqan3
-set (CHOPPER_SEQAN3_VERSION f489f67d9aaa6e72dc42c59a1e5ef8fc27fec9d6)
+set (CHOPPER_SEQAN3_VERSION 1fcf9a66a5db46785dc90bc2d1fc6b4acca94fd9)
 CPMDeclarePackage (seqan3
                    NAME seqan3
                    GIT_TAG ${CHOPPER_SEQAN3_VERSION}
@@ -36,14 +36,15 @@ CPMDeclarePackage (seqan3
                    OPTIONS "INSTALL_SEQAN3 OFF" "CMAKE_MESSAGE_LOG_LEVEL WARNING"
 )
 # googletest
-set (CHOPPER_GOOGLETEST_VERSION 1.14.0)
+set (CHOPPER_GOOGLETEST_VERSION 1.15.2)
 CPMDeclarePackage (googletest
-                   NAME GTest
+                   NAME googletest
                    VERSION ${CHOPPER_GOOGLETEST_VERSION}
                    GITHUB_REPOSITORY google/googletest
                    SYSTEM TRUE
                    EXCLUDE_FROM_ALL TRUE
                    OPTIONS "BUILD_GMOCK OFF" "INSTALL_GTEST OFF" "CMAKE_MESSAGE_LOG_LEVEL WARNING"
+                           "CMAKE_CXX_STANDARD 20"
 )
 # use_ccache
 set (USE_CCACHE_VERSION d2a54ef555b6fc2d496a4c9506dbeb7cf899ce37)
