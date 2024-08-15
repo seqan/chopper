@@ -17,5 +17,17 @@ int main(int argc, char const * argv[])
     set_up_parser(parser, config);
     parser.info.synopsis.front().insert(0, "chopper");
 
-    return chopper::chopper_layout(config, parser);
+    int exit_code{};
+
+    try
+    {
+        exit_code = chopper::chopper_layout(config, parser);
+    }
+    catch (std::exception const & ext)
+    {
+        std::cerr << "[ERROR] " << ext.what() << '\n';
+        return -1;
+    }
+
+    return exit_code;
 }

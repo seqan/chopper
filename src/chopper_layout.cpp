@@ -29,22 +29,14 @@ namespace chopper
 
 int chopper_layout(chopper::configuration & config, sharg::parser & parser)
 {
-    try
-    {
-        parser.parse();
+    parser.parse();
 
-        if (!parser.is_option_set("window"))
-            config.window_size = config.k;
-        else if (config.k > config.window_size)
-            throw sharg::parser_error{"The k-mer size cannot be bigger than the window size."};
+    if (!parser.is_option_set("window"))
+        config.window_size = config.k;
+    else if (config.k > config.window_size)
+        throw sharg::parser_error{"The k-mer size cannot be bigger than the window size."};
 
-        config.disable_sketch_output = !parser.is_option_set("output-sketches-to");
-    }
-    catch (sharg::parser_error const & ext) // the user did something wrong
-    {
-        std::cerr << "[ERROR] " << ext.what() << '\n'; // customize your error message
-        return -1;
-    }
+    config.disable_sketch_output = !parser.is_option_set("output-sketches-to");
 
     int exit_code{};
 
@@ -54,29 +46,21 @@ int chopper_layout(chopper::configuration & config, sharg::parser & parser)
 
     std::vector<seqan::hibf::sketch::hyperloglog> sketches;
 
-    try
-    {
-        if (filenames.empty())
-            throw sharg::parser_error{
-                sharg::detail::to_string("The file ", config.data_file.string(), " appears to be empty.")};
+    if (filenames.empty())
+        throw sharg::parser_error{
+            sharg::detail::to_string("The file ", config.data_file.string(), " appears to be empty.")};
 
-        chopper::sketch::check_filenames(filenames, config);
+    chopper::sketch::check_filenames(filenames, config);
 
-        config.hibf_config.input_fn =
-            chopper::input_functor{filenames, config.precomputed_files, config.k, config.window_size};
-        config.hibf_config.number_of_user_bins = filenames.size();
+    config.hibf_config.input_fn =
+        chopper::input_functor{filenames, config.precomputed_files, config.k, config.window_size};
+    config.hibf_config.number_of_user_bins = filenames.size();
 
-        config.compute_sketches_timer.start();
-        seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches);
-        config.compute_sketches_timer.stop();
+    config.compute_sketches_timer.start();
+    seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches);
+    config.compute_sketches_timer.stop();
 
-        exit_code |= chopper::layout::execute(config, filenames, sketches);
-    }
-    catch (std::exception const & ext)
-    {
-        std::cerr << "[ERROR] " << ext.what() << '\n';
-        return -1;
-    }
+    exit_code |= chopper::layout::execute(config, filenames, sketches);
 
     if (!config.disable_sketch_output)
     {
