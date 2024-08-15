@@ -42,7 +42,7 @@ int chopper_layout(chopper::configuration & config, sharg::parser & parser)
     }
     catch (sharg::parser_error const & ext) // the user did something wrong
     {
-        std::cerr << "[CHOPPER ERROR] " << ext.what() << '\n'; // customize your error message
+        std::cerr << "[ERROR] " << ext.what() << '\n'; // customize your error message
         return -1;
     }
 
@@ -74,7 +74,7 @@ int chopper_layout(chopper::configuration & config, sharg::parser & parser)
     }
     catch (std::exception const & ext)
     {
-        std::cerr << "[CHOPPER ERROR] " << ext.what() << '\n';
+        std::cerr << "[ERROR] " << ext.what() << '\n';
         return -1;
     }
 
