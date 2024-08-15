@@ -1,4 +1,4 @@
-name: Linux
+name: Header
 
 on:
   push:
@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: linux-${{ github.event.pull_request.number || github.ref }}
+  group: misc-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.event_name != 'push' }}
 
 env:
@@ -23,18 +23,16 @@ defaults:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
     name: ${{ matrix.compiler }}
+    runs-on: ubuntu-latest
     if: github.repository_owner == 'seqan' || github.event_name == 'workflow_dispatch' || github.event.label.name == 'lint'
     strategy:
       fail-fast: false
       matrix:
-        compiler: ["clang-18", "clang-17", "gcc-14", "gcc-13", "gcc-12", "intel"]
+        compiler: ["clang-18", "gcc-14", "gcc-12", "intel"]
         include:
           - cxx_flags: "-Wno-interference-size"
           - compiler: "clang-18"
-            cxx_flags: ""
-          - compiler: "clang-17"
             cxx_flags: ""
           - compiler: "intel"
             cxx_flags: "-fp-model=strict -Wno-overriding-option"
@@ -57,17 +55,16 @@ jobs:
         run: |
           mkdir build && cd build
           cmake .. -DCMAKE_BUILD_TYPE=Release \
-                   -DCMAKE_CXX_FLAGS="-Werror ${{ matrix.cxx_flags }}"
-          make gtest_main
+                   -DCMAKE_CXX_FLAGS="-Werror ${{ matrix.cxx_flags }}" \
+                   -DCHOPPER_HEADER_TEST_ONLY=ON
 
       - name: Build tests
         working-directory: build
         run: |
           ccache -z
-          make -k api_test cli_test display_layout measure_hyperloglog
+          make -k test
           ccache -svvx
 
       - name: Run tests
         working-directory: build
         run: ctest . -j --output-on-failure
-
