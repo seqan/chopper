@@ -21,11 +21,30 @@
 #include <chopper/sketch/check_filenames.hpp>
 #include <chopper/sketch/output.hpp>
 #include <chopper/sketch/read_data_file.hpp>
+#include <chopper/sketch/sketch_file.hpp>
 
 #include <hibf/sketch/compute_sketches.hpp>
 
 namespace chopper
 {
+
+void validate_configuration(sharg::parser & parser,
+                            chopper::configuration & config,
+                            chopper::configuration const & sketch_config)
+{
+    if (parser.is_option_set("sketch-bits"))
+        throw sharg::parser_error{"You cannot set --sketch-bits when using a sketch file as input."};
+
+    if (parser.is_option_set("kmer") && config.k != sketch_config.k)
+    {
+        std::cerr << sharg::detail::to_string(
+            "[WARNING] Given k-mer size (",
+            config.k,
+            ") differs from k-mer size in the sketch file (",
+            config.k,
+            "). The results may be suboptimal. If this was a conscious decision, you can ignore this warning.\n");
+    }
+}
 
 int chopper_layout(chopper::configuration & config, sharg::parser & parser)
 {
@@ -38,39 +57,57 @@ int chopper_layout(chopper::configuration & config, sharg::parser & parser)
 
     config.disable_sketch_output = !parser.is_option_set("output-sketches-to");
 
+    bool const input_is_a_sketch_file =
+        config.data_file.string().ends_with(".sketch") || config.data_file.string().ends_with(".sketches");
+
     int exit_code{};
 
     std::vector<std::vector<std::string>> filenames{};
+    std::vector<seqan::hibf::sketch::hyperloglog> sketches{};
 
-    chopper::sketch::read_data_file(config, filenames);
+    if (input_is_a_sketch_file)
+    {
+        chopper::sketch::sketch_file sin{};
 
-    std::vector<seqan::hibf::sketch::hyperloglog> sketches;
+        std::ifstream is{config.data_file};
+        cereal::BinaryInputArchive iarchive{is};
+        iarchive(sin);
 
-    if (filenames.empty())
-        throw sharg::parser_error{
-            sharg::detail::to_string("The file ", config.data_file.string(), " appears to be empty.")};
+        filenames = std::move(sin.filenames);
+        sketches = std::move(sin.hll_sketches);
+        validate_configuration(parser, config, sin.chopper_config);
+    }
+    else
+    {
+        chopper::sketch::read_data_file(config, filenames);
 
-    chopper::sketch::check_filenames(filenames, config);
+        if (filenames.empty())
+            throw sharg::parser_error{
+                sharg::detail::to_string("The file ", config.data_file.string(), " appears to be empty.")};
+
+        chopper::sketch::check_filenames(filenames, config);
+    }
 
     config.hibf_config.input_fn =
         chopper::input_functor{filenames, config.precomputed_files, config.k, config.window_size};
     config.hibf_config.number_of_user_bins = filenames.size();
     config.hibf_config.validate_and_set_defaults();
 
-    config.compute_sketches_timer.start();
-    seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches);
-    config.compute_sketches_timer.stop();
+    if (!input_is_a_sketch_file)
+    {
+        config.compute_sketches_timer.start();
+        seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches);
+        config.compute_sketches_timer.stop();
+    }
 
     exit_code |= chopper::layout::execute(config, filenames, sketches);
 
     if (!config.disable_sketch_output)
     {
-        if (!std::filesystem::exists(config.sketch_directory))
-            std::filesystem::create_directory(config.sketch_directory);
-
-        assert(filenames.size() == sketches.size());
-        for (size_t i = 0; i < filenames.size(); ++i)
-            chopper::sketch::write_sketch_file(filenames[i][0], sketches[i], config);
+        chopper::sketch::sketch_file sout{config, filenames, sketches};
+        std::ofstream os{config.sketch_directory, std::ios::binary};
+        cereal::BinaryOutputArchive oarchive{os};
+        oarchive(sout);
     }
 
     if (!config.output_timings.empty())

@@ -42,9 +42,9 @@ void set_up_parser(sharg::parser & parser, configuration & config)
             .short_id = '\0',
             .long_id = "input",
             .description =
-                "The input must be a file containing paths to sequence data you wish to estimate; one filepath "
-                "per line. If your file contains auxiliary information (e.g. species IDs), your file must be tab-"
-                "separated.",
+                "The input can either be (1) a sketch (binary) file that was produced by chopper or (2) a file "
+                "containing paths to sequence data you wish to estimate; one filepath per line. If your file contains "
+                "auxiliary information (e.g. species IDs), your file must be tab-separated.",
             .required = true});
     parser.add_list_item("", "Example file:");
     parser.add_list_item("", "```");
