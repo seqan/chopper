@@ -37,28 +37,7 @@ int execute(chopper::configuration & config,
             std::vector<std::vector<std::string>> const & filenames,
             std::vector<seqan::hibf::sketch::hyperloglog> const & sketches)
 {
-    assert(config.hibf_config.number_of_user_bins > 0);
-
-    if (config.hibf_config.disable_estimate_union)
-        config.hibf_config.disable_rearrangement = true;
-
-    if (config.hibf_config.tmax == 0) // no tmax was set by the user on the command line
-    {
-        // Set default as sqrt(#samples). Experiments showed that this is a reasonable default.
-        if (size_t number_samples = config.hibf_config.number_of_user_bins;
-            number_samples >= 1ULL << 32) // sqrt is bigger than uint16_t
-            throw std::invalid_argument{"Too many samples. Please set a tmax (see help via `-hh`)."}; // GCOVR_EXCL_LINE
-        else
-            config.hibf_config.tmax =
-                chopper::next_multiple_of_64(static_cast<uint16_t>(std::ceil(std::sqrt(number_samples))));
-    }
-    else if (config.hibf_config.tmax % 64 != 0)
-    {
-        config.hibf_config.tmax = chopper::next_multiple_of_64(config.hibf_config.tmax);
-        std::cerr << "[CHOPPER LAYOUT WARNING]: Your requested number of technical bins was not a multiple of 64. "
-                  << "Due to the architecture of the HIBF, it will use up space equal to the next multiple of 64 "
-                  << "anyway, so we increased your number of technical bins to " << config.hibf_config.tmax << ".\n";
-    }
+    config.hibf_config.validate_and_set_defaults();
 
     seqan::hibf::layout::layout hibf_layout;
     std::vector<size_t> kmer_counts;
