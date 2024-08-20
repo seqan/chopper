@@ -55,6 +55,7 @@ int chopper_layout(chopper::configuration & config, sharg::parser & parser)
     config.hibf_config.input_fn =
         chopper::input_functor{filenames, config.precomputed_files, config.k, config.window_size};
     config.hibf_config.number_of_user_bins = filenames.size();
+    config.hibf_config.validate_and_set_defaults();
 
     config.compute_sketches_timer.start();
     seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches);
