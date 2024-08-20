@@ -7,5 +7,9 @@
 
 cmake_minimum_required (VERSION 3.18)
 
+if (TARGET display_layout)
+    return ()
+endif ()
+
 add_executable (display_layout EXCLUDE_FROM_ALL display_layout.cpp general.cpp process_file.cpp sizes.cpp)
-target_link_libraries (display_layout PUBLIC chopper_lib)
+target_link_libraries (display_layout PUBLIC chopper::chopper)
