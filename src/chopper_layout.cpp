@@ -55,10 +55,16 @@ int chopper_layout(chopper::configuration & config, sharg::parser & parser)
     else if (config.k > config.window_size)
         throw sharg::parser_error{"The k-mer size cannot be bigger than the window size."};
 
-    config.disable_sketch_output = !parser.is_option_set("output-sketches-to");
+    auto has_sketch_file_extension = [](std::filesystem::path const & path)
+    {
+        return path.string().ends_with(".sketch") || path.string().ends_with(".sketches");
+    };
 
-    bool const input_is_a_sketch_file =
-        config.data_file.string().ends_with(".sketch") || config.data_file.string().ends_with(".sketches");
+    config.disable_sketch_output = !parser.is_option_set("output-sketches-to");
+    if (!config.disable_sketch_output && !has_sketch_file_extension(config.sketch_directory))
+        throw sharg::parser_error{"The sketch output file must have the extension \".sketch\" or \".sketches\"."};
+
+    bool const input_is_a_sketch_file = has_sketch_file_extension(config.data_file);
 
     int exit_code{};
 
@@ -69,11 +75,13 @@ int chopper_layout(chopper::configuration & config, sharg::parser & parser)
     {
         chopper::sketch::sketch_file sin{};
 
-        std::ifstream is{config.data_file};
-        cereal::BinaryInputArchive iarchive{is};
-        iarchive(sin);
+        { // Deserialization is guaranteed to be complete when going out of scope.
+            std::ifstream is{config.data_file};
+            cereal::BinaryInputArchive iarchive{is};
+            iarchive(sin);
+        }
 
-        filenames = std::move(sin.filenames);
+        filenames = std::move(sin.filenames); // No need to call check_filenames because the files are not read.
         sketches = std::move(sin.hll_sketches);
         validate_configuration(parser, config, sin.chopper_config);
     }
@@ -85,6 +93,7 @@ int chopper_layout(chopper::configuration & config, sharg::parser & parser)
             throw sharg::parser_error{
                 sharg::detail::to_string("The file ", config.data_file.string(), " appears to be empty.")};
 
+        // Files need to exist because they will be read for sketching.
         chopper::sketch::check_filenames(filenames, config);
     }
 
@@ -104,7 +113,9 @@ int chopper_layout(chopper::configuration & config, sharg::parser & parser)
 
     if (!config.disable_sketch_output)
     {
-        chopper::sketch::sketch_file sout{config, filenames, sketches};
+        chopper::sketch::sketch_file sout{.chopper_config = config,
+                                          .filenames = std::move(filenames),
+                                          .hll_sketches = std::move(sketches)};
         std::ofstream os{config.sketch_directory, std::ios::binary};
         cereal::BinaryOutputArchive oarchive{os};
         oarchive(sout);

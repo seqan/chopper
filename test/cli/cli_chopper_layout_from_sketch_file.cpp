@@ -21,7 +21,7 @@
 #include "../api/api_test.hpp" // for string_from_file
 #include "cli_test.hpp"
 
-TEST_F(cli_test, chopper_layoutfrom_sketch_file)
+TEST_F(cli_test, chopper_layout_from_sketch_file)
 {
     std::string const seq1_filename = data("seq1.fa");
     std::string const seq2_filename = data("seq2.fa");
@@ -132,4 +132,36 @@ TEST_F(cli_test, chopper_layoutfrom_sketch_file)
 
     std::string const actual_file{string_from_file(binning_filename)};
     EXPECT_EQ(actual_file, expected_file);
+
+    // ------------------------------------------------------------------------------------------------
+    // Tests for options. Needs valid sketch file as input. Hence, we reuse the sketch file from above.
+    // ------------------------------------------------------------------------------------------------
+
+    cli_test_result result2 = execute_app("chopper",
+                                          "--threads 2",
+                                          "--kmer 20",
+                                          "--input",
+                                          input_filename.c_str(),
+                                          "--tmax 64",
+                                          "--output",
+                                          binning_filename.c_str());
+
+    EXPECT_EQ(result2.exit_code, 0);
+    EXPECT_EQ(result2.out, std::string{});
+    EXPECT_EQ(
+        result2.err,
+        std::string{"[WARNING] Given k-mer size (20) differs from k-mer size in the sketch file (20). The results may "
+                    "be suboptimal. If this was a conscious decision, you can ignore this warning.\n"});
+
+    cli_test_result result3 = execute_app("chopper",
+                                          "--threads 2",
+                                          "--input",
+                                          input_filename.c_str(),
+                                          "--tmax 64",
+                                          "--output",
+                                          binning_filename.c_str(),
+                                          "--sketch-bits 12");
+    EXPECT_NE(result3.exit_code, 0);
+    EXPECT_EQ(result3.out, std::string{});
+    EXPECT_EQ(result3.err, std::string{"[ERROR] You cannot set --sketch-bits when using a sketch file as input.\n"});
 }

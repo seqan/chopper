@@ -17,6 +17,34 @@
 
 #include "cli_test.hpp"
 
+TEST_F(cli_test, chopper_layout_wrong_sketch_extension)
+{
+    std::filesystem::path const input_filename{"data.filenames"};
+    std::filesystem::path const layout_filename{"output.binning"};
+    std::filesystem::path const sketches_filename{"out.sketched"};
+
+    {
+        std::ofstream fout{input_filename};
+        fout << data("seq1.fa").string() << '\n'
+             << data("seq2.fa").string() << '\n'
+             << data("seq3.fa").string() << '\n';
+    }
+
+    cli_test_result result = execute_app("chopper",
+                                         "--input",
+                                         input_filename.c_str(),
+                                         "--tmax 64",
+                                         "--output-sketches-to",
+                                         sketches_filename.c_str(),
+                                         "--output",
+                                         layout_filename.c_str());
+
+    EXPECT_NE(result.exit_code, 0);
+    EXPECT_EQ(result.out, std::string{});
+    EXPECT_EQ(result.err,
+              std::string{"[ERROR] The sketch output file must have the extension \".sketch\" or \".sketches\".\n"});
+}
+
 TEST_F(cli_test, chopper_layout)
 {
     seqan3::test::tmp_directory tmp_dir{};
