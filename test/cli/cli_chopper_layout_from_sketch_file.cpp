@@ -14,9 +14,9 @@
 #include <seqan3/test/tmp_directory.hpp>
 
 #include <chopper/input_functor.hpp>
-#include <hibf/sketch/compute_sketches.hpp>
-
 #include <chopper/sketch/sketch_file.hpp>
+
+#include <hibf/sketch/compute_sketches.hpp>
 
 #include "../api/api_test.hpp" // for string_from_file
 #include "cli_test.hpp"
