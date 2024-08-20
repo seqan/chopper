@@ -87,12 +87,8 @@ TEST_F(cli_test, chopper_cmd_kmer_bigger_than_window)
         std::ofstream fout{input_filename};
     }
 
-    cli_test_result result = execute_app("chopper",
-                                         "--tmax 64",
-                                         "--input",
-                                         input_filename.c_str(),
-                                         "--kmer 20",
-                                         "--window 10");
+    cli_test_result result =
+        execute_app("chopper", "--tmax 64", "--input", input_filename.c_str(), "--kmer 20", "--window 10");
 
     EXPECT_NE(result.exit_code, 0);
     EXPECT_EQ(result.out, std::string{});
