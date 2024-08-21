@@ -21,7 +21,6 @@
 
 #include <chopper/configuration.hpp>
 #include <chopper/layout/execute.hpp>
-#include <chopper/sketch/read_hll_files_into.hpp>
 
 #include <hibf/sketch/compute_sketches.hpp>
 #include <hibf/sketch/hyperloglog.hpp>

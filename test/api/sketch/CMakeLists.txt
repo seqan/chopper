@@ -7,12 +7,6 @@
 
 cmake_minimum_required (VERSION 3.18)
 
-add_api_test (read_hll_files_into_test.cpp)
-target_use_datasources (read_hll_files_into_test FILES small.fa)
-target_use_datasources (read_hll_files_into_test FILES small2.fa)
-target_use_datasources (read_hll_files_into_test FILES small.hll)
-target_use_datasources (read_hll_files_into_test FILES small2.hll)
-
 add_api_test (check_filenames_test.cpp)
 target_use_datasources (check_filenames_test FILES seq1.fa)
 target_use_datasources (check_filenames_test FILES seq2.fa)

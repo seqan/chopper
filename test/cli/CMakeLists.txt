@@ -15,6 +15,12 @@ target_use_datasources (cli_chopper_pipeline_test FILES small.fa)
 target_use_datasources (cli_chopper_pipeline_test FILES small2.fa)
 target_use_datasources (cli_chopper_pipeline_test FILES small.split)
 
+add_cli_test (cli_chopper_layout_from_sketch_file.cpp)
+target_use_datasources (cli_chopper_layout_from_sketch_file FILES seq1.fa)
+target_use_datasources (cli_chopper_layout_from_sketch_file FILES seq2.fa)
+target_use_datasources (cli_chopper_layout_from_sketch_file FILES seq3.fa)
+target_use_datasources (cli_chopper_layout_from_sketch_file FILES small.fa)
+
 add_cli_test (cli_timing_output_test.cpp)
 target_use_datasources (cli_timing_output_test FILES small.fa)
 

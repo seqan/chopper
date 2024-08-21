@@ -79,3 +79,18 @@ TEST_F(cli_test, chopper_cmd_non_existing_path_in_input)
     EXPECT_EQ(result.out, std::string{});
     EXPECT_EQ(result.err, expected);
 }
+
+TEST_F(cli_test, chopper_cmd_kmer_bigger_than_window)
+{
+    std::filesystem::path const input_filename{"bins.filenames"};
+    {
+        std::ofstream fout{input_filename};
+    }
+
+    cli_test_result result =
+        execute_app("chopper", "--tmax 64", "--input", input_filename.c_str(), "--kmer 20", "--window 10");
+
+    EXPECT_NE(result.exit_code, 0);
+    EXPECT_EQ(result.out, std::string{});
+    EXPECT_EQ(result.err, std::string{"[ERROR] The k-mer size cannot be bigger than the window size.\n"});
+}
