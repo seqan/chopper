@@ -7,7 +7,11 @@
 
 cmake_minimum_required (VERSION 3.18)
 
+if (TARGET measure_hyperloglog)
+    return ()
+endif ()
+
 add_executable (measure_hyperloglog EXCLUDE_FROM_ALL measure_hyperloglog.cpp)
-target_link_libraries (measure_hyperloglog PUBLIC chopper_lib)
+target_link_libraries (measure_hyperloglog PUBLIC chopper::chopper)
 
 add_subdirectory (display_layout)
