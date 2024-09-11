@@ -139,10 +139,9 @@ TEST(execute_estimation_test, many_ubs)
 ## (l*m)_tmax : Computed by l_tmax * m_tmax
 ## size : The expected total size of an tmax-HIBF
 # tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size
-64	1.00	1.25	1.00	1.25	90.7KiB
-128	1.22	1.24	0.69	0.85	62.2KiB
-256	1.33	1.34	0.79	1.06	71.4KiB
-# Best t_max (regarding expected query runtime): 128
+64	1.00	1.17	1.00	1.17	55.5KiB
+128	1.22	1.31	1.05	1.37	58.2KiB
+# Best t_max (regarding expected query runtime): 64
 )expected_cout");
 
     std::string const expected_file{"@CHOPPER_USER_BINS\n"
@@ -278,7 +277,7 @@ TEST(execute_estimation_test, many_ubs)
                                       "@        \"relaxed_fpr\": 0.3,\n"
                                       "@        \"threads\": 1,\n"
                                       "@        \"sketch_bits\": 12,\n"
-                                      "@        \"tmax\": 128,\n"
+                                      "@        \"tmax\": 64,\n"
                                       "@        \"alpha\": 1.2,\n"
                                       "@        \"max_rearrangement_ratio\": 0.5,\n"
                                       "@        \"disable_estimate_union\": true,\n"
@@ -286,106 +285,107 @@ TEST(execute_estimation_test, many_ubs)
                                       "@    }\n"
                                       "@}\n"
                                       "@HIBF_CONFIG_END\n"
-                                      "#TOP_LEVEL_IBF fullest_technical_bin_idx:126\n"
-                                      "#LOWER_LEVEL_IBF_0 fullest_technical_bin_idx:0\n"
-                                      "#LOWER_LEVEL_IBF_1 fullest_technical_bin_idx:19\n"
+                                      "#TOP_LEVEL_IBF fullest_technical_bin_idx:63\n"
+                                      "#LOWER_LEVEL_IBF_0 fullest_technical_bin_idx:49\n"
+                                      "#LOWER_LEVEL_IBF_1 fullest_technical_bin_idx:18\n"
+                                      "#LOWER_LEVEL_IBF_2 fullest_technical_bin_idx:0\n"
                                       "#USER_BIN_IDX\tTECHNICAL_BIN_INDICES\tNUMBER_OF_TECHNICAL_BINS\n"
-                                      "1\t0;0\t1;32\n"
-                                      "0\t0;32\t1;32\n"
-                                      "5\t1;0\t1;19\n"
-                                      "4\t1;19\t1;15\n"
-                                      "3\t1;34\t1;15\n"
-                                      "2\t1;49\t1;15\n"
-                                      "6\t2\t1\n"
-                                      "7\t3\t1\n"
-                                      "8\t4\t1\n"
-                                      "9\t5\t1\n"
-                                      "10\t6\t1\n"
-                                      "11\t7\t1\n"
-                                      "12\t8\t1\n"
-                                      "13\t9\t1\n"
-                                      "14\t10\t1\n"
-                                      "15\t11\t1\n"
-                                      "16\t12\t1\n"
-                                      "17\t13\t1\n"
-                                      "18\t14\t1\n"
-                                      "19\t15\t1\n"
-                                      "20\t16\t1\n"
-                                      "21\t17\t1\n"
-                                      "22\t18\t1\n"
-                                      "23\t19\t1\n"
-                                      "24\t20\t1\n"
-                                      "25\t21\t1\n"
-                                      "26\t22\t1\n"
-                                      "27\t23\t1\n"
-                                      "28\t24\t1\n"
-                                      "29\t25\t1\n"
-                                      "30\t26\t1\n"
-                                      "31\t27\t1\n"
-                                      "32\t28\t1\n"
-                                      "33\t29\t1\n"
-                                      "34\t30\t1\n"
-                                      "35\t31\t1\n"
-                                      "36\t32\t1\n"
-                                      "37\t33\t1\n"
-                                      "38\t34\t1\n"
-                                      "39\t35\t1\n"
-                                      "40\t36\t1\n"
-                                      "41\t37\t1\n"
-                                      "42\t38\t1\n"
-                                      "43\t39\t1\n"
-                                      "44\t40\t1\n"
-                                      "45\t41\t1\n"
-                                      "46\t42\t1\n"
-                                      "47\t43\t1\n"
-                                      "48\t44\t1\n"
-                                      "49\t45\t1\n"
-                                      "50\t46\t1\n"
-                                      "51\t47\t1\n"
-                                      "52\t48\t1\n"
-                                      "53\t49\t1\n"
-                                      "54\t50\t1\n"
-                                      "55\t51\t1\n"
-                                      "56\t52\t1\n"
-                                      "57\t53\t1\n"
-                                      "58\t54\t1\n"
-                                      "59\t55\t1\n"
-                                      "60\t56\t2\n"
-                                      "61\t58\t2\n"
-                                      "62\t60\t2\n"
-                                      "63\t62\t2\n"
-                                      "64\t64\t2\n"
-                                      "65\t66\t2\n"
-                                      "66\t68\t2\n"
-                                      "67\t70\t2\n"
-                                      "68\t72\t2\n"
-                                      "69\t74\t2\n"
-                                      "70\t76\t2\n"
-                                      "71\t78\t2\n"
-                                      "72\t80\t2\n"
-                                      "73\t82\t2\n"
-                                      "74\t84\t2\n"
-                                      "75\t86\t2\n"
-                                      "76\t88\t2\n"
-                                      "77\t90\t2\n"
-                                      "78\t92\t2\n"
-                                      "79\t94\t2\n"
-                                      "80\t96\t2\n"
-                                      "81\t98\t2\n"
-                                      "82\t100\t2\n"
-                                      "83\t102\t2\n"
-                                      "84\t104\t2\n"
-                                      "85\t106\t2\n"
-                                      "86\t108\t2\n"
-                                      "87\t110\t2\n"
-                                      "88\t112\t2\n"
-                                      "89\t114\t2\n"
-                                      "90\t116\t2\n"
-                                      "91\t118\t2\n"
-                                      "92\t120\t2\n"
-                                      "93\t122\t2\n"
-                                      "94\t124\t2\n"
-                                      "95\t126\t2\n"};
+                                      "16\t0;0\t1;5\n"
+                                      "15\t0;5\t1;4\n"
+                                      "14\t0;9\t1;4\n"
+                                      "13\t0;13\t1;4\n"
+                                      "12\t0;17\t1;4\n"
+                                      "11\t0;21\t1;4\n"
+                                      "10\t0;25\t1;4\n"
+                                      "9\t0;29\t1;4\n"
+                                      "8\t0;33\t1;4\n"
+                                      "7\t0;37\t1;4\n"
+                                      "6\t0;41\t1;4\n"
+                                      "5\t0;45\t1;4\n"
+                                      "4\t0;49\t1;3\n"
+                                      "3\t0;52\t1;3\n"
+                                      "2\t0;55\t1;3\n"
+                                      "1\t0;58\t1;3\n"
+                                      "0\t0;61\t1;3\n"
+                                      "26\t1;0\t1;9\n"
+                                      "25\t1;9\t1;9\n"
+                                      "24\t1;18\t1;8\n"
+                                      "23\t1;26\t1;8\n"
+                                      "22\t1;34\t1;8\n"
+                                      "21\t1;42\t1;8\n"
+                                      "20\t1;50\t1;8\n"
+                                      "19\t1;58\t1;2\n"
+                                      "18\t1;60\t1;2\n"
+                                      "17\t1;62\t1;2\n"
+                                      "34\t2;0\t1;8\n"
+                                      "33\t2;8\t1;8\n"
+                                      "32\t2;16\t1;8\n"
+                                      "31\t2;24\t1;8\n"
+                                      "30\t2;32\t1;8\n"
+                                      "29\t2;40\t1;8\n"
+                                      "28\t2;48\t1;8\n"
+                                      "27\t2;56\t1;8\n"
+                                      "35\t3\t1\n"
+                                      "36\t4\t1\n"
+                                      "37\t5\t1\n"
+                                      "38\t6\t1\n"
+                                      "39\t7\t1\n"
+                                      "40\t8\t1\n"
+                                      "41\t9\t1\n"
+                                      "42\t10\t1\n"
+                                      "43\t11\t1\n"
+                                      "44\t12\t1\n"
+                                      "45\t13\t1\n"
+                                      "46\t14\t1\n"
+                                      "47\t15\t1\n"
+                                      "48\t16\t1\n"
+                                      "49\t17\t1\n"
+                                      "50\t18\t1\n"
+                                      "51\t19\t1\n"
+                                      "52\t20\t1\n"
+                                      "53\t21\t1\n"
+                                      "54\t22\t1\n"
+                                      "55\t23\t1\n"
+                                      "56\t24\t1\n"
+                                      "57\t25\t1\n"
+                                      "58\t26\t1\n"
+                                      "59\t27\t1\n"
+                                      "60\t28\t1\n"
+                                      "61\t29\t1\n"
+                                      "62\t30\t1\n"
+                                      "63\t31\t1\n"
+                                      "64\t32\t1\n"
+                                      "65\t33\t1\n"
+                                      "66\t34\t1\n"
+                                      "67\t35\t1\n"
+                                      "68\t36\t1\n"
+                                      "69\t37\t1\n"
+                                      "70\t38\t1\n"
+                                      "71\t39\t1\n"
+                                      "72\t40\t1\n"
+                                      "73\t41\t1\n"
+                                      "74\t42\t1\n"
+                                      "75\t43\t1\n"
+                                      "76\t44\t1\n"
+                                      "77\t45\t1\n"
+                                      "78\t46\t1\n"
+                                      "79\t47\t1\n"
+                                      "80\t48\t1\n"
+                                      "81\t49\t1\n"
+                                      "82\t50\t1\n"
+                                      "83\t51\t1\n"
+                                      "84\t52\t1\n"
+                                      "85\t53\t1\n"
+                                      "86\t54\t1\n"
+                                      "87\t55\t1\n"
+                                      "88\t56\t1\n"
+                                      "89\t57\t1\n"
+                                      "90\t58\t1\n"
+                                      "91\t59\t1\n"
+                                      "92\t60\t1\n"
+                                      "93\t61\t1\n"
+                                      "94\t62\t1\n"
+                                      "95\t63\t1\n"};
     std::string const actual_file{string_from_file(layout_file)};
     EXPECT_EQ(actual_file, expected_file) << actual_file;
 }
@@ -445,14 +445,14 @@ TEST(execute_estimation_test, many_ubs_force_all)
 ## (l*m)_tmax : Computed by l_tmax * m_tmax
 ## size : The expected total size of an tmax-HIBF
 # tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size
-64	1.00	1.25	1.00	1.25	75.1KiB
-128	1.22	1.24	0.68	0.85	51.4KiB
-256	1.33	1.33	0.77	1.02	57.5KiB
-# Best t_max (regarding expected query runtime): 128
+64	1.00	1.18	1.00	1.18	48.0KiB
+128	1.22	1.31	1.02	1.33	48.7KiB
+256	1.33	1.33	1.20	1.60	57.5KiB
+# Best t_max (regarding expected query runtime): 64
 )expected_cout");
 
     std::string const layout_string{string_from_file(layout_file)};
-    EXPECT_NE(layout_string.find("\"tmax\": 128,"), std::string::npos);
+    EXPECT_NE(layout_string.find("\"tmax\": 64,"), std::string::npos);
 }
 
 struct dna4_traits3 : public seqan3::sequence_file_input_default_traits_dna
@@ -560,13 +560,12 @@ TEST(execute_estimation_test, with_rearrangement)
 )expected_cout";
 #else
         result +=
-            R"expected_cout(64	1.00	2.22	1.00	2.22	117.1KiB
-128	1.22	1.95	1.15	2.23	134.3KiB
-256	1.33	1.52	1.18	1.81	138.7KiB
+            R"expected_cout(64	1.00	2.34	1.00	2.34	110.1KiB
+128	1.22	2.01	1.08	2.17	118.9KiB
+256	1.33	1.76	1.39	2.44	152.7KiB
 # Best t_max (regarding expected query runtime): 256
 )expected_cout";
 #endif
-
         return result;
     }();
 
