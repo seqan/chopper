@@ -51,10 +51,10 @@ hibf_statistics::hibf_statistics(configuration const & config_,
         seqan::hibf::layout::compute_fpr_correction({.fpr = config_.hibf_config.maximum_fpr,
                                                      .hash_count = config_.hibf_config.number_of_hash_functions,
                                                      .t_max = config_.hibf_config.tmax})},
-    merged_fpr_correction_factor{
-        seqan::hibf::layout::compute_relaxed_fpr_correction({.fpr = config_.hibf_config.maximum_fpr,
-                                                             .relaxed_fpr = config_.hibf_config.relaxed_fpr,
-                                                             .hash_count = config_.hibf_config.number_of_hash_functions})},
+    merged_fpr_correction_factor{seqan::hibf::layout::compute_relaxed_fpr_correction(
+        {.fpr = config_.hibf_config.maximum_fpr,
+         .relaxed_fpr = config_.hibf_config.relaxed_fpr,
+         .hash_count = config_.hibf_config.number_of_hash_functions})},
     sketches{sketches_},
     counts{kmer_counts},
     total_kmer_count{std::accumulate(kmer_counts.begin(), kmer_counts.end(), size_t{})}
@@ -565,8 +565,7 @@ void hibf_statistics::gather_statistics(level const & curr_level, size_t const l
         {
             uncorrected_cardinality =
                 (current_bin.cardinality + current_bin.num_spanning_tbs - 1) / current_bin.num_spanning_tbs; // round up
-            corrected_cardinality =
-                std::ceil(uncorrected_cardinality * (fp_correction)[current_bin.num_spanning_tbs]);
+            corrected_cardinality = std::ceil(uncorrected_cardinality * (fp_correction)[current_bin.num_spanning_tbs]);
         }
         else // current_bin.kind == bin_kind::merged
         {
