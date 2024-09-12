@@ -160,6 +160,7 @@ TEST(execute_test, many_ubs)
 
     // Creates sizes of the following series
     // [100,101,...,120,222,223,...,241,343,344,...362,464,465,...,483,585,586,...,600]
+    // See also https://godbolt.org/z/9517eaaaG
     auto simulated_input = [&](size_t const num, seqan::hibf::insert_iterator it)
     {
         size_t const desired_kmer_count = 101 * ((num + 20) / 20) + num;
