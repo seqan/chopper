@@ -113,10 +113,12 @@ TEST(execute_test, chopper_layout_statistics)
     for (size_t i{0}; i < 96u; ++i)
         many_filenames.push_back({seqan3::detail::to_string("seq", i)});
 
-    // There are 20 files with a count of {100,200,300,400} each. There are 16 files with count 500.
+    // Creates sizes of the following series
+    // [100,101,...,120,222,223,...,241,343,344,...362,464,465,...,483,585,586,...,600]
+    // See also https://godbolt.org/z/9517eaaaG
     auto simulated_input = [&](size_t const num, seqan::hibf::insert_iterator it)
     {
-        size_t const desired_kmer_count = 101 * ((num + 20) / 20);
+        size_t const desired_kmer_count = 101 * ((num + 20) / 20) + num;
         for (auto hash : std::views::iota(0u, desired_kmer_count))
             it = hash;
     };
@@ -152,7 +154,7 @@ TEST(execute_test, chopper_layout_statistics)
 ## size : The expected total size of an tmax-HIBF
 ## uncorr_size : The expected size of an tmax-HIBF without FPR correction
 # tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size	uncorr_size	level	num_ibfs	level_size	level_size_no_corr	total_num_tbs	avg_num_tbs	split_tb_percentage	max_split_tb	avg_split_tb	max_factor	avg_factor
-64	1.00	1.25	1.00	1.25	75.5KiB	46.8KiB	:0:1	:1:12	:38.8KiB:36.7KiB	:38.8KiB:8.0KiB	:64:768	:64:64	:81.25:100.00	:1:32	:1.00:17.45	:1.00:6.20	:1.00:4.84
+64	1.00	1.25	1.00	1.25	90.7KiB	54.8KiB	:0:1	:1:13	:45.2KiB:45.5KiB	:45.2KiB:9.6KiB	:64:832	:64:64	:79.69:100.00	:1:43	:1.00:18.49	:1.00:7.20	:1.00:5.04
 )expected_cout";
 
     EXPECT_EQ(layout_result_stdout, expected_cout) << layout_result_stdout;
