@@ -36,6 +36,7 @@
 #include <hibf/build/bin_size_in_bits.hpp>
 #include <hibf/contrib/robin_hood.hpp>
 #include <hibf/layout/compute_fpr_correction.hpp>
+#include <hibf/layout/compute_relaxed_fpr_correction.hpp>
 #include <hibf/layout/layout.hpp>
 #include <hibf/sketch/hyperloglog.hpp>
 
@@ -50,6 +51,10 @@ hibf_statistics::hibf_statistics(configuration const & config_,
         seqan::hibf::layout::compute_fpr_correction({.fpr = config_.hibf_config.maximum_fpr,
                                                      .hash_count = config_.hibf_config.number_of_hash_functions,
                                                      .t_max = config_.hibf_config.tmax})},
+    merged_fpr_correction_factor{seqan::hibf::layout::compute_relaxed_fpr_correction(
+        {.fpr = config_.hibf_config.maximum_fpr,
+         .relaxed_fpr = config_.hibf_config.relaxed_fpr,
+         .hash_count = config_.hibf_config.number_of_hash_functions})},
     sketches{sketches_},
     counts{kmer_counts},
     total_kmer_count{std::accumulate(kmer_counts.begin(), kmer_counts.end(), size_t{})}
@@ -553,12 +558,23 @@ void hibf_statistics::gather_statistics(level const & curr_level, size_t const l
 
     for (bin const & current_bin : curr_level.bins)
     {
-        size_t const cardinality_per_split_bin =
-            (current_bin.cardinality + current_bin.num_spanning_tbs - 1) / current_bin.num_spanning_tbs; // round up
-        size_t const corrected_cardinality =
-            std::ceil(cardinality_per_split_bin * (fp_correction)[current_bin.num_spanning_tbs]);
+        size_t uncorrected_cardinality{};
+        size_t corrected_cardinality{};
+
+        if (current_bin.kind == bin_kind::split)
+        {
+            uncorrected_cardinality =
+                (current_bin.cardinality + current_bin.num_spanning_tbs - 1) / current_bin.num_spanning_tbs; // round up
+            corrected_cardinality = std::ceil(uncorrected_cardinality * (fp_correction)[current_bin.num_spanning_tbs]);
+        }
+        else // current_bin.kind == bin_kind::merged
+        {
+            uncorrected_cardinality = current_bin.cardinality;
+            corrected_cardinality = std::ceil(uncorrected_cardinality * merged_fpr_correction_factor);
+        }
+
         max_cardinality = std::max(max_cardinality, corrected_cardinality);
-        max_cardinality_no_corr = std::max(max_cardinality_no_corr, cardinality_per_split_bin);
+        max_cardinality_no_corr = std::max(max_cardinality_no_corr, uncorrected_cardinality);
 
         num_tbs += current_bin.num_spanning_tbs;
         num_ubs += current_bin.num_contained_ubs;
@@ -568,7 +584,7 @@ void hibf_statistics::gather_statistics(level const & curr_level, size_t const l
             num_split_tbs += current_bin.num_spanning_tbs;
             num_split_ubs += 1;
             split_tb_corr_kmers += corrected_cardinality * current_bin.num_spanning_tbs;
-            split_tb_kmers += cardinality_per_split_bin * current_bin.num_spanning_tbs;
+            split_tb_kmers += uncorrected_cardinality * current_bin.num_spanning_tbs;
             max_split_tb_span = std::max(max_split_tb_span, current_bin.num_spanning_tbs);
         }
         else

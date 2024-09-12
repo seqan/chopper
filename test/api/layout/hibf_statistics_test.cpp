@@ -97,7 +97,7 @@ TEST(hibf_statistics, only_merged_on_top_level)
 ## size : The expected total size of an tmax-HIBF
 ## uncorr_size : The expected size of an tmax-HIBF without FPR correction
 # tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size	uncorr_size	level	num_ibfs	level_size	level_size_no_corr	total_num_tbs	avg_num_tbs	split_tb_percentage	max_split_tb	avg_split_tb	max_factor	avg_factor
-64	1.00	8.00	1.00	8.00	979Bytes	790Bytes	:0:1	:1:2	:395Bytes:584Bytes	:395Bytes:395Bytes	:2:16	:2:8	:0.00:100.00	:-:2	:-:2.00	:-:1.46	:-:1.48
+64	1.00	8.00	1.00	8.00	711Bytes	790Bytes	:0:1	:1:2	:126Bytes:584Bytes	:395Bytes:395Bytes	:2:16	:2:8	:0.00:100.00	:-:2	:-:2.00	:-:1.46	:-:1.48
 )expected_cout";
 
     EXPECT_EQ(summary, expected_cout);
@@ -154,7 +154,7 @@ TEST(execute_test, chopper_layout_statistics)
 ## size : The expected total size of an tmax-HIBF
 ## uncorr_size : The expected size of an tmax-HIBF without FPR correction
 # tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size	uncorr_size	level	num_ibfs	level_size	level_size_no_corr	total_num_tbs	avg_num_tbs	split_tb_percentage	max_split_tb	avg_split_tb	max_factor	avg_factor
-64	1.00	1.25	1.00	1.25	90.7KiB	54.8KiB	:0:1	:1:13	:45.2KiB:45.5KiB	:45.2KiB:9.6KiB	:64:832	:64:64	:79.69:100.00	:1:43	:1.00:18.49	:1.00:7.20	:1.00:5.04
+64	1.00	1.17	1.00	1.17	55.5KiB	130.0KiB	:0:1	:1:3	:40.0KiB:15.5KiB	:122.1KiB:7.9KiB	:64:192	:64:64	:95.31:100.00	:1:9	:1.00:5.49	:1.00:3.23	:1.00:2.66
 )expected_cout";
 
     EXPECT_EQ(layout_result_stdout, expected_cout) << layout_result_stdout;

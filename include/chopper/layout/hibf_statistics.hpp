@@ -115,8 +115,11 @@ private:
     //!\brief Copy of the user configuration for this HIBF.
     configuration const config{};
 
-    //!\brief The false positive correction factors to use for the statistics.
+    //!\brief The split bin false positive correction factors to use for the statistics.
     std::vector<double> const fp_correction{};
+
+    //!\brief The merged bin false positive correction factors to use for the statistics.
+    double const merged_fpr_correction_factor{};
 
     //!\brief A reference to the input sketches.
     std::vector<seqan::hibf::sketch::hyperloglog> const & sketches;
