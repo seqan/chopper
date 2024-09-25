@@ -11,7 +11,6 @@ concurrency:
 
 env:
   TZ: Europe/Berlin
-  ASAN_OPTIONS: strict_string_checks=1:detect_stack_use_after_return=1:check_initialization_order=1:strict_init_order=1:detect_leaks=1
   TSAN_OPTIONS: ignore_noninstrumented_modules=1
   UBSAN_OPTIONS: print_stacktrace=1
 
@@ -24,22 +23,24 @@ jobs:
     name: ${{ matrix.name }} ${{ matrix.build_type }} ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     if: github.repository_owner == 'seqan' || github.event_name == 'workflow_dispatch'
+    env:
+      ASAN_OPTIONS: strict_string_checks=1:detect_stack_use_after_return=1:check_initialization_order=1:strict_init_order=1:detect_leaks=${{ contains(matrix.os, 'macos') && '0' || '1' }}
     strategy:
       fail-fast: false
       matrix:
         name: [ASan, TSan, UBSan]
-        os: [ubuntu-latest, macos-12]
+        os: [ubuntu-latest, macos-14]
         build_type: [Release, RelWithDebInfo, Debug]
         exclude:
           - name: "TSan"
-            os: macos-12
+            os: macos-14
         include:
           - name: "ASan"
             os: ubuntu-latest
             cxx_flags: "-fno-omit-frame-pointer -fsanitize=address -Wno-maybe-uninitialized -Wno-interference-size"
 
           - name: "ASan"
-            os: macos-12
+            os: macos-14
             cxx_flags: "-fno-omit-frame-pointer -fsanitize=address"
 
           - name: "TSan"
@@ -50,10 +51,10 @@ jobs:
             cxx_flags: "-fno-omit-frame-pointer -fsanitize=undefined,float-divide-by-zero -Wno-interference-size"
 
           - name: "UBSan"
-            os: macos-12
+            os: macos-14
             cxx_flags: "-fno-omit-frame-pointer -fsanitize=undefined,float-divide-by-zero,local-bounds,nullability -fno-sanitize=function -Wno-pass-failed"
 
-          - os: macos-12
+          - os: macos-14
             compiler: clang-18
 
           - os: ubuntu-latest
@@ -75,6 +76,12 @@ jobs:
       - name: Setup compiler
         if: contains(matrix.os, 'macos')
         uses: seqan/actions/setup-compiler@main
+        with:
+          compiler: ${{ matrix.compiler }}
+
+      - name: Patch M1 GCC
+        if: contains(matrix.compiler, 'gcc') && matrix.compiler != 'gcc-14'
+        uses: seqan/actions/patch-m1-gcc@main
         with:
           compiler: ${{ matrix.compiler }}
 
