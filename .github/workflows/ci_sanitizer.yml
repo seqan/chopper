@@ -48,7 +48,7 @@ jobs:
 
           - name: "UBSan"
             os: ubuntu-latest
-            cxx_flags: "-fno-omit-frame-pointer -fsanitize=undefined,float-divide-by-zero -Wno-interference-size"
+            cxx_flags: "-fno-omit-frame-pointer -fsanitize=undefined,float-divide-by-zero -Wno-stringop-overflow -Wno-interference-size"
 
           - name: "UBSan"
             os: macos-14
