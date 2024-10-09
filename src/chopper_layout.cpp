@@ -41,7 +41,7 @@ void validate_configuration(sharg::parser & parser,
             "[WARNING] Given k-mer size (",
             config.k,
             ") differs from k-mer size in the sketch file (",
-            config.k,
+            sketch_config.k,
             "). The results may be suboptimal. If this was a conscious decision, you can ignore this warning.\n");
     }
 }

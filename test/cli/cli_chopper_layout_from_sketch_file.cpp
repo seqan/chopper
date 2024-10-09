@@ -150,7 +150,7 @@ TEST_F(cli_test, chopper_layout_from_sketch_file)
     EXPECT_EQ(result2.out, std::string{});
     EXPECT_EQ(
         result2.err,
-        std::string{"[WARNING] Given k-mer size (20) differs from k-mer size in the sketch file (20). The results may "
+        std::string{"[WARNING] Given k-mer size (20) differs from k-mer size in the sketch file (19). The results may "
                     "be suboptimal. If this was a conscious decision, you can ignore this warning.\n"});
 
     cli_test_result result3 = execute_app("chopper",
