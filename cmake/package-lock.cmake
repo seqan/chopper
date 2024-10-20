@@ -9,7 +9,7 @@
 set (CHOPPER_HIBF_VERSION f85154de1db3d6430db63e16193b87c7bed70b8d)
 CPMDeclarePackage (hibf
                    NAME hibf
-                   GIT_TAG ${CHOPPER_HIBF_VERSION}
+                   GIT_TAG ${CHOPPER_HIBF_VERSION} # main
                    GITHUB_REPOSITORY seqan/hibf
                    SYSTEM TRUE
                    EXCLUDE_FROM_ALL TRUE
@@ -19,7 +19,7 @@ CPMDeclarePackage (hibf
 set (CHOPPER_SHARG_VERSION c4367d1049322826e60c674b6bf24d3d0a8da999)
 CPMDeclarePackage (sharg
                    NAME sharg
-                   GIT_TAG ${CHOPPER_SHARG_VERSION}
+                   GIT_TAG ${CHOPPER_SHARG_VERSION} # main
                    GITHUB_REPOSITORY seqan/sharg-parser
                    SYSTEM TRUE
                    EXCLUDE_FROM_ALL TRUE
@@ -29,7 +29,7 @@ CPMDeclarePackage (sharg
 set (CHOPPER_SEQAN3_VERSION d4a7c88fde0311e12e98e7822da772b99c887cb5)
 CPMDeclarePackage (seqan3
                    NAME seqan3
-                   GIT_TAG ${CHOPPER_SEQAN3_VERSION}
+                   GIT_TAG ${CHOPPER_SEQAN3_VERSION} # main
                    GITHUB_REPOSITORY seqan/seqan3
                    SYSTEM TRUE
                    EXCLUDE_FROM_ALL TRUE
@@ -50,7 +50,7 @@ CPMDeclarePackage (googletest
 set (USE_CCACHE_VERSION d2a54ef555b6fc2d496a4c9506dbeb7cf899ce37)
 CPMDeclarePackage (use_ccache
                    NAME use_ccache
-                   GIT_TAG ${USE_CCACHE_VERSION}
+                   GIT_TAG ${USE_CCACHE_VERSION} # main
                    GITHUB_REPOSITORY seqan/cmake-scripts
                    SOURCE_SUBDIR ccache
                    SYSTEM TRUE
