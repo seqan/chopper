@@ -120,12 +120,13 @@ TEST_F(cli_test, display_layout_general)
 
     ASSERT_TRUE(std::filesystem::exists(general_filename));
 
-    std::string expected_general_file{"# Layout: " + layout_filename.string() + "\n" +
-                                      R"(tb_index	exact_size	estimated_size	shared_size	ub_count	kind	splits
-0	479	483	0	2	merged	1
-1	466	466	0	1	split	1
-2	287	289	0	1	split	2
-3	287	289	0	1	split	0
+    std::string expected_general_file{
+        "# Layout: " + layout_filename.string() + "\n" +
+        R"(tb_index	exact_size	estimated_size	fpr_corrected_size	shared_size	ub_count	kind	splits
+0	479	483	153	0	2	merged	1
+1	466	466	466	0	1	split	1
+2	287	289	420	0	1	split	2
+3	287	289	420	0	1	split	0
 )"};
 
     std::string const actual_file{string_from_file(general_filename)};
@@ -164,12 +165,13 @@ TEST_F(cli_test, display_layout_general_with_shared_kmers)
 
     ASSERT_TRUE(std::filesystem::exists(general_filename));
 
-    std::string expected_general_file{"# Layout: " + layout_filename.string() + "\n" +
-                                      R"(tb_index	exact_size	estimated_size	shared_size	ub_count	kind	splits
-0	479	483	371	2	merged	1
-1	466	466	0	1	split	1
-2	287	289	0	1	split	2
-3	287	289	0	1	split	0
+    std::string expected_general_file{
+        "# Layout: " + layout_filename.string() + "\n" +
+        R"(tb_index	exact_size	estimated_size	fpr_corrected_size	shared_size	ub_count	kind	splits
+0	479	483	153	371	2	merged	1
+1	466	466	466	0	1	split	1
+2	287	289	420	0	1	split	2
+3	287	289	420	0	1	split	0
 )"};
 
     std::string const actual_file{string_from_file(general_filename)};

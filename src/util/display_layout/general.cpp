@@ -26,6 +26,9 @@
 #include <hibf/contrib/robin_hood.hpp>
 #include <hibf/contrib/std/chunk_by_view.hpp>
 #include <hibf/contrib/std/to.hpp>
+#include <hibf/layout/compute_fpr_correction.hpp>
+#include <hibf/layout/compute_relaxed_fpr_correction.hpp>
+#include <hibf/misc/divide_and_ceil.hpp>
 #include <hibf/sketch/hyperloglog.hpp>
 
 #include "shared.hpp"
@@ -102,6 +105,7 @@ struct record
     size_t tb_index{};
     size_t exact_size{};
     size_t estimated_size{};
+    size_t corrected_size{};
     size_t shared_size{};
     size_t ub_count{};
     std::string_view kind{};
@@ -115,6 +119,7 @@ struct record
             stream << tb_index + i << '\t'   //
                    << exact_size << '\t'     //
                    << estimated_size << '\t' //
+                   << corrected_size << '\t' //
                    << shared_size << '\t'    //
                    << ub_count << '\t'       //
                    << kind << '\t'           //
@@ -130,6 +135,7 @@ struct record
                << "tb_index\t"
                << "exact_size\t"
                << "estimated_size\t"
+               << "fpr_corrected_size\t"
                << "shared_size\t"
                << "ub_count\t"
                << "kind\t"
@@ -197,6 +203,20 @@ int execute(config const & cfg)
     auto const & hibf_config = chopper_config.hibf_config;
 
     layout_file.close();
+
+    // multiplied to cardinality of a merged bin
+    double const merged_correction = seqan::hibf::layout::compute_relaxed_fpr_correction(
+        {.fpr = chopper_config.hibf_config.maximum_fpr,
+         .relaxed_fpr = chopper_config.hibf_config.relaxed_fpr,
+         .hash_count = chopper_config.hibf_config.number_of_hash_functions});
+
+    // contains correction factors for different number of splits
+    // e.g. splitting a user bin into 5 tbs -> cardinality * split_correction[5] / 5
+    std::vector<double> const split_correction =
+        seqan::hibf::layout::compute_fpr_correction({.fpr = chopper_config.hibf_config.maximum_fpr,
+                                                     .hash_count = chopper_config.hibf_config.number_of_hash_functions,
+                                                     .t_max = chopper_config.hibf_config.tmax});
+
     std::ofstream output_stream{cfg.output};
 
     if (!output_stream.good() || !output_stream.is_open())
@@ -330,10 +350,23 @@ int execute(config const & cfg)
         size_t const split_count{is_merged ? 1u : hibf_layout.user_bins[chunk[0]].number_of_technical_bins};
         size_t const avg_kmer_count = (current_kmer_set.size() + split_count - 1u) / split_count;
         size_t const sketch_estimate = (sketch.estimate() + split_count - 1u) / split_count;
+        size_t const corrected_exact_size = [&]() -> size_t
+        {
+            if (is_merged)
+            {
+                return std::ceil(avg_kmer_count * merged_correction);
+            }
+            else
+            {
+                size_t const corrected_content = std::ceil(current_kmer_set.size() * split_correction[split_count]);
+                return seqan::hibf::divide_and_ceil(corrected_content, split_count);
+            }
+        }();
 
         records[tb_index] = record{.tb_index = tb_index,
                                    .exact_size = avg_kmer_count,
                                    .estimated_size = sketch_estimate,
+                                   .corrected_size = corrected_exact_size,
                                    .shared_size = shared_kmers.size(),
                                    .ub_count = ub_count,
                                    .kind = (is_merged ? "merged" : "split"),
