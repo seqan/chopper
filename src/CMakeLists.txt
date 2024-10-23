@@ -12,7 +12,7 @@ if (TARGET chopper::interface)
 endif ()
 
 add_library (chopper_interface INTERFACE)
-target_link_libraries (chopper_interface INTERFACE seqan::hibf sharg::sharg seqan3::seqan3)
+target_link_libraries (chopper_interface INTERFACE sharg::sharg seqan3::seqan3 seqan::hibf)
 target_include_directories (chopper_interface INTERFACE "${PROJECT_SOURCE_DIR}/include")
 target_compile_options (chopper_interface INTERFACE "-pedantic" "-Wall" "-Wextra")
 add_library (chopper::interface ALIAS chopper_interface)
