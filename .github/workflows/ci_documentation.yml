@@ -26,6 +26,10 @@ jobs:
     name: Documentation
     runs-on: ubuntu-latest
     if: ( github.repository_owner == 'seqan' || github.event_name == 'workflow_dispatch' || github.event.label.name == 'lint' ) && github.event.action != 'closed'
+    container:
+      image: ghcr.io/seqan/gcc-14
+      volumes:
+        - /home/runner:/home/runner
     steps:
       - name: Checkout
         if: github.event_name != 'pull_request_target'
