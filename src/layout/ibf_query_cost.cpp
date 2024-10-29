@@ -8,6 +8,7 @@
 #include <array>
 #include <bit>
 #include <cassert>
+#include <cmath>
 #include <cstddef>
 #include <map>
 #include <stdexcept>
