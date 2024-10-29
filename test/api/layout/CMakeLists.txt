@@ -17,5 +17,12 @@ target_use_datasources (execute_with_estimation_test FILES seq3.fa)
 target_use_datasources (execute_with_estimation_test FILES small.fa)
 
 add_api_test (hibf_statistics_test.cpp)
+# Bogus LTO warning on gcc-12
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU"
+    AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 12
+    AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 13
+)
+    target_link_options (hibf_statistics_test PRIVATE -Wno-stringop-overflow)
+endif ()
 add_api_test (user_bin_io_test.cpp)
 add_api_test (input_test.cpp)

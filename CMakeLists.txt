@@ -17,8 +17,12 @@ project (chopper
 
 ## BUILD
 
-# Optimization
-option (CHOPPER_NATIVE_BUILD "Optimize build for current architecture." ON)
+# LTO
+include (CheckIPOSupported)
+check_ipo_supported (RESULT CHOPPER_HAS_LTO OUTPUT CHOPPER_HAS_LTO_OUTPUT)
+if (CHOPPER_HAS_LTO)
+    set (CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+endif ()
 
 # Make Release default build type
 if (NOT CMAKE_BUILD_TYPE)
