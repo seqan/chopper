@@ -6,7 +6,7 @@
 # This file should be committed to version control
 
 # hibf
-set (CHOPPER_HIBF_VERSION 9e631fd792a35e369ea3385c04e299db3a00859c)
+set (CHOPPER_HIBF_VERSION 2c1488a460c6a136332286f6efeaad26b1d8daac)
 CPMDeclarePackage (hibf
                    NAME hibf
                    GIT_TAG ${CHOPPER_HIBF_VERSION} # main
@@ -26,7 +26,7 @@ CPMDeclarePackage (sharg
                    OPTIONS "INSTALL_SHARG OFF" "INSTALL_TDL OFF" "CMAKE_MESSAGE_LOG_LEVEL WARNING" "BUILD_TESTING OFF"
 )
 # seqan3
-set (CHOPPER_SEQAN3_VERSION 0b86c6567f910c943c13f40944ab737524a2ecf6)
+set (CHOPPER_SEQAN3_VERSION f500cf7fbe128636c6e50a99519b5eb2532ab70e)
 CPMDeclarePackage (seqan3
                    NAME seqan3
                    GIT_TAG ${CHOPPER_SEQAN3_VERSION} # main
@@ -38,7 +38,7 @@ CPMDeclarePackage (seqan3
 # googletest
 set (CHOPPER_GOOGLETEST_VERSION 1.15.2)
 CPMDeclarePackage (googletest
-                   NAME googletest
+                   NAME GTest
                    VERSION ${CHOPPER_GOOGLETEST_VERSION}
                    GITHUB_REPOSITORY google/googletest
                    SYSTEM TRUE
