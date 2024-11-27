@@ -57,7 +57,7 @@ void validate_configuration(sharg::parser & parser,
         config.k = sketch_config.k; // make sure default is overwritten
     }
 
-    if (parser.is_option_set("window") && config.window != sketch_config.window)
+    if (parser.is_option_set("window") && config.window_size != sketch_config.window_size)
     {
         throw sharg::parser_error{"You are using a sketch file as input but want to use a --window size that differs "
                                   "from the one used for sketching. This will result in a layout (and subsequently "
@@ -65,7 +65,7 @@ void validate_configuration(sharg::parser & parser,
     }
     else
     {
-        config.window = sketch_config.window; // make sure default is overwritten
+        config.window_size = sketch_config.window_size; // make sure default is overwritten
     }
 }
 
