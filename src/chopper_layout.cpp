@@ -28,6 +28,14 @@
 namespace chopper
 {
 
+/*!\brief Validates the chopper configuration of the current chopper call with that from the sketch file
+ *
+ * If a sketch file is given as input, certain configurations have been already used for generating the sketches but
+ * the user can still give the same arguments to the current command line.
+ * This function checks for consistency als overwrites default values within the chopper configuration with those from the
+ * sketch file. Overwriting is needed because the current chopper config is written to the layout file and should
+ * be consistent with the sketch file.
+ */
 void validate_configuration(sharg::parser & parser,
                             chopper::configuration & config,
                             chopper::configuration const & sketch_config)
@@ -43,6 +51,21 @@ void validate_configuration(sharg::parser & parser,
             ") differs from k-mer size in the sketch file (",
             sketch_config.k,
             "). The results may be suboptimal. If this was a conscious decision, you can ignore this warning.\n");
+    }
+    else
+    {
+        config.k = sketch_config.k; // make sure default is overwritten
+    }
+
+    if (parser.is_option_set("window") && config.window != sketch_config.window)
+    {
+        throw sharg::parser_error{"You are using a sketch file as input but want to use a --window size that differs "
+                                  "from the one used for sketching. This will result in a layout (and subsequently "
+                                  "an index that does not represent your data correctly."};
+    }
+    else
+    {
+        config.window = sketch_config.window; // make sure default is overwritten
     }
 }
 
