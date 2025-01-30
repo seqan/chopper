@@ -104,6 +104,17 @@ void set_up_parser(sharg::parser & parser, configuration & config)
             .advanced = true});
 
     parser.add_option(
+        config.hibf_config.empty_bin_fraction,
+        sharg::config{
+            .short_id = '\0',
+            .long_id = "empty-bin-fraction",
+            .description =
+                "Sets the percentage of empty bins in the layout. Certain applications, e.g., dynamic indices, require "
+                "empty technical bins in the layout. This option allows you to specify the fraction of tmax that "
+                "should be empty bins. The empty bins will be present in each IBF of the generated layout.",
+            .advanced = true});
+
+    parser.add_option(
         config.hibf_config.number_of_hash_functions,
         sharg::config{.short_id = '\0',
                       .long_id = "hash",
