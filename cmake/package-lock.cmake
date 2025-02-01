@@ -6,7 +6,7 @@
 # This file should be committed to version control
 
 # hibf
-set (CHOPPER_HIBF_VERSION 5853f7a35061632f4c3674fc9fc434f917f230f6)
+set (CHOPPER_HIBF_VERSION 1df6a31672362fc8dd9e28ff4d2d04cf9d108fce)
 CPMDeclarePackage (hibf
                    NAME hibf
                    GIT_TAG ${CHOPPER_HIBF_VERSION} # main
