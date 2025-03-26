@@ -134,6 +134,50 @@ TEST_F(cli_test, display_layout_general)
     EXPECT_EQ(expected_general_file, actual_file);
 }
 
+TEST_F(cli_test, display_layout_general_throw_invalid_layout)
+{
+    std::string const seq1_filename = data("seq1.fa");
+    std::string const seq2_filename = data("seq2.fa");
+    std::string const seq3_filename = data("seq3.fa");
+    std::string const small_filename = data("small.fa");
+    seqan3::test::tmp_directory tmp_dir{};
+    std::filesystem::path const layout_filename{tmp_dir.path() / "small.layout"};
+    std::filesystem::path const general_filename{tmp_dir.path() / "small.layout.general"};
+
+    {
+        std::ofstream fout{layout_filename};
+        std::string content = get_layout_with_correct_filenames(seq1_filename,
+                                                                seq2_filename,
+                                                                seq3_filename,
+                                                                small_filename,
+                                                                layout_filename.string());
+        size_t const last_header_line_start = content.rfind('#');
+        size_t const last_header_line_end = content.find('\n', last_header_line_start);
+        ASSERT_GT(content.size(), last_header_line_end);
+        content.erase(last_header_line_end + 1u);
+        content += "0\t0\t1\n"
+                   "1\t1;0\t1;64\n"
+                   "2\t2\t1\n"
+                   "3\t3\t2\n";
+        fout << content;
+    }
+
+    ASSERT_TRUE(std::filesystem::exists(layout_filename));
+
+    cli_test_result result = execute_app("display_layout",
+                                         "general",
+                                         "--input",
+                                         layout_filename.c_str(),
+                                         "--output",
+                                         general_filename.c_str());
+
+    ASSERT_NE(result.exit_code, 0) << "PWD: " << result.pwd << "\nCMD: " << result.command;
+    EXPECT_EQ(result.out, std::string{});
+    EXPECT_TRUE(result.err.find("Invalid Layout: There is a merged bin that only consists of a single user bin.")
+                != std::string::npos)
+        << result.err;
+}
+
 TEST_F(cli_test, display_layout_general_with_shared_kmers)
 {
     std::string const seq1_filename = data("seq1.fa");
