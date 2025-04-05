@@ -6,7 +6,7 @@
 # This file should be committed to version control
 
 # hibf
-set (CHOPPER_HIBF_VERSION 0ba8216f7d66743d393c6e72be7ea51cdfd13071)
+set (CHOPPER_HIBF_VERSION 5633fc044e93020984ad045c7001ede453b4b9e0)
 CPMDeclarePackage (hibf
                    NAME hibf
                    GIT_TAG ${CHOPPER_HIBF_VERSION} # main
@@ -16,7 +16,7 @@ CPMDeclarePackage (hibf
                    OPTIONS "INSTALL_HIBF OFF"
 )
 # sharg
-set (CHOPPER_SHARG_VERSION d3b3a7b89b2953a9125901dd9af276f228d60997)
+set (CHOPPER_SHARG_VERSION 99b7441aeeeb59bf4764e22a8091da1627843e74)
 CPMDeclarePackage (sharg
                    NAME sharg
                    GIT_TAG ${CHOPPER_SHARG_VERSION} # main
@@ -26,7 +26,7 @@ CPMDeclarePackage (sharg
                    OPTIONS "INSTALL_SHARG OFF" "INSTALL_TDL OFF" "CMAKE_MESSAGE_LOG_LEVEL WARNING" "BUILD_TESTING OFF"
 )
 # seqan3
-set (CHOPPER_SEQAN3_VERSION f0c3786189c4507e03c96c0ef334ae88dc803a56)
+set (CHOPPER_SEQAN3_VERSION 92b9ba680b4c6bff7c850e0b0f7e10c99c294732)
 CPMDeclarePackage (seqan3
                    NAME seqan3
                    GIT_TAG ${CHOPPER_SEQAN3_VERSION} # main
