@@ -36,7 +36,7 @@ CPMDeclarePackage (seqan3
                    OPTIONS "INSTALL_SEQAN3 OFF" "CMAKE_MESSAGE_LOG_LEVEL WARNING"
 )
 # googletest
-set (CHOPPER_GOOGLETEST_VERSION 1.16.0)
+set (CHOPPER_GOOGLETEST_VERSION 1.17.0)
 CPMDeclarePackage (googletest
                    NAME GTest
                    VERSION ${CHOPPER_GOOGLETEST_VERSION}
