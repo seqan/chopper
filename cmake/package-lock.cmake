@@ -6,7 +6,7 @@
 # This file should be committed to version control
 
 # hibf
-set (CHOPPER_HIBF_VERSION 6a1f1f09975cd0f4ea857fad6f62d9804c5d35a2)
+set (CHOPPER_HIBF_VERSION e49afc1172ebd183730ca070dd1081458225ef3b)
 CPMDeclarePackage (hibf
                    NAME hibf
                    GIT_TAG ${CHOPPER_HIBF_VERSION} # main
@@ -16,7 +16,7 @@ CPMDeclarePackage (hibf
                    OPTIONS "INSTALL_HIBF OFF"
 )
 # sharg
-set (CHOPPER_SHARG_VERSION fd0d5b20ef0557901c252997c15771c82e40c08c)
+set (CHOPPER_SHARG_VERSION be113bcffe49c0d62cbd65a191820f05386aa8da)
 CPMDeclarePackage (sharg
                    NAME sharg
                    GIT_TAG ${CHOPPER_SHARG_VERSION} # main

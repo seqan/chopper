@@ -24,19 +24,19 @@ defaults:
 jobs:
   build:
     name: ${{ matrix.compiler }}
-    runs-on: macos-14
+    runs-on: macos-latest
     if: github.repository_owner == 'seqan' || github.event_name == 'workflow_dispatch' || github.event.label.name == 'lint'
     strategy:
       fail-fast: false
       matrix:
-        compiler: ["clang-19", "clang-18", "clang-17", "gcc-14", "gcc-13", "gcc-12"]
+        compiler: ["clang-latest", "clang-second-latest", "clang-third-latest", "gcc-latest", "gcc-second-latest", "gcc-third-latest"]
         include:
           - cxx_flags: "-Wno-interference-size"
-          - compiler: "clang-19"
+          - compiler: "clang-latest"
             cxx_flags: ""
-          - compiler: "clang-18"
+          - compiler: "clang-second-latest"
             cxx_flags: ""
-          - compiler: "clang-17"
+          - compiler: "clang-third-latest"
             cxx_flags: ""
     steps:
       - name: Checkout
@@ -47,12 +47,6 @@ jobs:
         with:
           compiler: ${{ matrix.compiler }}
           ccache_size: 75M
-
-      - name: Patch M1 GCC
-        if: contains(matrix.compiler, 'gcc') && matrix.compiler != 'gcc-14'
-        uses: seqan/actions/patch-m1-gcc@main
-        with:
-          compiler: ${{ matrix.compiler }}
 
       - name: Configure tests
         run: |
