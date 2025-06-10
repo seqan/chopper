@@ -29,13 +29,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        compiler: ["clang-19", "gcc-14", "gcc-12", "intel"]
+        compiler: ["clang-latest", "gcc-latest", "gcc-third-latest", "intel"]
         include:
           - cxx_flags: "-Wno-interference-size"
-          - compiler: "clang-19"
+          - compiler: "clang-latest"
             cxx_flags: ""
           - compiler: "intel"
-            cxx_flags: "-fp-model=strict -Wno-overriding-option"
+            cxx_flags: ""
     container:
       image: ghcr.io/seqan/${{ matrix.compiler }}
       volumes:
@@ -44,11 +44,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Load ccache
-        uses: actions/cache@v4
-        with:
-          path: /home/runner/.ccache
-          key: ccache-${{ runner.os }}-${{ github.workflow }}-${{ matrix.compiler }}-${{ github.ref }}
+      - name: Setup cache
+        uses: seqan/actions/setup-actions-cache@main
 
       - name: Configure tests
         run: |
