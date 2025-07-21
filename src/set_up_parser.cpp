@@ -245,6 +245,12 @@ void set_up_parser(sharg::parser & parser, configuration & config)
                 "ignored and has no effect.",
             .advanced = true});
 
+    parser.add_flag(config.fast_layout,
+                    sharg::config{.short_id = '\0',
+                                  .long_id = "fast-layout",
+                                  .description = "Uses the fast layout algorithm instead of the default one.",
+                                  .advanced = false});
+
     parser.add_flag(
         config.output_verbose_statistics,
         sharg::config{.short_id = '\0',

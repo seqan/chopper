@@ -133,11 +133,12 @@ TEST(execute_test, chopper_layout_statistics)
                                                   .disable_estimate_union = true /* also disable rearrangement */}};
 
     std::vector<seqan::hibf::sketch::hyperloglog> sketches;
-    seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches);
+    std::vector<seqan::hibf::sketch::minhashes> minHash_sketches{};
+    seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches, minHash_sketches);
 
     testing::internal::CaptureStdout();
     testing::internal::CaptureStderr();
-    chopper::layout::execute(config, many_filenames, sketches);
+    chopper::layout::execute(config, many_filenames, sketches, minHash_sketches);
     std::string layout_result_stdout = testing::internal::GetCapturedStdout();
     std::string layout_result_stderr = testing::internal::GetCapturedStderr();
 
@@ -155,6 +156,66 @@ TEST(execute_test, chopper_layout_statistics)
 ## uncorr_size : The expected size of an tmax-HIBF without FPR correction
 # tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size	uncorr_size	level	num_ibfs	level_size	level_size_no_corr	total_num_tbs	avg_num_tbs	split_tb_percentage	max_split_tb	avg_split_tb	max_factor	avg_factor
 64	1.00	1.36	1.00	1.36	269.0KiB	340.1KiB	:0:1	:1:10	:96.5KiB:172.5KiB	:298.1KiB:42.0KiB	:64:640	:64:64	:84.38:100.00	:1:32	:1.00:15.24	:1.00:6.20	:1.00:4.23
+)expected_cout";
+
+    EXPECT_EQ(layout_result_stdout, expected_cout) << layout_result_stdout;
+    EXPECT_EQ(layout_result_stderr, std::string{});
+}
+
+TEST(execute_test, chopper_layout_statistics_fast_layout)
+{
+    seqan3::test::tmp_directory tmp_dir{};
+    std::filesystem::path const layout_file{tmp_dir.path() / "layout.tsv"};
+
+    std::vector<std::vector<std::string>> many_filenames;
+
+    for (size_t i{0}; i < 96u; ++i)
+        many_filenames.push_back({seqan3::detail::to_string("seq", i)});
+
+    // Creates sizes of the following series
+    // [801,802,...,820,922,923,...,941,1043,1044,...,1062,1164,1165,...,1183,1285,1286,...,1300]
+    // See also https://godbolt.org/z/9517eaaaG
+    auto simulated_input = [&](size_t const num, seqan::hibf::insert_iterator it)
+    {
+        size_t const desired_kmer_count = 101 * ((num + 20) / 20) + num + 700;
+        for (auto hash : std::views::iota(0u, desired_kmer_count))
+            it = hash;
+    };
+
+    chopper::configuration config{.fast_layout = true,
+                                  .data_file = "not needed",
+                                  .output_filename = layout_file.c_str(),
+                                  .disable_sketch_output = true,
+                                  .output_verbose_statistics = true,
+                                  .hibf_config = {.input_fn = simulated_input,
+                                                  .number_of_user_bins = many_filenames.size(),
+                                                  .tmax = 64,
+                                                  .disable_estimate_union = true /* also disable rearrangement */}};
+
+    std::vector<seqan::hibf::sketch::hyperloglog> sketches;
+    std::vector<seqan::hibf::sketch::minhashes> minHash_sketches{};
+    seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches, minHash_sketches);
+
+    testing::internal::CaptureStdout();
+    testing::internal::CaptureStderr();
+    chopper::layout::execute(config, many_filenames, sketches, minHash_sketches);
+    std::string layout_result_stdout = testing::internal::GetCapturedStdout();
+    std::string layout_result_stderr = testing::internal::GetCapturedStderr();
+
+    std::string expected_cout =
+        R"expected_cout(## ### Notation ###
+## X-IBF = An IBF with X number of bins.
+## X-HIBF = An HIBF with tmax = X, e.g a maximum of X technical bins on each level.
+## ### Column Description ###
+## tmax : The maximum number of technical bin on each level
+## c_tmax : The technical extra cost of querying an tmax-IBF, compared to 64-IBF
+## l_tmax : The estimated query cost for an tmax-HIBF, compared to an 64-HIBF
+## m_tmax : The estimated memory consumption for an tmax-HIBF, compared to an 64-HIBF
+## (l*m)_tmax : Computed by l_tmax * m_tmax
+## size : The expected total size of an tmax-HIBF
+## uncorr_size : The expected size of an tmax-HIBF without FPR correction
+# tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size	uncorr_size	level	num_ibfs	level_size	level_size_no_corr	total_num_tbs	avg_num_tbs	split_tb_percentage	max_split_tb	avg_split_tb	max_factor	avg_factor
+64	1.00	1.24	1.00	1.24	672.6KiB	2.0MiB	:0:1:2	:1:1:1	:624.8KiB:47.8KiB:0Bytes	:1.9MiB:130.0KiB:0Bytes	:64:64:0	:64:64:0	:98.44:98.44:-nan	:1:3:-	:1.00:2.03:-	:1.00:1.81:-	:1.00:1.47:-
 )expected_cout";
 
     EXPECT_EQ(layout_result_stdout, expected_cout) << layout_result_stdout;
@@ -190,9 +251,10 @@ TEST(execute_test, chopper_layout_statistics_determine_best_bins)
                                                   .disable_estimate_union = true /* also disable rearrangement */}};
 
     std::vector<seqan::hibf::sketch::hyperloglog> sketches;
-    seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches);
+    std::vector<seqan::hibf::sketch::minhashes> minHash_sketches{};
+    seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches, minHash_sketches);
 
-    chopper::layout::execute(config, filenames, sketches);
+    chopper::layout::execute(config, filenames, sketches, minHash_sketches);
 
     std::string expected_cout =
         R"expected_cout(## ### Parameters ###
