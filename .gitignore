@@ -32,6 +32,7 @@
 
 # build dir
 /build/
+/build_debug/
 
 # editor configuration
 /.vscode/
