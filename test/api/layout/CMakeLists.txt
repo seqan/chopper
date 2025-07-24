@@ -26,3 +26,4 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU"
 endif ()
 add_api_test (user_bin_io_test.cpp)
 add_api_test (input_test.cpp)
+add_api_test (determine_split_bins_test.cpp)
