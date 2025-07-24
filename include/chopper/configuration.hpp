@@ -20,8 +20,20 @@
 namespace chopper
 {
 
+enum partitioning_scheme
+{
+    blocked,       // 0
+    sorted,        // 1
+    folded,        // 2
+    weighted_fold, // 3
+    similarity,    // 4
+    lsh,           // 5
+    lsh_sim        // 6
+};
+
 struct configuration
 {
+    int partitioning_approach{6};
     /*!\name General Configuration
      * \{
      */
@@ -77,6 +89,10 @@ struct configuration
     mutable seqan::hibf::concurrent_timer union_estimation_timer{};
     mutable seqan::hibf::concurrent_timer rearrangement_timer{};
     mutable seqan::hibf::concurrent_timer dp_algorithm_timer{};
+    mutable seqan::hibf::concurrent_timer lsh_algorithm_timer{};
+    mutable seqan::hibf::concurrent_timer search_partition_algorithm_timer{};
+    mutable seqan::hibf::concurrent_timer intital_partition_timer{};
+    mutable seqan::hibf::concurrent_timer small_layouts_timer{};
 
     void read_from(std::istream & stream);
 
