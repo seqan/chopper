@@ -15,7 +15,7 @@
 #include <hibf/layout/print_matrix.hpp> // for data_store
 #include <hibf/misc/divide_and_ceil.hpp>
 
-namespace chopper::fast_layout
+namespace chopper::layout
 {
 
 std::pair<size_t, size_t> determine_split_bins(chopper::configuration const & config,
