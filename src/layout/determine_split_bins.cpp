@@ -5,14 +5,14 @@
 // shipped with this file and also available at: https://github.com/seqan/chopper/blob/main/LICENSE.md
 // ---------------------------------------------------------------------------------------------------
 
-#include <numeric>  // for allocator, string
+#include <numeric> // for allocator, string
 #include <vector>  // for vector
 
-#include <chopper/layout/determine_split_bins.hpp>
 #include <chopper/configuration.hpp>
-#include <hibf/layout/print_matrix.hpp>        // for data_store
+#include <chopper/layout/determine_split_bins.hpp>
 
 #include <hibf/layout/compute_fpr_correction.hpp>
+#include <hibf/layout/print_matrix.hpp> // for data_store
 #include <hibf/misc/divide_and_ceil.hpp>
 
 namespace chopper::fast_layout
@@ -26,15 +26,16 @@ std::pair<size_t, size_t> determine_split_bins(chopper::configuration const & co
                                                std::vector<std::vector<size_t>> & partitions)
 {
     if (num_user_bins == 0)
-        return {0,0};
+        return {0, 0};
 
     assert(num_technical_bins > 0u);
     assert(num_user_bins > 0u);
     assert(num_user_bins <= num_technical_bins);
 
-    auto const fpr_correction = seqan::hibf::layout::compute_fpr_correction({.fpr = config.hibf_config.maximum_fpr, //
-                                                        .hash_count = config.hibf_config.number_of_hash_functions,
-                                                        .t_max = num_technical_bins});
+    auto const fpr_correction =
+        seqan::hibf::layout::compute_fpr_correction({.fpr = config.hibf_config.maximum_fpr, //
+                                                     .hash_count = config.hibf_config.number_of_hash_functions,
+                                                     .t_max = num_technical_bins});
 
     std::vector<std::vector<size_t>> matrix(num_technical_bins); // rows
     for (auto & v : matrix)
@@ -67,8 +68,8 @@ std::pair<size_t, size_t> determine_split_bins(chopper::configuration const & co
             {
                 size_t const corrected_ub_cardinality =
                     static_cast<size_t>(ub_cardinality * fpr_correction[(i - i_prime)]);
-                size_t score =
-                    std::max<size_t>(seqan::hibf::divide_and_ceil(corrected_ub_cardinality, i - i_prime), matrix[i_prime][j - 1]);
+                size_t score = std::max<size_t>(seqan::hibf::divide_and_ceil(corrected_ub_cardinality, i - i_prime),
+                                                matrix[i_prime][j - 1]);
 
                 // std::cout << "j:" << j << " i:" << i << " i':" << i_prime << " score:" << score << std::endl;
 
@@ -149,4 +150,4 @@ std::pair<size_t, size_t> determine_split_bins(chopper::configuration const & co
     return {number_of_split_tbs, max_size};
 }
 
-} // namespace chopper::layout
+} // namespace chopper::fast_layout

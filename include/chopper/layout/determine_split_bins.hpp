@@ -20,10 +20,10 @@ namespace chopper::layout
 {
 
 std::pair<size_t, size_t> determine_split_bins(chopper::configuration const & config,
-    std::vector<size_t> const & positions,
-    std::vector<size_t> const & cardinalities,
-    size_t const num_technical_bins,
-    size_t const num_user_bins,
-    std::vector<std::vector<size_t>> & partitions);
+                                               std::vector<size_t> const & positions,
+                                               std::vector<size_t> const & cardinalities,
+                                               size_t const num_technical_bins,
+                                               size_t const num_user_bins,
+                                               std::vector<std::vector<size_t>> & partitions);
 
 }
