@@ -160,7 +160,7 @@ std::vector<Cluster> very_similar_LSH_partitioning(std::vector<seqan::hibf::sket
     size_t current_max_cluster_size{0};
     size_t current_number_of_sketch_hashes{minHash_sketche_size}; // start with high r but decrease it iteratively
     size_t current_sketch_index{0};
-    size_t current_number_of_clusters{number_of_user_bins}; // initially, each UB is a separate cluster
+    [[maybe_unused]] size_t current_number_of_clusters{number_of_user_bins}; // initially, each UB is a separate cluster
 
     for (size_t pos = 0; pos < number_of_user_bins; ++pos)
     {
@@ -665,7 +665,7 @@ void partition_user_bins(chopper::configuration const & config,
     // is lower than the largest single user bin. But of course, we can never reach a smaller max technical bin size
     // then that of the largest user user bin. Thus we can correct the estimate_per_part beforehand.
     // This way we make sure there is at least 1 LSH clustering step.
-    size_t const estimate_per_part =
+    [[maybe_unused]] size_t const estimate_per_part =
         std::max(seqan::hibf::divide_and_ceil(joint_estimate, config.hibf_config.tmax), max_cardinality + 1);
 
     double const relaxed_fpr_correction = seqan::hibf::layout::compute_relaxed_fpr_correction(
