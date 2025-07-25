@@ -144,7 +144,6 @@ std::vector<Cluster> very_similar_LSH_partitioning(std::vector<seqan::hibf::sket
     size_t current_max_cluster_size{0};
     size_t current_number_of_sketch_hashes{minHash_sketch_size}; // start with high r but decrease it iteratively
     size_t current_sketch_index{0};
-    [[maybe_unused]] size_t current_number_of_clusters{number_of_user_bins}; // initially, each UB is a separate cluster
 
     for (size_t pos = 0; pos < number_of_user_bins; ++pos)
     {
@@ -154,14 +153,18 @@ std::vector<Cluster> very_similar_LSH_partitioning(std::vector<seqan::hibf::sket
         current_max_cluster_size = std::max(current_max_cluster_size, cardinalities[positions[pos]]);
     }
 
+    auto get_cluster = [&clusters](size_t const current) -> Cluster &
+    {
+        size_t const cluster_id = LSH_find_representative_cluster(clusters, current);
+        return clusters[cluster_id];
+    };
+
     // refine clusters
     //std::cout << "Start clustering with threshold average_technical_bin_size: " << average_technical_bin_size << std::endl;
     while (current_max_cluster_size < average_technical_bin_size
            && /*number_of_clusters / static_cast<double>(number_of_user_bins) > 0.5 &&*/
            current_sketch_index < number_of_max_minHash_sketches) // I want to cluster 10%?
     {
-        //std::cout << "Current number of clusters: " << current_number_of_clusters;
-
         // fill LSH collision hashtable
         robin_hood::unordered_flat_map<uint64_t, std::vector<size_t>> table =
             LSH_fill_hashtable(clusters, minHash_sketches, current_sketch_index, current_number_of_sketch_hashes);
@@ -183,10 +186,10 @@ std::vector<Cluster> very_similar_LSH_partitioning(std::vector<seqan::hibf::sket
             // e.g.
             // [key1] = {0,11}  // then clusters[11] is merged into clusters[0]
             // [key2] = {11,13} // now I want to merge clusters[13] into clusters[11] but the latter has been moved
-            size_t const representative_cluster_id = LSH_find_representative_cluster(clusters, list[0]);
-            auto & representative_cluster = clusters[representative_cluster_id];
-            assert(representative_cluster.is_valid(representative_cluster_id));
+            auto & representative_cluster = get_cluster(list[0]);
             assert(representative_cluster.id() == clusters[representative_cluster.id()].id());
+
+            auto & representative_cluster_sketch = current_cluster_sketches[representative_cluster.id()];
 
             for (size_t const current : std::views::drop(list, 1))
             {
@@ -194,28 +197,22 @@ std::vector<Cluster> very_similar_LSH_partitioning(std::vector<seqan::hibf::sket
                 // e.g.
                 // [key1] = {0,11}  // then clusters[11] is merged into clusters[0]
                 // [key2] = {0, 2, 11} // now I want to do it again
-                size_t const next_cluster_id = LSH_find_representative_cluster(clusters, current);
-                auto & next_cluster = clusters[next_cluster_id];
+                auto & next_cluster = get_cluster(current);
 
                 if (next_cluster.id() == representative_cluster.id()) // already joined
                     continue;
 
                 next_cluster.move_to(representative_cluster); // otherwise join next_cluster into representative_cluster
-                assert(next_cluster.size() == 0);
+                assert(next_cluster.empty());
                 assert(next_cluster.has_been_moved());
                 assert(representative_cluster.size() > 1); // there should be at least two user bins now
-                assert(representative_cluster.is_valid(representative_cluster_id)); // and it should still be valid
 
-                current_cluster_sketches[representative_cluster.id()].merge(
-                    current_cluster_sketches[next_cluster.id()]);
-                current_cluster_cardinality[representative_cluster.id()] =
-                    current_cluster_sketches[representative_cluster.id()].estimate();
-
-                --current_number_of_clusters;
+                representative_cluster_sketch.merge(current_cluster_sketches[next_cluster.id()]);
             }
 
-            current_max_cluster_size = std::ranges::max(current_cluster_cardinality);
+            current_cluster_cardinality[representative_cluster.id()] = representative_cluster_sketch.estimate();
         }
+        current_max_cluster_size = std::ranges::max(current_cluster_cardinality);
 
         ++current_sketch_index;
     }
