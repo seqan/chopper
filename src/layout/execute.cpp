@@ -228,7 +228,6 @@ void post_process_clusters(std::vector<Cluster> & clusters,
     // since post processing involves re-ordering the clusters, the moved_to_cluster_id value of a cluster will not
     // refer to the position of the cluster in the `clusters` vecto anymore but the cluster with the resprive id()
     // would neet to be found
-
     for (size_t pos = 0; pos < clusters.size(); ++pos)
     {
         assert(clusters[pos].is_valid(pos));
@@ -236,35 +235,36 @@ void post_process_clusters(std::vector<Cluster> & clusters,
     }
 
     // push largest p clusters to the front
-    auto cluster_size_cmp = [&cardinalities](auto const & v1, auto const & v2)
-    {
-        if (v1.size() == v2.size() && !v2.empty()) // Note: If v2 is empty, so is v1.
-            return cardinalities[v1.contained_user_bins().front()] > cardinalities[v2.contained_user_bins().front()];
-
-        return v1.size() > v2.size();
-    };
     std::ranges::partial_sort(clusters,
                               std::ranges::next(clusters.begin(), config.hibf_config.tmax, clusters.end()),
-                              cluster_size_cmp);
+                              [&cardinalities](auto const & v1, auto const & v2)
+                              {
+                                  // Note: If v2 is empty, so is v1.
+                                  if (v1.size() == v2.size() && !v2.empty())
+                                      return cardinalities[v1.contained_user_bins().front()]
+                                           > cardinalities[v2.contained_user_bins().front()];
+
+                                  return v1.size() > v2.size();
+                              });
 
     // after filling up the partitions with the biggest clusters, sort the clusters by cardinality of the biggest ub
     // s.t. that euqally sizes ub are assigned after each other and the small stuff is added at last.
     // the largest ub is already at the start because of former sorting.
-    auto compare_cardinality_and_move_empty_clusters_to_the_end = [&cardinalities](auto const & v1, auto const & v2)
-    {
-        if (v1.empty())
-            return false; // v1 can never be larger than v2 then
-
-        if (v2.empty()) // and v1 is not, since the first if would catch
-            return true;
-
-        return cardinalities[v1.contained_user_bins().front()] > cardinalities[v2.contained_user_bins().front()];
-    };
     std::ranges::sort(std::ranges::next(clusters.begin(), config.hibf_config.tmax, clusters.end()),
                       clusters.end(),
-                      compare_cardinality_and_move_empty_clusters_to_the_end);
+                      [&cardinalities](auto const & v1, auto const & v2)
+                      {
+                          if (v1.empty())
+                              return false; // v1 can never be larger than v2 then
 
-    assert(clusters[0].size() >= clusters[1].size()); // sanity check
+                          if (v2.empty()) // and v1 is not, since the first if would catch
+                              return true;
+
+                          return cardinalities[v1.contained_user_bins().front()]
+                               > cardinalities[v2.contained_user_bins().front()];
+                      });
+
+    assert(clusters.size() < 2 || clusters[0].size() >= clusters[1].size()); // sanity check
     // assert(cardinalities[clusters[std::min<size_t>(clusters.size(), config.hibf_config.tmax)].contained_user_bins()[0]] >= cardinalities[clusters[std::min<size_t>(clusters.size(), config.hibf_config.tmax) + 1].contained_user_bins()[0]]); // sanity check
 
     // debug
@@ -320,10 +320,10 @@ bool find_best_partition(chopper::configuration const & config,
     size_t best_p{0};
     bool best_p_found{false};
 
-    auto penalty_lower_level = [&](size_t const additional_number_of_user_bins, size_t const p)
+    auto penalty_lower_level = [&](size_t const additional_number_of_user_bins, size_t const p) -> size_t
     {
-        size_t min = std::min(max_card, min_partition_cardinality[p]);
-        size_t max = std::max(max_card, max_partition_cardinality[p]);
+        size_t const min = std::min(max_card, min_partition_cardinality[p]);
+        size_t const max = std::max(max_card, max_partition_cardinality[p]);
 
         if (positions[p].size() > config.hibf_config.tmax) // already a third level
         {
@@ -357,7 +357,7 @@ bool find_best_partition(chopper::configuration const & config,
             // else, end if-else-block and zero is returned
         }
 
-        return (size_t)0u;
+        return 0u;
     };
 
     for (size_t p = 0; p < number_of_partitions; ++p)
@@ -402,8 +402,7 @@ bool find_best_partition(chopper::configuration const & config,
         min_partition_cardinality[best_p] = std::min(min_partition_cardinality[best_p], cardinalities[user_bin_idx]);
     }
     partition_sketches[best_p].merge(current_sketch);
-    corrected_estimate_per_part =
-        std::max(corrected_estimate_per_part, static_cast<size_t>(partition_sketches[best_p].estimate()));
+    corrected_estimate_per_part = std::max<size_t>(corrected_estimate_per_part, partition_sketches[best_p].estimate());
 
     return true;
 }
@@ -420,8 +419,9 @@ size_t split_bins(chopper::configuration const & config,
     for (size_t idx = 0; idx < end_idx; ++idx)
     {
         size_t const ub_idx{sorted_positions[idx]};
+        // Question: divide and ceil?
         size_t const number_of_split_tbs =
-            std::max((size_t)1, config.hibf_config.tmax * cardinalities[ub_idx] / sum_of_cardinalities);
+            std::max<size_t>(1u, config.hibf_config.tmax * cardinalities[ub_idx] / sum_of_cardinalities);
         std::cout << "number_of_split_tbs: " << number_of_split_tbs
                   << " cardinalities[ub_idx]:" << cardinalities[ub_idx]
                   << " sum_of_cardinalities:" << sum_of_cardinalities << std::endl;
