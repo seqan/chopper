@@ -150,4 +150,4 @@ std::pair<size_t, size_t> determine_split_bins(chopper::configuration const & co
     return {number_of_split_tbs, max_size};
 }
 
-} // namespace chopper::fast_layout
+} // namespace chopper::layout
