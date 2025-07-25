@@ -30,10 +30,10 @@ protected:
 
 public:
     Cluster() = default;
-    Cluster(const Cluster&) = default;
-    Cluster(Cluster&&) = default;
-    Cluster& operator=(const Cluster&) = default;
-    Cluster& operator=(Cluster&&) = default;
+    Cluster(Cluster const &) = default;
+    Cluster(Cluster &&) = default;
+    Cluster & operator=(Cluster const &) = default;
+    Cluster & operator=(Cluster &&) = default;
     ~Cluster() = default;
 
     Cluster(size_t const id)
@@ -98,7 +98,12 @@ public:
 
     void sort_by_cardinality(std::vector<size_t> const & cardinalities)
     {
-        std::sort(user_bins.begin(), user_bins.end(), [&cardinalities](auto const & v1, auto const & v2){ return cardinalities[v2] < cardinalities[v1]; });
+        std::sort(user_bins.begin(),
+                  user_bins.end(),
+                  [&cardinalities](auto const & v1, auto const & v2)
+                  {
+                      return cardinalities[v2] < cardinalities[v1];
+                  });
     }
 };
 
@@ -109,10 +114,10 @@ protected:
 
 public:
     MultiCluster() = default;
-    MultiCluster(const MultiCluster&) = default;
-    MultiCluster(MultiCluster&&) = default;
-    MultiCluster& operator=(const MultiCluster&) = default;
-    MultiCluster& operator=(MultiCluster&&) = default;
+    MultiCluster(MultiCluster const &) = default;
+    MultiCluster(MultiCluster &&) = default;
+    MultiCluster & operator=(MultiCluster const &) = default;
+    MultiCluster & operator=(MultiCluster &&) = default;
     ~MultiCluster() = default;
 
     MultiCluster(Cluster const & clust)
@@ -164,15 +169,20 @@ public:
     // sort user bins within a Cluster by cardinality and the clusters themselves by size
     void sort_by_cardinality(std::vector<size_t> const & cardinalities)
     {
-        auto cmp = [&cardinalities](auto const & v1, auto const & v2){ return cardinalities[v2] < cardinalities[v1]; };
+        auto cmp = [&cardinalities](auto const & v1, auto const & v2)
+        {
+            return cardinalities[v2] < cardinalities[v1];
+        };
         for (auto & user_bin_cluster : user_bins)
             std::sort(user_bin_cluster.begin(), user_bin_cluster.end(), cmp);
 
-        auto cmp_clusters = [](auto const & c1, auto const & c2){ return c2.size() < c1.size(); };
+        auto cmp_clusters = [](auto const & c1, auto const & c2)
+        {
+            return c2.size() < c1.size();
+        };
         std::sort(user_bins.begin(), user_bins.end(), cmp_clusters);
     }
 };
-
 
 // A valid cluster is one that hasn't been moved but actually contains user bins
 // A valid cluster at position i is identified by the following equality: cluster[i].size() >= 1 && cluster[i][0] == i

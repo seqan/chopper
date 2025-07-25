@@ -397,8 +397,8 @@ void hibf_statistics::collect_bins()
 #    pragma GCC diagnostic push
 #    pragma GCC diagnostic ignored "-Warray-bounds="
 #    pragma GCC diagnostic ignored "-Wstringop-overflow="
-#endif // CHOPPER_WORKAROUND_GCC_BOGUS_MEMMOV
-                // ibf.bins.emplace_back(hibf_statistics::bin_kind::merged, 1, std::vector<size_t>{user_bin_info.idx});
+#endif // CHOPPER_WORKAROUND_GCC_BOGUS_MEMMOV                                                                          \
+       // ibf.bins.emplace_back(hibf_statistics::bin_kind::merged, 1, std::vector<size_t>{user_bin_info.idx});
 #if CHOPPER_WORKAROUND_GCC_BOGUS_MEMMOV
 #    pragma GCC diagnostic pop
 #endif // CHOPPER_WORKAROUND_GCC_BOGUS_MEMMOV

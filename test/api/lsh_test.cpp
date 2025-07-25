@@ -136,7 +136,6 @@ TEST(LSH_find_representative_cluster_test, multi_cluster_one_move)
     mclusters[1].move_to(mclusters[0]);
 
     EXPECT_EQ(chopper::LSH_find_representative_cluster(mclusters, mclusters[1].id()), mclusters[0].id());
-
 }
 
 TEST(LSH_find_representative_cluster_test, cluster_two_moves)
