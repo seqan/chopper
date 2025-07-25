@@ -20,7 +20,7 @@
 namespace chopper
 {
 
-enum partitioning_scheme
+enum class partitioning_scheme : uint8_t
 {
     blocked,       // 0
     sorted,        // 1
@@ -33,7 +33,8 @@ enum partitioning_scheme
 
 struct configuration
 {
-    int partitioning_approach{6};
+    partitioning_scheme partitioning_approach{partitioning_scheme::lsh_sim};
+
     /*!\name General Configuration
      * \{
      */

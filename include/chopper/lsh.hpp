@@ -36,17 +36,11 @@ public:
     Cluster & operator=(Cluster &&) = default;
     ~Cluster() = default;
 
-    Cluster(size_t const id)
-    {
-        representative_id = id;
-        user_bins = {id};
-    }
+    Cluster(size_t const id, size_t const user_bins_id) : representative_id{id}, user_bins({user_bins_id})
+    {}
 
-    Cluster(size_t const id, size_t const user_bins_id)
-    {
-        representative_id = id;
-        user_bins = {user_bins_id};
-    }
+    Cluster(size_t const id) : Cluster{id, id}
+    {}
 
     size_t id() const
     {
@@ -76,7 +70,7 @@ public:
     bool is_valid(size_t id) const
     {
         bool const ids_equal = representative_id == id;
-        bool const properly_moved = has_been_moved() && empty() && moved_id.has_value();
+        bool const properly_moved = has_been_moved() && empty();
         bool const not_moved = !has_been_moved() && !empty();
 
         return ids_equal && (properly_moved || not_moved);
@@ -98,12 +92,11 @@ public:
 
     void sort_by_cardinality(std::vector<size_t> const & cardinalities)
     {
-        std::sort(user_bins.begin(),
-                  user_bins.end(),
-                  [&cardinalities](auto const & v1, auto const & v2)
-                  {
-                      return cardinalities[v2] < cardinalities[v1];
-                  });
+        std::ranges::sort(user_bins,
+                          [&cardinalities](auto const & v1, auto const & v2)
+                          {
+                              return cardinalities[v1] > cardinalities[v2];
+                          });
     }
 };
 
@@ -123,14 +116,11 @@ public:
     MultiCluster(Cluster const & clust)
     {
         representative_id = clust.id();
+
         if (clust.has_been_moved())
-        {
             moved_id = clust.moved_to_cluster_id();
-        }
         else
-        {
             user_bins.push_back(clust.contained_user_bins());
-        }
     }
 
     std::vector<std::vector<size_t>> const & contained_user_bins() const
@@ -153,7 +143,7 @@ public:
     bool is_valid(size_t id) const
     {
         bool const ids_equal = representative_id == id;
-        bool const properly_moved = has_been_moved() && empty() && moved_id.has_value();
+        bool const properly_moved = has_been_moved() && empty();
         bool const not_moved = !has_been_moved() && !empty();
 
         return ids_equal && (properly_moved || not_moved);
@@ -169,18 +159,21 @@ public:
     // sort user bins within a Cluster by cardinality and the clusters themselves by size
     void sort_by_cardinality(std::vector<size_t> const & cardinalities)
     {
-        auto cmp = [&cardinalities](auto const & v1, auto const & v2)
-        {
-            return cardinalities[v2] < cardinalities[v1];
-        };
-        for (auto & user_bin_cluster : user_bins)
-            std::sort(user_bin_cluster.begin(), user_bin_cluster.end(), cmp);
+        std::ranges::for_each(user_bins,
+                              [&cardinalities](auto & user_bin_cluster)
+                              {
+                                  std::ranges::sort(user_bin_cluster,
+                                                    [&cardinalities](auto const & v1, auto const & v2)
+                                                    {
+                                                        return cardinalities[v1] > cardinalities[v2];
+                                                    });
+                              });
 
-        auto cmp_clusters = [](auto const & c1, auto const & c2)
-        {
-            return c2.size() < c1.size();
-        };
-        std::sort(user_bins.begin(), user_bins.end(), cmp_clusters);
+        std::ranges::sort(user_bins,
+                          [](auto const & c1, auto const & c2)
+                          {
+                              return c1.size() > c2.size();
+                          });
     }
 };
 
