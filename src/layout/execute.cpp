@@ -89,6 +89,15 @@ auto LSH_fill_hashtable(std::vector<cluster_type> const & clusters,
     }
     assert(processed_user_bins == clusters.size()); // all user bins should've been processed by one of the clusters
 
+    // uniquify list. Since I am inserting representative_idx's into the table, the same number can
+    // be inserted into multiple splots, and multiple times in the same slot.
+    for (auto & [key, list] : table)
+    {
+        std::ranges::sort(list);
+        auto const ret = std::ranges::unique(list);
+        list.erase(ret.begin(), ret.end());
+    }
+
     return table;
 }
 
@@ -164,13 +173,7 @@ std::vector<Cluster> very_similar_LSH_partitioning(std::vector<seqan::hibf::sket
         {
             assert(!list.empty());
 
-            // uniquify list. Since I am inserting representative_idx's into the table, the same number can
-            // be inserted into multiple splots, and multiple times in the same slot.
-            std::ranges::sort(list);
-            auto const end = std::ranges::unique(list);
-            auto const begin = list.begin();
-
-            if (end - begin <= 1) // nothing to do here
+            if (list.size() <= 1) // nothing to do here
                 continue;
 
             // Now combine all clusters into the first.
@@ -180,18 +183,18 @@ std::vector<Cluster> very_similar_LSH_partitioning(std::vector<seqan::hibf::sket
             // e.g.
             // [key1] = {0,11}  // then clusters[11] is merged into clusters[0]
             // [key2] = {11,13} // now I want to merge clusters[13] into clusters[11] but the latter has been moved
-            size_t const representative_cluster_id = LSH_find_representative_cluster(clusters, *begin);
+            size_t const representative_cluster_id = LSH_find_representative_cluster(clusters, list[0]);
             auto & representative_cluster = clusters[representative_cluster_id];
             assert(representative_cluster.is_valid(representative_cluster_id));
             assert(representative_cluster.id() == clusters[representative_cluster.id()].id());
 
-            for (auto current = begin + 1; current < end; ++current)
+            for (size_t const current : std::views::drop(list, 1))
             {
                 // For every other entry in the list, it can happen that I already joined that list with another
                 // e.g.
                 // [key1] = {0,11}  // then clusters[11] is merged into clusters[0]
                 // [key2] = {0, 2, 11} // now I want to do it again
-                size_t const next_cluster_id = LSH_find_representative_cluster(clusters, *current);
+                size_t const next_cluster_id = LSH_find_representative_cluster(clusters, current);
                 auto & next_cluster = clusters[next_cluster_id];
 
                 if (next_cluster.id() == representative_cluster.id()) // already joined
