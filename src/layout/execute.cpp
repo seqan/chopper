@@ -47,23 +47,30 @@ namespace chopper::layout
 
 uint64_t lsh_hash_the_sketch(std::vector<uint64_t> const & sketch, size_t const number_of_hashes_to_consider)
 {
-    // lets just compute the sum
-    uint64_t sum{0};
-
-    for (size_t i = 0; i < number_of_hashes_to_consider; ++i)
-        sum += sketch[i];
-
-    return sum;
+    return std::reduce(sketch.begin(), sketch.begin() + number_of_hashes_to_consider);
 }
 
-auto LSH_fill_hashtable(std::vector<Cluster> const & clusters,
+template <typename cluster_type>
+auto LSH_fill_hashtable(std::vector<cluster_type> const & clusters,
                         std::vector<seqan::hibf::sketch::minhashes> const & minHash_sketches,
                         size_t const current_sketch_index,
                         size_t const current_number_of_sketch_hashes)
 {
+    static constexpr bool is_multi_cluster = std::same_as<cluster_type, MultiCluster>;
+    static_assert(std::same_as<cluster_type, Cluster> || std::same_as<cluster_type, MultiCluster>);
+
     robin_hood::unordered_flat_map<uint64_t, std::vector<size_t>> table;
 
-    size_t processed_user_bins{0}; // only for sanity check
+    [[maybe_unused]] size_t processed_user_bins{0}; // only for sanity check
+
+    auto get_user_bin_idx = [](cluster_type const & cluster)
+    {
+        if constexpr (is_multi_cluster)
+            return std::views::join(cluster.contained_user_bins());
+        else
+            return cluster.contained_user_bins();
+    };
+
     for (size_t pos = 0; pos < clusters.size(); ++pos)
     {
         auto const & current = clusters[pos];
@@ -72,7 +79,7 @@ auto LSH_fill_hashtable(std::vector<Cluster> const & clusters,
         if (current.has_been_moved()) // cluster has been moved somewhere else, don't process
             continue;
 
-        for (size_t const user_bin_idx : current.contained_user_bins())
+        for (size_t const user_bin_idx : get_user_bin_idx(current))
         {
             ++processed_user_bins;
             uint64_t const key = lsh_hash_the_sketch(minHash_sketches[user_bin_idx].table[current_sketch_index],
@@ -85,42 +92,10 @@ auto LSH_fill_hashtable(std::vector<Cluster> const & clusters,
     return table;
 }
 
-auto LSH_fill_hashtable(std::vector<MultiCluster> const & clusters,
-                        std::vector<seqan::hibf::sketch::minhashes> const & minHash_sketches,
-                        size_t const current_sketch_index,
-                        size_t const current_number_of_sketch_hashes)
-{
-    robin_hood::unordered_flat_map<uint64_t, std::vector<size_t>> table;
-
-    size_t processed_user_bins{0}; // only for sanity check
-    for (size_t pos = 0; pos < clusters.size(); ++pos)
-    {
-        auto const & current = clusters[pos];
-        assert(current.is_valid(pos));
-
-        if (current.has_been_moved()) // cluster has been moved somewhere else, don't process
-            continue;
-
-        for (auto const & similarity_cluster : current.contained_user_bins())
-        {
-            for (size_t const user_bin_idx : similarity_cluster)
-            {
-                ++processed_user_bins;
-                uint64_t const key = lsh_hash_the_sketch(minHash_sketches[user_bin_idx].table[current_sketch_index],
-                                                         current_number_of_sketch_hashes);
-                table[key].push_back(current.id()); // insert representative for all user bins
-            }
-        }
-    }
-    assert(processed_user_bins == clusters.size()); // all user bins should've been processed by one of the clusters
-
-    return table;
-}
-
 // minHash_sketches data structure:
 // Vector L1 : number of user bins
 // Vector L2 : number_of_max_minHash_sketches (LSH ADD+OR parameter b)
-// Vector L3 : minHash_sketche_size (LSH ADD+OR parameter r)
+// Vector L3 : minHash_sketch_size (LSH ADD+OR parameter r)
 
 std::vector<Cluster> very_similar_LSH_partitioning(std::vector<seqan::hibf::sketch::minhashes> const & minHash_sketches,
                                                    std::vector<size_t> const & positions,
@@ -136,11 +111,11 @@ std::vector<Cluster> very_similar_LSH_partitioning(std::vector<seqan::hibf::sket
     size_t const number_of_user_bins{positions.size()};
     assert(number_of_user_bins <= minHash_sketches.size());
     size_t const number_of_max_minHash_sketches{3}; // LSH ADD+OR parameter b
-    // size_t const minHash_sketche_size{minHash_sketches[0].table[0].size()};   // LSH ADD+OR parameter r
-    size_t const minHash_sketche_size{5}; // LSH ADD+OR parameter r
+    // size_t const minHash_sketch_size{minHash_sketches[0].table[0].size()};   // LSH ADD+OR parameter r
+    size_t const minHash_sketch_size{5}; // LSH ADD+OR parameter r
     seqan::hibf::sketch::hyperloglog const empty_sketch{config.hibf_config.sketch_bits};
     // std::cout << "sketch size available: " << minHash_sketches[0].table[0].size() << std::endl;
-    // std::cout << "sketch size used here: " << minHash_sketche_size << std::endl;
+    // std::cout << "sketch size used here: " << minHash_sketch_size << std::endl;
     // initialise clusters with a signle user bin per cluster.
     // clusters are either
     // 1) of size 1; containing an id != position where the id points to the cluster it has been moved to
@@ -158,7 +133,7 @@ std::vector<Cluster> very_similar_LSH_partitioning(std::vector<seqan::hibf::sket
     std::vector<size_t> current_cluster_cardinality(number_of_user_bins);
     std::vector<seqan::hibf::sketch::hyperloglog> current_cluster_sketches(number_of_user_bins, empty_sketch);
     size_t current_max_cluster_size{0};
-    size_t current_number_of_sketch_hashes{minHash_sketche_size}; // start with high r but decrease it iteratively
+    size_t current_number_of_sketch_hashes{minHash_sketch_size}; // start with high r but decrease it iteratively
     size_t current_sketch_index{0};
     [[maybe_unused]] size_t current_number_of_clusters{number_of_user_bins}; // initially, each UB is a separate cluster
 
@@ -191,8 +166,8 @@ std::vector<Cluster> very_similar_LSH_partitioning(std::vector<seqan::hibf::sket
 
             // uniquify list. Since I am inserting representative_idx's into the table, the same number can
             // be inserted into multiple splots, and multiple times in the same slot.
-            std::sort(list.begin(), list.end());
-            auto const end = std::unique(list.begin(), list.end());
+            std::ranges::sort(list);
+            auto const end = std::ranges::unique(list);
             auto const begin = list.begin();
 
             if (end - begin <= 1) // nothing to do here
@@ -236,12 +211,10 @@ std::vector<Cluster> very_similar_LSH_partitioning(std::vector<seqan::hibf::sket
                 --current_number_of_clusters;
             }
 
-            current_max_cluster_size = *std::ranges::max_element(current_cluster_cardinality);
+            current_max_cluster_size = std::ranges::max(current_cluster_cardinality);
         }
 
         ++current_sketch_index;
-
-        //std::cout << " and after this clustering step there are: " << current_number_of_clusters << "with max cluster size" << current_max_cluster_size << std::endl;
     }
 
     return clusters;
@@ -265,14 +238,14 @@ void post_process_clusters(std::vector<Cluster> & clusters,
     // push largest p clusters to the front
     auto cluster_size_cmp = [&cardinalities](auto const & v1, auto const & v2)
     {
-        if (v2.size() == v1.size() && !v2.empty())
-            return cardinalities[v2.contained_user_bins()[0]] < cardinalities[v1.contained_user_bins()[0]];
-        return v2.size() < v1.size();
+        if (v1.size() == v2.size() && !v2.empty()) // Note: If v2 is empty, so is v1.
+            return cardinalities[v1.contained_user_bins().front()] > cardinalities[v2.contained_user_bins().front()];
+
+        return v1.size() > v2.size();
     };
-    std::partial_sort(clusters.begin(),
-                      clusters.begin() + std::min<size_t>(clusters.size(), config.hibf_config.tmax),
-                      clusters.end(),
-                      cluster_size_cmp);
+    std::ranges::partial_sort(clusters,
+                              std::ranges::next(clusters.begin(), config.hibf_config.tmax, clusters.end()),
+                              cluster_size_cmp);
 
     // after filling up the partitions with the biggest clusters, sort the clusters by cardinality of the biggest ub
     // s.t. that euqally sizes ub are assigned after each other and the small stuff is added at last.
@@ -285,11 +258,11 @@ void post_process_clusters(std::vector<Cluster> & clusters,
         if (v2.empty()) // and v1 is not, since the first if would catch
             return true;
 
-        return cardinalities[v2.contained_user_bins()[0]] < cardinalities[v1.contained_user_bins()[0]];
+        return cardinalities[v1.contained_user_bins().front()] > cardinalities[v2.contained_user_bins().front()];
     };
-    std::sort(clusters.begin() + std::min<size_t>(clusters.size(), config.hibf_config.tmax),
-              clusters.end(),
-              compare_cardinality_and_move_empty_clusters_to_the_end);
+    std::ranges::sort(std::ranges::next(clusters.begin(), config.hibf_config.tmax, clusters.end()),
+                      clusters.end(),
+                      compare_cardinality_and_move_empty_clusters_to_the_end);
 
     assert(clusters[0].size() >= clusters[1].size()); // sanity check
     // assert(cardinalities[clusters[std::min<size_t>(clusters.size(), config.hibf_config.tmax)].contained_user_bins()[0]] >= cardinalities[clusters[std::min<size_t>(clusters.size(), config.hibf_config.tmax) + 1].contained_user_bins()[0]]); // sanity check
@@ -297,8 +270,8 @@ void post_process_clusters(std::vector<Cluster> & clusters,
     // debug
     for (size_t cidx = 1; cidx < clusters.size(); ++cidx)
     {
-        if (clusters[cidx - 1].empty()
-            && !clusters[cidx].empty()) // once empty - always empty; all empty clusters should be at the end
+        // once empty - always empty; all empty clusters should be at the end
+        if (clusters[cidx - 1].empty() && !clusters[cidx].empty())
             throw std::runtime_error{"sorting did not work"};
     }
     // debug
