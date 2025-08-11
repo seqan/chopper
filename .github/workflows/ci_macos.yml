@@ -40,7 +40,7 @@ jobs:
             cxx_flags: ""
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup toolchain
         uses: seqan/actions/setup-toolchain@main
