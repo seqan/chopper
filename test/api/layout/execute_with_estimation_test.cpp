@@ -53,9 +53,10 @@ TEST(execute_estimation_test, few_ubs)
         filenames{{"seq0"}, {"seq1"}, {"seq2"}, {"seq3"}, {"seq4"}, {"seq5"}, {"seq6"}, {"seq7"}};
 
     std::vector<seqan::hibf::sketch::hyperloglog> sketches;
-    seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches);
+    std::vector<seqan::hibf::sketch::minhashes> minHash_sketches{};
+    seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches, minHash_sketches);
 
-    chopper::layout::execute(config, filenames, sketches);
+    chopper::layout::execute(config, filenames, sketches, minHash_sketches);
 
     ASSERT_TRUE(std::filesystem::exists(stats_file));
 
@@ -114,9 +115,10 @@ TEST(execute_estimation_test, many_ubs)
     config.hibf_config.disable_estimate_union = true; // also disables rearrangement
 
     std::vector<seqan::hibf::sketch::hyperloglog> sketches;
-    seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches);
+    std::vector<seqan::hibf::sketch::minhashes> minHash_sketches{};
+    seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches, minHash_sketches);
 
-    chopper::layout::execute(config, many_filenames, sketches);
+    chopper::layout::execute(config, many_filenames, sketches, minHash_sketches);
 
     ASSERT_TRUE(std::filesystem::exists(stats_file));
 
@@ -421,9 +423,10 @@ TEST(execute_estimation_test, many_ubs_force_all)
     config.hibf_config.disable_estimate_union = true; // also disables rearrangement
 
     std::vector<seqan::hibf::sketch::hyperloglog> sketches;
-    seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches);
+    std::vector<seqan::hibf::sketch::minhashes> minHash_sketches{};
+    seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches, minHash_sketches);
 
-    chopper::layout::execute(config, many_filenames, sketches);
+    chopper::layout::execute(config, many_filenames, sketches, minHash_sketches);
 
     ASSERT_TRUE(std::filesystem::exists(stats_file));
 
@@ -523,9 +526,10 @@ TEST(execute_estimation_test, with_rearrangement)
     config.hibf_config.number_of_user_bins = filenames.size();
 
     std::vector<seqan::hibf::sketch::hyperloglog> sketches;
-    seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches);
+    std::vector<seqan::hibf::sketch::minhashes> minHash_sketches{};
+    seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches, minHash_sketches);
 
-    chopper::layout::execute(config, filenames, sketches);
+    chopper::layout::execute(config, filenames, sketches, minHash_sketches);
 
     ASSERT_TRUE(std::filesystem::exists(stats_file));
 
