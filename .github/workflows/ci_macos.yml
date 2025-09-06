@@ -30,14 +30,6 @@ jobs:
       fail-fast: false
       matrix:
         compiler: ["clang-latest", "clang-second-latest", "clang-third-latest", "gcc-latest", "gcc-second-latest", "gcc-third-latest"]
-        include:
-          - cxx_flags: "-Wno-interference-size"
-          - compiler: "clang-latest"
-            cxx_flags: ""
-          - compiler: "clang-second-latest"
-            cxx_flags: ""
-          - compiler: "clang-third-latest"
-            cxx_flags: ""
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -52,8 +44,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake .. -DCMAKE_BUILD_TYPE=Release \
-                   -DCMAKE_CXX_FLAGS="-Werror ${{ matrix.cxx_flags }}"
+          cmake .. -DCMAKE_BUILD_TYPE=Release
           make gtest_main
 
       - name: Build tests

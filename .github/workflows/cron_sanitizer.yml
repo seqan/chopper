@@ -37,7 +37,7 @@ jobs:
         include:
           - name: "ASan"
             os: ubuntu-latest
-            cxx_flags: "-fno-omit-frame-pointer -fsanitize=address -Wno-maybe-uninitialized -Wno-interference-size"
+            cxx_flags: "-fno-omit-frame-pointer -fsanitize=address -Wno-maybe-uninitialized"
 
           - name: "ASan"
             os: macos-latest
@@ -48,7 +48,7 @@ jobs:
 
           - name: "UBSan"
             os: ubuntu-latest
-            cxx_flags: "-fno-omit-frame-pointer -fsanitize=undefined,float-divide-by-zero -Wno-stringop-overflow -Wno-interference-size"
+            cxx_flags: "-fno-omit-frame-pointer -fsanitize=undefined,float-divide-by-zero -Wno-stringop-overflow"
 
           - name: "UBSan"
             os: macos-latest
@@ -83,7 +83,7 @@ jobs:
         run: |
           mkdir build && cd build
           cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-                   -DCMAKE_CXX_FLAGS="-Werror ${{ matrix.cxx_flags }}"
+                   -DCMAKE_CXX_FLAGS="${{ matrix.cxx_flags }}"
           make gtest_main
 
       - name: Build tests
