@@ -8,7 +8,7 @@
 # cmake-format: off
 
 # hibf
-set (CHOPPER_HIBF_VERSION 101a00d86098907436f4eb67835bb744c2405b32 CACHE STRING "")
+set (CHOPPER_HIBF_VERSION e60abe791268be4e384740c52d29edc18606ea5f CACHE STRING "")
 CPMDeclarePackage (hibf
                    NAME hibf
                    GIT_TAG ${CHOPPER_HIBF_VERSION} # main
@@ -18,7 +18,7 @@ CPMDeclarePackage (hibf
                    OPTIONS "INSTALL_HIBF OFF"
 )
 # sharg
-set (CHOPPER_SHARG_VERSION 1f6b9812cb8373b6aa423090aa923075a2a49d53 CACHE STRING "")
+set (CHOPPER_SHARG_VERSION 47d4acc17a1e241ab2de9bb99d2d42a21f0d02ea CACHE STRING "")
 CPMDeclarePackage (sharg
                    NAME sharg
                    GIT_TAG ${CHOPPER_SHARG_VERSION} # main
