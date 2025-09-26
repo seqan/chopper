@@ -133,11 +133,12 @@ TEST(execute_test, chopper_layout_statistics)
                                                   .disable_estimate_union = true /* also disable rearrangement */}};
 
     std::vector<seqan::hibf::sketch::hyperloglog> sketches;
-    seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches);
+    std::vector<seqan::hibf::sketch::minhashes> minHash_sketches{};
+    seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches, minHash_sketches);
 
     testing::internal::CaptureStdout();
     testing::internal::CaptureStderr();
-    chopper::layout::execute(config, many_filenames, sketches);
+    chopper::layout::execute(config, many_filenames, sketches, minHash_sketches);
     std::string layout_result_stdout = testing::internal::GetCapturedStdout();
     std::string layout_result_stderr = testing::internal::GetCapturedStderr();
 
@@ -190,9 +191,10 @@ TEST(execute_test, chopper_layout_statistics_determine_best_bins)
                                                   .disable_estimate_union = true /* also disable rearrangement */}};
 
     std::vector<seqan::hibf::sketch::hyperloglog> sketches;
-    seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches);
+    std::vector<seqan::hibf::sketch::minhashes> minHash_sketches{};
+    seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches, minHash_sketches);
 
-    chopper::layout::execute(config, filenames, sketches);
+    chopper::layout::execute(config, filenames, sketches, minHash_sketches);
 
     std::string expected_cout =
         R"expected_cout(## ### Parameters ###

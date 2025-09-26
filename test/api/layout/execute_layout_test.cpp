@@ -46,9 +46,10 @@ TEST(execute_test, few_ubs)
         filenames{{"seq0a", "seq0b"}, {"seq1"}, {"seq2"}, {"seq3"}, {"seq4"}, {"seq5"}, {"seq6"}, {"seq7"}};
 
     std::vector<seqan::hibf::sketch::hyperloglog> sketches;
-    seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches);
+    std::vector<seqan::hibf::sketch::minhashes> minHash_sketches{};
+    seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches, minHash_sketches);
 
-    chopper::layout::execute(config, filenames, sketches);
+    chopper::layout::execute(config, filenames, sketches, minHash_sketches);
 
     std::string const expected_file{"@CHOPPER_USER_BINS\n"
                                     "@0 seq0a seq0b\n"
@@ -142,9 +143,10 @@ TEST(execute_test, set_default_tmax)
         filenames{{"seq0"}, {"seq1"}, {"seq2"}, {"seq3"}, {"seq4"}, {"seq5"}, {"seq6"}, {"seq7"}};
 
     std::vector<seqan::hibf::sketch::hyperloglog> sketches;
-    seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches);
+    std::vector<seqan::hibf::sketch::minhashes> minHash_sketches{};
+    seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches, minHash_sketches);
 
-    chopper::layout::execute(config, filenames, sketches);
+    chopper::layout::execute(config, filenames, sketches, minHash_sketches);
 
     EXPECT_EQ(config.hibf_config.tmax, 64u);
 }
@@ -178,9 +180,10 @@ TEST(execute_test, many_ubs)
     config.hibf_config.disable_estimate_union = true; // also disables rearrangement
 
     std::vector<seqan::hibf::sketch::hyperloglog> sketches;
-    seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches);
+    std::vector<seqan::hibf::sketch::minhashes> minHash_sketches{};
+    seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches, minHash_sketches);
 
-    chopper::layout::execute(config, many_filenames, sketches);
+    chopper::layout::execute(config, many_filenames, sketches, minHash_sketches);
 
     std::string const expected_file{"@CHOPPER_USER_BINS\n"
                                     "@0 seq0\n"
