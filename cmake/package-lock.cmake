@@ -18,10 +18,11 @@ CPMDeclarePackage (hibf
                    OPTIONS "INSTALL_HIBF OFF"
 )
 # sharg
-set (CHOPPER_SHARG_VERSION d3b6c025554fc28a6f94d475fc136894b441432e CACHE STRING "")
+set (CHOPPER_SHARG_VERSION 1.2.1 CACHE STRING "")
 CPMDeclarePackage (sharg
                    NAME sharg
-                   GIT_TAG ${CHOPPER_SHARG_VERSION} # main
+                   VERSION ${CHOPPER_SHARG_VERSION}
+                   GIT_TAG ${CHOPPER_SHARG_VERSION}
                    GITHUB_REPOSITORY seqan/sharg-parser
                    SYSTEM TRUE
                    EXCLUDE_FROM_ALL TRUE
