@@ -8,7 +8,7 @@
 # cmake-format: off
 
 # hibf
-set (CHOPPER_HIBF_VERSION fc4e40d8672f496a32df73c608915d45e715f6a8 CACHE STRING "")
+set (CHOPPER_HIBF_VERSION bbca76409f5445f1404c206021fcfa37f1fd7054 CACHE STRING "")
 CPMDeclarePackage (hibf
                    NAME hibf
                    GIT_TAG ${CHOPPER_HIBF_VERSION} # main
@@ -18,7 +18,7 @@ CPMDeclarePackage (hibf
                    OPTIONS "INSTALL_HIBF OFF"
 )
 # sharg
-set (CHOPPER_SHARG_VERSION 1.2.1 CACHE STRING "")
+set (CHOPPER_SHARG_VERSION 1.2.2 CACHE STRING "")
 CPMDeclarePackage (sharg
                    NAME sharg
                    VERSION ${CHOPPER_SHARG_VERSION}
@@ -29,7 +29,7 @@ CPMDeclarePackage (sharg
                    OPTIONS "INSTALL_SHARG OFF" "INSTALL_TDL OFF" "CMAKE_MESSAGE_LOG_LEVEL WARNING" "BUILD_TESTING OFF"
 )
 # seqan3
-set (CHOPPER_SEQAN3_VERSION 3.4.0 CACHE STRING "")
+set (CHOPPER_SEQAN3_VERSION 3.4.1 CACHE STRING "")
 CPMDeclarePackage (seqan3
                    NAME seqan3
                    VERSION ${CHOPPER_SEQAN3_VERSION}
