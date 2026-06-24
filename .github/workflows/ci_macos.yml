@@ -47,6 +47,10 @@ jobs:
           cmake .. -DCMAKE_BUILD_TYPE=Release
           make gtest_main
 
+      - name: Debug
+        if: failure()
+        run: cat /Users/runner/work/chopper/chopper/build/CMakeFiles/CMakeError.log
+
       - name: Build tests
         working-directory: build
         run: |

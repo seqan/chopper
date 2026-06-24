@@ -307,6 +307,9 @@ int execute(config const & cfg)
         // How many user bins are stored in the current technical bin? Always 1 for split bins.
         size_t const ub_count{chunk.size()};
         bool const is_merged{ub_count > 1u};
+        bool const has_lower_level = hibf_layout.user_bins[chunk[0]].previous_TB_indices.size() != 0;
+        if (is_merged ^ has_lower_level)
+            throw std::logic_error{"Invalid Layout: There is a merged bin that only consists of a single user bin."};
 
         for (size_t const ub_index : chunk)
         {
