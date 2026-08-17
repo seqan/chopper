@@ -45,6 +45,8 @@ jobs:
           doxygen: 1.9.4
 
       - name: Configure tests
+        env:
+          CXX: /usr/bin/g++-14
         run: |
           mkdir build && cd build
           cmake ..
