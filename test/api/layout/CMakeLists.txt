@@ -9,6 +9,7 @@ cmake_minimum_required (VERSION 3.18)
 
 add_api_test (ibf_query_cost_test.cpp)
 add_api_test (execute_layout_test.cpp)
+add_api_test (fast_layout_test.cpp)
 
 add_api_test (execute_with_estimation_test.cpp)
 target_use_datasources (execute_with_estimation_test FILES seq1.fa)
@@ -26,3 +27,4 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU"
 endif ()
 add_api_test (user_bin_io_test.cpp)
 add_api_test (input_test.cpp)
+add_api_test (determine_split_bins_test.cpp)

@@ -13,12 +13,14 @@
 #include <chopper/configuration.hpp>
 
 #include <hibf/sketch/hyperloglog.hpp>
+#include <hibf/sketch/minhashes.hpp>
 
 namespace chopper::layout
 {
 
 int execute(chopper::configuration & config,
             std::vector<std::vector<std::string>> const & filenames,
-            std::vector<seqan::hibf::sketch::hyperloglog> const & sketches);
+            std::vector<seqan::hibf::sketch::hyperloglog> const & sketches,
+            std::vector<seqan::hibf::sketch::minhashes> const & minHash_sketches);
 
 } // namespace chopper::layout
