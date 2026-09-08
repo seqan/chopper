@@ -29,7 +29,7 @@ TEST(execute_test, few_ubs)
 
     auto simulated_input = [&](size_t const num, seqan::hibf::insert_iterator it)
     {
-        size_t const desired_kmer_count = (num == 1) ? 1760 : 940; // Estimate are 990.71 and 504.88
+        size_t const desired_kmer_count = (num == 1) ? 1760 : 940;
         for (auto hash : std::views::iota(0u, desired_kmer_count))
             it = hash;
     };
