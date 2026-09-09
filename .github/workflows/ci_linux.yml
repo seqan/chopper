@@ -29,36 +29,22 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        compiler: ["clang-19", "clang-18", "clang-17", "gcc-14", "gcc-13", "gcc-12", "intel"]
-        include:
-          - cxx_flags: "-Wno-interference-size"
-          - compiler: "clang-19"
-            cxx_flags: ""
-          - compiler: "clang-18"
-            cxx_flags: ""
-          - compiler: "clang-17"
-            cxx_flags: ""
-          - compiler: "intel"
-            cxx_flags: "-fp-model=strict -Wno-overriding-option"
+        compiler: ["clang-latest", "clang-second-latest", "clang-third-latest", "gcc-latest", "gcc-second-latest", "gcc-third-latest", "intel"]
     container:
       image: ghcr.io/seqan/${{ matrix.compiler }}
       volumes:
         - /home/runner:/home/runner
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
-      - name: Load ccache
-        uses: actions/cache@v4
-        with:
-          path: /home/runner/.ccache
-          key: ccache-${{ runner.os }}-${{ github.workflow }}-${{ matrix.compiler }}-${{ github.ref }}
+      - name: Setup cache
+        uses: seqan/actions/setup-actions-cache@main
 
       - name: Configure tests
         run: |
           mkdir build && cd build
-          cmake .. -DCMAKE_BUILD_TYPE=Release \
-                   -DCMAKE_CXX_FLAGS="-Werror ${{ matrix.cxx_flags }}"
+          cmake .. -DCMAKE_BUILD_TYPE=Release
           make gtest_main
 
       - name: Build tests

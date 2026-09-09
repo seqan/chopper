@@ -11,6 +11,7 @@ concurrency:
 
 env:
   SHARG_NO_VERSION_CHECK: 1
+  CODEQL_EXTRACTOR_CPP_AUTOINSTALL_DEPENDENCIES: false
   TZ: Europe/Berlin
 
 defaults:
@@ -23,19 +24,21 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       security-events: write
+    container:
+      image: ghcr.io/seqan/gcc-second-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
 
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v3
+      uses: github/codeql-action/init@v4
       with:
         languages: cpp
 
     - name: Autobuild
-      uses: github/codeql-action/autobuild@v3
+      uses: github/codeql-action/autobuild@v4
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v3
+      uses: github/codeql-action/analyze@v4
       with:
         category: "/language:cpp"

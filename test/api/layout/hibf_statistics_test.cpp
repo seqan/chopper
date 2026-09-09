@@ -114,11 +114,11 @@ TEST(execute_test, chopper_layout_statistics)
         many_filenames.push_back({seqan3::detail::to_string("seq", i)});
 
     // Creates sizes of the following series
-    // [100,101,...,120,222,223,...,241,343,344,...362,464,465,...,483,585,586,...,600]
+    // [801,802,...,820,922,923,...,941,1043,1044,...,1062,1164,1165,...,1183,1285,1286,...,1300]
     // See also https://godbolt.org/z/9517eaaaG
     auto simulated_input = [&](size_t const num, seqan::hibf::insert_iterator it)
     {
-        size_t const desired_kmer_count = 101 * ((num + 20) / 20) + num;
+        size_t const desired_kmer_count = 101 * ((num + 20) / 20) + num + 700;
         for (auto hash : std::views::iota(0u, desired_kmer_count))
             it = hash;
     };
@@ -154,7 +154,7 @@ TEST(execute_test, chopper_layout_statistics)
 ## size : The expected total size of an tmax-HIBF
 ## uncorr_size : The expected size of an tmax-HIBF without FPR correction
 # tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size	uncorr_size	level	num_ibfs	level_size	level_size_no_corr	total_num_tbs	avg_num_tbs	split_tb_percentage	max_split_tb	avg_split_tb	max_factor	avg_factor
-64	1.00	1.17	1.00	1.17	55.5KiB	130.0KiB	:0:1	:1:3	:40.0KiB:15.5KiB	:122.1KiB:7.9KiB	:64:192	:64:64	:95.31:100.00	:1:9	:1.00:5.49	:1.00:3.23	:1.00:2.66
+64	1.00	1.36	1.00	1.36	269.0KiB	340.1KiB	:0:1	:1:10	:96.5KiB:172.5KiB	:298.1KiB:42.0KiB	:64:640	:64:64	:84.38:100.00	:1:32	:1.00:15.24	:1.00:6.20	:1.00:4.23
 )expected_cout";
 
     EXPECT_EQ(layout_result_stdout, expected_cout) << layout_result_stdout;

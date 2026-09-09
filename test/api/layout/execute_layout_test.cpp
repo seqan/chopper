@@ -29,7 +29,7 @@ TEST(execute_test, few_ubs)
 
     auto simulated_input = [&](size_t const num, seqan::hibf::insert_iterator it)
     {
-        size_t const desired_kmer_count = (num == 1) ? 880 : 475; // Estimate are 990.71 and 504.88
+        size_t const desired_kmer_count = (num == 1) ? 1760 : 940;
         for (auto hash : std::views::iota(0u, desired_kmer_count))
             it = hash;
     };
@@ -88,7 +88,7 @@ TEST(execute_test, few_ubs)
                                       "@HIBF_CONFIG\n"
                                       "@{\n"
                                       "@    \"hibf_config\": {\n"
-                                      "@        \"version\": 1,\n"
+                                      "@        \"version\": 3,\n"
                                       "@        \"number_of_user_bins\": 8,\n"
                                       "@        \"number_of_hash_functions\": 2,\n"
                                       "@        \"maximum_fpr\": 0.05,\n"
@@ -96,6 +96,8 @@ TEST(execute_test, few_ubs)
                                       "@        \"threads\": 1,\n"
                                       "@        \"sketch_bits\": 12,\n"
                                       "@        \"tmax\": 64,\n"
+                                      "@        \"empty_bin_fraction\": 0.0,\n"
+                                      "@        \"track_occupancy\": false,\n"
                                       "@        \"alpha\": 1.2,\n"
                                       "@        \"max_rearrangement_ratio\": 0.5,\n"
                                       "@        \"disable_estimate_union\": true,\n"
@@ -103,16 +105,16 @@ TEST(execute_test, few_ubs)
                                       "@    }\n"
                                       "@}\n"
                                       "@HIBF_CONFIG_END\n"
-                                      "#TOP_LEVEL_IBF fullest_technical_bin_idx:42\n"
+                                      "#TOP_LEVEL_IBF fullest_technical_bin_idx:9\n"
                                       "#USER_BIN_IDX\tTECHNICAL_BIN_INDICES\tNUMBER_OF_TECHNICAL_BINS\n"
-                                      "7\t0\t6\n"
-                                      "6\t6\t6\n"
-                                      "5\t12\t6\n"
-                                      "4\t18\t6\n"
-                                      "3\t24\t6\n"
-                                      "2\t30\t6\n"
-                                      "0\t36\t6\n"
-                                      "1\t42\t22\n"};
+                                      "7\t0\t9\n"
+                                      "6\t9\t5\n"
+                                      "5\t14\t5\n"
+                                      "4\t19\t5\n"
+                                      "3\t24\t5\n"
+                                      "2\t29\t5\n"
+                                      "0\t34\t5\n"
+                                      "1\t39\t25\n"};
     std::string const actual_file{string_from_file(layout_file)};
 
     EXPECT_EQ(actual_file, expected_file) << actual_file;
@@ -125,7 +127,7 @@ TEST(execute_test, set_default_tmax)
 
     auto simulated_input = [&](size_t const num, seqan::hibf::insert_iterator it)
     {
-        size_t const desired_kmer_count = (num == 1) ? 1000 : 500;
+        size_t const desired_kmer_count = (num == 1) ? 2000 : 1000;
         for (auto hash : std::views::iota(0u, desired_kmer_count))
             it = hash;
     };
@@ -159,11 +161,11 @@ TEST(execute_test, many_ubs)
         many_filenames.push_back({seqan3::detail::to_string("seq", i)});
 
     // Creates sizes of the following series
-    // [100,101,...,120,222,223,...,241,343,344,...362,464,465,...,483,585,586,...,600]
+    // [801,802,...,820,922,923,...,941,1043,1044,...,1062,1164,1165,...,1183,1285,1286,...,1300]
     // See also https://godbolt.org/z/9517eaaaG
     auto simulated_input = [&](size_t const num, seqan::hibf::insert_iterator it)
     {
-        size_t const desired_kmer_count = 101 * ((num + 20) / 20) + num;
+        size_t const desired_kmer_count = 101 * ((num + 20) / 20) + num + 700;
         for (auto hash : std::views::iota(0u, desired_kmer_count))
             it = hash;
     };
@@ -307,7 +309,7 @@ TEST(execute_test, many_ubs)
                                       "@HIBF_CONFIG\n"
                                       "@{\n"
                                       "@    \"hibf_config\": {\n"
-                                      "@        \"version\": 1,\n"
+                                      "@        \"version\": 3,\n"
                                       "@        \"number_of_user_bins\": 96,\n"
                                       "@        \"number_of_hash_functions\": 2,\n"
                                       "@        \"maximum_fpr\": 0.05,\n"
@@ -315,6 +317,8 @@ TEST(execute_test, many_ubs)
                                       "@        \"threads\": 1,\n"
                                       "@        \"sketch_bits\": 12,\n"
                                       "@        \"tmax\": 64,\n"
+                                      "@        \"empty_bin_fraction\": 0.0,\n"
+                                      "@        \"track_occupancy\": false,\n"
                                       "@        \"alpha\": 1.2,\n"
                                       "@        \"max_rearrangement_ratio\": 0.5,\n"
                                       "@        \"disable_estimate_union\": true,\n"
@@ -323,52 +327,59 @@ TEST(execute_test, many_ubs)
                                       "@}\n"
                                       "@HIBF_CONFIG_END\n"
                                       "#TOP_LEVEL_IBF fullest_technical_bin_idx:63\n"
-                                      "#LOWER_LEVEL_IBF_0 fullest_technical_bin_idx:49\n"
-                                      "#LOWER_LEVEL_IBF_1 fullest_technical_bin_idx:18\n"
-                                      "#LOWER_LEVEL_IBF_2 fullest_technical_bin_idx:0\n"
+                                      "#LOWER_LEVEL_IBF_0 fullest_technical_bin_idx:0\n"
+                                      "#LOWER_LEVEL_IBF_1 fullest_technical_bin_idx:52\n"
+                                      "#LOWER_LEVEL_IBF_2 fullest_technical_bin_idx:52\n"
+                                      "#LOWER_LEVEL_IBF_3 fullest_technical_bin_idx:52\n"
+                                      "#LOWER_LEVEL_IBF_4 fullest_technical_bin_idx:31\n"
+                                      "#LOWER_LEVEL_IBF_5 fullest_technical_bin_idx:0\n"
+                                      "#LOWER_LEVEL_IBF_6 fullest_technical_bin_idx:0\n"
+                                      "#LOWER_LEVEL_IBF_7 fullest_technical_bin_idx:0\n"
+                                      "#LOWER_LEVEL_IBF_8 fullest_technical_bin_idx:0\n"
+                                      "#LOWER_LEVEL_IBF_9 fullest_technical_bin_idx:0\n"
                                       "#USER_BIN_IDX\tTECHNICAL_BIN_INDICES\tNUMBER_OF_TECHNICAL_BINS\n"
-                                      "16\t0;0\t1;5\n"
-                                      "15\t0;5\t1;4\n"
-                                      "14\t0;9\t1;4\n"
-                                      "13\t0;13\t1;4\n"
-                                      "12\t0;17\t1;4\n"
-                                      "11\t0;21\t1;4\n"
-                                      "10\t0;25\t1;4\n"
-                                      "9\t0;29\t1;4\n"
-                                      "8\t0;33\t1;4\n"
-                                      "7\t0;37\t1;4\n"
-                                      "6\t0;41\t1;4\n"
-                                      "5\t0;45\t1;4\n"
-                                      "4\t0;49\t1;3\n"
-                                      "3\t0;52\t1;3\n"
-                                      "2\t0;55\t1;3\n"
-                                      "1\t0;58\t1;3\n"
-                                      "0\t0;61\t1;3\n"
-                                      "26\t1;0\t1;9\n"
-                                      "25\t1;9\t1;9\n"
-                                      "24\t1;18\t1;8\n"
-                                      "23\t1;26\t1;8\n"
-                                      "22\t1;34\t1;8\n"
-                                      "21\t1;42\t1;8\n"
-                                      "20\t1;50\t1;8\n"
-                                      "19\t1;58\t1;2\n"
-                                      "18\t1;60\t1;2\n"
-                                      "17\t1;62\t1;2\n"
-                                      "34\t2;0\t1;8\n"
-                                      "33\t2;8\t1;8\n"
-                                      "32\t2;16\t1;8\n"
-                                      "31\t2;24\t1;8\n"
-                                      "30\t2;32\t1;8\n"
-                                      "29\t2;40\t1;8\n"
-                                      "28\t2;48\t1;8\n"
-                                      "27\t2;56\t1;8\n"
-                                      "35\t3\t1\n"
-                                      "36\t4\t1\n"
-                                      "37\t5\t1\n"
-                                      "38\t6\t1\n"
-                                      "39\t7\t1\n"
-                                      "40\t8\t1\n"
-                                      "41\t9\t1\n"
+                                      "1\t0;0\t1;32\n"
+                                      "0\t0;32\t1;32\n"
+                                      "6\t1;0\t1;13\n"
+                                      "5\t1;13\t1;13\n"
+                                      "4\t1;26\t1;13\n"
+                                      "3\t1;39\t1;13\n"
+                                      "2\t1;52\t1;12\n"
+                                      "11\t2;0\t1;13\n"
+                                      "10\t2;13\t1;13\n"
+                                      "9\t2;26\t1;13\n"
+                                      "8\t2;39\t1;13\n"
+                                      "7\t2;52\t1;12\n"
+                                      "16\t3;0\t1;13\n"
+                                      "15\t3;13\t1;13\n"
+                                      "14\t3;26\t1;13\n"
+                                      "13\t3;39\t1;13\n"
+                                      "12\t3;52\t1;12\n"
+                                      "21\t4;0\t1;16\n"
+                                      "20\t4;16\t1;15\n"
+                                      "19\t4;31\t1;11\n"
+                                      "18\t4;42\t1;11\n"
+                                      "17\t4;53\t1;11\n"
+                                      "25\t5;0\t1;16\n"
+                                      "24\t5;16\t1;16\n"
+                                      "23\t5;32\t1;16\n"
+                                      "22\t5;48\t1;16\n"
+                                      "29\t6;0\t1;16\n"
+                                      "28\t6;16\t1;16\n"
+                                      "27\t6;32\t1;16\n"
+                                      "26\t6;48\t1;16\n"
+                                      "33\t7;0\t1;16\n"
+                                      "32\t7;16\t1;16\n"
+                                      "31\t7;32\t1;16\n"
+                                      "30\t7;48\t1;16\n"
+                                      "37\t8;0\t1;16\n"
+                                      "36\t8;16\t1;16\n"
+                                      "35\t8;32\t1;16\n"
+                                      "34\t8;48\t1;16\n"
+                                      "41\t9;0\t1;18\n"
+                                      "40\t9;18\t1;18\n"
+                                      "39\t9;36\t1;14\n"
+                                      "38\t9;50\t1;14\n"
                                       "42\t10\t1\n"
                                       "43\t11\t1\n"
                                       "44\t12\t1\n"
