@@ -473,8 +473,6 @@ TEST(execute_estimation_test, with_rearrangement)
     size_t const kmer_size{15};
 
     std::vector<std::vector<std::string>> filenames{};
-    std::vector<std::string> hll_filenames;
-    std::vector<size_t> expected_kmer_counts;
 
     for (size_t i{0}; i < 49u; ++i)
     {
@@ -482,16 +480,6 @@ TEST(execute_estimation_test, with_rearrangement)
         filenames.push_back({data("seq2.fa").string()});
         filenames.push_back({data("seq3.fa").string()});
         filenames.push_back({data("small.fa").string()});
-
-        hll_filenames.push_back("seq1.hll");
-        hll_filenames.push_back("seq2.hll");
-        hll_filenames.push_back("seq3.hll");
-        hll_filenames.push_back("small.hll");
-
-        expected_kmer_counts.push_back(387);
-        expected_kmer_counts.push_back(470);
-        expected_kmer_counts.push_back(465);
-        expected_kmer_counts.push_back(578);
     }
 
     // There are 20 files with a count of {100,200,300,400} each. There are 16 files with count 500.
