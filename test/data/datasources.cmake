@@ -33,6 +33,6 @@ declare_datasource (FILE seqinfo.tsv URL ${CMAKE_SOURCE_DIR}/test/data/seqinfo.t
                     SHA256=c6e28cc4ebf4902c41b1c237b1410665994e0fd0b8d8473c38a8107041d78172
 )
 
-declare_datasource (FILE small.minimiser URL ${CMAKE_SOURCE_DIR}/test/data/small.minimiser URL_HASH
-                    SHA256=6262de00ad97113320469ff952e657930d07151bda5174ee3599560eccb6f0e1
+declare_datasource (FILE dummy.minimiser URL ${CMAKE_SOURCE_DIR}/test/data/dummy.minimiser URL_HASH
+                    SHA256=7514acab108f7e5dc7cf048690dc153c13b8a2f2df7cab6d755638cd16ea79b1
 )
