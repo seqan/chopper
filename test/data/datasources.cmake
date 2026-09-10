@@ -29,24 +29,8 @@ declare_datasource (FILE seq3.fa URL ${CMAKE_SOURCE_DIR}/test/data/seq3.fa URL_H
                     SHA256=24a275e4666f815e46d1ccfb135bce5ea794f6630c8ffd9117eb0dcecce9d414
 )
 
-declare_datasource (FILE small2.fa URL ${CMAKE_SOURCE_DIR}/test/data/small2.fa URL_HASH
-                    SHA256=3a444c41f71586d62514eea8faf3c699ac5f2cfce94fd3fc7c3e47d3ff3a8383
-)
-
 declare_datasource (FILE seqinfo.tsv URL ${CMAKE_SOURCE_DIR}/test/data/seqinfo.tsv URL_HASH
                     SHA256=c6e28cc4ebf4902c41b1c237b1410665994e0fd0b8d8473c38a8107041d78172
-)
-
-declare_datasource (FILE small.split URL ${CMAKE_SOURCE_DIR}/test/data/small.split URL_HASH
-                    SHA256=b7f8ae432149580c4be0f349f2e2ee2f33bee44b3cadb436f344a643e5a41945
-)
-
-declare_datasource (FILE small.hll URL ${CMAKE_SOURCE_DIR}/test/data/small.hll URL_HASH
-                    SHA256=039d7bdbb70e4d98285c09bbbcb2cd1fafb8038689c270cf231debb248c59206
-)
-
-declare_datasource (FILE small2.hll URL ${CMAKE_SOURCE_DIR}/test/data/small2.hll URL_HASH
-                    SHA256=039d7bdbb70e4d98285c09bbbcb2cd1fafb8038689c270cf231debb248c59206
 )
 
 declare_datasource (FILE small.minimiser URL ${CMAKE_SOURCE_DIR}/test/data/small.minimiser URL_HASH
