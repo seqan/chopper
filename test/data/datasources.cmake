@@ -9,10 +9,6 @@ cmake_minimum_required (VERSION 3.18)
 
 include (cmake/app_datasources.cmake)
 
-declare_datasource (FILE small_graph.dot URL ${CMAKE_SOURCE_DIR}/test/data/small_graph.dot URL_HASH
-                    SHA256=f573bb45abe677bda78d5f700bd6a9b5f2415f405953f5c085be491e2598f02e
-)
-
 declare_datasource (FILE small.fa URL ${CMAKE_SOURCE_DIR}/test/data/small.fa URL_HASH
                     SHA256=41d7eace7e07335afe6aa2c3b313eacae828e0f42a876fe97bf74a4cef4323f9
 )
