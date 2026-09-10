@@ -14,19 +14,19 @@ declare_datasource (FILE small_graph.dot URL ${CMAKE_SOURCE_DIR}/test/data/small
 )
 
 declare_datasource (FILE small.fa URL ${CMAKE_SOURCE_DIR}/test/data/small.fa URL_HASH
-                    SHA256=215a646ccd2d156eeabdd792108fc0ba385e244a25218afc095658189d2a3c0d
+                    SHA256=41d7eace7e07335afe6aa2c3b313eacae828e0f42a876fe97bf74a4cef4323f9
 )
 
 declare_datasource (FILE seq1.fa URL ${CMAKE_SOURCE_DIR}/test/data/seq1.fa URL_HASH
-                    SHA256=f60b985d9f3be1d3dd6105d62f4321eeb617bc52f4fb0435b016bf1873aa2eac
+                    SHA256=752f6ff662e9c325886aab84db998c63fc89d7ff2f4504ccd686fd853e67a003
 )
 
 declare_datasource (FILE seq2.fa URL ${CMAKE_SOURCE_DIR}/test/data/seq2.fa URL_HASH
-                    SHA256=4153dfac5993b6ddeebf76fabeaaaad838b68f4abe0c3c03cc95b9196832af7a
+                    SHA256=c9c402bcb982a7f3ecb0ef8810b8d4ae3050553faa295a6c3e538713199564dd
 )
 
 declare_datasource (FILE seq3.fa URL ${CMAKE_SOURCE_DIR}/test/data/seq3.fa URL_HASH
-                    SHA256=aa440a61539216096680e53a1d68b245e5a7cac67e7eca315996d51b863d9915
+                    SHA256=24a275e4666f815e46d1ccfb135bce5ea794f6630c8ffd9117eb0dcecce9d414
 )
 
 declare_datasource (FILE small2.fa URL ${CMAKE_SOURCE_DIR}/test/data/small2.fa URL_HASH
