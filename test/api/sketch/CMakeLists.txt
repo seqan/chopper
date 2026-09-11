@@ -11,7 +11,7 @@ add_api_test (check_filenames_test.cpp)
 target_use_datasources (check_filenames_test FILES seq1.fa)
 target_use_datasources (check_filenames_test FILES seq2.fa)
 target_use_datasources (check_filenames_test FILES seq3.fa)
-target_use_datasources (check_filenames_test FILES small.minimiser)
+target_use_datasources (check_filenames_test FILES dummy.minimiser)
 
 add_api_test (read_data_file_test.cpp)
 target_use_datasources (read_data_file_test FILES seqinfo.tsv)

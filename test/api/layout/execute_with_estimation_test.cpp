@@ -550,16 +550,16 @@ TEST(execute_estimation_test, with_rearrangement)
 
 #ifdef _LIBCPP_VERSION // seqan::hibf::sketch::toolbox::sort_by_cardinalities is not stable
         result +=
-            R"expected_cout(64	1.00	2.26	1.00	2.26	110.5KiB
-128	1.22	1.96	1.08	2.11	118.9KiB
-256	1.33	1.66	1.18	1.97	130.9KiB
+            R"expected_cout(64	1.00	1.66	1.00	1.66	4.5MiB
+128	1.22	1.78	1.15	2.05	5.2MiB
+256	1.33	1.48	1.36	2.01	6.2MiB
 # Best t_max (regarding expected query runtime): 256
 )expected_cout";
 #else
         result +=
-            R"expected_cout(64	1.00	2.34	1.00	2.34	110.1KiB
-128	1.22	2.01	1.08	2.17	118.9KiB
-256	1.33	1.76	1.39	2.44	152.7KiB
+            R"expected_cout(64	1.00	1.65	1.00	1.65	4.5MiB
+128	1.22	1.78	1.15	2.05	5.2MiB
+256	1.33	1.48	1.36	2.01	6.2MiB
 # Best t_max (regarding expected query runtime): 256
 )expected_cout";
 #endif

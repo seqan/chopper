@@ -42,9 +42,9 @@ TEST(check_filenames_test, overload)
 
 TEST(check_filenames_test, minimiser_filenames)
 {
-    std::vector<std::string> filenames{data("small.minimiser").string(),
-                                       data("small.minimiser").string(),
-                                       data("small.minimiser").string()};
+    std::vector<std::string> filenames{data("dummy.minimiser").string(),
+                                       data("dummy.minimiser").string(),
+                                       data("dummy.minimiser").string()};
 
     chopper::configuration config;
 
@@ -55,7 +55,7 @@ TEST(check_filenames_test, minimiser_filenames)
 
 TEST(check_filenames_test, mixed_filenames_sequence_files)
 {
-    std::vector<std::string> filenames{data("seq2.fa").string(), data("small.minimiser").string()};
+    std::vector<std::string> filenames{data("seq2.fa").string(), data("dummy.minimiser").string()};
 
     chopper::configuration config;
 
@@ -64,7 +64,7 @@ TEST(check_filenames_test, mixed_filenames_sequence_files)
 
 TEST(check_filenames_test, mixed_filenames_minimiser_files)
 {
-    std::vector<std::string> filenames{data("small.minimiser").string(), data("seq2.fa").string()};
+    std::vector<std::string> filenames{data("dummy.minimiser").string(), data("seq2.fa").string()};
 
     chopper::configuration config;
 

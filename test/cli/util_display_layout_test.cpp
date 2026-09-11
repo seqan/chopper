@@ -125,10 +125,10 @@ TEST_F(cli_test, display_layout_general)
     std::string expected_general_file{
         "# Layout: " + layout_filename.string() + "\n" +
         R"(tb_index	exact_size	estimated_size	fpr_corrected_size	shared_size	ub_count	kind	splits
-0	479	483	153	0	2	merged	1
-1	466	466	466	0	1	split	1
-2	287	289	420	0	1	split	2
-3	287	289	420	0	1	split	0
+0	32291	32795	10301	0	2	merged	1
+1	15984	15884	15984	0	1	split	1
+2	17745	17971	25914	0	1	split	2
+3	17745	17971	25914	0	1	split	0
 )"};
 
     std::string const actual_file{string_from_file(general_filename)};
@@ -170,10 +170,10 @@ TEST_F(cli_test, display_layout_general_with_shared_kmers)
     std::string expected_general_file{
         "# Layout: " + layout_filename.string() + "\n" +
         R"(tb_index	exact_size	estimated_size	fpr_corrected_size	shared_size	ub_count	kind	splits
-0	479	483	153	371	2	merged	1
-1	466	466	466	0	1	split	1
-2	287	289	420	0	1	split	2
-3	287	289	420	0	1	split	0
+0	32291	32795	10301	0	2	merged	1
+1	15984	15884	15984	0	1	split	1
+2	17745	17971	25914	0	1	split	2
+3	17745	17971	25914	0	1	split	0
 )"};
 
     std::string const actual_file{string_from_file(general_filename)};
@@ -213,8 +213,8 @@ TEST_F(cli_test, display_layout_sizes)
     std::string expected_general_file{R"(# Levels: 2
 # User bins: 4
 LEVEL	BIT_SIZE	IBFS	AVG_LOAD_FACTOR	TBS_TOO_BIG	AVG_TBS_TOO_BIG_ELEMENTS	AVG_MAX_ELEMENTS
-0	4832	1	79.44	0	0	479
-1	8916	1	80.26	0	0	385
+0	325572	1	64.85	0	0	32291
+1	354192	1	77.61	0	0	15345
 )"};
 
     std::string const actual_file{string_from_file(sizes_filename)};

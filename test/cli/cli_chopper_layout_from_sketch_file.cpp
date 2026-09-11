@@ -125,12 +125,12 @@ TEST_F(cli_test, chopper_layout_from_sketch_file)
                                       "@    }\n"
                                       "@}\n"
                                       "@HIBF_CONFIG_END\n"
-                                      "#TOP_LEVEL_IBF fullest_technical_bin_idx:16\n"
+                                      "#TOP_LEVEL_IBF fullest_technical_bin_idx:0\n"
                                       "#USER_BIN_IDX\tTECHNICAL_BIN_INDICES\tNUMBER_OF_TECHNICAL_BINS\n"
-                                      "1\t0\t16\n"
-                                      "3\t16\t23\n"
-                                      "2\t39\t15\n"
-                                      "0\t54\t10\n"};
+                                      "1\t0\t9\n"
+                                      "0\t9\t8\n"
+                                      "2\t17\t8\n"
+                                      "3\t25\t39\n"};
 
     std::string const actual_file{string_from_file(binning_filename)};
     EXPECT_EQ(actual_file, expected_file);
