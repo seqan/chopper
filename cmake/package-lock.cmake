@@ -5,8 +5,10 @@
 # CPM Package Lock
 # This file should be committed to version control
 
+# cmake-format: off
+
 # hibf
-set (CHOPPER_HIBF_VERSION d389e194c028e6490144115cff42721be73dfd98)
+set (CHOPPER_HIBF_VERSION 7887834a58cb4bf04ccb61ce9d43125aec40a3bb CACHE STRING "")
 CPMDeclarePackage (hibf
                    NAME hibf
                    GIT_TAG ${CHOPPER_HIBF_VERSION} # main
@@ -16,27 +18,29 @@ CPMDeclarePackage (hibf
                    OPTIONS "INSTALL_HIBF OFF"
 )
 # sharg
-set (CHOPPER_SHARG_VERSION c4367d1049322826e60c674b6bf24d3d0a8da999)
+set (CHOPPER_SHARG_VERSION 1.2.2 CACHE STRING "")
 CPMDeclarePackage (sharg
                    NAME sharg
-                   GIT_TAG ${CHOPPER_SHARG_VERSION} # main
+                   VERSION ${CHOPPER_SHARG_VERSION}
+                   GIT_TAG ${CHOPPER_SHARG_VERSION}
                    GITHUB_REPOSITORY seqan/sharg-parser
                    SYSTEM TRUE
                    EXCLUDE_FROM_ALL TRUE
                    OPTIONS "INSTALL_SHARG OFF" "INSTALL_TDL OFF" "CMAKE_MESSAGE_LOG_LEVEL WARNING" "BUILD_TESTING OFF"
 )
 # seqan3
-set (CHOPPER_SEQAN3_VERSION 89cc4d384396a73e785db9ef43dd5efa7ec8644b)
+set (CHOPPER_SEQAN3_VERSION 3.4.2 CACHE STRING "")
 CPMDeclarePackage (seqan3
                    NAME seqan3
-                   GIT_TAG ${CHOPPER_SEQAN3_VERSION} # main
+                   VERSION ${CHOPPER_SEQAN3_VERSION}
+                   GIT_TAG ${CHOPPER_SEQAN3_VERSION}
                    GITHUB_REPOSITORY seqan/seqan3
                    SYSTEM TRUE
                    EXCLUDE_FROM_ALL TRUE
                    OPTIONS "INSTALL_SEQAN3 OFF" "CMAKE_MESSAGE_LOG_LEVEL WARNING"
 )
 # googletest
-set (CHOPPER_GOOGLETEST_VERSION 1.15.2)
+set (CHOPPER_GOOGLETEST_VERSION 1.18.0 CACHE STRING "")
 CPMDeclarePackage (googletest
                    NAME GTest
                    VERSION ${CHOPPER_GOOGLETEST_VERSION}
@@ -47,7 +51,7 @@ CPMDeclarePackage (googletest
                            "CMAKE_CXX_STANDARD 20"
 )
 # use_ccache
-set (USE_CCACHE_VERSION d2a54ef555b6fc2d496a4c9506dbeb7cf899ce37)
+set (USE_CCACHE_VERSION d2a54ef555b6fc2d496a4c9506dbeb7cf899ce37 CACHE STRING "")
 CPMDeclarePackage (use_ccache
                    NAME use_ccache
                    GIT_TAG ${USE_CCACHE_VERSION} # main
@@ -56,3 +60,5 @@ CPMDeclarePackage (use_ccache
                    SYSTEM TRUE
                    EXCLUDE_FROM_ALL TRUE
 )
+
+# cmake-format: on

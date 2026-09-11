@@ -29,14 +29,15 @@ jobs:
     steps:
       - name: Checkout
         if: github.event_name != 'pull_request_target'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # pull_request_target does not checkout the merge commit by default
       - name: Checkout
         if: github.event_name == 'pull_request_target'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: "refs/pull/${{ github.event.number }}/merge"
+          allow-unsafe-pr-checkout: true
 
       - name: Install Doxygen
         uses: seqan/actions/setup-doxygen@main
@@ -45,8 +46,7 @@ jobs:
 
       - name: Configure tests
         env:
-          CXX: g++-12
-          CC: gcc-12
+          CXX: /usr/bin/g++-14
         run: |
           mkdir build && cd build
           cmake ..

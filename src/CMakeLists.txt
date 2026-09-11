@@ -17,6 +17,24 @@ target_include_directories (chopper_interface INTERFACE "${PROJECT_SOURCE_DIR}/i
 target_compile_options (chopper_interface INTERFACE "-pedantic" "-Wall" "-Wextra")
 add_library (chopper::interface ALIAS chopper_interface)
 
+option (CHOPPER_WITH_WERROR "Report compiler warnings as errors." ON)
+if (CHOPPER_WITH_WERROR)
+    target_compile_options (chopper_interface INTERFACE "-Werror")
+    message (STATUS "Building tests with -Werror.")
+endif ()
+
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    # Disable warning about std::hardware_destructive_interference_size not being ABI-stable.
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 12)
+        target_compile_options (chopper_interface INTERFACE "-Wno-interference-size")
+    endif ()
+
+    # Warn about failed return value optimization.
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 14)
+        target_compile_options (chopper_interface INTERFACE "-Wnrvo")
+    endif ()
+endif ()
+
 add_library (chopper_shared STATIC configuration.cpp input_functor.cpp)
 target_link_libraries (chopper_shared PUBLIC chopper_interface)
 add_library (chopper::shared ALIAS chopper_shared)

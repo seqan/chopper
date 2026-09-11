@@ -24,23 +24,15 @@ defaults:
 jobs:
   build:
     name: ${{ matrix.compiler }}
-    runs-on: macos-14
+    runs-on: macos-latest
     if: github.repository_owner == 'seqan' || github.event_name == 'workflow_dispatch' || github.event.label.name == 'lint'
     strategy:
       fail-fast: false
       matrix:
-        compiler: ["clang-19", "clang-18", "clang-17", "gcc-14", "gcc-13", "gcc-12"]
-        include:
-          - cxx_flags: "-Wno-interference-size"
-          - compiler: "clang-19"
-            cxx_flags: ""
-          - compiler: "clang-18"
-            cxx_flags: ""
-          - compiler: "clang-17"
-            cxx_flags: ""
+        compiler: ["clang-latest", "clang-second-latest", "clang-third-latest", "gcc-latest", "gcc-second-latest", "gcc-third-latest"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup toolchain
         uses: seqan/actions/setup-toolchain@main
@@ -48,18 +40,11 @@ jobs:
           compiler: ${{ matrix.compiler }}
           ccache_size: 75M
 
-      - name: Patch M1 GCC
-        if: contains(matrix.compiler, 'gcc') && matrix.compiler != 'gcc-14'
-        uses: seqan/actions/patch-m1-gcc@main
-        with:
-          compiler: ${{ matrix.compiler }}
-
       - name: Configure tests
         run: |
           mkdir build
           cd build
-          cmake .. -DCMAKE_BUILD_TYPE=Release \
-                   -DCMAKE_CXX_FLAGS="-Werror ${{ matrix.cxx_flags }}"
+          cmake .. -DCMAKE_BUILD_TYPE=Release
           make gtest_main
 
       - name: Build tests
