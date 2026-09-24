@@ -96,7 +96,7 @@ TEST_F(cli_test, chopper_layout)
 
     EXPECT_EQ(sin.filenames.size(), 3);
     EXPECT_EQ(sin.hll_sketches.size(), 3);
-    EXPECT_EQ(sin.minHash_sketches.size(), 0); // currently, no minhash sketches are needed in chopper layout
+    EXPECT_EQ(sin.minHash_sketches.size(), 3); // currently, no minhash sketches are needed in chopper layout
 
     EXPECT_EQ(sin.filenames[0][0], data("seq1.fa").string());
     EXPECT_EQ(sin.filenames[1][0], data("seq2.fa").string());

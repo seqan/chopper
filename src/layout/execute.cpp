@@ -9,23 +9,19 @@
 #include <cinttypes>
 #include <cmath>
 #include <cstddef>
-#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
 #include <string>
-#include <tuple>
-#include <vector>
 
 #include <chopper/configuration.hpp>
 #include <chopper/layout/determine_best_number_of_technical_bins.hpp>
 #include <chopper/layout/execute.hpp>
+#include <chopper/layout/fast_layout.hpp>
 #include <chopper/layout/hibf_statistics.hpp>
 #include <chopper/layout/output.hpp>
-#include <chopper/next_multiple_of_64.hpp>
 
 #include <hibf/layout/compute_layout.hpp>
-#include <hibf/layout/layout.hpp>
 #include <hibf/misc/iota_vector.hpp>
 #include <hibf/sketch/estimate_kmer_counts.hpp> // for estimate_kmer_counts
 #include <hibf/sketch/hyperloglog.hpp>
@@ -35,33 +31,59 @@ namespace chopper::layout
 
 int execute(chopper::configuration & config,
             std::vector<std::vector<std::string>> const & filenames,
-            std::vector<seqan::hibf::sketch::hyperloglog> const & sketches)
+            std::vector<seqan::hibf::sketch::hyperloglog> const & sketches,
+            std::vector<seqan::hibf::sketch::minhashes> const & minHash_sketches)
 {
     config.hibf_config.validate_and_set_defaults();
 
+    std::vector<size_t> cardinalities;
+    seqan::hibf::sketch::estimate_kmer_counts(sketches, cardinalities);
+
     seqan::hibf::layout::layout hibf_layout;
-    std::vector<size_t> kmer_counts;
-    seqan::hibf::sketch::estimate_kmer_counts(sketches, kmer_counts);
 
     if (config.determine_best_tmax)
     {
-        hibf_layout = determine_best_number_of_technical_bins(config, kmer_counts, sketches);
+        hibf_layout = determine_best_number_of_technical_bins(config, cardinalities, sketches);
     }
     else
     {
         config.dp_algorithm_timer.start();
-        hibf_layout = seqan::hibf::layout::compute_layout(config.hibf_config,
-                                                          kmer_counts,
-                                                          sketches,
-                                                          seqan::hibf::iota_vector(sketches.size()),
-                                                          config.union_estimation_timer,
-                                                          config.rearrangement_timer);
+        if (config.fast_layout)
+        {
+            fast_layout(config,
+                        seqan::hibf::iota_vector(sketches.size()),
+                        cardinalities,
+                        sketches,
+                        minHash_sketches,
+                        hibf_layout);
+            // sort records ascending by the number of bin indices (corresponds to the IBF levels)
+            // GCOVR_EXCL_START
+            std::ranges::sort(hibf_layout.max_bins,
+                              [](auto const & r, auto const & l)
+                              {
+                                  if (r.previous_TB_indices.size() == l.previous_TB_indices.size())
+                                      return std::ranges::lexicographical_compare(r.previous_TB_indices,
+                                                                                  l.previous_TB_indices);
+                                  else
+                                      return r.previous_TB_indices.size() < l.previous_TB_indices.size();
+                              });
+            // GCOVR_EXCL_STOP
+        }
+        else
+        {
+            hibf_layout = seqan::hibf::layout::compute_layout(config.hibf_config,
+                                                              cardinalities,
+                                                              sketches,
+                                                              seqan::hibf::iota_vector(sketches.size()),
+                                                              config.union_estimation_timer,
+                                                              config.rearrangement_timer);
+        }
         config.dp_algorithm_timer.stop();
 
         if (config.output_verbose_statistics)
         {
             size_t dummy{};
-            chopper::layout::hibf_statistics global_stats{config, sketches, kmer_counts};
+            chopper::layout::hibf_statistics global_stats{config, sketches, cardinalities};
             global_stats.hibf_layout = hibf_layout;
             global_stats.print_header_to(std::cout);
             global_stats.print_summary_to(dummy, std::cout);
