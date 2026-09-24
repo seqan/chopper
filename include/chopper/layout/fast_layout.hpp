@@ -6,7 +6,6 @@
 #include <hibf/sketch/hyperloglog.hpp>
 #include <hibf/sketch/minhashes.hpp>
 
-
 namespace chopper::layout
 {
 

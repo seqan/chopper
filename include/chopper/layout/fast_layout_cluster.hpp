@@ -187,4 +187,4 @@ size_t LSH_find_representative_cluster(std::vector<cluster_type> const & cluster
     return current_id;
 }
 
-} // namespace chopper:layout
+} // namespace chopper::layout

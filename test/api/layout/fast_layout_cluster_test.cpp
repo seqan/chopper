@@ -140,7 +140,9 @@ TEST(LSH_find_representative_cluster_test, multi_cluster_one_move)
 
 TEST(LSH_find_representative_cluster_test, cluster_two_moves)
 {
-    std::vector<chopper::layout::Cluster> clusters{chopper::layout::Cluster{0}, chopper::layout::Cluster{1}, chopper::layout::Cluster{2}};
+    std::vector<chopper::layout::Cluster> clusters{chopper::layout::Cluster{0},
+                                                   chopper::layout::Cluster{1},
+                                                   chopper::layout::Cluster{2}};
     clusters[2].move_to(clusters[1]);
     clusters[1].move_to(clusters[0]);
 
@@ -150,7 +152,9 @@ TEST(LSH_find_representative_cluster_test, cluster_two_moves)
 
 TEST(LSH_find_representative_cluster_test, multi_cluster_two_moves)
 {
-    std::vector<chopper::layout::MultiCluster> mclusters{{chopper::layout::Cluster{0}}, {chopper::layout::Cluster{1}}, {chopper::layout::Cluster{2}}};
+    std::vector<chopper::layout::MultiCluster> mclusters{{chopper::layout::Cluster{0}},
+                                                         {chopper::layout::Cluster{1}},
+                                                         {chopper::layout::Cluster{2}}};
     mclusters[2].move_to(mclusters[1]);
     mclusters[1].move_to(mclusters[0]);
 

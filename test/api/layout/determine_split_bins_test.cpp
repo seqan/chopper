@@ -1,7 +1,7 @@
 #include <gtest/gtest.h> // for Test, TestInfo, EXPECT_EQ, Message, TEST, TestPartResult
 
-#include <numeric>  // for allocator, string
-#include <vector>   // for vector
+#include <numeric> // for allocator, string
+#include <vector>  // for vector
 
 #include <chopper/configuration.hpp>
 #include <chopper/layout/determine_split_bins.hpp>
@@ -25,8 +25,12 @@ TEST(simple_split, first)
 
     std::vector<std::vector<size_t>> partitions(64);
 
-    auto const [num_splits, max_size] =
-        chopper::layout::determine_split_bins(config, positions, cardinalities, num_technical_bins, num_user_bins, partitions);
+    auto const [num_splits, max_size] = chopper::layout::determine_split_bins(config,
+                                                                              positions,
+                                                                              cardinalities,
+                                                                              num_technical_bins,
+                                                                              num_user_bins,
+                                                                              partitions);
 
     EXPECT_EQ(num_splits, 61);
     EXPECT_EQ(max_size, 1452);

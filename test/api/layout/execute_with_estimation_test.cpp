@@ -522,7 +522,7 @@ TEST(execute_estimation_test, many_ubs_fast_layout)
 # Best t_max (regarding expected query runtime): 64
 )expected_cout");
 
-        std::string const expected_file{"@CHOPPER_USER_BINS\n"
+    std::string const expected_file{"@CHOPPER_USER_BINS\n"
                                     "@0 seq0\n"
                                     "@1 seq1\n"
                                     "@2 seq2\n"

@@ -59,14 +59,14 @@ int execute(chopper::configuration & config,
             // sort records ascending by the number of bin indices (corresponds to the IBF levels)
             // GCOVR_EXCL_START
             std::ranges::sort(hibf_layout.max_bins,
-                                [](auto const & r, auto const & l)
-                                {
-                                    if (r.previous_TB_indices.size() == l.previous_TB_indices.size())
-                                        return std::ranges::lexicographical_compare(r.previous_TB_indices,
-                                                                                    l.previous_TB_indices);
-                                    else
-                                        return r.previous_TB_indices.size() < l.previous_TB_indices.size();
-                                });
+                              [](auto const & r, auto const & l)
+                              {
+                                  if (r.previous_TB_indices.size() == l.previous_TB_indices.size())
+                                      return std::ranges::lexicographical_compare(r.previous_TB_indices,
+                                                                                  l.previous_TB_indices);
+                                  else
+                                      return r.previous_TB_indices.size() < l.previous_TB_indices.size();
+                              });
             // GCOVR_EXCL_STOP
         }
         else

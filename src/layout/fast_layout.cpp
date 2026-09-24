@@ -14,10 +14,10 @@
 #include <chopper/layout/fast_layout_cluster.hpp>
 
 #include <hibf/contrib/robin_hood.hpp>
-#include <hibf/misc/divide_and_ceil.hpp>
-#include <hibf/layout/compute_relaxed_fpr_correction.hpp>
 #include <hibf/layout/compute_fpr_correction.hpp>
 #include <hibf/layout/compute_layout.hpp>
+#include <hibf/layout/compute_relaxed_fpr_correction.hpp>
+#include <hibf/misc/divide_and_ceil.hpp>
 #include <hibf/sketch/toolbox.hpp>
 
 namespace chopper::layout
@@ -689,11 +689,10 @@ void partition_user_bins(chopper::configuration const & config,
             static_cast<double>(split_threshold)
             * ((static_cast<double>(max_merged_size) * relaxed_fpr_correction) / static_cast<double>(max_split_size));
     else // need more split bins -> decrease threshold
-        split_threshold =
-            std::max<double>(1.0,
-                static_cast<double>(split_threshold)
-                * ((static_cast<double>(max_merged_size) * relaxed_fpr_correction) /
-                static_cast<double>(max_split_size)));
+        split_threshold = std::max<double>(1.0,
+                                           static_cast<double>(split_threshold)
+                                               * ((static_cast<double>(max_merged_size) * relaxed_fpr_correction)
+                                                  / static_cast<double>(max_split_size)));
 
     // std::cout << " to:" << split_threshold << std::endl;
 
