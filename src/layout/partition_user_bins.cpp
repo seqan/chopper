@@ -259,7 +259,6 @@ void post_process_clusters(std::vector<Cluster> & clusters,
     }
 
     // The user bins are sorted by cardinality, so the first one is the largest.
-    // Non-empty clusters have cardinality > 0, hence empty clusters are sorted last.
     auto const largest_user_bin_cardinality = [&cardinalities](Cluster const & c)
     {
         return c.empty() ? size_t{} : cardinalities[c.contained_user_bins().front()];
@@ -277,9 +276,14 @@ void post_process_clusters(std::vector<Cluster> & clusters,
     // after filling up the partitions with the biggest clusters, sort the clusters by cardinality of the biggest ub
     // s.t. that euqally sizes ub are assigned after each other and the small stuff is added at last.
     // the largest ub is already at the start because of former sorting.
+    // Empty clusters are sorted last explicitly. Their cardinality key 0 does not suffice, because a non-empty cluster
+    // can have a cardinality estimate of 0, too.
     std::ranges::sort(clusters | std::views::drop(config.hibf_config.tmax),
                       std::ranges::greater{},
-                      largest_user_bin_cardinality);
+                      [&largest_user_bin_cardinality](Cluster const & c)
+                      {
+                          return std::tuple{!c.empty(), largest_user_bin_cardinality(c)};
+                      });
 
     assert(clusters.size() < 2 || clusters[0].size() >= clusters[1].size()); // sanity check
     // once empty - always empty; all empty clusters should be at the end

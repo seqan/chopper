@@ -38,9 +38,11 @@ uint64_t scramble(uint64_t x)
 // User bin `i` consists of `kmer_counts[i]` distinct hashes drawn from content `content_ids[i]`.
 // User bins with the same content id share their first min(kmer_counts) hashes, all others are disjoint.
 // If `content_ids` is empty, every user bin has its own content.
+// The cardinalities of the user bins in `zero_cardinality_user_bins` are set to 0, regardless of their content.
 std::vector<std::vector<size_t>> run_partition_user_bins(std::vector<size_t> const & kmer_counts,
                                                          size_t const tmax,
-                                                         std::vector<size_t> content_ids = {})
+                                                         std::vector<size_t> content_ids = {},
+                                                         std::vector<size_t> const & zero_cardinality_user_bins = {})
 {
     if (content_ids.empty())
     {
@@ -72,6 +74,8 @@ std::vector<std::vector<size_t>> run_partition_user_bins(std::vector<size_t> con
     std::vector<size_t> cardinalities(kmer_counts.size());
     for (size_t i = 0; i < sketches.size(); ++i)
         cardinalities[i] = sketches[i].estimate();
+    for (size_t const ub : zero_cardinality_user_bins)
+        cardinalities[ub] = 0u;
 
     std::vector<size_t> positions(kmer_counts.size());
     std::iota(positions.begin(), positions.end(), 0u);
@@ -80,6 +84,22 @@ std::vector<std::vector<size_t>> run_partition_user_bins(std::vector<size_t> con
     chopper::layout::partition_user_bins(config, positions, cardinalities, sketches, minHash_sketches, partitions);
 
     return partitions;
+}
+
+// Expects that every user bin in [0, number_of_user_bins) is assigned to at least one partition.
+void expect_all_user_bins_assigned(std::vector<std::vector<size_t>> const & partitions,
+                                   size_t const number_of_user_bins)
+{
+    std::vector<size_t> assigned_user_bins{};
+    for (auto const & partition : partitions)
+        assigned_user_bins.insert(assigned_user_bins.end(), partition.begin(), partition.end());
+    std::ranges::sort(assigned_user_bins);
+    auto const [first, last] = std::ranges::unique(assigned_user_bins);
+    assigned_user_bins.erase(first, last);
+
+    std::vector<size_t> expected_user_bins(number_of_user_bins);
+    std::iota(expected_user_bins.begin(), expected_user_bins.end(), 0u);
+    EXPECT_EQ(assigned_user_bins, expected_user_bins);
 }
 
 } // namespace
@@ -199,14 +219,17 @@ TEST(partition_user_bins_test, cluster_larger_than_tmax_with_small_cardinality)
     std::vector<size_t> const content_ids{0, 1, 2, 2, 2, 2, 2, 3, 4, 5};
     auto const partitions = run_partition_user_bins(kmer_counts, /*tmax*/ 4, content_ids);
 
-    std::vector<size_t> assigned_user_bins{};
-    for (auto const & partition : partitions)
-        assigned_user_bins.insert(assigned_user_bins.end(), partition.begin(), partition.end());
-    std::ranges::sort(assigned_user_bins);
-    auto const [first, last] = std::ranges::unique(assigned_user_bins);
-    assigned_user_bins.erase(first, last);
+    expect_all_user_bins_assigned(partitions, kmer_counts.size());
+}
 
-    std::vector<size_t> expected_user_bins(kmer_counts.size());
-    std::iota(expected_user_bins.begin(), expected_user_bins.end(), 0u);
-    EXPECT_EQ(assigned_user_bins, expected_user_bins);
+TEST(partition_user_bins_test, user_bin_with_zero_cardinality)
+{
+    // User bins 0 to 11 form four clusters of three identical user bins, which leaves eight empty (moved) clusters.
+    // User bin 14 has an estimated cardinality of 0. Its non-empty cluster must still be sorted before the empty
+    // clusters, which also have the key 0, or it is not assigned.
+    std::vector<size_t> const kmer_counts(15, 3'000);
+    std::vector<size_t> const content_ids{0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 5, 6};
+    auto const partitions = run_partition_user_bins(kmer_counts, /*tmax*/ 4, content_ids, {14});
+
+    expect_all_user_bins_assigned(partitions, kmer_counts.size());
 }
