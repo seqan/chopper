@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <functional>
 #include <optional>
 #include <vector>
 
