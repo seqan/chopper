@@ -160,8 +160,14 @@ public:
     }
 };
 
-// Follows the chain of moves, starting at clusters[current_id], and returns the position of the representative
-// cluster, i.e., the valid cluster that holds the user bins now. See Cluster for valid and moved clusters.
+/*!\brief Returns the position of the representative cluster of `clusters[current_id]`.
+ * \param[in] clusters   The clusters. The cluster at position `i` must have id `i`, see Cluster.
+ * \param[in] current_id The position of the cluster to start from.
+ * \returns The position of the representative cluster, i.e., the valid cluster that holds the user bins of
+ *          `clusters[current_id]` now.
+ *
+ * Follows the chain of moves, starting at `clusters[current_id]`. See Cluster for valid and moved clusters.
+ */
 inline size_t LSH_find_representative_cluster(std::vector<Cluster> const & clusters, size_t current_id)
 {
     std::reference_wrapper<Cluster const> representative = clusters[current_id];
