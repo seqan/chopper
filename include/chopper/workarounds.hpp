@@ -33,3 +33,13 @@
 #        define CHOPPER_WORKAROUND_GCC_BOGUS_MEMMOV 0
 #    endif
 #endif
+
+/*!\brief Workaround bogus memmov errors in GCC 16. (Warray-bounds)
+ */
+#ifndef CHOPPER_WORKAROUND_GCC_BOGUS_ARRAY
+#    if CHOPPER_COMPILER_IS_GCC && (__GNUC__ == 16)
+#        define CHOPPER_WORKAROUND_GCC_BOGUS_ARRAY 1
+#    else
+#        define CHOPPER_WORKAROUND_GCC_BOGUS_ARRAY 0
+#    endif
+#endif
