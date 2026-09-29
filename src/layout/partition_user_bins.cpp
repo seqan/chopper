@@ -291,7 +291,7 @@ void post_process_clusters(std::vector<Cluster> & clusters,
  * \param[in]     cluster                     The global user bin indices to assign together.
  * \param[in]     cardinalities               The cardinality of each user bin, indexed by global user bin index.
  * \param[in]     sketches                    The HyperLogLog sketch of each user bin, indexed by global user bin index.
- * \param[in,out] positions                   The user bins per partition. `cluster` is appended to the chosen one.
+ * \param[in,out] partitions                  The user bins per partition. `cluster` is appended to the chosen one.
  * \param[in,out] partition_sketches          The union sketch per partition. Updated for the chosen partition.
  * \param[in,out] max_partition_cardinality   The largest user bin cardinality per partition. Updated.
  * \param[in,out] min_partition_cardinality   The smallest user bin cardinality per partition. Updated.
@@ -315,7 +315,7 @@ void find_best_partition(chopper::configuration const & config,
                          std::vector<size_t> const & cluster,
                          std::vector<size_t> const & cardinalities,
                          std::vector<seqan::hibf::sketch::hyperloglog> const & sketches,
-                         std::vector<std::vector<size_t>> & positions,
+                         std::vector<std::vector<size_t>> & partitions,
                          std::vector<seqan::hibf::sketch::hyperloglog> & partition_sketches,
                          std::vector<size_t> & max_partition_cardinality,
                          std::vector<size_t> & min_partition_cardinality)
@@ -350,21 +350,21 @@ void find_best_partition(chopper::configuration const & config,
 
     auto penalty_lower_level = [&](size_t const additional_number_of_user_bins, size_t const p) -> size_t
     {
-        assert(positions[p].size() != 0); // partitions should be initialised beforehand
+        assert(partitions[p].size() != 0); // partitions should be initialised beforehand
         size_t const min = min_partition_cardinality[p];
         size_t const max = max_partition_cardinality[p];
 
-        if (positions[p].size() > config.hibf_config.tmax) // already a third level
+        if (partitions[p].size() > config.hibf_config.tmax) // already a third level
         {
             // if there must already be another lower level because the current merged bin contains more than tmax
             // user bins, then the current user bin is very likely stored multiple times. Therefore, the penalty is set
             // to the cardinality of the current user bin times the number of levels, e.g. the number of times this user
             // bin needs to be stored additionally
-            size_t const num_ubs_in_merged_bin{positions[p].size() + additional_number_of_user_bins};
+            size_t const num_ubs_in_merged_bin{partitions[p].size() + additional_number_of_user_bins};
             double const levels = std::log(num_ubs_in_merged_bin) / std::log(config.hibf_config.tmax);
             return static_cast<size_t>(max_card * levels);
         }
-        else if (positions[p].size() + additional_number_of_user_bins > config.hibf_config.tmax) // now a third level
+        else if (partitions[p].size() + additional_number_of_user_bins > config.hibf_config.tmax) // now a third level
         {
             // if the current merged bin contains exactly tmax UBS, adding otherone must
             // result in another lower level. Most likely, the smallest user bin will end up on the lower level
@@ -374,7 +374,7 @@ void find_best_partition(chopper::configuration const & config,
             size_t const penalty = std::min(min, max_card) * config.hibf_config.tmax;
             return penalty;
         }
-        else // positions[p].size() + additional_number_of_user_bins <= tmax
+        else // partitions[p].size() + additional_number_of_user_bins <= tmax
         {
             // if the new user bin is smaller than all other already contained user bins
             // the waste of space is high if stored in a single technical bin
@@ -415,7 +415,7 @@ void find_best_partition(chopper::configuration const & config,
     // now that we know which partition fits best (`best_p`), add those indices to it
     for (size_t const user_bin_idx : cluster)
     {
-        positions[best_p].push_back(user_bin_idx);
+        partitions[best_p].push_back(user_bin_idx);
         max_partition_cardinality[best_p] = std::max(max_partition_cardinality[best_p], cardinalities[user_bin_idx]);
         min_partition_cardinality[best_p] = std::min(min_partition_cardinality[best_p], cardinalities[user_bin_idx]);
     }
