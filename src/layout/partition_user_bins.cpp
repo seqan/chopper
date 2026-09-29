@@ -399,8 +399,9 @@ bool find_best_partition(chopper::configuration const & config,
         size_t const union_estimate = union_sketch.estimate();
         size_t const current_partition_size = partition_sketches[p].estimate();
 
-        assert(union_estimate >= current_partition_size);
-        size_t const penalty_current_bin = union_estimate - current_partition_size;
+        // HyperLogLog estimates are not monotonic under merging: Where the estimate switches from linear counting to
+        // the raw estimate, the union can be estimated smaller than the partition. Clamp to 0 instead of underflowing.
+        size_t const penalty_current_bin = union_estimate - std::min(union_estimate, current_partition_size);
         size_t const penalty_current_ibf =
             config.hibf_config.tmax
             * ((union_estimate <= corrected_estimate_per_part) ? 0u : union_estimate - corrected_estimate_per_part);
