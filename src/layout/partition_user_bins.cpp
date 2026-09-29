@@ -136,17 +136,10 @@ std::vector<Cluster> very_similar_LSH_clustering(std::vector<seqan::hibf::sketch
     assert(minHash_sketches[0].table[0].size() >= minHash_sketch_size);
     assert(number_of_user_bins <= minHash_sketches.size());
 
-    // initialise clusters with a signle user bin per cluster.
-    // clusters are either
-    // 1) of size 1; containing an id != position where the id points to the cluster it has been moved to
-    //    e.g. cluster[Y] = {Z} (Y has been moved into Z, so Z could look likes this cluster[Z] = {Z, Y})
-    // 2) of size >= 1; with the first entry beging id == position (a valid cluster)
-    //    e.g. cluster[X] = {X}       // valid singleton
-    //    e.g. cluster[X] = {X, a, b, c, ...}   // valid cluster with more joined entries
-    // The clusters could me moved recursively, s.t.
-    // cluster[A] = {B}
-    // cluster[B] = {C}
-    // cluster[C] = {C, A, B} // is valid cluster since cluster[C][0] == C; contains A and B
+    // Initialise one cluster per user bin. Merging moves the user bins of a cluster into another cluster, e.g., if
+    // clusters[A] is moved into clusters[B] and clusters[B] into clusters[C], clusters[A] and clusters[B] are empty
+    // and point to B and C, respectively, while clusters[C] holds the user bins of A, B and C.
+    // See Cluster for valid and moved clusters.
     std::vector<Cluster> clusters;
     clusters.reserve(number_of_user_bins);
 

@@ -16,11 +16,20 @@
 namespace chopper::layout
 {
 
-/*\brief foo
+/*!\brief A cluster of user bins, used by the LSH clustering of the fast layout.
+ *
+ * In a vector of clusters in which the cluster at position `i` was created with id `i`, the cluster at position `i`
+ * keeps `id() == i` and is either
+ * - **valid**: it has not been moved and contains at least one user bin, or
+ * - **moved**: its user bins were moved into another cluster (move_to), it is empty, and moved_to_cluster_id() is the
+ *   id of that cluster. That cluster may itself have been moved, so moves can form a chain.
+ *   LSH_find_representative_cluster follows the chain to the valid cluster.
+ *
+ * Note that `is_valid(i)` is true in both states: it checks that `id() == i` and that the cluster is in one of them.
  */
 struct Cluster
 {
-protected:
+private:
     size_t representative_id{}; // representative id of the cluster; identifier;
 
     std::vector<size_t> user_bins{}; // the user bins contained in thus cluster
@@ -38,7 +47,7 @@ public:
     Cluster(size_t const id, size_t const user_bins_id) : representative_id{id}, user_bins({user_bins_id})
     {}
 
-    Cluster(size_t const id) : Cluster{id, id}
+    explicit Cluster(size_t const id) : Cluster{id, id}
     {}
 
     size_t id() const
@@ -119,11 +128,8 @@ public:
     }
 };
 
-// A valid cluster is one that hasn't been moved but actually contains user bins
-// A valid cluster at position i is identified by the following equality: cluster[i].size() >= 1 && cluster[i][0] == i
-// A moved cluster is one that has been joined and thereby moved to another cluster
-// A moved cluster i is identified by the following: cluster[i].size() == 1 && cluster[i][0] != i
-// returns position of the representative cluster
+// Follows the chain of moves, starting at clusters[current_id], and returns the position of the representative
+// cluster, i.e., the valid cluster that holds the user bins now. See Cluster for valid and moved clusters.
 inline size_t LSH_find_representative_cluster(std::vector<Cluster> const & clusters, size_t current_id)
 {
     std::reference_wrapper<Cluster const> representative = clusters[current_id];
