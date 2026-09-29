@@ -78,6 +78,9 @@ int chopper_layout(chopper::configuration & config, sharg::parser & parser)
     else if (config.k > config.window_size)
         throw sharg::parser_error{"The k-mer size cannot be bigger than the window size."};
 
+    if (config.fast_layout && config.determine_best_tmax)
+        throw sharg::parser_error{"You cannot combine --fast-layout with --determine-best-tmax."};
+
     auto has_sketch_file_extension = [](std::filesystem::path const & path)
     {
         return path.string().ends_with(".sketch") || path.string().ends_with(".sketches");

@@ -43,7 +43,7 @@ int execute(chopper::configuration & config,
 
     if (config.determine_best_tmax)
     {
-        // ToDo, what about determine_best_tmax iwth fast layout?
+        // Always uses the DP layout; config.fast_layout is ignored. chopper_layout rejects the combination.
         hibf_layout = determine_best_number_of_technical_bins(config, cardinalities, sketches);
     }
     else

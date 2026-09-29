@@ -138,3 +138,18 @@ TEST_F(cli_test, chopper_user_bin_with_few_kmers)
     EXPECT_EQ(result.out, std::string{});
     EXPECT_TRUE(result.err.starts_with("[ERROR] Not enough kmers")) << result.err;
 }
+
+TEST_F(cli_test, chopper_fast_layout_with_determine_best_tmax)
+{
+    cli_test_result result = execute_app("chopper",
+                                         "--fast-layout",
+                                         "--determine-best-tmax",
+                                         "--input",
+                                         data("seq1.fa").c_str(),
+                                         "--output",
+                                         "output.binning");
+
+    EXPECT_NE(result.exit_code, 0);
+    EXPECT_EQ(result.out, std::string{});
+    EXPECT_EQ(result.err, std::string{"[ERROR] You cannot combine --fast-layout with --determine-best-tmax.\n"});
+}
