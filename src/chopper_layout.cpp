@@ -109,6 +109,10 @@ int chopper_layout(chopper::configuration & config, sharg::parser & parser)
         sketches = std::move(sin.hll_sketches);
         minHash_sketches = std::move(sin.minHash_sketches);
         validate_configuration(parser, config, sin.chopper_config);
+
+        if (config.fast_layout && minHash_sketches.size() != sketches.size())
+            throw sharg::parser_error{"The sketch file does not contain MinHash sketches, which --fast-layout needs. "
+                                      "Create the sketch file with --fast-layout."};
     }
     else
     {
