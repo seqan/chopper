@@ -127,6 +127,8 @@ void hibf_statistics::print_summary_to(size_t & t_max_64_memory, std::ostream & 
     // go through each level and collect and output the statistics
     auto to_string_with_precision = [](auto num)
     {
+        if (std::isnan(num))
+            return "NaN";
         std::stringstream ss;
         ss << std::fixed << std::setprecision(2) << num;
         return ss.str();

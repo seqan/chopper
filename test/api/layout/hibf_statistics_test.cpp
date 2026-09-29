@@ -215,7 +215,7 @@ TEST(execute_test, chopper_layout_statistics_fast_layout)
 ## size : The expected total size of an tmax-HIBF
 ## uncorr_size : The expected size of an tmax-HIBF without FPR correction
 # tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size	uncorr_size	level	num_ibfs	level_size	level_size_no_corr	total_num_tbs	avg_num_tbs	split_tb_percentage	max_split_tb	avg_split_tb	max_factor	avg_factor
-64	1.00	1.24	1.00	1.24	672.6KiB	2.0MiB	:0:1:2	:1:1:1	:624.8KiB:47.8KiB:0Bytes	:1.9MiB:130.0KiB:0Bytes	:64:64:0	:64:64:0	:98.44:98.44:-nan	:1:3:-	:1.00:2.03:-	:1.00:1.81:-	:1.00:1.47:-
+64	1.00	1.24	1.00	1.24	672.6KiB	2.0MiB	:0:1:2	:1:1:1	:624.8KiB:47.8KiB:0Bytes	:1.9MiB:130.0KiB:0Bytes	:64:64:0	:64:64:0	:98.44:98.44:NaN	:1:3:-	:1.00:2.03:-	:1.00:1.81:-	:1.00:1.47:-
 )expected_cout";
 
     EXPECT_EQ(layout_result_stdout, expected_cout) << layout_result_stdout;
