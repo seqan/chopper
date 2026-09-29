@@ -30,51 +30,71 @@ namespace chopper::layout
 struct Cluster
 {
 private:
-    size_t representative_id{}; // representative id of the cluster; identifier;
+    //!\brief The id of the cluster.
+    size_t representative_id{};
 
-    std::vector<size_t> user_bins{}; // the user bins contained in thus cluster
+    //!\brief The user bins contained in this cluster.
+    std::vector<size_t> user_bins{};
 
-    std::optional<size_t> moved_id{std::nullopt}; // where this Clusters user bins where moved to
+    //!\brief The id of the cluster that this cluster's user bins were moved to, if they were moved.
+    std::optional<size_t> moved_id{std::nullopt};
 
 public:
-    Cluster() = default;
-    Cluster(Cluster const &) = default;
-    Cluster(Cluster &&) = default;
-    Cluster & operator=(Cluster const &) = default;
-    Cluster & operator=(Cluster &&) = default;
-    ~Cluster() = default;
+    /*!\name Constructors, destructor and assignment
+     * \{
+     */
+    Cluster() = default;                            //!< Defaulted.
+    Cluster(Cluster const &) = default;             //!< Defaulted.
+    Cluster(Cluster &&) = default;                  //!< Defaulted.
+    Cluster & operator=(Cluster const &) = default; //!< Defaulted.
+    Cluster & operator=(Cluster &&) = default;      //!< Defaulted.
+    ~Cluster() = default;                           //!< Defaulted.
 
+    /*!\brief Creates a cluster with id `id` that contains the single user bin `user_bins_id`.
+     * \param[in] id           The id of the cluster.
+     * \param[in] user_bins_id The user bin the cluster contains.
+     */
     Cluster(size_t const id, size_t const user_bins_id) : representative_id{id}, user_bins({user_bins_id})
     {}
 
+    /*!\brief Creates a cluster with id `id` that contains the single user bin `id`.
+     * \param[in] id The id of the cluster and the user bin it contains.
+     */
     explicit Cluster(size_t const id) : Cluster{id, id}
     {}
+    //!\}
 
+    //!\brief Returns the id of the cluster.
     size_t id() const
     {
         return representative_id;
     }
 
+    //!\brief Returns the user bins contained in the cluster.
     std::vector<size_t> const & contained_user_bins() const
     {
         return user_bins;
     }
 
+    //!\brief Returns whether the user bins of this cluster were moved to another cluster (see move_to).
     bool has_been_moved() const
     {
         return moved_id.has_value();
     }
 
+    //!\brief Returns whether the cluster contains no user bins.
     bool empty() const
     {
         return user_bins.empty();
     }
 
+    //!\brief Returns the number of user bins in the cluster.
     size_t size() const
     {
         return user_bins.size();
     }
 
+    //!\brief Removes the last user bin from the cluster and returns it. The cluster must not be empty.
     size_t pop_back()
     {
         size_t last = user_bins.back();
@@ -82,11 +102,18 @@ public:
         return last;
     }
 
+    /*!\brief Adds a user bin to the cluster.
+     * \param[in] user_bin The user bin to add.
+     */
     void add_user_bin(size_t const user_bin)
     {
         user_bins.push_back(user_bin);
     }
 
+    /*!\brief Checks that the cluster at position `id` is either valid or moved, see Cluster.
+     * \param[in] id The position of the cluster, i.e., the id it must have.
+     * \returns `true` if `id() == id`, and the cluster is either not moved and non-empty, or moved and empty.
+     */
     bool is_valid(size_t const id) const
     {
         bool const ids_equal = representative_id == id;
@@ -96,6 +123,7 @@ public:
         return ids_equal && (properly_moved || not_moved);
     }
 
+    //!\brief Returns the id of the cluster that this cluster's user bins were moved to. The cluster must be moved.
     size_t moved_to_cluster_id() const
     {
         assert(moved_id.has_value());
@@ -103,6 +131,11 @@ public:
         return moved_id.value();
     }
 
+    /*!\brief Moves all user bins of this cluster to `target_cluster` and marks this cluster as moved.
+     * \param[in,out] target_cluster The cluster to move the user bins to. Must be a different cluster.
+     *
+     * Afterwards, this cluster is empty, its memory is released, and moved_to_cluster_id() is `target_cluster.id()`.
+     */
     void move_to(Cluster & target_cluster)
     {
         auto & target = target_cluster.user_bins;
@@ -113,6 +146,9 @@ public:
         moved_id = target_cluster.id();
     }
 
+    /*!\brief Sorts the user bins of the cluster by descending cardinality.
+     * \param[in] cardinalities The cardinality of each user bin, indexed by user bin.
+     */
     void sort_by_cardinality(std::vector<size_t> const & cardinalities)
     {
         std::ranges::sort(user_bins,
