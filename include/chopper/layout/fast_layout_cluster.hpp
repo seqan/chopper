@@ -98,7 +98,7 @@ public:
     {
         auto & target = target_cluster.user_bins;
         auto & source = this->user_bins;
-#if __cpp_lib_containers_ranges
+#ifdef __cpp_lib_containers_ranges
         target.append_range(source);
 #else
         target.insert(target.end(), source.cbegin(), source.cend());

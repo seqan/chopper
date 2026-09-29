@@ -17,6 +17,7 @@
 
 #include <chopper/configuration.hpp>
 #include <chopper/layout/partition_user_bins.hpp>
+#include <chopper/workarounds.hpp>
 
 #include <hibf/sketch/compute_sketches.hpp>
 #include <hibf/sketch/hyperloglog.hpp>

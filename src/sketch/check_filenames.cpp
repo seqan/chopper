@@ -16,6 +16,7 @@
 
 #include <chopper/configuration.hpp>
 #include <chopper/sketch/check_filenames.hpp>
+#include <chopper/workarounds.hpp>
 
 namespace chopper::sketch
 {
