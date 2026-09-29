@@ -43,7 +43,14 @@ std::vector<std::vector<size_t>> run_partition_user_bins(std::vector<size_t> con
 {
     if (content_ids.empty())
     {
+#if CHOPPER_WORKAROUND_GCC_BOGUS_MEMMOV
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Warray-bounds="
+#endif // CHOPPER_WORKAROUND_GCC_BOGUS_MEMMOV
         content_ids.resize(kmer_counts.size());
+#if CHOPPER_WORKAROUND_GCC_BOGUS_MEMMOV
+#    pragma GCC diagnostic pop
+#endif // CHOPPER_WORKAROUND_GCC_BOGUS_MEMMOV
         std::iota(content_ids.begin(), content_ids.end(), 0u);
     }
 
