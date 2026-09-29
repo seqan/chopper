@@ -82,7 +82,7 @@ struct configuration
     mutable seqan::hibf::concurrent_timer dp_algorithm_timer{};
     mutable seqan::hibf::concurrent_timer lsh_algorithm_timer{};
     mutable seqan::hibf::concurrent_timer search_partition_algorithm_timer{};
-    mutable seqan::hibf::concurrent_timer intital_partition_timer{};
+    mutable seqan::hibf::concurrent_timer initial_partition_timer{};
     mutable seqan::hibf::concurrent_timer small_layouts_timer{};
 
     void read_from(std::istream & stream);

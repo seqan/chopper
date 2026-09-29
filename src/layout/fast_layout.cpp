@@ -315,9 +315,9 @@ void fast_layout(chopper::configuration const & config,
     std::vector<std::vector<size_t>> tmax_partitions(config.hibf_config.tmax);
 
     // here we assume that we want to start with a fast layout
-    config.intital_partition_timer.start();
+    config.initial_partition_timer.start();
     partition_user_bins(config, positions, cardinalities, sketches, minHash_sketches, tmax_partitions);
-    config.intital_partition_timer.stop();
+    config.initial_partition_timer.stop();
 
     // initialise user bins in layout
     hibf_layout.user_bins.resize(config.hibf_config.number_of_user_bins);
