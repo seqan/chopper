@@ -5,14 +5,17 @@
 // shipped with this file and also available at: https://github.com/seqan/chopper/blob/main/LICENSE.md
 // ---------------------------------------------------------------------------------------------------
 
-#include <numeric> // for allocator, string
-#include <vector>  // for vector
+#include <algorithm>
+#include <cassert>
+#include <cstddef>
+#include <limits>
+#include <utility>
+#include <vector>
 
 #include <chopper/configuration.hpp>
 #include <chopper/layout/determine_split_bins.hpp>
 
 #include <hibf/layout/compute_fpr_correction.hpp>
-#include <hibf/layout/print_matrix.hpp> // for data_store
 #include <hibf/misc/divide_and_ceil.hpp>
 
 namespace chopper::layout
@@ -71,17 +74,12 @@ std::pair<size_t, size_t> determine_split_bins(chopper::configuration const & co
                 size_t score = std::max<size_t>(seqan::hibf::divide_and_ceil(corrected_ub_cardinality, i - i_prime),
                                                 matrix[i_prime][j - 1]);
 
-                // std::cout << "j:" << j << " i:" << i << " i':" << i_prime << " score:" << score << std::endl;
-
                 minimum = (score < minimum) ? (trace[i][j] = i_prime, score) : minimum;
             }
 
             matrix[i][j] = minimum;
         }
     }
-
-    // seqan::hibf::layout::print_matrix(matrix, num_technical_bins, num_user_bins, std::numeric_limits<size_t>::max());
-    //seqan::hibf::layout::print_matrix(trace, num_technical_bins, num_user_bins, std::numeric_limits<size_t>::max());
 
     // backtracking
     // first, in the last column, find the row with minimum score (it can happen that the last rows are equally good)
@@ -101,7 +99,6 @@ std::pair<size_t, size_t> determine_split_bins(chopper::configuration const & co
     // now that we found the best trace_i start usual backtracking
     size_t trace_j = num_user_bins - 1;
 
-    // size_t max_id{};
     size_t max_size{};
 
     size_t bin_id{};
@@ -116,7 +113,6 @@ std::pair<size_t, size_t> determine_split_bins(chopper::configuration const & co
 
         if (cardinality_per_bin > max_size)
         {
-            // max_id = bin_id;
             max_size = cardinality_per_bin;
         }
 
@@ -137,7 +133,6 @@ std::pair<size_t, size_t> determine_split_bins(chopper::configuration const & co
 
     if (cardinality_per_bin > max_size)
     {
-        // max_id = bin_id;
         max_size = cardinality_per_bin;
     }
 
