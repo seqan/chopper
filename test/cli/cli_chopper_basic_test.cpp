@@ -94,3 +94,47 @@ TEST_F(cli_test, chopper_cmd_kmer_bigger_than_window)
     EXPECT_EQ(result.out, std::string{});
     EXPECT_EQ(result.err, std::string{"[ERROR] The k-mer size cannot be bigger than the window size.\n"});
 }
+
+TEST_F(cli_test, chopper_user_bin_with_few_kmers)
+{
+    seqan3::test::tmp_directory tmp_dir{};
+    std::filesystem::path const input_filename{tmp_dir.path() / "data.filenames"};
+    std::filesystem::path const short_filename{tmp_dir.path() / "short.fa"};
+    std::filesystem::path const layout_filename{tmp_dir.path() / "output.binning"};
+
+    // 200 bases give 182 k-mers, too few to fill the MinHash sketches that only the fast layout needs.
+    {
+        std::ofstream fout{short_filename};
+        fout << ">short\n";
+        for (size_t i = 0; i < 200; ++i)
+            fout << "ACGT"[(i * 7 + i / 3) % 4];
+        fout << '\n';
+    }
+
+    {
+        std::ofstream fout{input_filename};
+        fout << data("seq1.fa").string() << '\n' << short_filename.string() << '\n';
+    }
+
+    cli_test_result result =
+        execute_app("chopper", "--input", input_filename.c_str(), "--tmax", "64", "--output", layout_filename.c_str());
+
+    EXPECT_EQ(result.exit_code, 0);
+    EXPECT_EQ(result.out, std::string{});
+    EXPECT_EQ(result.err, std::string{});
+    EXPECT_TRUE(std::filesystem::exists(layout_filename));
+
+    // The fast layout needs MinHash sketches and fails.
+    result = execute_app("chopper",
+                         "--fast-layout",
+                         "--input",
+                         input_filename.c_str(),
+                         "--tmax",
+                         "64",
+                         "--output",
+                         layout_filename.c_str());
+
+    EXPECT_NE(result.exit_code, 0);
+    EXPECT_EQ(result.out, std::string{});
+    EXPECT_TRUE(result.err.starts_with("[ERROR] Not enough kmers")) << result.err;
+}

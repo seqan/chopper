@@ -96,9 +96,50 @@ TEST_F(cli_test, chopper_layout)
 
     EXPECT_EQ(sin.filenames.size(), 3);
     EXPECT_EQ(sin.hll_sketches.size(), 3);
-    EXPECT_EQ(sin.minHash_sketches.size(), 3); // currently, no minhash sketches are needed in chopper layout
+    EXPECT_EQ(sin.minHash_sketches.size(), 0); // MinHash sketches are only computed for --fast-layout
 
     EXPECT_EQ(sin.filenames[0][0], data("seq1.fa").string());
     EXPECT_EQ(sin.filenames[1][0], data("seq2.fa").string());
     EXPECT_EQ(sin.filenames[2][0], data("seq3.fa").string());
+}
+
+TEST_F(cli_test, chopper_layout_fast_layout)
+{
+    seqan3::test::tmp_directory tmp_dir{};
+    std::filesystem::path const input_filename{tmp_dir.path() / "data.filenames"};
+    std::filesystem::path const layout_filename{tmp_dir.path() / "output.binning"};
+    std::filesystem::path const sketches_filename{tmp_dir.path() / "out.sketches"};
+
+    {
+        std::ofstream fout{input_filename};
+        fout << data("seq1.fa").string() << '\n'
+             << data("seq2.fa").string() << '\n'
+             << data("seq3.fa").string() << '\n';
+    }
+
+    cli_test_result result = execute_app("chopper",
+                                         "--fast-layout",
+                                         "--input",
+                                         input_filename.c_str(),
+                                         "--tmax",
+                                         "64",
+                                         "--output-sketches-to",
+                                         sketches_filename.c_str(),
+                                         "--output",
+                                         layout_filename.c_str());
+
+    EXPECT_EQ(result.exit_code, 0);
+    EXPECT_EQ(result.out, std::string{});
+    EXPECT_EQ(result.err, std::string{});
+
+    ASSERT_TRUE(std::filesystem::exists(sketches_filename));
+
+    chopper::sketch::sketch_file sin{};
+
+    std::ifstream is{sketches_filename};
+    cereal::BinaryInputArchive iarchive{is};
+    iarchive(sin);
+
+    EXPECT_EQ(sin.hll_sketches.size(), 3);
+    EXPECT_EQ(sin.minHash_sketches.size(), 3); // the fast layout needs MinHash sketches
 }

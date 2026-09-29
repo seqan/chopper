@@ -130,7 +130,12 @@ int chopper_layout(chopper::configuration & config, sharg::parser & parser)
     if (!input_is_a_sketch_file)
     {
         config.compute_sketches_timer.start();
-        seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches, minHash_sketches);
+        // Only the fast layout needs MinHash sketches. Computing them requires enough k-mers per user bin and throws
+        // otherwise, so the default layout must not compute them.
+        if (config.fast_layout)
+            seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches, minHash_sketches);
+        else
+            seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches);
         config.compute_sketches_timer.stop();
     }
 
