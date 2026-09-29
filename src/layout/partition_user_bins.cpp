@@ -563,11 +563,9 @@ size_t lsh_sim_approach(chopper::configuration const & config,
             min_partition_cardinality[p] = std::min(min_partition_cardinality[p], cardinalities[user_bin_idx]);
         }
 
-        if (split_cluster)
-        {
-            std::vector<size_t> remainder(cluster.begin() + end, cluster.end());
-            remaining_clusters.insert(remaining_clusters.end(), remainder);
-        }
+        // User bins that were not placed, either because at most tmax are placed or because the partitions ran out.
+        if (end < cluster.size())
+            remaining_clusters.emplace_back(cluster.begin() + end, cluster.end());
 
         ++cidx;
     }

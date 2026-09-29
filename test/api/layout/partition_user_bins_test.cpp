@@ -7,12 +7,13 @@
 
 #include <gtest/gtest.h> // for Test, TestInfo, EXPECT_EQ, TEST
 
-#include <cstddef> // for size_t
-#include <cstdint> // for uint64_t
-#include <cstdlib> // for exit
-#include <numeric> // for iota
-#include <string>  // for to_string
-#include <vector>  // for vector
+#include <algorithm> // for sort, unique
+#include <cstddef>   // for size_t
+#include <cstdint>   // for uint64_t
+#include <cstdlib>   // for exit
+#include <numeric>   // for iota
+#include <string>    // for to_string
+#include <vector>    // for vector
 
 #include <chopper/configuration.hpp>
 #include <chopper/layout/partition_user_bins.hpp>
@@ -187,4 +188,25 @@ TEST(partition_user_bins_test, several_clusters)
     auto const partitions = run_partition_user_bins(kmer_counts, 64, content_ids);
 
     ASSERT_EQ(partitions.size(), 64);
+}
+
+TEST(partition_user_bins_test, cluster_larger_than_tmax_with_small_cardinality)
+{
+    // User bins 2 to 6 are identical and form one cluster of 5 > tmax user bins. Its cardinality is below
+    // 0.05 * sum_of_cardinalities / tmax, so only tmax user bins seed a partition. The others must still be assigned.
+    // User bins 7 to 9 provide enough clusters, so the large cluster is not broken up beforehand.
+    std::vector<size_t> const kmer_counts{300'000, 300'000, 1'000, 1'000, 1'000, 1'000, 1'000, 1'000, 1'000, 1'000};
+    std::vector<size_t> const content_ids{0, 1, 2, 2, 2, 2, 2, 3, 4, 5};
+    auto const partitions = run_partition_user_bins(kmer_counts, /*tmax*/ 4, content_ids);
+
+    std::vector<size_t> assigned_user_bins{};
+    for (auto const & partition : partitions)
+        assigned_user_bins.insert(assigned_user_bins.end(), partition.begin(), partition.end());
+    std::ranges::sort(assigned_user_bins);
+    auto const [first, last] = std::ranges::unique(assigned_user_bins);
+    assigned_user_bins.erase(first, last);
+
+    std::vector<size_t> expected_user_bins(kmer_counts.size());
+    std::iota(expected_user_bins.begin(), expected_user_bins.end(), 0u);
+    EXPECT_EQ(assigned_user_bins, expected_user_bins);
 }
