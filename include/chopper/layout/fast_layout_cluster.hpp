@@ -107,11 +107,7 @@ public:
     {
         auto & target = target_cluster.user_bins;
         auto & source = this->user_bins;
-#ifdef __cpp_lib_containers_ranges
-        target.append_range(source);
-#else
         target.insert(target.end(), source.cbegin(), source.cend());
-#endif
         source = std::vector<size_t>{}; // .clear() AND release memory
 
         moved_id = target_cluster.id();
