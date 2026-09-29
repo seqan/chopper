@@ -38,22 +38,15 @@ seqan::hibf::layout::layout general_layout(chopper::configuration const & config
                                            std::vector<size_t> const & cardinalities,
                                            std::vector<seqan::hibf::sketch::hyperloglog> const & sketches)
 {
-    seqan::hibf::layout::layout hibf_layout;
-
     seqan::hibf::concurrent_timer union_estimation_timer{};
     seqan::hibf::concurrent_timer rearrangement_timer{};
-    seqan::hibf::concurrent_timer dp_algorithm_timer{};
 
-    dp_algorithm_timer.start();
-    hibf_layout = seqan::hibf::layout::compute_layout(config.hibf_config,
-                                                      cardinalities,
-                                                      sketches,
-                                                      std::move(positions),
-                                                      union_estimation_timer,
-                                                      rearrangement_timer);
-    dp_algorithm_timer.stop();
-
-    return hibf_layout;
+    return seqan::hibf::layout::compute_layout(config.hibf_config,
+                                               cardinalities,
+                                               sketches,
+                                               std::move(positions),
+                                               union_estimation_timer,
+                                               rearrangement_timer);
 }
 
 /*!\brief Decides whether the lower-level IBF for a merged bin is laid out by the fast layout or by general_layout.
