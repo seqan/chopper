@@ -16,7 +16,6 @@
 #include <limits>
 #include <numeric>
 #include <ranges>
-#include <stdexcept>
 #include <string>
 #include <tuple>
 #include <vector>
@@ -292,7 +291,8 @@ void post_process_clusters(std::vector<Cluster> & clusters,
 
 /*!\brief Assigns a whole cluster of user bins to the partition where adding it costs the least.
  * \param[in]     config                      The configuration (uses `hibf_config.tmax` and `sketch_bits`).
- * \param[in]     number_of_partitions        Only partitions `[0, number_of_partitions)` are considered.
+ * \param[in]     number_of_partitions        Only partitions `[0, number_of_partitions)` are considered. Must be
+ *                                            greater than 0.
  * \param[in,out] corrected_estimate_per_part The current target cardinality per partition. Raised to the chosen
  *                                            partition's new estimate if that is larger.
  * \param[in]     cluster                     The global user bin indices to assign together.
@@ -302,7 +302,6 @@ void post_process_clusters(std::vector<Cluster> & clusters,
  * \param[in,out] partition_sketches          The union sketch per partition. Updated for the chosen partition.
  * \param[in,out] max_partition_cardinality   The largest user bin cardinality per partition. Updated.
  * \param[in,out] min_partition_cardinality   The smallest user bin cardinality per partition. Updated.
- * \returns `true`. Throws std::runtime_error if no partition was selected, i.e., if `number_of_partitions == 0`.
  *
  * For each partition p, the cost of adding the cluster is the sum of
  * - `union - |p|`: the new k-mers the cluster adds to p (HyperLogLog estimates),
@@ -317,7 +316,7 @@ void post_process_clusters(std::vector<Cluster> & clusters,
  * The partition with the smallest cost is chosen. A partition with zero cost always replaces the current best, so if
  * several have zero cost, the last one wins.
  */
-bool find_best_partition(chopper::configuration const & config,
+void find_best_partition(chopper::configuration const & config,
                          size_t const number_of_partitions,
                          size_t & corrected_estimate_per_part,
                          std::vector<size_t> const & cluster,
@@ -328,6 +327,8 @@ bool find_best_partition(chopper::configuration const & config,
                          std::vector<size_t> & max_partition_cardinality,
                          std::vector<size_t> & min_partition_cardinality)
 {
+    assert(number_of_partitions > 0u);
+
     seqan::hibf::sketch::hyperloglog const current_sketch = [&sketches, &cluster, &config]()
     {
         seqan::hibf::sketch::hyperloglog result{config.hibf_config.sketch_bits};
@@ -353,7 +354,6 @@ bool find_best_partition(chopper::configuration const & config,
     // "which partition has the largest intersection with user bin b compared to its own (partition) size."
     size_t smallest_change{std::numeric_limits<size_t>::max()};
     size_t best_p{0};
-    bool best_p_found{false};
 
     auto penalty_lower_level = [&](size_t const additional_number_of_user_bins, size_t const p) -> size_t
     {
@@ -416,12 +416,8 @@ bool find_best_partition(chopper::configuration const & config,
         {
             smallest_change = change;
             best_p = p;
-            best_p_found = true;
         }
     }
-
-    if (!best_p_found)
-        throw std::runtime_error{"currently there are no safety measures if a partition is not found"};
 
     // now that we know which partition fits best (`best_p`), add those indices to it
     for (size_t const user_bin_idx : cluster)
@@ -432,8 +428,6 @@ bool find_best_partition(chopper::configuration const & config,
     }
     partition_sketches[best_p].merge(current_sketch);
     corrected_estimate_per_part = std::max<size_t>(corrected_estimate_per_part, partition_sketches[best_p].estimate());
-
-    return true;
 }
 
 /*!\brief Distributes the merged-bin candidates onto `number_of_remaining_tbs` partitions by LSH clustering and
