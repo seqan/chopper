@@ -12,6 +12,7 @@
 #include <filesystem>
 #include <functional>
 #include <ranges>
+#include <stdexcept>
 #include <string>
 #include <tuple>
 #include <vector>
@@ -84,6 +85,7 @@ TEST(execute_estimation_test, few_ubs)
 )expected_cout");
 }
 
+#if 0 // determine_best_tmax + fast_layout currently not supported
 TEST(execute_estimation_test, few_ubs_fast_layout)
 {
     seqan3::test::tmp_directory tmp_dir{};
@@ -141,6 +143,39 @@ TEST(execute_estimation_test, few_ubs_fast_layout)
 # Best t_max (regarding expected query runtime): 64
 )expected_cout");
 }
+#else
+TEST(execute_estimation_test, few_ubs_fast_layout)
+{
+    seqan3::test::tmp_directory tmp_dir{};
+    std::filesystem::path const layout_file{tmp_dir.path() / "layout.tsv"};
+
+    auto simulated_input = [&](size_t const num, seqan::hibf::insert_iterator it)
+    {
+        size_t const desired_kmer_count = (num == 1) ? 1700 : 1200;
+        for (auto hash : std::views::iota(0u, desired_kmer_count))
+            it = hash;
+    };
+
+    chopper::configuration config{};
+    config.fast_layout = true;
+    config.hibf_config.tmax = 64;
+    config.hibf_config.input_fn = simulated_input;
+    config.hibf_config.number_of_user_bins = 8;
+    config.determine_best_tmax = true;
+    config.disable_sketch_output = true;
+    config.output_filename = layout_file;
+    config.hibf_config.disable_estimate_union = true; // also disables rearrangement
+
+    std::vector<std::vector<std::string>>
+        filenames{{"seq0"}, {"seq1"}, {"seq2"}, {"seq3"}, {"seq4"}, {"seq5"}, {"seq6"}, {"seq7"}};
+
+    std::vector<seqan::hibf::sketch::hyperloglog> sketches;
+    std::vector<seqan::hibf::sketch::minhashes> minHash_sketches{};
+    seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches, minHash_sketches);
+
+    EXPECT_THROW(chopper::layout::execute(config, filenames, sketches, minHash_sketches), std::invalid_argument);
+}
+#endif
 
 TEST(execute_estimation_test, many_ubs)
 {
@@ -459,6 +494,7 @@ TEST(execute_estimation_test, many_ubs)
     EXPECT_EQ(actual_file, expected_file) << actual_file;
 }
 
+#if 0 // determine_best_tmax + fast_layout currently not supported
 TEST(execute_estimation_test, many_ubs_fast_layout)
 {
     seqan3::test::tmp_directory tmp_dir{};
@@ -776,6 +812,44 @@ TEST(execute_estimation_test, many_ubs_fast_layout)
     std::string const actual_file{string_from_file(layout_file)};
     EXPECT_EQ(actual_file, expected_file) << actual_file;
 }
+#else
+TEST(execute_estimation_test, many_ubs_fast_layout)
+{
+    seqan3::test::tmp_directory tmp_dir{};
+    std::filesystem::path const layout_file{tmp_dir.path() / "layout.tsv"};
+
+    std::vector<std::vector<std::string>> many_filenames;
+
+    for (size_t i{0}; i < 96u; ++i)
+        many_filenames.push_back({seqan3::detail::to_string("seq", i)});
+
+    // Creates sizes of the following series
+    // [801,802,...,820,922,923,...,941,1043,1044,...,1062,1164,1165,...,1183,1285,1286,...,1300]
+    // See also https://godbolt.org/z/9517eaaaG
+    auto simulated_input = [&](size_t const num, seqan::hibf::insert_iterator it)
+    {
+        size_t const desired_kmer_count = 101 * ((num + 20) / 20) + num + 700;
+        for (auto hash : std::views::iota(0u, desired_kmer_count))
+            it = hash;
+    };
+
+    chopper::configuration config{};
+    config.fast_layout = true;
+    config.determine_best_tmax = true;
+    config.output_filename = layout_file;
+    config.disable_sketch_output = true;
+    config.hibf_config.tmax = 1024;
+    config.hibf_config.input_fn = simulated_input;
+    config.hibf_config.number_of_user_bins = many_filenames.size();
+    config.hibf_config.disable_estimate_union = true; // also disables rearrangement
+
+    std::vector<seqan::hibf::sketch::hyperloglog> sketches;
+    std::vector<seqan::hibf::sketch::minhashes> minHash_sketches{};
+    seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches, minHash_sketches);
+
+    EXPECT_THROW(chopper::layout::execute(config, many_filenames, sketches, minHash_sketches), std::invalid_argument);
+}
+#endif
 
 TEST(execute_estimation_test, many_ubs_force_all)
 {

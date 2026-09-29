@@ -34,6 +34,9 @@ int execute(chopper::configuration & config,
             std::vector<seqan::hibf::sketch::hyperloglog> const & sketches,
             std::vector<seqan::hibf::sketch::minhashes> const & minHash_sketches)
 {
+    if (config.determine_best_tmax && config.fast_layout)
+        throw std::invalid_argument{"determine_best_tmax is not supported with fast_layout."};
+
     config.hibf_config.validate_and_set_defaults();
 
     std::vector<size_t> cardinalities;
@@ -43,7 +46,6 @@ int execute(chopper::configuration & config,
 
     if (config.determine_best_tmax)
     {
-        // Always uses the DP layout; config.fast_layout is ignored. chopper_layout rejects the combination.
         hibf_layout = determine_best_number_of_technical_bins(config, cardinalities, sketches);
     }
     else
