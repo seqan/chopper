@@ -34,11 +34,12 @@ namespace chopper::layout
  *
  * The user bins with a cardinality greater than `threshold` form a prefix of `sorted_positions`. The number of
  * technical bins they need is `sum / threshold` (rounded down), where `sum` is the sum of their cardinalities.
- * If this exceeds `max_bins`, `threshold` is multiplied by `max(1.01, sum / (threshold * max_bins))` and the prefix
- * is computed again, until the split user bins fit into `max_bins` technical bins.
+ * If this exceeds `max_bins`, `threshold` is set to `max(threshold + 1, sum / max_bins)` (rounded down) and the
+ * prefix is computed again, until the split user bins fit into `max_bins` technical bins.
  *
- * The number of split user bins is clamped to the number of technical bins, so each split user bin gets at least
- * one technical bin.
+ * The number of split user bins never exceeds the number of technical bins, so each split user bin gets at least one
+ * technical bin: Each split user bin has a cardinality greater than `threshold`, hence `sum / threshold` is at least
+ * the number of split user bins. This is asserted, not enforced.
  */
 inline std::pair<size_t, size_t> find_bins_to_be_split(std::vector<size_t> const & sorted_positions,
                                                        std::vector<size_t> const & cardinalities,
