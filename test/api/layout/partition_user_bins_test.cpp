@@ -118,8 +118,13 @@ TEST(partition_user_bins_test, only_merged_bins)
     // SInce not cardinalities but HLL sketches are used, there is some noise
     // Thats why there are not exactly equal
     ASSERT_EQ(partitions.size(), 2);
+#ifdef _LIBCPP_VERSION
+    EXPECT_EQ(partitions[0].size(), 99);
+    EXPECT_EQ(partitions[1].size(), 101);
+#else
     EXPECT_EQ(partitions[0].size(), 102);
     EXPECT_EQ(partitions[1].size(), 98);
+#endif
 }
 
 TEST(partition_user_bins_test, another_edge_case)
