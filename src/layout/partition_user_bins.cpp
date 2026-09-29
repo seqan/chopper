@@ -29,6 +29,7 @@
 #include <hibf/contrib/robin_hood.hpp>
 #include <hibf/layout/compute_relaxed_fpr_correction.hpp>
 #include <hibf/misc/divide_and_ceil.hpp>
+#include <hibf/misc/timer.hpp>
 #include <hibf/sketch/toolbox.hpp>
 
 namespace chopper::layout
@@ -474,8 +475,13 @@ size_t lsh_sim_approach(chopper::configuration const & config,
     std::vector<size_t> max_partition_cardinality(number_of_remaining_tbs, 0u);
     std::vector<size_t> min_partition_cardinality(number_of_remaining_tbs, std::numeric_limits<size_t>::max());
 
+    // lsh_sim_approach runs concurrently for different merged bins. concurrent_timer::start() and stop() are not
+    // thread-safe, only operator+=() is. Hence, time locally and add the result to the configuration's timers.
+    seqan::hibf::serial_timer lsh_algorithm_timer{};
+    seqan::hibf::serial_timer search_partition_algorithm_timer{};
+
     // initial partitioning using locality sensitive hashing (LSH)
-    config.lsh_algorithm_timer.start();
+    lsh_algorithm_timer.start();
     std::vector<Cluster> clusters = very_similar_LSH_clustering(minHash_sketches,
                                                                 sorted_positions2,
                                                                 cardinalities,
@@ -483,7 +489,8 @@ size_t lsh_sim_approach(chopper::configuration const & config,
                                                                 technical_bin_size_threshold,
                                                                 config);
     post_process_clusters(clusters, cardinalities, config);
-    config.lsh_algorithm_timer.stop();
+    lsh_algorithm_timer.stop();
+    config.lsh_algorithm_timer += lsh_algorithm_timer;
 
     // There must be more non-empty clusters than technical bins
     size_t number_of_remaining_clusters = std::ranges::count_if(clusters,
@@ -584,7 +591,7 @@ size_t lsh_sim_approach(chopper::configuration const & config,
     {
         auto const & cluster = remaining_clusters[ridx];
 
-        config.search_partition_algorithm_timer.start();
+        search_partition_algorithm_timer.start();
         find_best_partition(config,
                             number_of_remaining_tbs,
                             merged_threshold,
@@ -595,8 +602,9 @@ size_t lsh_sim_approach(chopper::configuration const & config,
                             partition_sketches,
                             max_partition_cardinality,
                             min_partition_cardinality);
-        config.search_partition_algorithm_timer.stop();
+        search_partition_algorithm_timer.stop();
     }
+    config.search_partition_algorithm_timer += search_partition_algorithm_timer;
 
     // compute actual max size
     size_t max_size{0};
