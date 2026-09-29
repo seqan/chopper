@@ -400,7 +400,7 @@ void fast_layout(chopper::configuration const & config,
     hibf_layout.top_level_max_bin_id = max_bin_id;
 
     config.small_layouts_timer.start();
-#pragma omp parallel
+#pragma omp parallel num_threads(config.hibf_config.threads)
 #pragma omp single
     {
 #pragma omp taskloop
