@@ -11,6 +11,7 @@
 #include <cmath>
 #include <cstddef>
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <limits>
 #include <numeric>
@@ -90,8 +91,8 @@ auto LSH_fill_hashtable(std::vector<Cluster> const & clusters,
     for (auto & [key, list] : table)
     {
         std::ranges::sort(list);
-        auto const ret = std::ranges::unique(list);
-        list.erase(ret.begin(), ret.end());
+        auto const [first, last] = std::ranges::unique(list);
+        list.erase(first, last);
     }
 
     return table;
@@ -231,7 +232,6 @@ std::vector<Cluster> very_similar_LSH_clustering(std::vector<seqan::hibf::sketch
  * \param[in,out] clusters      The clusters returned by very_similar_LSH_clustering. Reordered in place.
  * \param[in]     cardinalities The cardinality of each user bin, indexed by global user bin index.
  * \param[in]     config        The configuration (uses `hibf_config.tmax`).
- * \throws std::runtime_error if an empty cluster ends up before a non-empty one (sanity check).
  *
  * 1. The user bins inside each cluster are sorted by descending cardinality, so `contained_user_bins().front()` is
  *    the largest.
@@ -257,46 +257,32 @@ void post_process_clusters(std::vector<Cluster> & clusters,
         clusters[pos].sort_by_cardinality(cardinalities);
     }
 
+    // The user bins are sorted by cardinality, so the first one is the largest.
+    // Non-empty clusters have cardinality > 0, hence empty clusters are sorted last.
+    auto const largest_user_bin_cardinality = [&cardinalities](Cluster const & c)
+    {
+        return c.empty() ? size_t{} : cardinalities[c.contained_user_bins().front()];
+    };
+
     // push largest p clusters to the front
     std::ranges::partial_sort(clusters,
                               std::ranges::next(clusters.begin(), config.hibf_config.tmax, clusters.end()),
-                              [&cardinalities](auto const & v1, auto const & v2)
+                              std::ranges::greater{},
+                              [&largest_user_bin_cardinality](Cluster const & c)
                               {
-                                  // Note: If v2 is empty, so is v1.
-                                  if (v1.size() == v2.size() && !v2.empty())
-                                      return cardinalities[v1.contained_user_bins().front()]
-                                           > cardinalities[v2.contained_user_bins().front()];
-
-                                  return v1.size() > v2.size();
+                                  return std::tuple{c.size(), largest_user_bin_cardinality(c)};
                               });
 
     // after filling up the partitions with the biggest clusters, sort the clusters by cardinality of the biggest ub
     // s.t. that euqally sizes ub are assigned after each other and the small stuff is added at last.
     // the largest ub is already at the start because of former sorting.
-    std::ranges::sort(std::ranges::next(clusters.begin(), config.hibf_config.tmax, clusters.end()),
-                      clusters.end(),
-                      [&cardinalities](auto const & v1, auto const & v2)
-                      {
-                          if (v1.empty())
-                              return false; // v1 can never be larger than v2 then
-
-                          if (v2.empty()) // and v1 is not, since the first if would catch
-                              return true;
-
-                          return cardinalities[v1.contained_user_bins().front()]
-                               > cardinalities[v2.contained_user_bins().front()];
-                      });
+    std::ranges::sort(clusters | std::views::drop(config.hibf_config.tmax),
+                      std::ranges::greater{},
+                      largest_user_bin_cardinality);
 
     assert(clusters.size() < 2 || clusters[0].size() >= clusters[1].size()); // sanity check
-
-#ifndef NDEBUG
-    for (size_t cidx = 1; cidx < clusters.size(); ++cidx)
-    {
-        // once empty - always empty; all empty clusters should be at the end
-        if (clusters[cidx - 1].empty() && !clusters[cidx].empty())
-            throw std::runtime_error{"sorting did not work"};
-    }
-#endif
+    // once empty - always empty; all empty clusters should be at the end
+    assert(std::ranges::is_partitioned(clusters, std::not_fn(&Cluster::empty)));
 }
 
 /*!\brief Assigns a whole cluster of user bins to the partition where adding it costs the least.

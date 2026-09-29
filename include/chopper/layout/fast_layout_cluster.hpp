@@ -73,12 +73,12 @@ public:
         return last;
     }
 
-    void add_user_bin(size_t user_bin)
+    void add_user_bin(size_t const user_bin)
     {
         user_bins.push_back(user_bin);
     }
 
-    bool is_valid(size_t id) const
+    bool is_valid(size_t const id) const
     {
         bool const ids_equal = representative_id == id;
         bool const properly_moved = has_been_moved() && empty();
@@ -96,17 +96,25 @@ public:
 
     void move_to(Cluster & target_cluster)
     {
-        target_cluster.user_bins.insert(target_cluster.user_bins.end(), this->user_bins.begin(), this->user_bins.end());
-        this->user_bins.clear();
+        auto & target = target_cluster.user_bins;
+        auto & source = this->user_bins;
+#if __cpp_lib_containers_ranges
+        target.append_range(source);
+#else
+        target.insert(target.end(), source.cbegin(), source.cend());
+#endif
+        source = std::vector<size_t>{}; // .clear() AND release memory
+
         moved_id = target_cluster.id();
     }
 
     void sort_by_cardinality(std::vector<size_t> const & cardinalities)
     {
         std::ranges::sort(user_bins,
-                          [&cardinalities](auto const & v1, auto const & v2)
+                          std::ranges::greater{},
+                          [&cardinalities](size_t const i)
                           {
-                              return cardinalities[v1] > cardinalities[v2];
+                              return cardinalities[i];
                           });
     }
 };
