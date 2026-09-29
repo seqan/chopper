@@ -574,7 +574,7 @@ size_t lsh_sim_approach(chopper::configuration const & config,
         if (clusters[i].empty())
             break;
 
-        remaining_clusters.insert(remaining_clusters.end(), clusters[i].contained_user_bins());
+        remaining_clusters.push_back(clusters[i].contained_user_bins());
     }
 
     // assign the rest by similarity
