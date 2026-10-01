@@ -66,15 +66,20 @@ std::vector<std::vector<std::string>> read_filenames_from(std::istream & stream)
     return filenames;
 }
 
-std::tuple<std::vector<std::vector<std::string>>, configuration, seqan::hibf::layout::layout>
-read_layout_file(std::istream & stream)
+std::tuple<std::vector<std::vector<std::string>>, configuration, std::vector<seqan::hibf::layout::layout>>
+read_layouts_file(std::istream & stream)
 {
     std::vector<std::vector<std::string>> filenames = chopper::layout::read_filenames_from(stream);
     chopper::configuration chopper_config;
     chopper_config.read_from(stream);
-    seqan::hibf::layout::layout hibf_layout{};
-    hibf_layout.read_from(stream);
-    return std::make_tuple(std::move(filenames), std::move(chopper_config), std::move(hibf_layout));
+    std::vector<seqan::hibf::layout::layout> layouts;
+    while (stream.good())
+    {
+        seqan::hibf::layout::layout hibf_layout{};
+        hibf_layout.read_from(stream);
+        layouts.push_back(std::move(hibf_layout));
+    }
+    return std::make_tuple(std::move(filenames), std::move(chopper_config), std::move(layouts));
 }
 
 } // namespace chopper::layout
