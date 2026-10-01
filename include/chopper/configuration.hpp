@@ -50,6 +50,23 @@ struct configuration
     bool precomputed_files{false};
     //!\}
 
+    /*!\name Partitioned HIBF configuration
+     * \{
+     */
+    //!\brief The number of partitions for the HIBF index. 1 computes a single HIBF layout.
+    size_t number_of_partitions{1};
+
+    //!\brief The partitioning approach. See chopper::layout::phibf::partitioning_scheme.
+    int partitioning_approach{};
+
+    /*!\brief Whether `hibf_config.tmax` was given by the user. Not serialised.
+     *
+     * If set, every partition of a partitioned HIBF is laid out with `hibf_config.tmax`. Otherwise, the tmax of each
+     * partition is chosen based on its number of user bins.
+     */
+    bool tmax_is_set{false};
+    //!\}
+
     /*!\name Configuration of size estimates
      * \{
      */
@@ -111,7 +128,8 @@ private:
     void serialize(archive_t & archive)
     {
         // Version 3 added fast_layout.
-        uint32_t version{3};
+        // Version 4 added the partitioned HIBF configuration.
+        uint32_t version{4};
         archive(CEREAL_NVP(version));
 
         archive(CEREAL_NVP(data_file));
@@ -126,9 +144,14 @@ private:
         archive(CEREAL_NVP(determine_best_tmax));
         archive(CEREAL_NVP(force_all_binnings));
 
-        // Files written before version 3 do not contain this field. Reading it unconditionally would throw.
         if (version >= 3)
             archive(CEREAL_NVP(fast_layout));
+
+        if (version >= 4)
+        {
+            archive(CEREAL_NVP(number_of_partitions));
+            archive(CEREAL_NVP(partitioning_approach));
+        }
     }
 };
 

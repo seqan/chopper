@@ -161,6 +161,8 @@ public:
 };
 
 /*!\brief Returns the position of the representative cluster of `clusters[current_id]`.
+ * \tparam    cluster_t  The cluster type. Cluster or a type with the same interface, e.g., the MultiCluster of the
+ *                       partitioned HIBF.
  * \param[in] clusters   The clusters. The cluster at position `i` must have id `i`, see Cluster.
  * \param[in] current_id The position of the cluster to start from.
  * \returns The position of the representative cluster, i.e., the valid cluster that holds the user bins of
@@ -168,9 +170,10 @@ public:
  *
  * Follows the chain of moves, starting at `clusters[current_id]`. See Cluster for valid and moved clusters.
  */
-inline size_t LSH_find_representative_cluster(std::vector<Cluster> const & clusters, size_t current_id)
+template <typename cluster_t>
+size_t LSH_find_representative_cluster(std::vector<cluster_t> const & clusters, size_t current_id)
 {
-    std::reference_wrapper<Cluster const> representative = clusters[current_id];
+    std::reference_wrapper<cluster_t const> representative = clusters[current_id];
 
     assert(representative.get().is_valid(current_id));
 

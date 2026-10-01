@@ -19,6 +19,8 @@ chopper::configuration generate_config()
     config.window_size = 24;
     config.disable_sketch_output = true;
     config.precomputed_files = true;
+    config.number_of_partitions = 4;
+    config.partitioning_approach = 6;
     config.output_filename = "file.layout";
     config.determine_best_tmax = true;
     config.force_all_binnings = true;
@@ -52,6 +54,8 @@ bool operator==(chopper::configuration const & lhs, chopper::configuration const
            lhs.window_size == rhs.window_size &&                                                   //
            lhs.disable_sketch_output == rhs.disable_sketch_output &&                               //
            lhs.precomputed_files == rhs.precomputed_files &&                                       //
+           lhs.number_of_partitions == rhs.number_of_partitions &&                                 //
+           lhs.partitioning_approach == rhs.partitioning_approach &&                               //
            lhs.output_filename == rhs.output_filename &&                                           //
            lhs.determine_best_tmax == rhs.determine_best_tmax &&                                   //
            lhs.force_all_binnings == rhs.force_all_binnings &&                                     //
@@ -74,7 +78,7 @@ bool operator==(chopper::configuration const & lhs, chopper::configuration const
 static constexpr std::string_view config_string_view{"@CHOPPER_CONFIG\n"
                                                      "@{\n"
                                                      "@    \"chopper_config\": {\n"
-                                                     "@        \"version\": 3,\n"
+                                                     "@        \"version\": 4,\n"
                                                      "@        \"data_file\": {\n"
                                                      "@            \"value0\": \"/path/to/data.file\"\n"
                                                      "@        },\n"
@@ -91,7 +95,9 @@ static constexpr std::string_view config_string_view{"@CHOPPER_CONFIG\n"
                                                      "@        },\n"
                                                      "@        \"determine_best_tmax\": true,\n"
                                                      "@        \"force_all_binnings\": true,\n"
-                                                     "@        \"fast_layout\": true\n"
+                                                     "@        \"fast_layout\": true,\n"
+                                                     "@        \"number_of_partitions\": 4,\n"
+                                                     "@        \"partitioning_approach\": 6\n"
                                                      "@    }\n"
                                                      "@}\n"
                                                      "@CHOPPER_CONFIG_END\n"
@@ -165,8 +171,12 @@ TEST(config_test, read_from_version_2)
         config_string.replace(pos, from.size(), to);
     };
 
-    replace("\"version\": 3,\n@        \"data_file\"", "\"version\": 2,\n@        \"data_file\"");
-    replace("\"force_all_binnings\": true,\n@        \"fast_layout\": true\n", "\"force_all_binnings\": true\n");
+    replace("\"version\": 4,\n@        \"data_file\"", "\"version\": 2,\n@        \"data_file\"");
+    replace("\"force_all_binnings\": true,\n"
+            "@        \"fast_layout\": true,\n"
+            "@        \"number_of_partitions\": 4,\n"
+            "@        \"partitioning_approach\": 6\n",
+            "\"force_all_binnings\": true\n");
 
     std::stringstream ss{config_string};
 
@@ -175,12 +185,46 @@ TEST(config_test, read_from_version_2)
 
     chopper::configuration expected{generate_config()};
     expected.fast_layout = false;
+    expected.number_of_partitions = 1;
+    expected.partitioning_approach = 0;
+
+    EXPECT_EQ(config, expected);
+}
+
+// Configs written before version 4 do not contain the partitioned HIBF fields.
+TEST(config_test, read_from_version_3)
+{
+    std::string config_string{config_string_view};
+
+    auto erase_line = [&config_string](std::string_view const line)
+    {
+        size_t const pos = config_string.find(line);
+        ASSERT_NE(pos, std::string::npos) << line;
+        config_string.erase(pos, line.size());
+    };
+    erase_line(",\n@        \"number_of_partitions\": 4");
+    erase_line(",\n@        \"partitioning_approach\": 6");
+
+    std::string_view const version_4{"@        \"version\": 4,\n"};
+    size_t const pos = config_string.find(version_4);
+    ASSERT_NE(pos, std::string::npos);
+    config_string.replace(pos, version_4.size(), "@        \"version\": 3,\n");
+
+    std::stringstream ss{config_string};
+
+    chopper::configuration config;
+    config.read_from(ss);
+
+    // The fields are not read and keep their default values.
+    chopper::configuration expected{generate_config()};
+    expected.number_of_partitions = 1;
+    expected.partitioning_approach = 0;
 
     EXPECT_EQ(config, expected);
 }
 
 // Easier to do in the config_test because of existing helper functions
-TEST(input, read_layout_file)
+TEST(input, read_layouts_file)
 {
     std::string config_string{"@CHOPPER_USER_BINS\n"
                               "@0 file1.fa\n"
@@ -200,7 +244,10 @@ TEST(input, read_layout_file)
 
     std::stringstream ss{config_string};
 
-    auto [filenames, config, layout] = chopper::layout::read_layout_file(ss);
+    auto [filenames, config, layouts] = chopper::layout::read_layouts_file(ss);
+
+    ASSERT_EQ(layouts.size(), 1u);
+    auto const & layout = layouts[0];
 
     std::vector<std::vector<std::string>> const expected_filenames{{"file1.fa"},
                                                                    {"file2.fa"},
