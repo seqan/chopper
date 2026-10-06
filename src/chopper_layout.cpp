@@ -168,17 +168,17 @@ int chopper_layout(chopper::configuration & config, sharg::parser & parser)
                       << "union_estimation_in_seconds\t"
                       << "rearrangement_in_seconds\t"
                       << "lsh_in_seconds\t"
-                      << "initial_partition_timer_in_seconds\t"
+                      << "top_level_lsh_distribution_timer_in_seconds\t"
                       << "small_layouts_timer_in_seconds\t"
-                      << "search_best_p_in_seconds\n";
+                      << "find_best_technical_bin_algorithm_in_seconds\n";
         output_stream << config.compute_sketches_timer.in_seconds() << '\t';
         output_stream << config.dp_algorithm_timer.in_seconds() << '\t';
         output_stream << config.union_estimation_timer.in_seconds() << '\t';
         output_stream << config.rearrangement_timer.in_seconds() << '\t';
         output_stream << config.lsh_algorithm_timer.in_seconds() << '\t';
-        output_stream << config.initial_partition_timer.in_seconds() << '\t';
+        output_stream << config.top_level_lsh_distribution_timer.in_seconds() << '\t';
         output_stream << config.small_layouts_timer.in_seconds() << '\t';
-        output_stream << config.search_partition_algorithm_timer.in_seconds() << '\n';
+        output_stream << config.find_best_technical_bin_algorithm_timer.in_seconds() << '\n';
     }
 
     return exit_code;

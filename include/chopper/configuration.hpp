@@ -82,19 +82,21 @@ struct configuration
     mutable seqan::hibf::concurrent_timer dp_algorithm_timer{};
     /*!\brief Fast layout: time spent in LSH clustering (`lsh_in_seconds` in the timing output).
      *
-     * Summed over all partitionings, including concurrent ones, so it can exceed the wall-clock time.
+     * Summed over all calls of lsh_distributed_ibf_layout, including concurrent ones, so it can exceed the wall-clock
+     * time.
      */
     mutable seqan::hibf::concurrent_timer lsh_algorithm_timer{};
-    /*!\brief Fast layout: time spent assigning clusters to partitions by similarity (`search_best_p_in_seconds` in
+    /*!\brief Fast layout: time spent assigning clusters to technical bins by similarity (`search_best_p_in_seconds` in
      *        the timing output).
      *
-     * Summed over all partitionings, including concurrent ones, so it can exceed the wall-clock time.
+     * Summed over all calls of lsh_distributed_ibf_layout, including concurrent ones, so it can exceed the wall-clock
+     * time.
      */
-    mutable seqan::hibf::concurrent_timer search_partition_algorithm_timer{};
-    /*!\brief Fast layout: time for partitioning the top level (`initial_partition_timer_in_seconds` in the timing
-     *        output).
+    mutable seqan::hibf::concurrent_timer find_best_technical_bin_algorithm_timer{};
+    /*!\brief Fast layout: time for distributing the user bins onto the technical bins of the top level
+     *        (`top_level_lsh_distribution_timer_in_seconds` in the timing output).
      */
-    mutable seqan::hibf::concurrent_timer initial_partition_timer{};
+    mutable seqan::hibf::concurrent_timer top_level_lsh_distribution_timer{};
     //!\brief Fast layout: time for laying out all lower levels (`small_layouts_timer_in_seconds` in the timing output).
     mutable seqan::hibf::concurrent_timer small_layouts_timer{};
 

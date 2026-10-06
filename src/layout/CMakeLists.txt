@@ -12,8 +12,8 @@ add_library (chopper_layout STATIC
              hibf_statistics.cpp
              ibf_query_cost.cpp
              input.cpp
+             lsh_distributed_ibf_layout.cpp
              output.cpp
-             partition_user_bins.cpp
 )
 target_link_libraries (chopper_layout PUBLIC chopper::shared)
 add_library (chopper::layout ALIAS chopper_layout)

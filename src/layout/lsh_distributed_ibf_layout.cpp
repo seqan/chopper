@@ -23,7 +23,7 @@
 #include <chopper/layout/determine_split_bins.hpp>
 #include <chopper/layout/fast_layout_cluster.hpp>
 #include <chopper/layout/fast_layout_find_bins_to_be_split.hpp>
-#include <chopper/layout/partition_user_bins.hpp>
+#include <chopper/layout/lsh_distributed_ibf_layout.hpp>
 
 #include <hibf/contrib/robin_hood.hpp>
 #include <hibf/layout/compute_relaxed_fpr_correction.hpp>
@@ -221,7 +221,7 @@ std::vector<Cluster> very_similar_LSH_clustering(std::vector<seqan::hibf::sketch
     return clusters;
 }
 
-/*!\brief Orders the clusters so that lsh_sim_approach can take the leading ones as partition seeds.
+/*!\brief Orders the clusters so that lsh_sim_approach can take the leading ones as technical bin seeds.
  * \param[in,out] clusters      The clusters returned by very_similar_LSH_clustering. Reordered in place.
  * \param[in]     cardinalities The cardinality of each user bin, indexed by global user bin index.
  * \param[in]     config        The configuration (uses `hibf_config.tmax`).
@@ -265,7 +265,7 @@ void post_process_clusters(std::vector<Cluster> & clusters,
                                   return std::tuple{c.size(), largest_user_bin_cardinality(c)};
                               });
 
-    // after filling up the partitions with the biggest clusters, sort the clusters by cardinality of the biggest ub
+    // after filling up the technical bins with the biggest clusters, sort the clusters by cardinality of the biggest ub
     // s.t. that euqally sizes ub are assigned after each other and the small stuff is added at last.
     // the largest ub is already at the start because of former sorting.
     // Empty clusters are sorted last explicitly. Their cardinality key 0 does not suffice, because a non-empty cluster
@@ -282,45 +282,50 @@ void post_process_clusters(std::vector<Cluster> & clusters,
     assert(std::ranges::is_partitioned(clusters, std::not_fn(&Cluster::empty)));
 }
 
-/*!\brief Assigns a whole cluster of user bins to the partition where adding it costs the least.
- * \param[in]     config                      The configuration (uses `hibf_config.tmax` and `sketch_bits`).
- * \param[in]     number_of_partitions        Only partitions `[0, number_of_partitions)` are considered. Must be
- *                                            greater than 0.
- * \param[in,out] corrected_estimate_per_part The current target cardinality per partition. Raised to the chosen
- *                                            partition's new estimate if that is larger.
- * \param[in]     cluster                     The global user bin indices to assign together.
- * \param[in]     cardinalities               The cardinality of each user bin, indexed by global user bin index.
- * \param[in]     sketches                    The HyperLogLog sketch of each user bin, indexed by global user bin index.
- * \param[in,out] partitions                  The user bins per partition. `cluster` is appended to the chosen one.
- * \param[in,out] partition_sketches          The union sketch per partition. Updated for the chosen partition.
- * \param[in,out] max_partition_cardinality   The largest user bin cardinality per partition. Updated.
- * \param[in,out] min_partition_cardinality   The smallest user bin cardinality per partition. Updated.
+/*!\brief Assigns a whole cluster of user bins to the technical bin where adding it costs the least.
+ * \param[in]     config                               The configuration (uses `hibf_config.tmax` and `sketch_bits`).
+ * \param[in]     number_of_technical_bins             Only technical bins `[0, number_of_technical_bins)` are
+ *                                                     considered. Must be greater than 0.
+ * \param[in,out] corrected_estimate_per_technical_bin The current target cardinality per technical bin. Raised to the
+ *                                                     chosen technical bin's new estimate if that is larger.
+ * \param[in]     cluster                              The global user bin indices to assign together.
+ * \param[in]     cardinalities                        The cardinality of each user bin, indexed by global user bin
+ *                                                     index.
+ * \param[in]     sketches                             The HyperLogLog sketch of each user bin, indexed by global user
+ *                                                     bin index.
+ * \param[in,out] technical_bins                       The user bins per technical bin. `cluster` is appended to the
+ *                                                     chosen one.
+ * \param[in,out] technical_bin_sketches               The union sketch per technical bin. Updated for the chosen
+ *                                                     technical bin.
+ * \param[in,out] max_technical_bin_cardinality        The largest user bin cardinality per technical bin. Updated.
+ * \param[in,out] min_technical_bin_cardinality        The smallest user bin cardinality per technical bin. Updated.
  *
- * For each partition p, the cost of adding the cluster is the sum of
- * - `union - |p|`: the new k-mers the cluster adds to p (HyperLogLog estimates),
- * - `tmax * max(0, union - corrected_estimate_per_part)`: growth of the IBF bin size beyond the current target, and
+ * For each technical bin tb, the cost of adding the cluster is the sum of
+ * - `union - |tb|`: the new k-mers the cluster adds to tb (HyperLogLog estimates),
+ * - `tmax * max(0, union - corrected_estimate_per_technical_bin)`: growth of the IBF bin size beyond the current
+ *   target, and
  * - a lower-level penalty depending on `max_card`, the largest user bin cardinality in `cluster`:
- *   - p already holds more than `tmax` user bins (lower level exists): `max_card * log_tmax(#UBs after adding)`,
+ *   - tb already holds more than `tmax` user bins (lower level exists): `max_card * log_tmax(#UBs after adding)`,
  *     an estimate of how often the content is stored again on lower levels;
- *   - adding the cluster pushes p above `tmax` user bins (new lower level): `min(min_p, max_card) * tmax`;
- *   - otherwise: `max_p - max_card` if the cluster is smaller than every user bin in p (wasted space), or
- *     `(max_card - max_p) * tmax` if it is larger than every user bin in p (IBF grows), else 0.
+ *   - adding the cluster pushes tb above `tmax` user bins (new lower level): `min(min_tb, max_card) * tmax`;
+ *   - otherwise: `max_tb - max_card` if the cluster is smaller than every user bin in tb (wasted space), or
+ *     `(max_card - max_tb) * tmax` if it is larger than every user bin in tb (IBF grows), else 0.
  *
- * The partition with the smallest cost is chosen. A partition with zero cost always replaces the current best, so if
- * several have zero cost, the last one wins.
+ * The technical bin with the smallest cost is chosen. A technical bin with zero cost always replaces the current best,
+ * so if several have zero cost, the last one wins.
  */
-void find_best_partition(chopper::configuration const & config,
-                         size_t const number_of_partitions,
-                         size_t & corrected_estimate_per_part,
-                         std::vector<size_t> const & cluster,
-                         std::vector<size_t> const & cardinalities,
-                         std::vector<seqan::hibf::sketch::hyperloglog> const & sketches,
-                         std::vector<std::vector<size_t>> & partitions,
-                         std::vector<seqan::hibf::sketch::hyperloglog> & partition_sketches,
-                         std::vector<size_t> & max_partition_cardinality,
-                         std::vector<size_t> & min_partition_cardinality)
+void find_best_technical_bin(chopper::configuration const & config,
+                             size_t const number_of_technical_bins,
+                             size_t & corrected_estimate_per_technical_bin,
+                             std::vector<size_t> const & cluster,
+                             std::vector<size_t> const & cardinalities,
+                             std::vector<seqan::hibf::sketch::hyperloglog> const & sketches,
+                             std::vector<std::vector<size_t>> & technical_bins,
+                             std::vector<seqan::hibf::sketch::hyperloglog> & technical_bin_sketches,
+                             std::vector<size_t> & max_technical_bin_cardinality,
+                             std::vector<size_t> & min_technical_bin_cardinality)
 {
-    assert(number_of_partitions > 0u);
+    assert(number_of_technical_bins > 0u);
 
     seqan::hibf::sketch::hyperloglog const current_sketch = [&sketches, &cluster, &config]()
     {
@@ -342,30 +347,31 @@ void find_best_partition(chopper::configuration const & config,
         return max;
     }();
 
-    // Search best partition fit by similarity. Similarity here is defined as:
-    // "whose (<-partition) effective text size is subsumed most by the current user bin". Or in other words:
-    // "which partition has the largest intersection with user bin b compared to its own (partition) size."
+    // Search best technical bin fit by similarity. Similarity here is defined as:
+    // "whose (<-technical bin) effective text size is subsumed most by the current user bin". Or in other words:
+    // "which technical bin has the largest intersection with user bin b compared to its own (technical bin) size."
     size_t smallest_change{std::numeric_limits<size_t>::max()};
-    size_t best_p{0};
+    size_t best_tb{0}; // best technical bin
 
-    auto penalty_lower_level = [&](size_t const additional_number_of_user_bins, size_t const p) -> size_t
+    auto penalty_lower_level = [&](size_t const additional_number_of_user_bins, size_t const tb) -> size_t
     {
-        assert(partitions[p].size() != 0); // partitions should be initialised beforehand
-        size_t const min = min_partition_cardinality[p];
-        size_t const max = max_partition_cardinality[p];
+        assert(technical_bins[tb].size() != 0); // technical_bins should be initialised beforehand
+        size_t const min = min_technical_bin_cardinality[tb];
+        size_t const max = max_technical_bin_cardinality[tb];
 
-        if (partitions[p].size() > config.hibf_config.tmax) // already a third level
+        if (technical_bins[tb].size() > config.hibf_config.tmax) // already a third level
         {
             // if there must already be another lower level because the current merged bin contains more than tmax
             // user bins, then the current user bin is very likely stored multiple times. Therefore, the penalty is set
             // to the cardinality of the current user bin times the number of levels, e.g. the number of times this user
             // bin needs to be stored additionally
-            size_t const num_ubs_in_merged_bin{partitions[p].size() + additional_number_of_user_bins};
+            size_t const num_ubs_in_merged_bin{technical_bins[tb].size() + additional_number_of_user_bins};
             double const levels = std::log(num_ubs_in_merged_bin) / std::log(config.hibf_config.tmax);
             return static_cast<size_t>(max_card * levels);
         }
-        else if (partitions[p].size() + additional_number_of_user_bins > config.hibf_config.tmax) // now a third level
+        else if (technical_bins[tb].size() + additional_number_of_user_bins > config.hibf_config.tmax)
         {
+            // now a third level
             // if the current merged bin contains exactly tmax UBS, adding otherone must
             // result in another lower level. Most likely, the smallest user bin will end up on the lower level
             // therefore the penalty is set to 'min * tmax'
@@ -374,7 +380,7 @@ void find_best_partition(chopper::configuration const & config,
             size_t const penalty = std::min(min, max_card) * config.hibf_config.tmax;
             return penalty;
         }
-        else // partitions[p].size() + additional_number_of_user_bins <= tmax
+        else // technical_bins[tb].size() + additional_number_of_user_bins <= tmax
         {
             // if the new user bin is smaller than all other already contained user bins
             // the waste of space is high if stored in a single technical bin
@@ -389,41 +395,46 @@ void find_best_partition(chopper::configuration const & config,
         return 0u;
     };
 
-    for (size_t p = 0; p < number_of_partitions; ++p)
+    for (size_t tb = 0; tb < number_of_technical_bins; ++tb)
     {
         seqan::hibf::sketch::hyperloglog union_sketch = current_sketch;
-        union_sketch.merge(partition_sketches[p]);
+        union_sketch.merge(technical_bin_sketches[tb]);
         size_t const union_estimate = union_sketch.estimate();
-        size_t const current_partition_size = partition_sketches[p].estimate();
+        size_t const current_technical_bin_size = technical_bin_sketches[tb].estimate();
 
         // HyperLogLog estimates are not monotonic under merging: Where the estimate switches from linear counting to
-        // the raw estimate, the union can be estimated smaller than the partition. Clamp to 0 instead of underflowing.
-        size_t const penalty_current_bin = union_estimate - std::min(union_estimate, current_partition_size);
-        size_t const penalty_current_ibf =
-            config.hibf_config.tmax
-            * ((union_estimate <= corrected_estimate_per_part) ? 0u : union_estimate - corrected_estimate_per_part);
-        size_t const change = penalty_current_bin + penalty_current_ibf + penalty_lower_level(cluster.size(), p);
+        // the raw estimate, the union can be estimated smaller than the technical bin. Clamp to 0 instead of
+        // underflowing.
+        size_t const penalty_current_bin = union_estimate - std::min(union_estimate, current_technical_bin_size);
+        size_t const penalty_current_ibf = config.hibf_config.tmax
+                                         * ((union_estimate <= corrected_estimate_per_technical_bin)
+                                                ? 0u
+                                                : union_estimate - corrected_estimate_per_technical_bin);
+        size_t const change = penalty_current_bin + penalty_current_ibf + penalty_lower_level(cluster.size(), tb);
 
-        if (change == 0 || /* If there is no penalty at all, this is a best fit even if the partition is "full"*/
+        if (change == 0 || /* If there is no penalty at all, this is a best fit even if the technical bin is "full"*/
             (smallest_change > change))
         {
             smallest_change = change;
-            best_p = p;
+            best_tb = tb;
         }
     }
 
-    // now that we know which partition fits best (`best_p`), add those indices to it
+    // now that we know which technical bin fits best (`best_tb`), add those indices to it
     for (size_t const user_bin_idx : cluster)
     {
-        partitions[best_p].push_back(user_bin_idx);
-        max_partition_cardinality[best_p] = std::max(max_partition_cardinality[best_p], cardinalities[user_bin_idx]);
-        min_partition_cardinality[best_p] = std::min(min_partition_cardinality[best_p], cardinalities[user_bin_idx]);
+        technical_bins[best_tb].push_back(user_bin_idx);
+        max_technical_bin_cardinality[best_tb] =
+            std::max(max_technical_bin_cardinality[best_tb], cardinalities[user_bin_idx]);
+        min_technical_bin_cardinality[best_tb] =
+            std::min(min_technical_bin_cardinality[best_tb], cardinalities[user_bin_idx]);
     }
-    partition_sketches[best_p].merge(current_sketch);
-    corrected_estimate_per_part = std::max<size_t>(corrected_estimate_per_part, partition_sketches[best_p].estimate());
+    technical_bin_sketches[best_tb].merge(current_sketch);
+    corrected_estimate_per_technical_bin =
+        std::max<size_t>(corrected_estimate_per_technical_bin, technical_bin_sketches[best_tb].estimate());
 }
 
-/*!\brief Distributes the merged-bin candidates onto `number_of_remaining_tbs` partitions by LSH clustering and
+/*!\brief Distributes the merged-bin candidates onto `number_of_remaining_tbs` technical bins by LSH clustering and
  *        similarity-based assignment.
  * \param[in]     config                      The configuration (uses `hibf_config` and the LSH/search timers).
  * \param[in]     sorted_positions2           The global indices of the user bins to distribute, sorted by descending
@@ -431,48 +442,49 @@ void find_best_partition(chopper::configuration const & config,
  * \param[in]     cardinalities               The cardinality of each user bin, indexed by global user bin index.
  * \param[in]     sketches                    The HyperLogLog sketch of each user bin, indexed by global user bin index.
  * \param[in]     minHash_sketches            The MinHash tables of each user bin, indexed by global user bin index.
- * \param[in,out] partitions                  Receives the assignment in `partitions[0, number_of_remaining_tbs)`.
+ * \param[in,out] technical_bins              Receives the assignment in `technical_bins[0, number_of_remaining_tbs)`.
  *                                            Must have at least `number_of_remaining_tbs` entries.
  * \param[in]     number_of_remaining_tbs     The number of technical bins available for merged bins.
  * \param[in]     technical_bin_size_threshold The target cardinality per technical bin. Stops LSH clustering and
- *                                            triggers spill-over while seeding partitions.
+ *                                            triggers spill-over while seeding technical bins.
  * \param[in]     sum_of_cardinalities        The sum of the cardinalities of *all* user bins of this IBF.
- * \returns The largest estimated cardinality of any of the `number_of_remaining_tbs` partitions.
+ * \returns The largest estimated cardinality of any of the `number_of_remaining_tbs` technical bins.
  *
  * 1. **Cluster:** very_similar_LSH_clustering followed by post_process_clusters.
- * 2. **Ensure enough clusters:** If there are fewer non-empty clusters than partitions, user bins are moved out of
+ * 2. **Ensure enough clusters:** If there are fewer non-empty clusters than technical bins, user bins are moved out of
  *    the last cluster with more than one user bin, into their own clusters, until there are enough clusters.
- * 3. **Seed:** Partition p receives the next cluster in order. A cluster is spread over consecutive partitions
- *    whenever `tmax` user bins have been placed or the partition's estimate exceeds `technical_bin_size_threshold`.
+ * 3. **Seed:** Technical bin tb receives the next cluster in order. A cluster is spread over consecutive technical bins
+ *    whenever `tmax` user bins have been placed or the technical bin's estimate exceeds `technical_bin_size_threshold`.
  *    A cluster with more than `tmax` user bins whose total cardinality exceeds `0.05 * sum_of_cardinalities / tmax`
  *    is placed in full. Any other cluster places at most `tmax` user bins. User bins not placed, or left over
- *    because the partitions ran out, go to a list of remaining clusters.
+ *    because the technical bins ran out, go to a list of remaining clusters.
  * 4. **Assign the rest:** Each remaining cluster, plus all clusters that were not used as seeds, is assigned as a
- *    whole by find_best_partition. The per-partition target starts at `technical_bin_size_threshold` and only grows.
+ *    whole by find_best_technical_bin. The per-technical-bin target starts at `technical_bin_size_threshold` and only
+ *    grows.
  */
 size_t lsh_sim_approach(chopper::configuration const & config,
                         std::vector<size_t> const & sorted_positions2,
                         std::vector<size_t> const & cardinalities,
                         std::vector<seqan::hibf::sketch::hyperloglog> const & sketches,
                         std::vector<seqan::hibf::sketch::minhashes> const & minHash_sketches,
-                        std::vector<std::vector<size_t>> & partitions,
+                        std::vector<std::vector<size_t>> & technical_bins,
                         size_t const number_of_remaining_tbs,
                         size_t const technical_bin_size_threshold,
                         size_t const sum_of_cardinalities)
 {
     uint8_t const sketch_bits{config.hibf_config.sketch_bits};
-    std::vector<seqan::hibf::sketch::hyperloglog> partition_sketches(number_of_remaining_tbs,
-                                                                     seqan::hibf::sketch::hyperloglog(sketch_bits));
+    std::vector<seqan::hibf::sketch::hyperloglog> technical_bin_sketches(number_of_remaining_tbs,
+                                                                         seqan::hibf::sketch::hyperloglog(sketch_bits));
 
-    std::vector<size_t> max_partition_cardinality(number_of_remaining_tbs, 0u);
-    std::vector<size_t> min_partition_cardinality(number_of_remaining_tbs, std::numeric_limits<size_t>::max());
+    std::vector<size_t> max_technical_bin_cardinality(number_of_remaining_tbs, 0u);
+    std::vector<size_t> min_technical_bin_cardinality(number_of_remaining_tbs, std::numeric_limits<size_t>::max());
 
     // lsh_sim_approach runs concurrently for different merged bins. concurrent_timer::start() and stop() are not
     // thread-safe, only operator+=() is. Hence, time locally and add the result to the configuration's timers.
     seqan::hibf::serial_timer lsh_algorithm_timer{};
-    seqan::hibf::serial_timer search_partition_algorithm_timer{};
+    seqan::hibf::serial_timer find_best_technical_bin_algorithm_timer{};
 
-    // initial partitioning using locality sensitive hashing (LSH)
+    // initial distribution using locality sensitive hashing (LSH)
     lsh_algorithm_timer.start();
     std::vector<Cluster> clusters = very_similar_LSH_clustering(minHash_sketches,
                                                                 sorted_positions2,
@@ -519,9 +531,9 @@ size_t lsh_sim_approach(chopper::configuration const & config,
 
     std::vector<std::vector<size_t>> remaining_clusters{};
 
-    // initialise partitions with the first p largest clusters (post_processing sorts by size)
+    // initialise technical bins with the first p largest clusters (post_processing sorts by size)
     size_t cidx{0}; // current cluster index
-    for (size_t p = 0; p < number_of_remaining_tbs; ++p)
+    for (size_t tb = 0; tb < number_of_remaining_tbs; ++tb)
     {
         assert(!clusters[cidx].empty());
         auto const & cluster = clusters[cidx].contained_user_bins();
@@ -541,14 +553,14 @@ size_t lsh_sim_approach(chopper::configuration const & config,
         for (size_t uidx = 0; uidx < end; ++uidx)
         {
             size_t const user_bin_idx = cluster[uidx];
-            // if a single cluster already exceeds the cardinality_per_part,
-            // then the remaining user bins of the cluster must spill over into the next partition
+            // if a single cluster already exceeds the technical_bin_size_threshold,
+            // then the remaining user bins of the cluster must spill over into the next technical bin
             if ((uidx != 0 && (uidx % config.hibf_config.tmax == 0))
-                || partition_sketches[p].estimate() > technical_bin_size_threshold)
+                || technical_bin_sketches[tb].estimate() > technical_bin_size_threshold)
             {
-                ++p;
+                ++tb;
 
-                if (p >= number_of_remaining_tbs)
+                if (tb >= number_of_remaining_tbs)
                 {
                     split_cluster = true;
                     end = uidx;
@@ -556,13 +568,15 @@ size_t lsh_sim_approach(chopper::configuration const & config,
                 }
             }
 
-            partition_sketches[p].merge(sketches[user_bin_idx]);
-            partitions[p].push_back(user_bin_idx);
-            max_partition_cardinality[p] = std::max(max_partition_cardinality[p], cardinalities[user_bin_idx]);
-            min_partition_cardinality[p] = std::min(min_partition_cardinality[p], cardinalities[user_bin_idx]);
+            technical_bin_sketches[tb].merge(sketches[user_bin_idx]);
+            technical_bins[tb].push_back(user_bin_idx);
+            max_technical_bin_cardinality[tb] =
+                std::max(max_technical_bin_cardinality[tb], cardinalities[user_bin_idx]);
+            min_technical_bin_cardinality[tb] =
+                std::min(min_technical_bin_cardinality[tb], cardinalities[user_bin_idx]);
         }
 
-        // User bins that were not placed, either because at most tmax are placed or because the partitions ran out.
+        // User bins that were not placed, either because at most tmax are placed or because the technical bins ran out.
         if (end < cluster.size())
             remaining_clusters.emplace_back(cluster.begin() + end, cluster.end());
 
@@ -583,35 +597,35 @@ size_t lsh_sim_approach(chopper::configuration const & config,
     {
         auto const & cluster = remaining_clusters[ridx];
 
-        search_partition_algorithm_timer.start();
-        find_best_partition(config,
-                            number_of_remaining_tbs,
-                            merged_threshold,
-                            cluster,
-                            cardinalities,
-                            sketches,
-                            partitions,
-                            partition_sketches,
-                            max_partition_cardinality,
-                            min_partition_cardinality);
-        search_partition_algorithm_timer.stop();
+        find_best_technical_bin_algorithm_timer.start();
+        find_best_technical_bin(config,
+                                number_of_remaining_tbs,
+                                merged_threshold,
+                                cluster,
+                                cardinalities,
+                                sketches,
+                                technical_bins,
+                                technical_bin_sketches,
+                                max_technical_bin_cardinality,
+                                min_technical_bin_cardinality);
+        find_best_technical_bin_algorithm_timer.stop();
     }
-    config.search_partition_algorithm_timer += search_partition_algorithm_timer;
+    config.find_best_technical_bin_algorithm_timer += find_best_technical_bin_algorithm_timer;
 
     // compute actual max size
     size_t max_size{0};
-    for (auto const & sketch : partition_sketches)
+    for (auto const & sketch : technical_bin_sketches)
         max_size = std::max(max_size, (size_t)sketch.estimate());
 
     return max_size;
 }
 
-void partition_user_bins(chopper::configuration const & config,
-                         std::vector<size_t> const & positions,
-                         std::vector<size_t> const & cardinalities,
-                         std::vector<seqan::hibf::sketch::hyperloglog> const & sketches,
-                         std::vector<seqan::hibf::sketch::minhashes> const & minHash_sketches,
-                         std::vector<std::vector<size_t>> & partitions)
+void lsh_distributed_ibf_layout(chopper::configuration const & config,
+                                std::vector<size_t> const & positions, // user bin indices
+                                std::vector<size_t> const & cardinalities,
+                                std::vector<seqan::hibf::sketch::hyperloglog> const & sketches,
+                                std::vector<seqan::hibf::sketch::minhashes> const & minHash_sketches,
+                                std::vector<std::vector<size_t>> & technical_bins)
 {
     // all approaches need sorted positions
     std::vector<size_t> const sorted_positions = [&positions, &cardinalities]()
@@ -651,7 +665,7 @@ void partition_user_bins(chopper::configuration const & config,
     // (unrealistic but a good starting point. threshold will be revised in a second iteration)
     size_t split_threshold = seqan::hibf::divide_and_ceil(joint_estimate, config.hibf_config.tmax);
 
-    auto partition_split_bins = [&]()
+    auto distribute_split_bins = [&]()
     {
         size_t number_of_potential_split_bins{0};    // determined in find_bins_to_be_split
         size_t max_tbs{config.hibf_config.tmax - 1}; // leave one bin for merging
@@ -671,11 +685,11 @@ void partition_user_bins(chopper::configuration const & config,
                                                   cardinalities,
                                                   number_of_potential_split_bins,
                                                   idx,
-                                                  partitions);
+                                                  technical_bins);
         number_of_merged_tbs = config.hibf_config.tmax - number_of_split_tbs;
     };
 
-    auto partition_merged_bins = [&]()
+    auto distribute_merged_bins = [&]()
     {
         // determine number of split bins
         std::vector<size_t> const sorted_positions2(sorted_positions.begin() + idx, sorted_positions.end());
@@ -689,20 +703,20 @@ void partition_user_bins(chopper::configuration const & config,
                                            cardinalities,
                                            sketches,
                                            minHash_sketches,
-                                           partitions,
+                                           technical_bins,
                                            number_of_merged_tbs,
                                            merged_threshold,
                                            sum_of_cardinalities);
     };
 
-    partition_split_bins();
+    distribute_split_bins();
 
     // All user bins can be assigned as split bins (idx == sorted_positions.size()).
-    // In that case there are no remaining bins to distribute via partition_merged_bins.
+    // In that case there are no remaining bins to distribute via distribute_merged_bins.
     // And no reconfiguration of the threshold needs to be done since splitting is done with an "optimal" DP
     if (idx < sorted_positions.size())
     {
-        partition_merged_bins();
+        distribute_merged_bins();
 
         int64_t const difference =
             static_cast<int64_t>(max_merged_size * relaxed_fpr_correction) - static_cast<int64_t>(max_split_size);
@@ -720,19 +734,19 @@ void partition_user_bins(chopper::configuration const & config,
                                                       / static_cast<double>(max_split_size)));
 
         // reset result
-        partitions.clear();
-        partitions.resize(config.hibf_config.tmax);
+        technical_bins.clear();
+        technical_bins.resize(config.hibf_config.tmax);
         idx = 0;
         number_of_split_tbs = 0;
         number_of_merged_tbs = config.hibf_config.tmax;
         max_split_size = 0;
         max_merged_size = 0;
 
-        partition_split_bins();
+        distribute_split_bins();
         // All user bins can be assigned as split bins (idx == sorted_positions.size()).
-        // In that case there are no remaining bins to distribute via partition_merged_bins.
+        // In that case there are no remaining bins to distribute via distribute_merged_bins.
         if (idx < sorted_positions.size())
-            partition_merged_bins();
+            distribute_merged_bins();
     }
 }
 

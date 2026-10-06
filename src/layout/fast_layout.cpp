@@ -14,7 +14,7 @@
 #include <vector>
 
 #include <chopper/layout/fast_layout.hpp>
-#include <chopper/layout/partition_user_bins.hpp>
+#include <chopper/layout/lsh_distributed_ibf_layout.hpp>
 
 #include <hibf/layout/compute_fpr_correction.hpp>
 #include <hibf/layout/compute_layout.hpp>
@@ -95,22 +95,22 @@ bool do_I_need_a_fast_layout(chopper::configuration const & config,
     return false;
 }
 
-/*!\brief Records an IBF, computed by partition_user_bins, in the layout.
- * \param[in]     config      The configuration (uses the FPR settings of `hibf_config`).
- * \param[in,out] hibf_layout The global layout. Its `user_bins` must be indexed by global user bin index, i.e.,
- *                            `user_bins[i]` describes user bin `i`. The `idx` of each recorded user bin is set.
- * \param[in]     partitions  The technical bins of the new IBF: `partitions[t]` holds the global user bin indices
- *                            in technical bin `t`.
- * \param[in]     sketches    The HyperLogLog sketch of each user bin, indexed by global user bin index.
- * \param[in]     previous    The merged-bin path identifying the new IBF, empty for the top level. Every user bin in
- *                            `partitions` must currently have exactly this path as `previous_TB_indices`.
+/*!\brief Records an IBF, computed by lsh_distributed_ibf_layout, in the layout.
+ * \param[in]     config         The configuration (uses the FPR settings of `hibf_config`).
+ * \param[in,out] hibf_layout    The global layout. Its `user_bins` must be indexed by global user bin index, i.e.,
+ *                               `user_bins[i]` describes user bin `i`. The `idx` of each recorded user bin is set.
+ * \param[in]     technical_bins The technical bins of the new IBF: `technical_bins[t]` holds the global user bin
+ *                               indices in technical bin `t`.
+ * \param[in]     sketches       The HyperLogLog sketch of each user bin, indexed by global user bin index.
+ * \param[in]     previous       The merged-bin path identifying the new IBF, empty for the top level. Every user bin
+ *                               in `technical_bins` must currently have exactly this path as `previous_TB_indices`.
  * \returns The id of the technical bin with the largest FPR-corrected size (relaxed correction for merged bins, split
  *          correction for split bins).
  *
  * - **Merged bin** (more than one user bin): `t` is appended to each user bin's `previous_TB_indices`. Their
  *   `storage_TB_id` is set later, when the next level down is recorded.
  * - **Split or single bin** (one user bin): `storage_TB_id` is set to `t`, and `number_of_technical_bins` to the
- *   number of consecutive technical bins holding the same user bin. partition_user_bins places split bins
+ *   number of consecutive technical bins holding the same user bin. lsh_distributed_ibf_layout places split bins
  *   contiguously.
  * - **Empty technical bins** are skipped.
  *
@@ -118,7 +118,7 @@ bool do_I_need_a_fast_layout(chopper::configuration const & config,
  */
 size_t add_level_to_layout(chopper::configuration const & config,
                            seqan::hibf::layout::layout & hibf_layout,
-                           std::vector<std::vector<size_t>> const & partitions,
+                           std::vector<std::vector<size_t>> const & technical_bins,
                            std::vector<seqan::hibf::sketch::hyperloglog> const & sketches,
                            [[maybe_unused]] std::vector<size_t> const & previous)
 {
@@ -128,7 +128,7 @@ size_t add_level_to_layout(chopper::configuration const & config,
     auto const split_fpr_correction =
         seqan::hibf::layout::compute_fpr_correction({.fpr = config.hibf_config.maximum_fpr, //
                                                      .hash_count = config.hibf_config.number_of_hash_functions,
-                                                     .t_max = partitions.size()});
+                                                     .t_max = technical_bins.size()});
 
     double const relaxed_fpr_correction = seqan::hibf::layout::compute_relaxed_fpr_correction(
         {.fpr = config.hibf_config.maximum_fpr, //
@@ -136,23 +136,23 @@ size_t add_level_to_layout(chopper::configuration const & config,
          .hash_count = config.hibf_config.number_of_hash_functions});
 
     // we assume here that the user bins have been sorted by user bin id such that pos = idx
-    for (size_t partition_idx{0}; partition_idx < partitions.size(); ++partition_idx)
+    for (size_t technical_bin_idx{0}; technical_bin_idx < technical_bins.size(); ++technical_bin_idx)
     {
-        auto const & partition = partitions[partition_idx];
+        auto const & technical_bin = technical_bins[technical_bin_idx];
 
-        if (partition.size() > 1) // merged bin
+        if (technical_bin.size() > 1) // merged bin
         {
             seqan::hibf::sketch::hyperloglog current_sketch{sketches[0]}; // ensure same bit size
             current_sketch.reset();
 
-            for (size_t const user_bin_id : partition)
+            for (size_t const user_bin_id : technical_bin)
             {
                 auto & current_user_bin = hibf_layout.user_bins[user_bin_id];
 
                 // update
                 assert(previous == current_user_bin.previous_TB_indices);
                 current_user_bin.idx = user_bin_id;
-                current_user_bin.previous_TB_indices.push_back(partition_idx);
+                current_user_bin.previous_TB_indices.push_back(technical_bin_idx);
                 current_sketch.merge(sketches[user_bin_id]);
             }
 
@@ -160,28 +160,28 @@ size_t add_level_to_layout(chopper::configuration const & config,
             size_t const current_size = current_sketch.estimate() * relaxed_fpr_correction;
             if (current_size > max_size)
             {
-                max_bin_id = partition_idx;
+                max_bin_id = technical_bin_idx;
                 max_size = current_size;
             }
         }
-        else if (partition.size() == 0) // should not happen.. dge case?
+        else if (technical_bin.size() == 0) // should not happen.. dge case?
         {
             continue;
         }
-        else // single or split bin (partition.size() == 1)
+        else // single or split bin (technical_bin.size() == 1)
         {
-            auto & current_user_bin = hibf_layout.user_bins[partitions[partition_idx][0]];
+            auto & current_user_bin = hibf_layout.user_bins[technical_bins[technical_bin_idx][0]];
             assert(previous == current_user_bin.previous_TB_indices);
-            current_user_bin.idx = partitions[partition_idx][0];
-            current_user_bin.storage_TB_id = partition_idx;
+            current_user_bin.idx = technical_bins[technical_bin_idx][0];
+            current_user_bin.storage_TB_id = technical_bin_idx;
             current_user_bin.number_of_technical_bins = 1; // initialise to 1
 
-            while (partition_idx + 1 < partitions.size() && partitions[partition_idx].size() == 1
-                   && partitions[partition_idx + 1].size() == 1
-                   && partitions[partition_idx][0] == partitions[partition_idx + 1][0])
+            while (technical_bin_idx + 1 < technical_bins.size() && technical_bins[technical_bin_idx].size() == 1
+                   && technical_bins[technical_bin_idx + 1].size() == 1
+                   && technical_bins[technical_bin_idx][0] == technical_bins[technical_bin_idx + 1][0])
             {
                 ++current_user_bin.number_of_technical_bins;
-                ++partition_idx;
+                ++technical_bin_idx;
             }
 
             // update max_bin_id, max_size
@@ -246,10 +246,10 @@ void update_layout_from_child_layout(seqan::hibf::layout::layout & child_layout,
  * \param[in,out] hibf_layout      The global layout, updated in place.
  * \param[in]     previous         The merged-bin path of this IBF.
  *
- * Partitions `positions` into `tmax` technical bins (partition_user_bins) and records them (add_level_to_layout).
- * Each resulting merged bin is then handled like in fast_layout: another fast-layout recursion or a general_layout,
- * decided by do_I_need_a_fast_layout. The recursion runs sequentially within the calling OpenMP task. Only the
- * updates to `hibf_layout` are in critical sections.
+ * Distributes `positions` into `tmax` technical bins (lsh_distributed_ibf_layout) and records them
+ * (add_level_to_layout). Each resulting merged bin is then handled like in fast_layout: another fast-layout recursion
+ * or a general_layout, decided by do_I_need_a_fast_layout. The recursion runs sequentially within the calling OpenMP
+ * task. Only the updates to `hibf_layout` are in critical sections.
  */
 void fast_layout_recursion(chopper::configuration const & config,
                            std::vector<size_t> const & positions,
@@ -259,34 +259,34 @@ void fast_layout_recursion(chopper::configuration const & config,
                            seqan::hibf::layout::layout & hibf_layout,
                            std::vector<size_t> const & previous)
 {
-    std::vector<std::vector<size_t>> tmax_partitions(config.hibf_config.tmax);
+    std::vector<std::vector<size_t>> current_level_ibf(config.hibf_config.tmax);
 
     // here we assume that we want to start with a fast layout
-    partition_user_bins(config, positions, cardinalities, sketches, minHash_sketches, tmax_partitions);
+    lsh_distributed_ibf_layout(config, positions, cardinalities, sketches, minHash_sketches, current_level_ibf);
 
 #pragma omp critical
     {
-        size_t const max_bin_id = add_level_to_layout(config, hibf_layout, tmax_partitions, sketches, previous);
+        size_t const max_bin_id = add_level_to_layout(config, hibf_layout, current_level_ibf, sketches, previous);
         hibf_layout.max_bins.emplace_back(previous, max_bin_id); // add lower level meta information
     }
 
-    for (size_t partition_idx = 0; partition_idx < tmax_partitions.size(); ++partition_idx)
+    for (size_t technical_bin_idx = 0; technical_bin_idx < current_level_ibf.size(); ++technical_bin_idx)
     {
-        auto const & partition = tmax_partitions[partition_idx];
+        auto const & technical_bin = current_level_ibf[technical_bin_idx];
         auto const new_previous = [&]()
         {
             auto cpy{previous};
-            cpy.push_back(partition_idx);
+            cpy.push_back(technical_bin_idx);
             return cpy;
         }();
 
-        if (partition.empty() || partition.size() == 1) // nothing to merge
+        if (technical_bin.empty() || technical_bin.size() == 1) // nothing to merge
             continue;
 
-        if (do_I_need_a_fast_layout(config, partition, cardinalities))
+        if (do_I_need_a_fast_layout(config, technical_bin, cardinalities))
         {
             fast_layout_recursion(config,
-                                  partition,
+                                  technical_bin,
                                   cardinalities,
                                   sketches,
                                   minHash_sketches,
@@ -295,7 +295,7 @@ void fast_layout_recursion(chopper::configuration const & config,
         }
         else
         {
-            auto child_layout = general_layout(config, partition, cardinalities, sketches);
+            auto child_layout = general_layout(config, technical_bin, cardinalities, sketches);
 
 #pragma omp critical
             {
@@ -312,46 +312,46 @@ void fast_layout(chopper::configuration const & config,
                  std::vector<seqan::hibf::sketch::minhashes> const & minHash_sketches,
                  seqan::hibf::layout::layout & hibf_layout)
 {
-    std::vector<std::vector<size_t>> tmax_partitions(config.hibf_config.tmax);
+    std::vector<std::vector<size_t>> top_level_ibf(config.hibf_config.tmax);
 
     // here we assume that we want to start with a fast layout
-    config.initial_partition_timer.start();
-    partition_user_bins(config, positions, cardinalities, sketches, minHash_sketches, tmax_partitions);
-    config.initial_partition_timer.stop();
+    config.top_level_lsh_distribution_timer.start();
+    lsh_distributed_ibf_layout(config, positions, cardinalities, sketches, minHash_sketches, top_level_ibf);
+    config.top_level_lsh_distribution_timer.stop();
 
     // initialise user bins in layout
     hibf_layout.user_bins.resize(config.hibf_config.number_of_user_bins);
-    hibf_layout.top_level_max_bin_id = add_level_to_layout(config, hibf_layout, tmax_partitions, sketches, {});
+    hibf_layout.top_level_max_bin_id = add_level_to_layout(config, hibf_layout, top_level_ibf, sketches, {});
 
     config.small_layouts_timer.start();
 #pragma omp parallel num_threads(config.hibf_config.threads)
 #pragma omp single
     {
 #pragma omp taskloop
-        for (size_t partition_idx = 0; partition_idx < tmax_partitions.size(); ++partition_idx)
+        for (size_t technical_bin_idx = 0; technical_bin_idx < top_level_ibf.size(); ++technical_bin_idx)
         {
-            auto const & partition = tmax_partitions[partition_idx];
+            auto const & technical_bin = top_level_ibf[technical_bin_idx];
 
-            if (partition.empty() || partition.size() == 1) // nothing to merge
+            if (technical_bin.empty() || technical_bin.size() == 1) // nothing to merge
                 continue;
 
-            if (do_I_need_a_fast_layout(config, partition, cardinalities))
+            if (do_I_need_a_fast_layout(config, technical_bin, cardinalities))
             {
                 fast_layout_recursion(config,
-                                      partition,
+                                      technical_bin,
                                       cardinalities,
                                       sketches,
                                       minHash_sketches,
                                       hibf_layout,
-                                      {partition_idx}); // recurse fast_layout
+                                      {technical_bin_idx}); // recurse fast_layout
             }
             else
             {
-                auto small_layout = general_layout(config, partition, cardinalities, sketches);
+                auto small_layout = general_layout(config, technical_bin, cardinalities, sketches);
 
 #pragma omp critical
                 {
-                    update_layout_from_child_layout(small_layout, hibf_layout, std::vector<size_t>{partition_idx});
+                    update_layout_from_child_layout(small_layout, hibf_layout, std::vector<size_t>{technical_bin_idx});
                 }
             }
         }

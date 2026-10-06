@@ -27,7 +27,7 @@
 namespace
 {
 
-// splitmix64 finaliser, see partition_user_bins_test.cpp.
+// splitmix64 finaliser, see lsh_distributed_ibf_layout_test.cpp.
 uint64_t scramble(uint64_t x)
 {
     x += 0x9e3779b97f4a7c15ULL;

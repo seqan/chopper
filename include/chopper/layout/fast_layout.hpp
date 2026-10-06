@@ -29,7 +29,7 @@ namespace chopper::layout
  * \param[out] hibf_layout      The resulting layout. Expected to be empty on entry. `user_bins` is resized to
  *                              `number_of_user_bins`, so `user_bins[i].idx == i`.
  *
- * 1. **Top level:** partition_user_bins distributes all user bins onto `tmax` technical bins. The user bins are
+ * 1. **Top level:** lsh_distributed_ibf_layout distributes all user bins onto `tmax` technical bins. The user bins are
  *    initialised in `hibf_layout`: merged bins get `previous_TB_indices = {t}`; split and single bins get
  *    `storage_TB_id` and their number of consecutive technical bins. `top_level_max_bin_id` is set to the technical
  *    bin with the largest FPR-corrected size.
