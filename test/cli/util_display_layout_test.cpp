@@ -231,3 +231,44 @@ LEVEL	BIT_SIZE	IBFS	AVG_LOAD_FACTOR	TBS_TOO_BIG	AVG_TBS_TOO_BIG_ELEMENTS	AVG_MAX
     std::string const actual_file{string_from_file(sizes_filename)};
     EXPECT_EQ(expected_general_file, actual_file);
 }
+
+TEST_F(cli_test, display_layout_invalid_layout)
+{
+    std::string const seq1_filename = data("seq1.fa");
+    std::string const seq2_filename = data("seq2.fa");
+    std::string const seq3_filename = data("seq3.fa");
+    std::string const small_filename = data("small.fa");
+    seqan3::test::tmp_directory tmp_dir{};
+    std::filesystem::path const layout_filename{tmp_dir.path() / "invalid.layout"};
+    std::filesystem::path const output_filename{tmp_dir.path() / "invalid.layout.out"};
+
+    {
+        std::string layout = get_layout_with_correct_filenames(seq1_filename,
+                                                               seq2_filename,
+                                                               seq3_filename,
+                                                               small_filename,
+                                                               layout_filename.string());
+        // Remove user bin 3. It is the last line of the layout.
+        size_t const user_bin_3 = layout.rfind("3\t2\t2\n");
+        ASSERT_NE(user_bin_3, std::string::npos);
+        layout.erase(user_bin_3);
+
+        std::ofstream fout{layout_filename};
+        fout << layout;
+    }
+
+    for (char const * const subcommand : {"general", "sizes"})
+    {
+        cli_test_result result = execute_app("display_layout",
+                                             subcommand,
+                                             "--input",
+                                             layout_filename.c_str(),
+                                             "--output",
+                                             output_filename.c_str());
+
+        EXPECT_NE(result.exit_code, 0) << subcommand;
+        EXPECT_EQ(result.out, std::string{}) << subcommand;
+        EXPECT_EQ(result.err, std::string{"[ERROR] [HIBF LAYOUT ERROR] User bin 3 is missing from the layout.\n"})
+            << subcommand;
+    }
+}
