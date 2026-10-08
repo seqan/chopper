@@ -14,6 +14,14 @@
 #include "../api/api_test.hpp"
 #include "cli_test.hpp"
 
+// display_layout validates the layout. The layout below has tmax 4; the build rounds each IBF up to 64 technical bins,
+// so each IBF ends with 60 empty technical bins instead of none (unexpected_empty_bins).
+std::string const expected_validation_warnings{
+    "[HIBF LAYOUT WARNING] The Root-IBF ends with 60 empty technical bins, but 0 are expected. There is a total of 64 "
+    "technical bins and the empty_bin_fraction is 0.\n"
+    "[HIBF LAYOUT WARNING] IBF 0 ends with 60 empty technical bins, but 0 are expected. There is a total of 64 "
+    "technical bins and the empty_bin_fraction is 0.\n"};
+
 std::string get_layout_with_correct_filenames(std::string_view const seq1_filename,
                                               std::string_view const seq2_filename,
                                               std::string_view const seq3_filename,
@@ -118,7 +126,8 @@ TEST_F(cli_test, display_layout_general)
 
     ASSERT_EQ(result.exit_code, 0) << "PWD: " << result.pwd << "\nCMD: " << result.command;
     EXPECT_EQ(result.out, std::string{});
-    // std err will have a progress bar
+    // std err will have a progress bar after the validation warnings
+    EXPECT_TRUE(result.err.starts_with(expected_validation_warnings)) << result.err;
 
     ASSERT_TRUE(std::filesystem::exists(general_filename));
 
@@ -163,7 +172,8 @@ TEST_F(cli_test, display_layout_general_with_shared_kmers)
 
     ASSERT_EQ(result.exit_code, 0) << "PWD: " << result.pwd << "\nCMD: " << result.command;
     EXPECT_EQ(result.out, std::string{});
-    // std err will have a progress bar
+    // std err will have a progress bar after the validation warnings
+    EXPECT_TRUE(result.err.starts_with(expected_validation_warnings)) << result.err;
 
     ASSERT_TRUE(std::filesystem::exists(general_filename));
 
@@ -206,7 +216,8 @@ TEST_F(cli_test, display_layout_sizes)
 
     ASSERT_EQ(result.exit_code, 0) << "PWD: " << result.pwd << "\nCMD: " << result.command;
     EXPECT_EQ(result.out, std::string{});
-    // std err will have a progress bar
+    // std err will have a progress bar after the validation warnings
+    EXPECT_TRUE(result.err.starts_with(expected_validation_warnings)) << result.err;
 
     ASSERT_TRUE(std::filesystem::exists(sizes_filename));
 
