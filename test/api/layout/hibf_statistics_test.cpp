@@ -254,7 +254,10 @@ TEST(execute_test, chopper_layout_statistics_determine_best_bins)
     std::vector<seqan::hibf::sketch::minhashes> minHash_sketches{};
     seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches, minHash_sketches);
 
+    // execute validates the layout. It must not report anything.
+    testing::internal::CaptureStderr();
     chopper::layout::execute(config, filenames, sketches, minHash_sketches);
+    EXPECT_EQ(testing::internal::GetCapturedStderr(), std::string{});
 
     std::string expected_cout =
         R"expected_cout(## ### Parameters ###

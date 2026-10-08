@@ -49,7 +49,10 @@ TEST(execute_test, few_ubs)
     std::vector<seqan::hibf::sketch::minhashes> minHash_sketches{};
     seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches, minHash_sketches);
 
+    // execute validates the layout. It must not report anything.
+    testing::internal::CaptureStderr();
     chopper::layout::execute(config, filenames, sketches, minHash_sketches);
+    EXPECT_EQ(testing::internal::GetCapturedStderr(), std::string{});
 
     std::string const expected_file{"@CHOPPER_USER_BINS\n"
                                     "@0 seq0a seq0b\n"
@@ -149,7 +152,17 @@ TEST(execute_test, few_ubs_fast_layout)
     std::vector<seqan::hibf::sketch::minhashes> minHash_sketches{};
     seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches, minHash_sketches);
 
+    // execute validates the layout. Technical bins 0-3 of the top level stay empty, which the fast layout does by
+    // design (empty_technical_bins). The HIBF library prints such notes only in debug builds.
+#ifndef NDEBUG
+    std::string const expected_stderr{"[HIBF LAYOUT NOTE] The Root-IBF uses technical bins 0-63, but 4 of them are "
+                                      "empty; the first one is 0.\n"};
+#else
+    std::string const expected_stderr{};
+#endif
+    testing::internal::CaptureStderr();
     chopper::layout::execute(config, filenames, sketches, minHash_sketches);
+    EXPECT_EQ(testing::internal::GetCapturedStderr(), expected_stderr);
 
     std::string const expected_file{"@CHOPPER_USER_BINS\n"
                                     "@0 seq0a seq0b\n"
@@ -247,7 +260,10 @@ TEST(execute_test, set_default_tmax)
     std::vector<seqan::hibf::sketch::minhashes> minHash_sketches{};
     seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches, minHash_sketches);
 
+    // execute validates the layout. It must not report anything.
+    testing::internal::CaptureStderr();
     chopper::layout::execute(config, filenames, sketches, minHash_sketches);
+    EXPECT_EQ(testing::internal::GetCapturedStderr(), std::string{});
 
     EXPECT_EQ(config.hibf_config.tmax, 64u);
 }
@@ -284,7 +300,10 @@ TEST(execute_test, many_ubs)
     std::vector<seqan::hibf::sketch::minhashes> minHash_sketches{};
     seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches, minHash_sketches);
 
+    // execute validates the layout. It must not report anything.
+    testing::internal::CaptureStderr();
     chopper::layout::execute(config, many_filenames, sketches, minHash_sketches);
+    EXPECT_EQ(testing::internal::GetCapturedStderr(), std::string{});
 
     std::string const expected_file{"@CHOPPER_USER_BINS\n"
                                     "@0 seq0\n"
@@ -575,7 +594,10 @@ TEST(execute_test, many_ubs_fast_layout)
     std::vector<seqan::hibf::sketch::minhashes> minHash_sketches{};
     seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches, minHash_sketches);
 
+    // execute validates the layout. It must not report anything.
+    testing::internal::CaptureStderr();
     chopper::layout::execute(config, many_filenames, sketches, minHash_sketches);
+    EXPECT_EQ(testing::internal::GetCapturedStderr(), std::string{});
 
     std::string const expected_file{"@CHOPPER_USER_BINS\n"
                                     "@0 seq0\n"

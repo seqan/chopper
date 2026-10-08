@@ -38,7 +38,7 @@ namespace chopper::layout
  *    and the result is grafted into `hibf_layout`.
  * 3. `max_bins` is sorted by level (path length), then lexicographically by path.
  *
- * \throws std::logic_error In debug builds, if the layout's user bins are not a permutation of `positions`.
+ * The layout is not validated; execute validates it before writing it.
  */
 void fast_layout(chopper::configuration const & config,
                  std::vector<size_t> const & positions,

@@ -57,7 +57,10 @@ TEST(execute_estimation_test, few_ubs)
     std::vector<seqan::hibf::sketch::minhashes> minHash_sketches{};
     seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches, minHash_sketches);
 
+    // execute validates the layout. It must not report anything.
+    testing::internal::CaptureStderr();
     chopper::layout::execute(config, filenames, sketches, minHash_sketches);
+    EXPECT_EQ(testing::internal::GetCapturedStderr(), std::string{});
 
     ASSERT_TRUE(std::filesystem::exists(stats_file));
 
@@ -211,7 +214,10 @@ TEST(execute_estimation_test, many_ubs)
     std::vector<seqan::hibf::sketch::minhashes> minHash_sketches{};
     seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches, minHash_sketches);
 
+    // execute validates the layout. It must not report anything.
+    testing::internal::CaptureStderr();
     chopper::layout::execute(config, many_filenames, sketches, minHash_sketches);
+    EXPECT_EQ(testing::internal::GetCapturedStderr(), std::string{});
 
     ASSERT_TRUE(std::filesystem::exists(stats_file));
 
@@ -884,7 +890,10 @@ TEST(execute_estimation_test, many_ubs_force_all)
     std::vector<seqan::hibf::sketch::minhashes> minHash_sketches{};
     seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches, minHash_sketches);
 
+    // execute validates the layout. It must not report anything.
+    testing::internal::CaptureStderr();
     chopper::layout::execute(config, many_filenames, sketches, minHash_sketches);
+    EXPECT_EQ(testing::internal::GetCapturedStderr(), std::string{});
 
     ASSERT_TRUE(std::filesystem::exists(stats_file));
 
@@ -975,7 +984,10 @@ TEST(execute_estimation_test, with_rearrangement)
     std::vector<seqan::hibf::sketch::minhashes> minHash_sketches{};
     seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches, minHash_sketches);
 
+    // execute validates the layout. It must not report anything.
+    testing::internal::CaptureStderr();
     chopper::layout::execute(config, filenames, sketches, minHash_sketches);
+    EXPECT_EQ(testing::internal::GetCapturedStderr(), std::string{});
 
     ASSERT_TRUE(std::filesystem::exists(stats_file));
 

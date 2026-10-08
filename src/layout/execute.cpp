@@ -70,15 +70,19 @@ int execute(chopper::configuration & config,
                                                               config.rearrangement_timer);
         }
         config.dp_algorithm_timer.stop();
+    }
 
-        if (config.output_verbose_statistics)
-        {
-            size_t dummy{};
-            chopper::layout::hibf_statistics global_stats{config, sketches, cardinalities};
-            global_stats.hibf_layout = hibf_layout;
-            global_stats.print_header_to(std::cout);
-            global_stats.print_summary_to(dummy, std::cout);
-        }
+    hibf_layout.validate(config.hibf_config);
+
+    // With determine_best_tmax, determine_best_number_of_technical_bins already wrote the statistics of every tmax to
+    // `<output_filename>.stats`.
+    if (!config.determine_best_tmax && config.output_verbose_statistics)
+    {
+        size_t dummy{};
+        chopper::layout::hibf_statistics global_stats{config, sketches, cardinalities};
+        global_stats.hibf_layout = hibf_layout;
+        global_stats.print_header_to(std::cout);
+        global_stats.print_summary_to(dummy, std::cout);
     }
 
     // brief Write the output to the layout file.

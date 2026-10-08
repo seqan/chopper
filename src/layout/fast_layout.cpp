@@ -9,7 +9,6 @@
 #include <cassert>
 #include <cstddef>
 #include <functional>
-#include <stdexcept>
 #include <tuple>
 #include <vector>
 
@@ -368,15 +367,6 @@ void fast_layout(chopper::configuration const & config,
                           return std::make_tuple(mb.previous_TB_indices.size(), std::cref(mb.previous_TB_indices));
                       });
     // GCOVR_EXCL_STOP
-
-#ifndef NDEBUG
-    // sanity check in debug
-    std::vector<size_t> layout_user_bins{};
-    for (auto & user_bin : hibf_layout.user_bins)
-        layout_user_bins.push_back(user_bin.idx);
-    if (!std::ranges::is_permutation(layout_user_bins, positions))
-        throw std::logic_error{"Not all/Wrong user bins have been assigned to the layout!"};
-#endif
 }
 
 } // namespace chopper::layout
