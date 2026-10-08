@@ -166,4 +166,19 @@ TEST_F(cli_test, chopper_layout_from_sketch_file)
     EXPECT_NE(result3.exit_code, 0);
     EXPECT_EQ(result3.out, std::string{});
     EXPECT_EQ(result3.err, std::string{"[ERROR] You cannot set --sketch-bits when using a sketch file as input.\n"});
+
+    // The sketch file contains no MinHash sketches.
+    cli_test_result result4 = execute_app("chopper",
+                                          "--threads 2",
+                                          "--fast-layout",
+                                          "--input",
+                                          input_filename.c_str(),
+                                          "--tmax 64",
+                                          "--output",
+                                          binning_filename.c_str());
+    EXPECT_NE(result4.exit_code, 0);
+    EXPECT_EQ(result4.out, std::string{});
+    EXPECT_EQ(result4.err,
+              std::string{"[ERROR] The sketch file does not contain MinHash sketches, which --fast-layout needs. "
+                          "Create the sketch file with --fast-layout.\n"});
 }

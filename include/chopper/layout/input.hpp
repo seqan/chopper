@@ -20,6 +20,14 @@ namespace chopper::layout
 {
 
 std::vector<std::vector<std::string>> read_filenames_from(std::istream & stream);
+
+/*!\brief Reads a layout file: the file names of the user bins, the chopper configuration and the layout.
+ * \param[in] stream The content of a layout file.
+ * \returns The file names, the configuration and the layout.
+ * \details
+ * The layout is not validated. Validate it with seqan::hibf::layout::layout::validate and the returned
+ * `configuration::hibf_config` before using it.
+ */
 std::tuple<std::vector<std::vector<std::string>>, configuration, seqan::hibf::layout::layout>
 read_layout_file(std::istream & stream);
 

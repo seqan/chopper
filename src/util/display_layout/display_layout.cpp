@@ -6,6 +6,7 @@
 // ---------------------------------------------------------------------------------------------------
 
 #include <cstdlib>
+#include <exception>
 #include <filesystem>
 #include <iostream>
 #include <string>
@@ -87,10 +88,18 @@ int main(int argc, char const * argv[])
     init_options(sub_parser, cfg);
     parse(sub_parser);
 
-    if (sub_parser.info.app_name == std::string_view{"layout_stats-general"})
-        execute_general(cfg);
-    else if (sub_parser.info.app_name == std::string_view{"layout_stats-sizes"})
-        execute_sizes(cfg);
-    else
-        std::cerr << "[ERROR] Unknown subcommand\n";
+    try
+    {
+        if (sub_parser.info.app_name == std::string_view{"layout_stats-general"})
+            execute_general(cfg);
+        else if (sub_parser.info.app_name == std::string_view{"layout_stats-sizes"})
+            execute_sizes(cfg);
+        else
+            std::cerr << "[ERROR] Unknown subcommand\n";
+    }
+    catch (std::exception const & ext)
+    {
+        std::cerr << "[ERROR] " << ext.what() << '\n';
+        return EXIT_FAILURE;
+    }
 }

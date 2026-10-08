@@ -14,6 +14,14 @@
 #include "../api/api_test.hpp"
 #include "cli_test.hpp"
 
+// display_layout validates the layout. The layout below has tmax 4; the build rounds each IBF up to 64 technical bins,
+// so each IBF ends with 60 empty technical bins instead of none (unexpected_empty_bins).
+std::string const expected_validation_warnings{
+    "[HIBF LAYOUT WARNING] The Root-IBF ends with 60 empty technical bins, but 0 are expected. There is a total of 64 "
+    "technical bins and the empty_bin_fraction is 0.\n"
+    "[HIBF LAYOUT WARNING] IBF 0 ends with 60 empty technical bins, but 0 are expected. There is a total of 64 "
+    "technical bins and the empty_bin_fraction is 0.\n"};
+
 std::string get_layout_with_correct_filenames(std::string_view const seq1_filename,
                                               std::string_view const seq2_filename,
                                               std::string_view const seq3_filename,
@@ -118,7 +126,8 @@ TEST_F(cli_test, display_layout_general)
 
     ASSERT_EQ(result.exit_code, 0) << "PWD: " << result.pwd << "\nCMD: " << result.command;
     EXPECT_EQ(result.out, std::string{});
-    // std err will have a progress bar
+    // std err will have a progress bar after the validation warnings
+    EXPECT_TRUE(result.err.starts_with(expected_validation_warnings)) << result.err;
 
     ASSERT_TRUE(std::filesystem::exists(general_filename));
 
@@ -163,7 +172,8 @@ TEST_F(cli_test, display_layout_general_with_shared_kmers)
 
     ASSERT_EQ(result.exit_code, 0) << "PWD: " << result.pwd << "\nCMD: " << result.command;
     EXPECT_EQ(result.out, std::string{});
-    // std err will have a progress bar
+    // std err will have a progress bar after the validation warnings
+    EXPECT_TRUE(result.err.starts_with(expected_validation_warnings)) << result.err;
 
     ASSERT_TRUE(std::filesystem::exists(general_filename));
 
@@ -206,7 +216,8 @@ TEST_F(cli_test, display_layout_sizes)
 
     ASSERT_EQ(result.exit_code, 0) << "PWD: " << result.pwd << "\nCMD: " << result.command;
     EXPECT_EQ(result.out, std::string{});
-    // std err will have a progress bar
+    // std err will have a progress bar after the validation warnings
+    EXPECT_TRUE(result.err.starts_with(expected_validation_warnings)) << result.err;
 
     ASSERT_TRUE(std::filesystem::exists(sizes_filename));
 
@@ -219,4 +230,45 @@ LEVEL	BIT_SIZE	IBFS	AVG_LOAD_FACTOR	TBS_TOO_BIG	AVG_TBS_TOO_BIG_ELEMENTS	AVG_MAX
 
     std::string const actual_file{string_from_file(sizes_filename)};
     EXPECT_EQ(expected_general_file, actual_file);
+}
+
+TEST_F(cli_test, display_layout_invalid_layout)
+{
+    std::string const seq1_filename = data("seq1.fa");
+    std::string const seq2_filename = data("seq2.fa");
+    std::string const seq3_filename = data("seq3.fa");
+    std::string const small_filename = data("small.fa");
+    seqan3::test::tmp_directory tmp_dir{};
+    std::filesystem::path const layout_filename{tmp_dir.path() / "invalid.layout"};
+    std::filesystem::path const output_filename{tmp_dir.path() / "invalid.layout.out"};
+
+    {
+        std::string layout = get_layout_with_correct_filenames(seq1_filename,
+                                                               seq2_filename,
+                                                               seq3_filename,
+                                                               small_filename,
+                                                               layout_filename.string());
+        // Remove user bin 3. It is the last line of the layout.
+        size_t const user_bin_3 = layout.rfind("3\t2\t2\n");
+        ASSERT_NE(user_bin_3, std::string::npos);
+        layout.erase(user_bin_3);
+
+        std::ofstream fout{layout_filename};
+        fout << layout;
+    }
+
+    for (char const * const subcommand : {"general", "sizes"})
+    {
+        cli_test_result result = execute_app("display_layout",
+                                             subcommand,
+                                             "--input",
+                                             layout_filename.c_str(),
+                                             "--output",
+                                             output_filename.c_str());
+
+        EXPECT_NE(result.exit_code, 0) << subcommand;
+        EXPECT_EQ(result.out, std::string{}) << subcommand;
+        EXPECT_EQ(result.err, std::string{"[ERROR] [HIBF LAYOUT ERROR] User bin 3 is missing from the layout.\n"})
+            << subcommand;
+    }
 }

@@ -78,6 +78,9 @@ int chopper_layout(chopper::configuration & config, sharg::parser & parser)
     else if (config.k > config.window_size)
         throw sharg::parser_error{"The k-mer size cannot be bigger than the window size."};
 
+    if (config.fast_layout && config.determine_best_tmax)
+        throw sharg::parser_error{"You cannot combine --fast-layout with --determine-best-tmax."};
+
     auto has_sketch_file_extension = [](std::filesystem::path const & path)
     {
         return path.string().ends_with(".sketch") || path.string().ends_with(".sketches");
@@ -93,6 +96,7 @@ int chopper_layout(chopper::configuration & config, sharg::parser & parser)
 
     std::vector<std::vector<std::string>> filenames{};
     std::vector<seqan::hibf::sketch::hyperloglog> sketches{};
+    std::vector<seqan::hibf::sketch::minhashes> minHash_sketches{};
 
     if (input_is_a_sketch_file)
     {
@@ -106,7 +110,12 @@ int chopper_layout(chopper::configuration & config, sharg::parser & parser)
 
         filenames = std::move(sin.filenames); // No need to call check_filenames because the files are not read.
         sketches = std::move(sin.hll_sketches);
+        minHash_sketches = std::move(sin.minHash_sketches);
         validate_configuration(parser, config, sin.chopper_config);
+
+        if (config.fast_layout && minHash_sketches.size() != sketches.size())
+            throw sharg::parser_error{"The sketch file does not contain MinHash sketches, which --fast-layout needs. "
+                                      "Create the sketch file with --fast-layout."};
     }
     else
     {
@@ -128,17 +137,23 @@ int chopper_layout(chopper::configuration & config, sharg::parser & parser)
     if (!input_is_a_sketch_file)
     {
         config.compute_sketches_timer.start();
-        seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches);
+        // Only the fast layout needs MinHash sketches. Computing them requires enough k-mers per user bin and throws
+        // otherwise, so the default layout must not compute them.
+        if (config.fast_layout)
+            seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches, minHash_sketches);
+        else
+            seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches);
         config.compute_sketches_timer.stop();
     }
 
-    exit_code |= chopper::layout::execute(config, filenames, sketches);
+    exit_code |= chopper::layout::execute(config, filenames, sketches, minHash_sketches);
 
     if (!config.disable_sketch_output)
     {
         chopper::sketch::sketch_file sout{.chopper_config = config,
                                           .filenames = std::move(filenames),
-                                          .hll_sketches = std::move(sketches)};
+                                          .hll_sketches = std::move(sketches),
+                                          .minHash_sketches = std::move(minHash_sketches)};
         std::ofstream os{config.sketch_directory, std::ios::binary};
         cereal::BinaryOutputArchive oarchive{os};
         oarchive(sout);
@@ -151,11 +166,19 @@ int chopper_layout(chopper::configuration & config, sharg::parser & parser)
         output_stream << "sketching_in_seconds\t"
                       << "layouting_in_seconds\t"
                       << "union_estimation_in_seconds\t"
-                      << "rearrangement_in_seconds\n";
+                      << "rearrangement_in_seconds\t"
+                      << "lsh_in_seconds\t"
+                      << "top_level_lsh_distribution_timer_in_seconds\t"
+                      << "small_layouts_timer_in_seconds\t"
+                      << "find_best_technical_bin_algorithm_in_seconds\n";
         output_stream << config.compute_sketches_timer.in_seconds() << '\t';
         output_stream << config.dp_algorithm_timer.in_seconds() << '\t';
         output_stream << config.union_estimation_timer.in_seconds() << '\t';
         output_stream << config.rearrangement_timer.in_seconds() << '\t';
+        output_stream << config.lsh_algorithm_timer.in_seconds() << '\t';
+        output_stream << config.top_level_lsh_distribution_timer.in_seconds() << '\t';
+        output_stream << config.small_layouts_timer.in_seconds() << '\t';
+        output_stream << config.find_best_technical_bin_algorithm_timer.in_seconds() << '\n';
     }
 
     return exit_code;

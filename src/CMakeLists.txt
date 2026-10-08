@@ -14,7 +14,7 @@ endif ()
 add_library (chopper_interface INTERFACE)
 target_link_libraries (chopper_interface INTERFACE sharg::sharg seqan3::seqan3 seqan::hibf)
 target_include_directories (chopper_interface INTERFACE "${PROJECT_SOURCE_DIR}/include")
-target_compile_options (chopper_interface INTERFACE "-pedantic" "-Wall" "-Wextra")
+target_compile_options (chopper_interface INTERFACE "-pedantic" "-Wall" "-Wextra" "-Wundef")
 add_library (chopper::interface ALIAS chopper_interface)
 
 option (CHOPPER_WITH_WERROR "Report compiler warnings as errors." ON)

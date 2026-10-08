@@ -203,6 +203,9 @@ int execute(config const & cfg)
 #endif
     auto const & hibf_config = chopper_config.hibf_config;
 
+    // read_layout_file does not validate the layout.
+    hibf_layout.validate(hibf_config);
+
     layout_file.close();
 
     // multiplied to cardinality of a merged bin

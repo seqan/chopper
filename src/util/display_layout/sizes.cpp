@@ -293,6 +293,9 @@ void execute_general_stats(config const & cfg)
     auto [filenames, chopper_config, hibf_layout] = chopper::layout::read_layout_file(layout_file);
 #endif
 
+    // read_layout_file does not validate the layout.
+    hibf_layout.validate(chopper_config.hibf_config);
+
     // Prepare configs
     chopper_config.hibf_config.threads = cfg.threads;
     auto input_lambda = [&filenames, &chopper_config](size_t const user_bin_id, seqan::hibf::insert_iterator it)
