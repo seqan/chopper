@@ -110,7 +110,8 @@ private:
     template <typename archive_t>
     void serialize(archive_t & archive)
     {
-        uint32_t version{2};
+        // Version 3 added fast_layout.
+        uint32_t version{3};
         archive(CEREAL_NVP(version));
 
         archive(CEREAL_NVP(data_file));
@@ -124,6 +125,10 @@ private:
         archive(CEREAL_NVP(output_filename));
         archive(CEREAL_NVP(determine_best_tmax));
         archive(CEREAL_NVP(force_all_binnings));
+
+        // Files written before version 3 do not contain this field. Reading it unconditionally would throw.
+        if (version >= 3)
+            archive(CEREAL_NVP(fast_layout));
     }
 };
 

@@ -81,7 +81,7 @@ TEST_F(cli_test, chopper_layout_from_sketch_file)
                                       "@CHOPPER_CONFIG\n"
                                       "@{\n"
                                       "@    \"chopper_config\": {\n"
-                                      "@        \"version\": 2,\n"
+                                      "@        \"version\": 3,\n"
                                       "@        \"data_file\": {\n"
                                       "@            \"value0\": \""
                                     + input_filename.string()
@@ -101,7 +101,8 @@ TEST_F(cli_test, chopper_layout_from_sketch_file)
                                     + "\"\n"
                                       "@        },\n"
                                       "@        \"determine_best_tmax\": false,\n"
-                                      "@        \"force_all_binnings\": false\n"
+                                      "@        \"force_all_binnings\": false,\n"
+                                      "@        \"fast_layout\": false\n"
                                       "@    }\n"
                                       "@}\n"
                                       "@CHOPPER_CONFIG_END\n"

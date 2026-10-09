@@ -23,6 +23,7 @@ chopper::configuration generate_config()
     config.determine_best_tmax = true;
     config.force_all_binnings = true;
     config.output_verbose_statistics = true;
+    config.fast_layout = true;
 
     config.hibf_config.number_of_user_bins = 123456789;
     config.hibf_config.number_of_hash_functions = 4;
@@ -54,6 +55,7 @@ bool operator==(chopper::configuration const & lhs, chopper::configuration const
            lhs.output_filename == rhs.output_filename &&                                           //
            lhs.determine_best_tmax == rhs.determine_best_tmax &&                                   //
            lhs.force_all_binnings == rhs.force_all_binnings &&                                     //
+           lhs.fast_layout == rhs.fast_layout &&                                                   //
            lhs.hibf_config.number_of_user_bins == rhs.hibf_config.number_of_user_bins &&           //
            lhs.hibf_config.number_of_hash_functions == rhs.hibf_config.number_of_hash_functions && //
            lhs.hibf_config.maximum_fpr == rhs.hibf_config.maximum_fpr &&                           //
@@ -72,7 +74,7 @@ bool operator==(chopper::configuration const & lhs, chopper::configuration const
 static constexpr std::string_view config_string_view{"@CHOPPER_CONFIG\n"
                                                      "@{\n"
                                                      "@    \"chopper_config\": {\n"
-                                                     "@        \"version\": 2,\n"
+                                                     "@        \"version\": 3,\n"
                                                      "@        \"data_file\": {\n"
                                                      "@            \"value0\": \"/path/to/data.file\"\n"
                                                      "@        },\n"
@@ -88,7 +90,8 @@ static constexpr std::string_view config_string_view{"@CHOPPER_CONFIG\n"
                                                      "@            \"value0\": \"file.layout\"\n"
                                                      "@        },\n"
                                                      "@        \"determine_best_tmax\": true,\n"
-                                                     "@        \"force_all_binnings\": true\n"
+                                                     "@        \"force_all_binnings\": true,\n"
+                                                     "@        \"fast_layout\": true\n"
                                                      "@    }\n"
                                                      "@}\n"
                                                      "@CHOPPER_CONFIG_END\n"
@@ -148,6 +151,32 @@ TEST(config_test, read_from_with_more_meta)
     config.read_from(ss);
 
     EXPECT_EQ(config, generate_config());
+}
+
+// Layout files written before version 3 do not contain fast_layout. They must stay readable.
+TEST(config_test, read_from_version_2)
+{
+    std::string config_string{config_string_view};
+
+    auto replace = [&config_string](std::string_view const from, std::string_view const to)
+    {
+        size_t const pos = config_string.find(from);
+        ASSERT_NE(pos, std::string::npos) << from;
+        config_string.replace(pos, from.size(), to);
+    };
+
+    replace("\"version\": 3,\n@        \"data_file\"", "\"version\": 2,\n@        \"data_file\"");
+    replace("\"force_all_binnings\": true,\n@        \"fast_layout\": true\n", "\"force_all_binnings\": true\n");
+
+    std::stringstream ss{config_string};
+
+    chopper::configuration config;
+    config.read_from(ss);
+
+    chopper::configuration expected{generate_config()};
+    expected.fast_layout = false;
+
+    EXPECT_EQ(config, expected);
 }
 
 // Easier to do in the config_test because of existing helper functions
