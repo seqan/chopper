@@ -409,6 +409,19 @@ bool find_best_partition(chopper::configuration const & config,
         return result;
     }();
 
+    // edge case: empty sequence
+    if (current_cardinality == 0) // no kmers to be added
+    {
+        // just add empty user bin to the first partition
+        for (size_t const user_bin_idx : cluster)
+        {
+            positions[0].push_back(user_bin_idx);
+            partition_cardinality[0] += cardinalities[user_bin_idx];
+        }
+        partition_sketches[0].merge(current_sketch);
+        return true;
+    }
+
     // TODO: afterwads check if I should again merge by how little the effective text ratio grows
 
     // search best partition fit by similarity
@@ -424,10 +437,10 @@ bool find_best_partition(chopper::configuration const & config,
     {
         seqan::hibf::sketch::hyperloglog tmp = current_sketch;
         tmp.merge(partition_sketches[p]);
-        size_t const tmp_estimate = tmp.estimate();
+        size_t const union_size = tmp.estimate();
         size_t const current_partition_size = partition_sketches[p].estimate();
-        assert(tmp_estimate >= current_partition_size);
-        size_t const change = tmp_estimate - current_partition_size;
+        assert(union_size >= current_partition_size); // partition cannot shrink by adding kmers
+        size_t const change = union_size - current_partition_size;
         size_t const intersection = current_sketch.estimate() - change;
         double const subsume_ratio = static_cast<double>(intersection) / current_partition_size;
 
