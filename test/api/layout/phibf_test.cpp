@@ -216,6 +216,15 @@ TEST(phibf_regression_test, small_number_of_user_bins_per_part)
     EXPECT_TRUE(each_user_bin_assigned_once(data.partition(), 100));
 }
 
+TEST(phibf_regression_test, few_user_bins_with_skewed_sizes)
+{
+    // If few user bins with skewed sizes are the input,
+    // then cardinality_per_part is chosen too high and partitions at the end get no user bins.
+    // This has beenf fixed.
+    phibf_data const data{chopper::layout::phibf::partitioning_scheme::sorted, 64, 8, "skewed"};
+    EXPECT_TRUE(each_user_bin_assigned_once(data.partition(), 64));
+}
+
 TEST(phibf_regression_test, fewer_clusters_than_partitions)
 {
     using chopper::layout::phibf::partitioning_scheme;

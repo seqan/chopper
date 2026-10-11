@@ -550,23 +550,26 @@ void partition_user_bins(chopper::configuration const & config,
     }
     else if (config.partitioning_approach == partitioning_scheme::sorted)
     {
-        size_t const cardinality_per_part =
-            seqan::hibf::divide_and_ceil(sum_of_cardinalities, config.number_of_partitions);
+        size_t const cardinality_per_part = sum_of_cardinalities /  config.number_of_partitions;
 
         size_t current_cardinality{0u};
         size_t current_part{0};
 
-        for (size_t const current_user_bin_id : sorted_positions)
+        for (size_t i = 0; i < sorted_positions.size(); ++i)
         {
-            partitions[current_part].push_back(current_user_bin_id);
-            current_cardinality += cardinalities[current_user_bin_id];
+            partitions[current_part].push_back(sorted_positions[i]);
+            current_cardinality += cardinalities[sorted_positions[i]];
 
-            if (current_cardinality >= cardinality_per_part)
+            if (current_cardinality >= cardinality_per_part /*partition is full*/||
+                (sorted_positions.size() - i <= config.number_of_partitions - current_part) /* small number edge case:not enough UBs left*/)
             {
-                current_cardinality = 0;
-                // Remaining user bins (with cardinality 0) stay in the last partition.
-                if (current_part + 1 < config.number_of_partitions)
-                    ++current_part;
+                ++current_part;
+                // If cardinality_per_part was not chosen optimally
+                // we might need start at position 0 again.
+                // If all paritions are full, this will add one user bin at a time
+                // to each partition until no user bins remain.
+                if (current_part >= config.number_of_partitions)
+                    current_part = 0;
             }
         }
     }
