@@ -225,6 +225,20 @@ TEST(phibf_regression_test, few_user_bins_with_skewed_sizes)
     EXPECT_TRUE(each_user_bin_assigned_once(data.partition(), 64));
 }
 
+TEST(phibf_regression_test, zero_cardinality_user_bins)
+{
+    using chopper::layout::phibf::partitioning_scheme;
+
+    for (chopper::layout::phibf::partitioning_scheme const approach : phibf_approaches)
+    {
+        phibf_data data{approach, 5, 2, "equal"};
+        data.cardinalities = {10, 10, 10, 10, 0};
+
+        auto const partitions = data.partition();
+        EXPECT_TRUE(each_user_bin_assigned_once(partitions, 5));
+    }
+}
+
 TEST(phibf_regression_test, fewer_clusters_than_partitions)
 {
     using chopper::layout::phibf::partitioning_scheme;
