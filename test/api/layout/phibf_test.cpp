@@ -246,7 +246,7 @@ TEST(phibf_regression_test, fewer_clusters_than_partitions)
     for (int const approach : {partitioning_scheme::lsh, partitioning_scheme::lsh_sim})
     {
         phibf_data const data{approach, 9, 8, "equal"};
-        EXPECT_TRUE(each_user_bin_assigned_once(data.partition(), 8));
+        EXPECT_TRUE(each_user_bin_assigned_once(data.partition(), 9));
     }
 }
 

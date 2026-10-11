@@ -131,6 +131,19 @@ public:
         return moved_id.value();
     }
 
+    /*!\brief Moves end range of user bins of this cluster to `target_cluster`.
+     * \param[in,out] target_cluster The cluster to move the user bins to. Must be a different cluster.
+     *
+     * No ids are changed. This happens in post_process_clusters.
+     */
+    void move_part_to(Cluster & target_cluster, size_t size)
+    {
+        auto & target = target_cluster.user_bins;
+        auto & source = this->user_bins;
+        target.insert(target.end(), source.cbegin() + size, source.cend());
+        source.erase(source.begin() + size, source.end());
+    }
+
     /*!\brief Moves all user bins of this cluster to `target_cluster` and marks this cluster as moved.
      * \param[in,out] target_cluster The cluster to move the user bins to. Must be a different cluster.
      *

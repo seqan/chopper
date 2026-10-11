@@ -265,6 +265,9 @@ void post_process_clusters(std::vector<Cluster> & clusters,
                            std::vector<size_t> const & cardinalities,
                            chopper::configuration const & config)
 {
+    assert(clusters.size() == config.hibf_config.number_of_user_bins);
+    assert(config.hibf_config.number_of_user_bins > config.number_of_partitions);
+
     // clusters are done. Start post processing
     // since post processing involves re-ordering the clusters, the moved_to_cluster_id value of a cluster will not
     // refer to the position of the cluster in the `clusters` vecto anymore but the cluster with the resprive id()
@@ -274,6 +277,22 @@ void post_process_clusters(std::vector<Cluster> & clusters,
     {
         assert(clusters[pos].is_valid(pos));
         clusters[pos].sort_by_cardinality(cardinalities);
+    }
+
+    // Edge case: The sequences are all very similar and there are fewer clusters than partitions
+    // Solution: Split largest cluster until there are as many clusters as partitions
+    size_t num_non_empty_clusters = std::ranges::count_if(clusters, [](auto const & c){ return !c.empty(); });
+    while (num_non_empty_clusters < config.number_of_partitions)
+    {
+        auto it_larges_cluster = std::max_element(clusters.begin(), clusters.end(),
+                                                    [](auto const & a, auto const & b) {
+                                                        return a.size() < b.size();
+                                                    });
+        auto it_empty_cluster = std::ranges::find_if(clusters.begin(), clusters.end(), [](auto const & c){ return c.empty(); });
+        assert(it_larges_cluster != clusters.end()); // There is always a non-empty cluster
+        assert(it_empty_cluster != clusters.end()); // There is always an empty cluster because there are more user bis than partitions when we arrive here
+        it_larges_cluster->move_part_to(*it_empty_cluster, it_larges_cluster->size() / 2);
+        ++num_non_empty_clusters;
     }
 
     // push largest p clusters to the front
@@ -328,6 +347,64 @@ void post_process_clusters(std::vector<MultiCluster> & clusters,
     {
         assert(clusters[pos].is_valid(pos));
         clusters[pos].sort_by_cardinality(cardinalities);
+    }
+
+    auto number_of_contained_user_bins = [](MultiCluster const & mc)
+    {
+        size_t sum{0};
+        for (auto const & user_bin_cluster : mc.contained_user_bins())
+            sum += user_bin_cluster.size();
+        return sum;
+    };
+
+    // A MultiCluster can only be created from a Cluster, so the split parts are rebuilt from their (sub)clusters.
+    auto make_multi_cluster = [](size_t const id, auto const first, auto const last)
+    {
+        assert(first != last);
+        auto to_cluster = [id](std::vector<size_t> const & user_bin_cluster)
+        {
+            assert(!user_bin_cluster.empty());
+            Cluster cluster{id, user_bin_cluster[0]};
+            for (size_t i = 1; i < user_bin_cluster.size(); ++i)
+                cluster.add_user_bin(user_bin_cluster[i]);
+            return cluster;
+        };
+
+        MultiCluster result{to_cluster(*first)};
+        for (auto it = first + 1; it != last; ++it)
+        {
+            MultiCluster tmp{to_cluster(*it)};
+            tmp.move_to(result);
+        }
+        return result;
+    };
+
+    // Edge case: The sequences are all very similar and there are fewer clusters than partitions
+    // Solution: Split largest cluster (by number of user bins) until there are as many clusters as partitions.
+    // A cluster with several (sub)clusters is split between its (sub)clusters, s.t. very similar user bins stay together.
+    // A cluster with a single (sub)cluster is split between its user bins.
+    size_t num_non_empty_clusters = std::ranges::count_if(clusters, [](auto const & c){ return !c.empty(); });
+    while (num_non_empty_clusters < config.number_of_partitions)
+    {
+        auto it_largest_cluster = std::ranges::max_element(clusters, std::ranges::less{}, number_of_contained_user_bins);
+        auto it_empty_cluster = std::ranges::find_if(clusters, [](auto const & c){ return c.empty(); });
+        assert(it_empty_cluster != clusters.end()); // There is always an empty cluster because there are more user bins than partitions when we arrive here
+        assert(number_of_contained_user_bins(*it_largest_cluster) >= 2); // pigeonhole: more user bins than non-empty clusters
+
+        std::vector<std::vector<size_t>> parts = it_largest_cluster->contained_user_bins(); // sorted by size, descending
+        if (parts.size() == 1) // split the user bins (sorted by cardinality, descending) of the single (sub)cluster
+        {
+            auto & user_bin_cluster = parts[0];
+            size_t const half = user_bin_cluster.size() / 2;
+            std::vector<size_t> second_half(user_bin_cluster.begin() + half, user_bin_cluster.end());
+            user_bin_cluster.resize(half);
+            parts.push_back(std::move(second_half));
+        }
+
+        size_t const keep = parts.size() / 2;
+        *it_empty_cluster = make_multi_cluster(it_empty_cluster->id(), parts.begin() + keep, parts.end());
+        *it_largest_cluster = make_multi_cluster(it_largest_cluster->id(), parts.begin(), parts.begin() + keep);
+        ++num_non_empty_clusters;
     }
 
     // push largest p clusters to the front
@@ -788,10 +865,7 @@ void partition_user_bins(chopper::configuration const & config,
         size_t cidx{0}; // current cluster index
         for (size_t p = 0; p < config.number_of_partitions; ++p)
         {
-            // There may be fewer (non-empty) clusters than partitions. The remaining partitions stay empty, which is
-            // reported at the end.
-            if (clusters[cidx].empty())
-                break;
+            assert(!clusters[cidx].empty()); // post_process_cluster ensures enough non-empty clusters
 
             bool p_has_been_incremented{false};
 
