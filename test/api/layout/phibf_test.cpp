@@ -208,6 +208,13 @@ TEST(phibf_invalid_input_test, fewer_user_bins_than_partitions)
     }
 }
 
+TEST(phibf_regression_test, small_number_of_user_bins_per_part)
+{
+    // If for small number of user bins the block size could not be optimally chosen (runding errors)
+    // The last partition ended up empty. This was fixed.
+    phibf_data const data{chopper::layout::phibf::partitioning_scheme::blocked, 100, 16, "uniform"};
+    EXPECT_TRUE(each_user_bin_assigned_once(data.partition(), 100));
+}
 
 TEST(phibf_regression_test, fewer_clusters_than_partitions)
 {
