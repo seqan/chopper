@@ -406,12 +406,13 @@ TEST(phibf_regression_test, seeding_spills_past_last_partition)
     }
 }
 
-// find_best_partition estimated the intersection of a cluster and a partition as
-// est(cluster) - (est(union) - est(partition)) in size_t. For disjoint sets, HyperLogLog noise makes the difference
-// larger than est(cluster) about half of the time. The subtraction then wrapped around, and the partition got a huge
-// similarity, so user bins went to a partition they share nothing with.
 TEST(phibf_regression_test, find_best_partition_intersection_underflow)
 {
+    // find_best_partition estimated the intersection of a cluster and a partition as
+    // est(cluster) - (est(union) - est(partition)) in size_t. For disjoint sets, HyperLogLog noise makes the difference
+    // larger than est(cluster) about half of the time. The subtraction then wrapped around, and the partition got a huge
+    // similarity, so user bins went to a partition they share nothing with.
+
     chopper::configuration config{};
     config.number_of_partitions = 2;
     uint8_t const sketch_bits{config.hibf_config.sketch_bits};
