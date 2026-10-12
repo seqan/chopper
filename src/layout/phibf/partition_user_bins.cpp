@@ -503,7 +503,8 @@ void find_best_partition(chopper::configuration const & config,
         size_t const current_partition_size = partition_sketches[p].estimate();
         assert(union_size >= current_partition_size); // partition cannot shrink by adding kmers
         size_t const change = union_size - current_partition_size;
-        size_t const intersection = current_sketch.estimate() - change;
+        // HyperLogLog noise can make `change` larger than the estimate of the cluster (e.g., for disjoint sets).
+        double const intersection = std::max(0.0, current_sketch.estimate() - static_cast<double>(change));
         double const subsume_ratio = static_cast<double>(intersection) / current_partition_size;
 
         if (subsume_ratio > best_subsume_ratio &&
