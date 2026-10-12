@@ -10,7 +10,6 @@
 #include <algorithm> // for sort
 #include <cstddef>   // for size_t
 #include <cstdint>   // for uint64_t
-#include <cstdlib>   // for exit
 #include <fstream>   // for ifstream
 #include <numeric>   // for iota
 #include <stdexcept> // for invalid_argument
@@ -354,19 +353,19 @@ seqan::hibf::sketch::hyperloglog make_sketch(uint64_t const offset, size_t const
 
 } // namespace
 
-// lsh and lsh_sim initialise the partitions with the first clusters, which post_process_clusters orders by their
-// number of user bins, not by cardinality. A cluster that exceeds the target cardinality per partition spills over
-// into the next partition, but `++p` was only guarded by an assertion: a heavy cluster in the last seeded position
-// moved p past the last partition (assertion in Debug, out-of-bounds write in Release).
 TEST(phibf_regression_test, seeding_spills_past_last_partition)
 {
-    GTEST_FLAG_SET(death_test_style, "threadsafe");
-    using chopper::layout::phibf::partitioning_scheme;
+    // lsh and lsh_sim initialise the partitions with the first clusters, which post_process_clusters orders by their
+    // number of user bins, not by cardinality. A cluster that exceeds the target cardinality per partition spills over
+    // into the next partition. Former bug: `++p` was only guarded by an assertion, so a heavy cluster in the last
+    // seeded position moved p past the last partition (assertion in Debug, out-of-bounds write in Release).
+    // Now, user bins that would spill past the last partition are assigned by find_best_partition after seeding.
+    // Note: phibf_data cannot trigger this (no lsh/lsh_sim input with up to 128 user bins and 16 partitions does).
 
     // User bins 0-3 (cardinality 1) and 4-6 (cardinality 60) have identical MinHash tables within each group and form
     // the clusters {0, 1, 2, 3} and {4, 5, 6}. The first has more user bins and seeds partition 0, the second seeds
     // partition 1. The target cardinality per partition is ceil(184 / 2) = 92, which {4, 5, 6} exceeds after two of
-    // its user bins, so the third one spilled over into partition 2 of 2.
+    // its user bins, so the third one cannot spill over into the next partition.
     size_t const number_of_user_bins{7};
     std::vector<size_t> const cardinalities{1, 1, 1, 1, 60, 60, 60};
 
@@ -395,24 +394,15 @@ TEST(phibf_regression_test, seeding_spills_past_last_partition)
         minHash_sketches.push_back(minhashes_of_group(ub < 4 ? 1 : 2));
     }
 
+    using chopper::layout::phibf::partitioning_scheme;
+
     for (int const approach : {partitioning_scheme::lsh, partitioning_scheme::lsh_sim})
     {
         config.partitioning_approach = approach;
 
-        // Debug builds abort, so this runs in a child process. It exits with 0 if every user bin is assigned once.
-        EXPECT_EXIT(
-            {
-                std::vector<std::vector<size_t>> partitions(config.number_of_partitions);
-                chopper::layout::phibf::partition_user_bins(config,
-                                                            cardinalities,
-                                                            sketches,
-                                                            minHash_sketches,
-                                                            partitions);
-                std::exit(each_user_bin_assigned_once(partitions, number_of_user_bins) ? 0 : 1);
-            },
-            ::testing::ExitedWithCode(0),
-            "")
-            << "approach " << approach;
+        std::vector<std::vector<size_t>> partitions(config.number_of_partitions);
+        chopper::layout::phibf::partition_user_bins(config, cardinalities, sketches, minHash_sketches, partitions);
+        EXPECT_TRUE(each_user_bin_assigned_once(partitions, number_of_user_bins)) << "approach " << approach;
     }
 }
 
