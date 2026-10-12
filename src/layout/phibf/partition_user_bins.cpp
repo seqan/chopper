@@ -669,7 +669,7 @@ void partition_user_bins(chopper::configuration const & config,
     {
         size_t const cardinality_per_part =
             seqan::hibf::divide_and_ceil(sum_of_cardinalities, config.number_of_partitions);
-        size_t const u_bins_per_part = seqan::hibf::divide_and_ceil(cardinalities.size(), config.number_of_partitions);
+        size_t const u_bins_per_part = cardinalities.size() / config.number_of_partitions;
 
         // The unassigned user bins are sorted_positions[big, small_end). Large user bins are taken from the front,
         // small ones from the back.
