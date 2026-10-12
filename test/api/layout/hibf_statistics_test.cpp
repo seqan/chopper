@@ -143,6 +143,43 @@ TEST(hibf_statistics, three_levels)
     EXPECT_EQ(summary(), expected);
 }
 
+TEST(hibf_statistics, empty_user_bins)
+{
+    chopper::configuration config{}; // default config
+    config.hibf_config.tmax = 64u;
+    config.hibf_config.disable_estimate_union = true; /* also disable rearrangement */
+
+    std::vector<seqan::hibf::sketch::hyperloglog> sketches(3u);
+
+    // Level 0, top-level IBF:  UB 0 in TB 0, merged bin in TB 1.
+    // Level 1, IBF [1]:        UB 1 in TB 0, UB 2 in TB 1.
+    seqan::hibf::layout::layout layout{};
+    layout.top_level_max_bin_id = 1u;
+    layout.max_bins = {{{1u}, 1u}};
+    layout.user_bins = {{{}, 0u, 1u, 0u}, {{1u}, 0u, 1u, 1u}, {{1u}, 1u, 1u, 2u}};
+
+    auto summary = [&](std::vector<size_t> const & kmer_counts)
+    {
+        chopper::layout::hibf_statistics stats(config, sketches, kmer_counts);
+        stats.hibf_layout = layout;
+        std::ostringstream stream;
+        size_t max_64{};
+        stats.print_summary_to(max_64, stream);
+        return stream.str();
+    };
+
+    // The only split bin on level 0 is empty, so level 0 has no avg_factor.
+    EXPECT_EQ(
+        summary({0u, 100u, 200u}),
+        "64\t1.00\t2.00\t1.00\t2.00\t584Bytes\t987Bytes\t:0:1\t:1:1\t:189Bytes:395Bytes\t:592Bytes:395Bytes\t:2:2\t"
+        ":2:2\t:50.00:100.00\t:1:1\t:1.00:1.00\t:1.00:1.00\t:-:1.00\n");
+
+    // All user bins are empty: l_tmax is 0 (no k-mers to query) and m_tmax is 1 (same size as the empty 64-HIBF).
+    EXPECT_EQ(summary({0u, 0u, 0u}),
+              "64\t1.00\t0.00\t1.00\t0.00\t0Bytes\t0Bytes\t:0:1\t:1:1\t:0Bytes:0Bytes\t:0Bytes:0Bytes\t:2:2\t:2:2\t"
+              ":50.00:100.00\t:1:1\t:1.00:1.00\t:1.00:1.00\t:-:-\n");
+}
+
 TEST(execute_test, chopper_layout_statistics)
 {
     seqan3::test::tmp_directory tmp_dir{};

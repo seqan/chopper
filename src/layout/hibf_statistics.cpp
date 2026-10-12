@@ -70,7 +70,8 @@ void hibf_statistics::finalize()
 
     gather_statistics(top_level_ibf, 0);
 
-    expected_HIBF_query_cost = total_query_cost / total_kmer_count;
+    // If all user bins are empty, there are no k-mers to query.
+    expected_HIBF_query_cost = (total_kmer_count != 0u) ? total_query_cost / total_kmer_count : 0.0;
 }
 
 //!\brief Prints a column names of the summary to the command line.
@@ -113,7 +114,9 @@ void hibf_statistics::print_summary_to(size_t & t_max_64_memory, std::ostream & 
     if (t_max_64_memory == 0)
         t_max_64_memory = total_hibf_size_in_byte();
 
-    double const relative_memory_size = total_hibf_size_in_byte() / static_cast<double>(t_max_64_memory);
+    // `t_max_64_memory` is only 0 if this HIBF has a size of 0, too, i.e., both have the same size.
+    double const relative_memory_size =
+        (t_max_64_memory != 0u) ? total_hibf_size_in_byte() / static_cast<double>(t_max_64_memory) : 1.0;
     double const query_time_memory_usage_prod = expected_HIBF_query_cost * relative_memory_size;
 
     stream << std::fixed << std::setprecision(2);
@@ -169,14 +172,24 @@ void hibf_statistics::print_summary_to(size_t & t_max_64_memory, std::ostream & 
             double const avg_split_bin =
                 static_cast<double>(total_num_split_tbs) / static_cast<double>(total_num_split_ubs);
             size_t const total_split_tb_kmers = std::reduce(s.split_tb_kmers.begin(), s.split_tb_kmers.end());
-            double const avg_factor =
-                static_cast<double>(std::reduce(s.split_tb_corr_kmers.begin(), s.split_tb_corr_kmers.end()))
-                / static_cast<double>(total_split_tb_kmers);
 
             max_split_tb_str += ":" + to_string_with_precision(max_split_bin_span);
             avg_split_tb_str += ":" + to_string_with_precision(avg_split_bin);
             max_factor_str += ":" + to_string_with_precision((fp_correction)[max_split_bin_span]);
-            avg_factor_str += ":" + to_string_with_precision(avg_factor);
+
+            // The average factor is weighted by k-mers.
+            // It does not make sense if all split bins on this level are empty.
+            if (total_split_tb_kmers != 0u)
+            {
+                double const avg_factor =
+                    static_cast<double>(std::reduce(s.split_tb_corr_kmers.begin(), s.split_tb_corr_kmers.end()))
+                    / static_cast<double>(total_split_tb_kmers);
+                avg_factor_str += ":" + to_string_with_precision(avg_factor);
+            }
+            else
+            {
+                avg_factor_str += ":-";
+            }
         }
         else
         {
