@@ -834,6 +834,7 @@ void partition_user_bins(chopper::configuration const & config,
         std::vector<Cluster> const & clusters = raw_clusters; // clusters do not change from this point on
 
         // initialise partitions with the first p largest clusters (post_processing sorts by size)
+        std::vector<size_t> spilled_user_bins{}; // user bins that spilled over past the last partition
         size_t cidx{0}; // current cluster index
         for (size_t p = 0; p < config.number_of_partitions; ++p)
         {
@@ -848,9 +849,16 @@ void partition_user_bins(chopper::configuration const & config,
                 // then the remaining user bins of the cluster must spill over into the next partition
                 if (partition_cardinality[p] > cardinality_per_part)
                 {
-                    ++p;
-                    p_has_been_incremented = true;
-                    assert(p < config.number_of_partitions);
+                    if (p + 1 == config.number_of_partitions) // No partition left to spill into
+                    {
+                        spilled_user_bins.push_back(user_bin_idx); // assigned after seeding
+                        continue;
+                    }
+                    else
+                    {
+                        ++p;
+                        p_has_been_incremented = true;
+                    }
                 }
 
                 partition_sketches[p].merge(sketches[user_bin_idx]);
@@ -871,6 +879,9 @@ void partition_user_bins(chopper::configuration const & config,
 
             ++cidx;
         }
+
+        for (size_t const user_bin_idx : spilled_user_bins)
+            find_best_partition(config, cardinality_per_part, {user_bin_idx}, cardinalities, sketches, partitions, partition_sketches, partition_cardinality);
 
         // assign the rest by similarity
         assert(config.hibf_config.number_of_user_bins == clusters.size());
@@ -898,6 +909,7 @@ void partition_user_bins(chopper::configuration const & config,
         std::vector<MultiCluster> const clusters = sim_dist_LSH_partitioning(minHash_sketches, cardinalities, cardinality_per_part, config);
 
         // initialise partitions with the first p largest clusters (post processing sorts by size)
+        std::vector<size_t> spilled_user_bins{}; // user bins that spilled over past the last partition
         size_t cidx{0}; // current cluster index
         for (size_t p = 0; p < config.number_of_partitions; ++p)
         {
@@ -916,9 +928,16 @@ void partition_user_bins(chopper::configuration const & config,
                 // then the remaining user bins of the cluster must spill over into the next partition
                 if (partition_cardinality[p] > cardinality_per_part)
                 {
-                    ++p;
-                    p_has_been_incremented = true;
-                    assert(p < config.number_of_partitions);
+                    if (p + 1 == config.number_of_partitions) // No partition left to spill into
+                    {
+                        spilled_user_bins.push_back(user_bin_idx); // assigned after seeding
+                        continue;
+                    }
+                    else
+                    {
+                        ++p;
+                        p_has_been_incremented = true;
+                    }
                 }
 
                 partition_sketches[p].merge(sketches[user_bin_idx]);
@@ -939,6 +958,9 @@ void partition_user_bins(chopper::configuration const & config,
 
             ++cidx;
         }
+
+        for (size_t const user_bin_idx : spilled_user_bins)
+            find_best_partition(config, cardinality_per_part, {user_bin_idx}, cardinalities, sketches, partitions, partition_sketches, partition_cardinality);
 
         // assign the rest, cluster by cluster (because the clusters are very similar), by similarity
         assert(config.hibf_config.number_of_user_bins == clusters.size());
