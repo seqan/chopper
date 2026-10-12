@@ -265,9 +265,11 @@ TEST(phibf_regression_test, user_bin_does_not_fit)
     EXPECT_TRUE(each_user_bin_assigned_once(data_similarity.partition(), 4));
 }
 
-TEST(phibf_regression_test, weighted_fold_crash)
+TEST(phibf_regression_test, weighted_fold_threshold)
 {
     // About two user bins per partition: some partitions stay empty, which is reported.
+    // Formerly, u_bins_per_part was rounded up, causing some partitions to use up to many user bins.
+    // Now, it is rounded down and the following edge case passes:
     phibf_data const data3{chopper::layout::phibf::partitioning_scheme::weighted_fold, 33, 16, "uniform"};
     EXPECT_TRUE(each_user_bin_assigned_once(data3.partition(), 33));
 }
