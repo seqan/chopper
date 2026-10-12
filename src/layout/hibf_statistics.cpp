@@ -428,12 +428,23 @@ void hibf_statistics::collect_bins()
         ibf.bins.back().tb_index = user_bin_info.storage_TB_id;
     }
 
-    for (auto & ibf : ibfs)
+    // Attach the child IBFs top-down, recursing into each attached child, so that the levels below a child are attached
+    // to the child that is actually stored in the tree. This does not depend on the order of `max_bins`.
+    // Every IBF except the top-level IBF is the child of exactly one merged bin, so it can be moved.
+    auto attach_child_levels = [&ibfs](auto & self, hibf_statistics::level & ibf) -> void
+    {
         for (auto & bin : ibf.bins)
+        {
             if (bin.kind == hibf_statistics::bin_kind::merged)
-                bin.child_level = ibfs[bin.child_level_idx];
+            {
+                bin.child_level = std::move(ibfs[bin.child_level_idx]);
+                self(self, bin.child_level);
+            }
+        }
+    };
 
     top_level_ibf = std::move(ibfs[0]);
+    attach_child_levels(attach_child_levels, top_level_ibf);
 }
 
 void hibf_statistics::compute_cardinalities(level & curr_level)

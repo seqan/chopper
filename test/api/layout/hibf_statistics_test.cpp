@@ -7,12 +7,14 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <cstddef>
 #include <filesystem>
 #include <functional>
 #include <iostream>
 #include <limits>
 #include <ranges>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -101,6 +103,44 @@ TEST(hibf_statistics, only_merged_on_top_level)
 )expected_cout";
 
     EXPECT_EQ(summary, expected_cout);
+}
+
+TEST(hibf_statistics, three_levels)
+{
+    chopper::configuration config{}; // default config
+    config.hibf_config.tmax = 64u;
+    config.hibf_config.disable_estimate_union = true; /* also disable rearrangement */
+
+    std::vector<seqan::hibf::sketch::hyperloglog> sketches(4u);
+    std::vector<size_t> kmer_counts{100, 200, 300, 400};
+
+    // Level 0, top-level IBF:  UB 0 in TB 0, merged bin in TB 1.
+    // Level 1, IBF [1]:        UB 1 in TB 0, merged bin in TB 1.
+    // Level 2, IBF [1, 1]:     UB 2 split into TBs 0 and 1, UB 3 split into TBs 2 and 3.
+    seqan::hibf::layout::layout layout{};
+    layout.top_level_max_bin_id = 1u;
+    layout.max_bins = {{{1u}, 1u}, {{1u, 1u}, 2u}};
+    layout.user_bins = {{{}, 0u, 1u, 0u}, {{1u}, 0u, 1u, 1u}, {{1u, 1u}, 0u, 2u, 2u}, {{1u, 1u}, 2u, 2u, 3u}};
+
+    auto summary = [&]()
+    {
+        chopper::layout::hibf_statistics stats(config, sketches, kmer_counts);
+        stats.hibf_layout = layout;
+        std::ostringstream stream;
+        size_t max_64{};
+        stats.print_summary_to(max_64, stream);
+        return stream.str();
+    };
+
+    std::string const expected{"64\t1.00\t2.60\t1.00\t2.60\t2.1KiB\t3.9KiB\t:0:1:2\t:1:1:1\t:569Bytes:442Bytes:1.1KiB\t"
+                               ":1.7KiB:1.3KiB:790Bytes\t:2:2:4\t:2:2:4\t:50.00:50.00:100.00\t:1:1:2\t:1.00:1.00:2.00\t"
+                               ":1.00:1.00:1.46\t:1.00:1.00:1.47\n"};
+
+    EXPECT_EQ(summary(), expected);
+
+    // The statistics must not depend on the order of `max_bins`.
+    std::ranges::reverse(layout.max_bins);
+    EXPECT_EQ(summary(), expected);
 }
 
 TEST(execute_test, chopper_layout_statistics)
@@ -215,7 +255,7 @@ TEST(execute_test, chopper_layout_statistics_fast_layout)
 ## size : The expected total size of an tmax-HIBF
 ## uncorr_size : The expected size of an tmax-HIBF without FPR correction
 # tmax	c_tmax	l_tmax	m_tmax	(l*m)_tmax	size	uncorr_size	level	num_ibfs	level_size	level_size_no_corr	total_num_tbs	avg_num_tbs	split_tb_percentage	max_split_tb	avg_split_tb	max_factor	avg_factor
-64	1.00	1.24	1.00	1.24	672.6KiB	2.0MiB	:0:1:2	:1:1:1	:624.8KiB:47.8KiB:0Bytes	:1.9MiB:130.0KiB:0Bytes	:64:64:0	:64:64:0	:98.44:98.44:NaN	:1:3:-	:1.00:2.03:-	:1.00:1.81:-	:1.00:1.47:-
+64	1.00	1.29	1.00	1.29	685.3KiB	2.0MiB	:0:1:2	:1:1:1	:624.8KiB:47.8KiB:12.7KiB	:1.9MiB:130.0KiB:2.0KiB	:64:64:64	:64:64:64	:98.44:98.44:100.00	:1:3:32	:1.00:2.03:32.00	:1.00:1.81:6.20	:1.00:1.47:6.21
 )expected_cout";
 
     EXPECT_EQ(layout_result_stdout, expected_cout) << layout_result_stdout;
