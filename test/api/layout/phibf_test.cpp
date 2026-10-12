@@ -31,7 +31,7 @@
 // Not declared in the header. Tested directly in phibf_regression_test.find_best_partition_intersection_underflow.
 namespace chopper::layout::phibf
 {
-bool find_best_partition(chopper::configuration const & config,
+void find_best_partition(chopper::configuration const & config,
                          size_t const cardinality_per_part,
                          std::vector<size_t> const & cluster,
                          std::vector<size_t> const & cardinalities,
@@ -252,7 +252,9 @@ TEST(phibf_regression_test, fewer_clusters_than_partitions)
 
 TEST(phibf_regression_test, user_bin_does_not_fit)
 {
-    // which those inputs, the respective partitioning approach failes.
+    // Those inputs made the respective partitioning approach fail, because one user bin could not be assigned
+    // To a partition within find_best_partition. For example single very large user bins or very skewed distributions.
+    // find_best_partition now has a fallback approach.
     phibf_data const data_lsh{chopper::layout::phibf::partitioning_scheme::lsh, 8, 5, "equal"};
     EXPECT_TRUE(each_user_bin_assigned_once(data_lsh.partition(), 8));
 
@@ -446,15 +448,14 @@ TEST(phibf_regression_test, find_best_partition_intersection_underflow)
         std::vector<seqan::hibf::sketch::hyperloglog> partition_sketches{partition_0, partition_1};
         std::vector<size_t> partition_cardinality{0, 0}; // Both partitions have room for the user bin.
 
-        bool const found = chopper::layout::phibf::find_best_partition(config,
-                                                                       /*cardinality_per_part*/ 1'000'000,
-                                                                       {ub},
-                                                                       cardinalities,
-                                                                       sketches,
-                                                                       partitions,
-                                                                       partition_sketches,
-                                                                       partition_cardinality);
-        EXPECT_TRUE(found) << "user bin " << ub;
+        chopper::layout::phibf::find_best_partition(config,
+                                                    /*cardinality_per_part*/ 1'000'000,
+                                                    {ub},
+                                                    cardinalities,
+                                                    sketches,
+                                                    partitions,
+                                                    partition_sketches,
+                                                    partition_cardinality);
         wrong_partition += (partitions[1] != std::vector<size_t>{ub});
     }
     EXPECT_EQ(wrong_partition, 0u) << "of " << number_of_user_bins << " user bins";

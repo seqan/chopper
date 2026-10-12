@@ -457,7 +457,7 @@ std::vector<MultiCluster> sim_dist_LSH_partitioning(std::vector<seqan::hibf::ske
     return multi_clusters;
 }
 
-bool find_best_partition(chopper::configuration const & config,
+void find_best_partition(chopper::configuration const & config,
                          size_t const cardinality_per_part,
                          std::vector<size_t> const & cluster,
                          std::vector<size_t> const & cardinalities,
@@ -485,21 +485,6 @@ bool find_best_partition(chopper::configuration const & config,
 
         return result;
     }();
-
-    // edge case: empty sequence
-    if (current_cardinality == 0) // no kmers to be added
-    {
-        // just add empty user bin to the first partition
-        for (size_t const user_bin_idx : cluster)
-        {
-            positions[0].push_back(user_bin_idx);
-            partition_cardinality[0] += cardinalities[user_bin_idx];
-        }
-        partition_sketches[0].merge(current_sketch);
-        return true;
-    }
-
-    // TODO: afterwads check if I should again merge by how little the effective text ratio grows
 
     // search best partition fit by similarity
     // similarity here is defined as:
@@ -532,7 +517,25 @@ bool find_best_partition(chopper::configuration const & config,
     }
 
     if (!best_p_found)
-        return false;
+    {
+        // No partition satisfies the size limits
+        // (e.g. too few user bins per partition, or a single user bin larger than 1.2 · cardinality_per_part,
+        //  or a user bin with no sequence content and cardinality 0)
+
+        // If we are working on a cluster with several user bins, assign user bins individually
+        if (cluster.size() > 1)
+        {
+            for (size_t const user_bin_idx : cluster)
+            {
+                find_best_partition(config, cardinality_per_part, {user_bin_idx}, cardinalities, sketches, positions, partition_sketches, partition_cardinality);
+            }
+            return;
+        }
+        else // For single user bins, fall back to the least filled partition.
+        {
+            best_p = std::ranges::min_element(partition_cardinality) - partition_cardinality.begin();
+        }
+    }
 
     // now that we know which partition fits best (`best_p`), add those indices to it
     for (size_t const user_bin_idx : cluster)
@@ -541,37 +544,6 @@ bool find_best_partition(chopper::configuration const & config,
         partition_cardinality[best_p] += cardinalities[user_bin_idx];
     }
     partition_sketches[best_p].merge(current_sketch);
-
-    return true;
-}
-
-/*!\brief Assigns a single user bin with find_best_partition.
- * \throws std::runtime_error If the user bin does not fit into any partition.
- */
-void assign_user_bin(chopper::configuration const & config,
-                     size_t const cardinality_per_part,
-                     size_t const user_bin_idx,
-                     std::vector<size_t> const & cardinalities,
-                     std::vector<seqan::hibf::sketch::hyperloglog> const & sketches,
-                     std::vector<std::vector<size_t>> & partitions,
-                     std::vector<seqan::hibf::sketch::hyperloglog> & partition_sketches,
-                     std::vector<size_t> & partition_cardinality)
-{
-    if (!find_best_partition(config,
-                             cardinality_per_part,
-                             {user_bin_idx},
-                             cardinalities,
-                             sketches,
-                             partitions,
-                             partition_sketches,
-                             partition_cardinality))
-    {
-        throw std::runtime_error{"User bin " + std::to_string(user_bin_idx) + " (cardinality "
-                                 + std::to_string(cardinalities[user_bin_idx])
-                                 + ") does not fit into any partition (target cardinality per partition: "
-                                 + std::to_string(cardinality_per_part)
-                                 + "). Use fewer partitions or another partitioning approach."};
-    }
 }
 
 void partition_user_bins(chopper::configuration const & config,
@@ -832,14 +804,14 @@ void partition_user_bins(chopper::configuration const & config,
                 continue;
             }
 
-            assign_user_bin(config,
-                            cardinality_per_part,
-                            sorted_positions[i],
-                            cardinalities,
-                            sketches,
-                            partitions,
-                            partition_sketches,
-                            partition_cardinality);
+            find_best_partition(config,
+                                cardinality_per_part,
+                                {sorted_positions[i]},
+                                cardinalities,
+                                sketches,
+                                partitions,
+                                partition_sketches,
+                                partition_cardinality);
         }
     }
     else if (config.partitioning_approach == partitioning_scheme::lsh)
@@ -909,16 +881,7 @@ void partition_user_bins(chopper::configuration const & config,
             if (cluster.empty()) // non valid clusters have been removed. Since list was sorted, we can abort
                 break;
 
-            bool const cluster_could_be_added = find_best_partition(config, cardinality_per_part, cluster.contained_user_bins(), cardinalities, sketches, partitions, partition_sketches, partition_cardinality);
-
-            // if the cluster is too large to be added. Add single user bins
-            if (!cluster_could_be_added)
-            {
-                for (size_t const user_bin_idx : cluster.contained_user_bins())
-                {
-                    assign_user_bin(config, cardinality_per_part, user_bin_idx, cardinalities, sketches, partitions, partition_sketches, partition_cardinality);
-                }
-            }
+            find_best_partition(config, cardinality_per_part, cluster.contained_user_bins(), cardinalities, sketches, partitions, partition_sketches, partition_cardinality);
         }
     }
     else if (config.partitioning_approach == partitioning_scheme::lsh_sim)
@@ -995,16 +958,7 @@ void partition_user_bins(chopper::configuration const & config,
 
         for (auto const & cluster : remaining_clusters)
         {
-            bool const cluster_could_be_added = find_best_partition(config, cardinality_per_part, cluster, cardinalities, sketches, partitions, partition_sketches, partition_cardinality);
-
-            // if the cluster is too large to be added. Add single user bins
-            if (!cluster_could_be_added)
-            {
-                for (size_t const user_bin_idx : cluster)
-                {
-                    assign_user_bin(config, cardinality_per_part, user_bin_idx, cardinalities, sketches, partitions, partition_sketches, partition_cardinality);
-                }
-            }
+            find_best_partition(config, cardinality_per_part, cluster, cardinalities, sketches, partitions, partition_sketches, partition_cardinality);
         }
     }
 
