@@ -379,16 +379,7 @@ void execute_general(config const & cfg)
     if (!layout_file.good() || !layout_file.is_open())
         throw std::logic_error{"Could not open file " + cfg.input.string() + " for reading"};
 
-// https://godbolt.org/z/PeKnxzjn1
-#if defined(__clang__)
-    auto tuple = chopper::layout::read_layouts_file(layout_file);
-    // https://godbolt.org/z/WoWf55KPb
-    auto filenames = std::move(std::get<0>(tuple));
-    auto chopper_config = std::move(std::get<1>(tuple));
-    auto hibf_layouts = std::move(std::get<2>(tuple));
-#else
     auto [filenames, chopper_config, hibf_layouts] = chopper::layout::read_layouts_file(layout_file);
-#endif
 
     layout_file.close();
 
