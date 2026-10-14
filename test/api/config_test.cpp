@@ -20,7 +20,7 @@ chopper::configuration generate_config()
     config.disable_sketch_output = true;
     config.precomputed_files = true;
     config.number_of_partitions = 4;
-    config.partitioning_approach = 6;
+    config.partitioning_approach = chopper::partitioning_scheme::lsh_sim;
     config.output_filename = "file.layout";
     config.determine_best_tmax = true;
     config.force_all_binnings = true;
@@ -186,7 +186,7 @@ TEST(config_test, read_from_version_2)
     chopper::configuration expected{generate_config()};
     expected.fast_layout = false;
     expected.number_of_partitions = 1;
-    expected.partitioning_approach = 0;
+    expected.partitioning_approach = chopper::partitioning_scheme::blocked;
 
     EXPECT_EQ(config, expected);
 }
@@ -218,7 +218,7 @@ TEST(config_test, read_from_version_3)
     // The fields are not read and keep their default values.
     chopper::configuration expected{generate_config()};
     expected.number_of_partitions = 1;
-    expected.partitioning_approach = 0;
+    expected.partitioning_approach = chopper::partitioning_scheme::blocked;
 
     EXPECT_EQ(config, expected);
 }

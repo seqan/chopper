@@ -64,7 +64,7 @@ struct phibf_data
     std::vector<seqan::hibf::sketch::minhashes> minHash_sketches{};
     std::vector<size_t> cardinalities{};
 
-    phibf_data(int const partitioning_approach,
+    phibf_data(chopper::partitioning_scheme const partitioning_approach,
                size_t const number_of_user_bins,
                size_t const number_of_partitions,
                std::string const & dist = "uniform")
@@ -116,15 +116,15 @@ struct phibf_data
     }
 };
 
-std::vector<chopper::layout::phibf::partitioning_scheme> const phibf_approaches
+std::vector<chopper::partitioning_scheme> const phibf_approaches
 {
-    chopper::layout::phibf::partitioning_scheme::blocked,
-    chopper::layout::phibf::partitioning_scheme::sorted,
-    chopper::layout::phibf::partitioning_scheme::folded,
-    chopper::layout::phibf::partitioning_scheme::weighted_fold,
-    chopper::layout::phibf::partitioning_scheme::similarity,
-    chopper::layout::phibf::partitioning_scheme::lsh,
-    chopper::layout::phibf::partitioning_scheme::lsh_sim
+    chopper::partitioning_scheme::blocked,
+    chopper::partitioning_scheme::sorted,
+    chopper::partitioning_scheme::folded,
+    chopper::partitioning_scheme::weighted_fold,
+    chopper::partitioning_scheme::similarity,
+    chopper::partitioning_scheme::lsh,
+    chopper::partitioning_scheme::lsh_sim
 };
 
 // Expects that every user bin in [0, number_of_user_bins) is assigned to exactly one partition.
@@ -147,7 +147,7 @@ TEST(phibf_partition_test, each_user_bin_is_assigned_to_exactly_one_partition)
     size_t const number_of_user_bins{240};
     size_t const number_of_partitions{4};
 
-    for (chopper::layout::phibf::partitioning_scheme const approach : phibf_approaches)
+    for (chopper::partitioning_scheme const approach : phibf_approaches)
     {
         phibf_data data{approach, number_of_user_bins, number_of_partitions};
         auto partitions = data.partition();
@@ -158,7 +158,7 @@ TEST(phibf_partition_test, each_user_bin_is_assigned_to_exactly_one_partition)
 
 TEST(phibf_partition_test, unknown_partitioning_approach)
 {
-    phibf_data data{-1 /*unkown approach*/, 16, 4};
+    phibf_data data{chopper::partitioning_scheme::unknown, 16, 4};
     EXPECT_THROW(data.partition(), std::invalid_argument);
 }
 
@@ -169,7 +169,7 @@ TEST(phibf_execute_test, writes_one_layout_per_partition)
 
     size_t const number_of_user_bins{240};
     size_t const number_of_partitions{3};
-    phibf_data data{chopper::layout::phibf::partitioning_scheme::lsh_sim, number_of_user_bins, number_of_partitions};
+    phibf_data data{chopper::partitioning_scheme::lsh_sim, number_of_user_bins, number_of_partitions};
     data.config.output_filename = layout_file;
 
     std::vector<std::vector<std::string>> filenames{};
@@ -183,7 +183,7 @@ TEST(phibf_execute_test, writes_one_layout_per_partition)
 
     EXPECT_EQ(read_filenames, filenames);
     EXPECT_EQ(read_config.number_of_partitions, number_of_partitions);
-    EXPECT_EQ(read_config.partitioning_approach, chopper::layout::phibf::partitioning_scheme::lsh_sim);
+    EXPECT_EQ(read_config.partitioning_approach, chopper::partitioning_scheme::lsh_sim);
     ASSERT_EQ(layouts.size(), number_of_partitions);
 
     // Each layout holds the user bins of one partition, with global user bin indices.
@@ -200,7 +200,7 @@ TEST(phibf_execute_test, writes_one_layout_per_partition)
 
 TEST(phibf_invalid_input_test, fewer_user_bins_than_partitions)
 {
-    for (chopper::layout::phibf::partitioning_scheme const approach : phibf_approaches)
+    for (chopper::partitioning_scheme const approach : phibf_approaches)
     {
         phibf_data const data{approach, 1/*UB*/, 2/*partitions*/, "uniform"};
         EXPECT_THROW(data.partition(), std::invalid_argument) << "approach " << approach;
@@ -211,7 +211,7 @@ TEST(phibf_regression_test, small_number_of_user_bins_per_part)
 {
     // If for small number of user bins the block size could not be optimally chosen (runding errors)
     // The last partition ended up empty. This was fixed.
-    phibf_data const data{chopper::layout::phibf::partitioning_scheme::blocked, 100, 16, "uniform"};
+    phibf_data const data{chopper::partitioning_scheme::blocked, 100, 16, "uniform"};
     EXPECT_TRUE(each_user_bin_assigned_once(data.partition(), 100));
 }
 
@@ -220,15 +220,15 @@ TEST(phibf_regression_test, few_user_bins_with_skewed_sizes)
     // If few user bins with skewed sizes are the input,
     // then cardinality_per_part is chosen too high and partitions at the end get no user bins.
     // This has beenf fixed.
-    phibf_data const data{chopper::layout::phibf::partitioning_scheme::sorted, 64, 8, "skewed"};
+    phibf_data const data{chopper::partitioning_scheme::sorted, 64, 8, "skewed"};
     EXPECT_TRUE(each_user_bin_assigned_once(data.partition(), 64));
 }
 
 TEST(phibf_regression_test, zero_cardinality_user_bins)
 {
-    using chopper::layout::phibf::partitioning_scheme;
+    using chopper::partitioning_scheme;
 
-    for (chopper::layout::phibf::partitioning_scheme const approach : phibf_approaches)
+    for (chopper::partitioning_scheme const approach : phibf_approaches)
     {
         phibf_data data{approach, 5, 2, "equal"};
         data.cardinalities = {10, 10, 10, 10, 0};
@@ -240,9 +240,9 @@ TEST(phibf_regression_test, zero_cardinality_user_bins)
 
 TEST(phibf_regression_test, fewer_clusters_than_partitions)
 {
-    using chopper::layout::phibf::partitioning_scheme;
+    using chopper::partitioning_scheme;
 
-    for (int const approach : {partitioning_scheme::lsh, partitioning_scheme::lsh_sim})
+    for (chopper::partitioning_scheme const approach : {partitioning_scheme::lsh, partitioning_scheme::lsh_sim})
     {
         phibf_data const data{approach, 9, 8, "equal"};
         EXPECT_TRUE(each_user_bin_assigned_once(data.partition(), 9));
@@ -254,13 +254,13 @@ TEST(phibf_regression_test, user_bin_does_not_fit)
     // Those inputs made the respective partitioning approach fail, because one user bin could not be assigned
     // To a partition within find_best_partition. For example single very large user bins or very skewed distributions.
     // find_best_partition now has a fallback approach.
-    phibf_data const data_lsh{chopper::layout::phibf::partitioning_scheme::lsh, 8, 5, "equal"};
+    phibf_data const data_lsh{chopper::partitioning_scheme::lsh, 8, 5, "equal"};
     EXPECT_TRUE(each_user_bin_assigned_once(data_lsh.partition(), 8));
 
-    phibf_data const data_lsh_sim{chopper::layout::phibf::partitioning_scheme::lsh_sim, 257, 8, "skewed"};
+    phibf_data const data_lsh_sim{chopper::partitioning_scheme::lsh_sim, 257, 8, "skewed"};
     EXPECT_TRUE(each_user_bin_assigned_once(data_lsh_sim.partition(), 257));
 
-    phibf_data const data_similarity{chopper::layout::phibf::partitioning_scheme::similarity, 4, 3, "equal"};
+    phibf_data const data_similarity{chopper::partitioning_scheme::similarity, 4, 3, "equal"};
     EXPECT_TRUE(each_user_bin_assigned_once(data_similarity.partition(), 4));
 }
 
@@ -269,14 +269,14 @@ TEST(phibf_regression_test, weighted_fold_threshold)
     // About two user bins per partition: some partitions stay empty, which is reported.
     // Formerly, u_bins_per_part was rounded up, causing some partitions to use up to many user bins.
     // Now, it is rounded down and the following edge case passes:
-    phibf_data const data3{chopper::layout::phibf::partitioning_scheme::weighted_fold, 33, 16, "uniform"};
+    phibf_data const data3{chopper::partitioning_scheme::weighted_fold, 33, 16, "uniform"};
     EXPECT_TRUE(each_user_bin_assigned_once(data3.partition(), 33));
 }
 
 TEST(phibf_regression_test, weighted_fold_score_edge_case)
 {
     // 8 user bins, 2 partitions: 125 k-mers and 4 user bins per partition.
-    phibf_data data{chopper::layout::phibf::partitioning_scheme::weighted_fold, 8, 2, "equal"};
+    phibf_data data{chopper::partitioning_scheme::weighted_fold, 8, 2, "equal"};
     data.cardinalities = {100, 90, 10, 10, 10, 10, 10, 10};
 
     // Partition 0 takes the large user bins 100 and 90 (score |1 - 190/125| + |1 - 2/4| = 1.02).
@@ -320,7 +320,7 @@ TEST(phibf_execute_test, tmaxset_or_not_set)
 
     // tmax not set: about 80 user bins per partition, next_multiple_of_64(ceil(sqrt(80))) = 64.
     {
-        phibf_data data{chopper::layout::phibf::partitioning_scheme::sorted, 240, number_of_partitions};
+        phibf_data data{chopper::partitioning_scheme::sorted, 240, number_of_partitions};
         auto const layouts = data.layouts();
         ASSERT_EQ(layouts.size(), number_of_partitions);
         for (auto const & layout : layouts)
@@ -329,7 +329,7 @@ TEST(phibf_execute_test, tmaxset_or_not_set)
 
     // tmax set: every partition uses it.
     {
-        phibf_data data{chopper::layout::phibf::partitioning_scheme::sorted, 240, number_of_partitions};
+        phibf_data data{chopper::partitioning_scheme::sorted, 240, number_of_partitions};
         data.config.hibf_config.tmax = 128;
         data.config.tmax_is_set = true;
         auto const layouts = data.layouts();
@@ -394,9 +394,9 @@ TEST(phibf_regression_test, seeding_spills_past_last_partition)
         minHash_sketches.push_back(minhashes_of_group(ub < 4 ? 1 : 2));
     }
 
-    using chopper::layout::phibf::partitioning_scheme;
+    using chopper::partitioning_scheme;
 
-    for (int const approach : {partitioning_scheme::lsh, partitioning_scheme::lsh_sim})
+    for (chopper::partitioning_scheme const approach : {partitioning_scheme::lsh, partitioning_scheme::lsh_sim})
     {
         config.partitioning_approach = approach;
 
@@ -463,7 +463,7 @@ TEST(phibf_regression_test, unassigned_user_bins_in_release)
     GTEST_SKIP() << "Debug builds have the check, and an assertion on number_of_user_bins fires before it.";
 #else
     size_t const number_of_user_bins{50};
-    phibf_data data{chopper::layout::phibf::partitioning_scheme::lsh, number_of_user_bins, 2, "uniform"};
+    phibf_data data{chopper::partitioning_scheme::lsh, number_of_user_bins, 2, "uniform"};
     data.config.hibf_config.number_of_user_bins = 0;
 
     try

@@ -128,8 +128,8 @@ int chopper_layout(chopper::configuration & config, sharg::parser & parser)
                                       "Create the sketch file with --fast-layout."};
 
         bool const partitioning_needs_minhashes =
-            config.partitioning_approach == chopper::layout::phibf::partitioning_scheme::lsh
-            || config.partitioning_approach == chopper::layout::phibf::partitioning_scheme::lsh_sim;
+            config.partitioning_approach == chopper::partitioning_scheme::lsh
+            || config.partitioning_approach == chopper::partitioning_scheme::lsh_sim;
 
         if (partitioned && partitioning_needs_minhashes && minHash_sketches.size() != sketches.size())
             throw sharg::parser_error{"The sketch file does not contain MinHash sketches, which the chosen "

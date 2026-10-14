@@ -556,7 +556,7 @@ void partition_user_bins(chopper::configuration const & config,
     if (config.partitioning_approach < partitioning_scheme::blocked
         || config.partitioning_approach > partitioning_scheme::lsh_sim)
     {
-        throw std::invalid_argument{"Unknown partitioning approach " + std::to_string(config.partitioning_approach)
+        throw std::invalid_argument{"Unknown partitioning approach " + std::to_string(static_cast<uint8_t>(config.partitioning_approach))
                                     + "."};
     }
 
