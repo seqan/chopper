@@ -23,18 +23,6 @@
 namespace chopper::layout::phibf
 {
 
-//!\brief The partitioning approaches of the partitioned HIBF. Selected by `configuration::partitioning_approach`.
-enum partitioning_scheme
-{
-    blocked,       // 0
-    sorted,        // 1
-    folded,        // 2
-    weighted_fold, // 3
-    similarity,    // 4
-    lsh,           // 5
-    lsh_sim        // 6
-};
-
 /*!\brief Distributes all user bins onto `config.number_of_partitions` partitions of a partitioned HIBF.
  * \param[in]  config           The configuration. Uses `number_of_partitions`, `partitioning_approach`, and
  *                              `hibf_config.{sketch_bits, number_of_user_bins, tmax}`.

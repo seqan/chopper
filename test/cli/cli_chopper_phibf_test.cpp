@@ -48,7 +48,7 @@ TEST_F(cli_test, chopper_layout_phibf)
                                          "--number-of-partitions",
                                          "2",
                                          "--partitioning-approach",
-                                         "1",
+                                         "sorted",
                                          "--output",
                                          layout_filename.c_str());
 
@@ -61,7 +61,7 @@ TEST_F(cli_test, chopper_layout_phibf)
 
     EXPECT_EQ(filenames.size(), 4u);
     EXPECT_EQ(config.number_of_partitions, 2u);
-    EXPECT_EQ(config.partitioning_approach, 1);
+    EXPECT_EQ(config.partitioning_approach, chopper::partitioning_scheme::sorted);
     ASSERT_EQ(layouts.size(), 2u);
 
     std::vector<size_t> user_bins{};
@@ -141,7 +141,7 @@ TEST_F(cli_test, chopper_layout_phibf_from_sketch_file_without_minhashes)
                                              "--number-of-partitions",
                                              "2",
                                              "--partitioning-approach",
-                                             "6",
+                                             "lsh_sim",
                                              "--output",
                                              layout_filename.c_str());
 
@@ -161,7 +161,7 @@ TEST_F(cli_test, chopper_layout_phibf_from_sketch_file_without_minhashes)
                                              "--number-of-partitions",
                                              "2",
                                              "--partitioning-approach",
-                                             "1",
+                                             "sorted",
                                              "--output",
                                              layout_filename.c_str());
 
@@ -187,15 +187,15 @@ TEST_F(cli_test, chopper_layout_phibf_unknown_partitioning_approach)
                                          "--number-of-partitions",
                                          "2",
                                          "--partitioning-approach",
-                                         "7",
+                                         "foo",
                                          "--output",
                                          layout_filename.c_str());
 
     EXPECT_NE(result.exit_code, 0);
     EXPECT_EQ(result.out, std::string{});
     EXPECT_EQ(result.err,
-              std::string{"[ERROR] Validation failed for option --partitioning-approach: Value 7 is not in range "
-                          "[0,6].\n"});
+              std::string{"[ERROR] Validation failed for option --partitioning-approach: Value unknown is not one of "
+                          "[blocked, sorted, folded, weighted_fold, similarity, lsh, lsh_sim].\n"});
 }
 
 TEST_F(cli_test, chopper_layout_phibf_more_partitions_than_user_bins)
@@ -253,7 +253,7 @@ TEST_F(cli_test, chopper_layout_phibf_tmax)
                                              "--number-of-partitions",
                                              "2",
                                              "--partitioning-approach",
-                                             "1",
+                                             "sorted",
                                              tmax_option,
                                              "--output",
                                              layout_filename.c_str());

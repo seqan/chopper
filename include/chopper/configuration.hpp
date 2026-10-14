@@ -10,6 +10,9 @@
 #include <cinttypes>
 #include <filesystem>
 #include <iosfwd>
+#include <istream>
+#include <ostream>
+#include <string>
 
 #include <cereal/cereal.hpp>
 
@@ -19,6 +22,19 @@
 
 namespace chopper
 {
+
+//!\brief The partitioning approaches of the partitioned HIBF. Selected by `configuration::partitioning_approach`.
+enum struct partitioning_scheme : uint8_t
+{
+    blocked,       // 0
+    sorted,        // 1
+    folded,        // 2
+    weighted_fold, // 3
+    similarity,    // 4
+    lsh,           // 5
+    lsh_sim,       // 6
+    unknown        // for error parsing
+};
 
 struct configuration
 {
@@ -56,8 +72,8 @@ struct configuration
     //!\brief The number of partitions for the HIBF index. 1 computes a single HIBF layout.
     size_t number_of_partitions{1};
 
-    //!\brief The partitioning approach. See chopper::layout::phibf::partitioning_scheme.
-    int partitioning_approach{};
+    //!\brief The partitioning approach. See chopper::partitioning_scheme.
+    partitioning_scheme partitioning_approach{};
 
     /*!\brief Whether `hibf_config.tmax` was given by the user. Not serialised.
      *
@@ -154,5 +170,59 @@ private:
         }
     }
 };
+
+} // namespace chopper
+
+namespace chopper
+{
+
+// Make chopper::partitioning_scheme satisfy sharg::ostreamable. Found by argument-dependent lookup.
+inline std::ostream & operator<<(std::ostream & output, chopper::partitioning_scheme const & scheme)
+{
+    if (scheme == chopper::partitioning_scheme::blocked)
+        output << "blocked";
+    else if (scheme == chopper::partitioning_scheme::sorted)
+        output << "sorted";
+    else if (scheme == chopper::partitioning_scheme::folded)
+        output << "folded";
+    else if (scheme == chopper::partitioning_scheme::weighted_fold)
+        output << "weighted_fold";
+    else if (scheme == chopper::partitioning_scheme::similarity)
+        output << "similarity";
+    else if (scheme == chopper::partitioning_scheme::lsh)
+        output << "lsh";
+    else if (scheme == chopper::partitioning_scheme::lsh_sim)
+        output << "lsh_sim";
+    else
+        output << "unknown";
+
+    return output;
+}
+
+// Make chopper::partitioning_scheme satisfy sharg::istreamable. Found by argument-dependent lookup.
+inline std::istream & operator>>(std::istream & input, chopper::partitioning_scheme & scheme)
+{
+    std::string text;
+    input >> text;
+
+    if (text == "blocked")
+        scheme = chopper::partitioning_scheme::blocked;
+    else if (text == "sorted")
+        scheme = chopper::partitioning_scheme::sorted;
+    else if (text == "folded")
+        scheme = chopper::partitioning_scheme::folded;
+    else if (text == "weighted_fold")
+        scheme = chopper::partitioning_scheme::weighted_fold;
+    else if (text == "similarity")
+        scheme = chopper::partitioning_scheme::similarity;
+    else if (text == "lsh")
+        scheme = chopper::partitioning_scheme::lsh;
+    else if (text == "lsh_sim")
+        scheme = chopper::partitioning_scheme::lsh_sim;
+    else
+        scheme = chopper::partitioning_scheme::unknown;
+
+    return input;
+}
 
 } // namespace chopper

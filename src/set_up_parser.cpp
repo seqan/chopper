@@ -97,15 +97,24 @@ void set_up_parser(sharg::parser & parser, configuration & config)
                 "thereby the peak memory usage of searching with the HIBF.",
             .advanced = true});
 
+    sharg::value_list_validator<chopper::partitioning_scheme> partitioning_approach_validator{
+        chopper::partitioning_scheme::blocked,
+        chopper::partitioning_scheme::sorted,
+        chopper::partitioning_scheme::folded,
+        chopper::partitioning_scheme::weighted_fold,
+        chopper::partitioning_scheme::similarity,
+        chopper::partitioning_scheme::lsh,
+        chopper::partitioning_scheme::lsh_sim
+    };
+
     parser.add_option(config.partitioning_approach,
                       sharg::config{.short_id = '\0',
                                     .long_id = "partitioning-approach",
                                     .description = "How the user bins are distributed onto the partitions of a "
-                                                   "partitioned HIBF: 0 = blocked, 1 = sorted, 2 = folded, "
-                                                   "3 = weighted fold, 4 = similarity, 5 = lsh, 6 = lsh + similarity. "
+                                                   "partitioned HIBF."
                                                    "This is only configurable for debugging.",
                                     .advanced = true,
-                                    .validator = sharg::arithmetic_range_validator{0, 6}});
+                                    .validator = partitioning_approach_validator});
 
     parser.add_option(
         config.hibf_config.tmax,
