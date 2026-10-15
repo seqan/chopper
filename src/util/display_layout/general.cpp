@@ -208,6 +208,7 @@ int execute(config const & cfg,
                                                      .t_max = chopper_config.hibf_config.tmax});
 
     // Append: A partitioned HIBF layout file contains multiple layouts, which are written one after another.
+    // The ouput path is validated with output_file_validator, so it must not exist before and we can safely append
     std::ofstream output_stream{cfg.output, std::ios_base::app};
 
     if (!output_stream.good() || !output_stream.is_open())
@@ -382,10 +383,6 @@ void execute_general(config const & cfg)
     auto [filenames, chopper_config, hibf_layouts] = chopper::layout::read_layouts_file(layout_file);
 
     layout_file.close();
-
-    // Truncate the output once. execute appends the output of each layout.
-    if (std::ofstream output_stream{cfg.output}; !output_stream.good() || !output_stream.is_open())
-        throw std::logic_error{"Could not open file " + cfg.output.string() + " for writing"};
 
     for (auto & hibf_layout : hibf_layouts)
         execute(cfg, filenames, chopper_config, hibf_layout);
