@@ -265,8 +265,8 @@ void post_process_clusters(std::vector<Cluster> & clusters,
                            std::vector<size_t> const & cardinalities,
                            chopper::configuration const & config)
 {
-    assert(clusters.size() == config.hibf_config.number_of_user_bins);
-    assert(config.hibf_config.number_of_user_bins > config.number_of_partitions);
+    assert(clusters.size() == cardinalities.size());
+    assert(cardinalities.size() > config.number_of_partitions);
 
     // clusters are done. Start post processing
     // since post processing involves re-ordering the clusters, the moved_to_cluster_id value of a cluster will not
@@ -885,8 +885,8 @@ void partition_user_bins(chopper::configuration const & config,
             find_best_partition(config, cardinality_per_part, {user_bin_idx}, cardinalities, sketches, partitions, partition_sketches, partition_cardinality);
 
         // assign the rest by similarity
-        assert(config.hibf_config.number_of_user_bins == clusters.size());
-        for (; cidx < config.hibf_config.number_of_user_bins; ++cidx)
+        assert(cardinalities.size() == clusters.size());
+        for (; cidx < cardinalities.size(); ++cidx)
         {
             auto const & cluster = clusters[cidx];
 
@@ -964,7 +964,7 @@ void partition_user_bins(chopper::configuration const & config,
             find_best_partition(config, cardinality_per_part, {user_bin_idx}, cardinalities, sketches, partitions, partition_sketches, partition_cardinality);
 
         // assign the rest, cluster by cluster (because the clusters are very similar), by similarity
-        assert(config.hibf_config.number_of_user_bins == clusters.size());
+        assert(cardinalities.size() == clusters.size());
 
         std::vector<std::vector<size_t>> remaining_clusters{};
 
