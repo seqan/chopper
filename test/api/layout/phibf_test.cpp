@@ -454,26 +454,11 @@ TEST(phibf_regression_test, find_best_partition_intersection_underflow)
     EXPECT_EQ(wrong_partition, 0u) << "of " << number_of_user_bins << " user bins";
 }
 
-// The check that every user bin is assigned exactly once was only compiled in Debug builds, although
-// partition_user_bins documents a std::logic_error. lsh bounds its last loop by config.hibf_config.number_of_user_bins.
-// If that is not set, the remaining clusters are never assigned, and Release builds returned the incomplete partitions.
-TEST(phibf_regression_test, unassigned_user_bins_in_release)
+TEST(phibf_regression_test, unassigned_number_of_user_bins)
 {
-#ifndef NDEBUG
-    GTEST_SKIP() << "Debug builds have the check, and an assertion on number_of_user_bins fires before it.";
-#else
     size_t const number_of_user_bins{50};
     phibf_data data{chopper::partitioning_scheme::lsh, number_of_user_bins, 2, "uniform"};
-    data.config.hibf_config.number_of_user_bins = 0;
+    data.config.hibf_config.number_of_user_bins = 0; // should not be used, instead use data sizes like cardinalities
 
-    try
-    {
-        // Either all user bins are assigned ...
-        EXPECT_TRUE(each_user_bin_assigned_once(data.partition(), number_of_user_bins));
-    }
-    catch (std::logic_error const &)
-    {
-        // ... or partition_user_bins reports that they are not.
-    }
-#endif
+    EXPECT_TRUE(each_user_bin_assigned_once(data.partition(), number_of_user_bins));
 }
