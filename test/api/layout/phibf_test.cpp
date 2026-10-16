@@ -121,16 +121,13 @@ struct phibf_data
     }
 };
 
-std::vector<chopper::partitioning_scheme> const phibf_approaches
-{
-    chopper::partitioning_scheme::blocked,
-    chopper::partitioning_scheme::sorted,
-    chopper::partitioning_scheme::folded,
-    chopper::partitioning_scheme::weighted_fold,
-    chopper::partitioning_scheme::similarity,
-    chopper::partitioning_scheme::lsh,
-    chopper::partitioning_scheme::lsh_sim
-};
+std::vector<chopper::partitioning_scheme> const phibf_approaches{chopper::partitioning_scheme::blocked,
+                                                                 chopper::partitioning_scheme::sorted,
+                                                                 chopper::partitioning_scheme::folded,
+                                                                 chopper::partitioning_scheme::weighted_fold,
+                                                                 chopper::partitioning_scheme::similarity,
+                                                                 chopper::partitioning_scheme::lsh,
+                                                                 chopper::partitioning_scheme::lsh_sim};
 
 // Expects that every user bin in [0, number_of_user_bins) is assigned to exactly one partition.
 bool each_user_bin_assigned_once(std::vector<std::vector<size_t>> const & partitions, size_t const number_of_user_bins)
@@ -215,7 +212,7 @@ TEST(phibf_invalid_input_test, fewer_user_bins_than_partitions)
 {
     for (chopper::partitioning_scheme const approach : phibf_approaches)
     {
-        phibf_data const data{approach, 1/*UB*/, 2/*partitions*/, "uniform"};
+        phibf_data const data{approach, 1 /*UB*/, 2 /*partitions*/, "uniform"};
         EXPECT_THROW(data.partition(), std::invalid_argument) << "approach " << approach;
     }
 }

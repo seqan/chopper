@@ -37,7 +37,7 @@ int execute(chopper::configuration & config,
             std::vector<seqan::hibf::sketch::minhashes> const & minHash_sketches)
 {
     bool const partitioned = config.number_of_partitions >= 2u; // 0 == unset == single HIBF, 1 == single HIBF
-    assert(config.number_of_partitions >= 1u); // 0 == fail, 1 == no partitioning, => 2 PHIBF
+    assert(config.number_of_partitions >= 1u);                  // 0 == fail, 1 == no partitioning, => 2 PHIBF
 
     if (config.determine_best_tmax && config.fast_layout)
         throw std::invalid_argument{"determine_best_tmax is not supported with fast_layout."};
@@ -73,7 +73,7 @@ int execute(chopper::configuration & config,
             if (!config.tmax_is_set)
             {
                 config_copy.hibf_config.tmax =
-                        chopper::next_multiple_of_64(static_cast<uint16_t>(std::ceil(std::sqrt(partitions[i].size()))));
+                    chopper::next_multiple_of_64(static_cast<uint16_t>(std::ceil(std::sqrt(partitions[i].size()))));
             }
 
             // use timers of config_copy for thread safe start() and stop() and add result to config afterwards
@@ -119,7 +119,7 @@ int execute(chopper::configuration & config,
             for (size_t ubx{0}; ubx < layout.user_bins.size(); ++ubx)
             {
                 mapping[ubx] = layout.user_bins[ubx].idx; // for current local store its global UB.idx
-                layout.user_bins[ubx].idx = ubx; // overwrite global index with local one
+                layout.user_bins[ubx].idx = ubx;          // overwrite global index with local one
             }
 
             // update hibf_config.number_of_user_bins
@@ -143,8 +143,6 @@ int execute(chopper::configuration & config,
         config.write_to(fout);
         layout.write_to(fout);
     }
-
-
 
     return 0;
 }

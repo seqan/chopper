@@ -19,7 +19,9 @@
 namespace chopper::layout
 {
 
-void write_user_bins_to(std::vector<std::vector<std::string>> const & filenames, std::vector<size_t> const & mapping, std::ostream & stream)
+void write_user_bins_to(std::vector<std::vector<std::string>> const & filenames,
+                        std::vector<size_t> const & mapping,
+                        std::ostream & stream)
 {
     stream << chopper::prefix::meta_chopper_user_bins_start << '\n';
     size_t counter{};

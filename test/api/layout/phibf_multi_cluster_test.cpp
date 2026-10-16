@@ -92,9 +92,9 @@ TEST(Multicluster_test, sort_by_cardinality)
     cluster3.move_to(cluster2); // {2, 3}
     Cluster cluster4{4};
 
-    MultiCluster multi_cluster0{cluster0}; // {{0, 1}}
-    MultiCluster multi_cluster4{cluster4}; // {{4}}
-    MultiCluster multi_cluster2{cluster2}; // {{2, 3}}
+    MultiCluster multi_cluster0{cluster0};  // {{0, 1}}
+    MultiCluster multi_cluster4{cluster4};  // {{4}}
+    MultiCluster multi_cluster2{cluster2};  // {{2, 3}}
     multi_cluster0.move_to(multi_cluster4); // {{4}, {0, 1}}
     multi_cluster2.move_to(multi_cluster4); // {{4}, {0, 1}, {2, 3}}
 
