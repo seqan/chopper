@@ -615,15 +615,15 @@ void partition_user_bins(chopper::configuration const & config,
     {
         size_t const cardinality_per_part = sum_of_cardinalities /  config.number_of_partitions;
 
-        size_t current_cardinality{0u};
+        std::vector<size_t> partition_cardinalities(config.number_of_partitions, 0);
         size_t current_part{0};
 
         for (size_t i = 0; i < sorted_positions.size(); ++i)
         {
             partitions[current_part].push_back(sorted_positions[i]);
-            current_cardinality += cardinalities[sorted_positions[i]];
+            partition_cardinalities[current_part] += cardinalities[sorted_positions[i]];
 
-            if (current_cardinality >= cardinality_per_part /*partition is full*/||
+            if (partition_cardinalities[current_part] >= cardinality_per_part /*partition is full*/||
                 (sorted_positions.size() - i <= config.number_of_partitions - current_part) /* small number edge case:not enough UBs left*/)
             {
                 ++current_part;
