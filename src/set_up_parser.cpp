@@ -104,8 +104,7 @@ void set_up_parser(sharg::parser & parser, configuration & config)
         chopper::partitioning_scheme::weighted_fold,
         chopper::partitioning_scheme::similarity,
         chopper::partitioning_scheme::lsh,
-        chopper::partitioning_scheme::lsh_sim
-    };
+        chopper::partitioning_scheme::lsh_sim};
 
     parser.add_option(config.partitioning_approach,
                       sharg::config{.short_id = '\0',

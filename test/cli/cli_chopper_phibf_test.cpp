@@ -64,7 +64,9 @@ TEST_F(cli_test, chopper_layout_phibf)
         auto [filenames, config, layout] = chopper::layout::read_layout_file(layout_stream);
         EXPECT_EQ(config.number_of_partitions, 2u);
         EXPECT_EQ(config.partitioning_approach, chopper::partitioning_scheme::sorted);
-        EXPECT_EQ(filenames, (std::vector<std::vector<std::string>>{std::vector<std::string>{data("seq2.fa")}, std::vector<std::string>{data("small.fa")}}));
+        EXPECT_EQ(filenames,
+                  (std::vector<std::vector<std::string>>{std::vector<std::string>{data("seq2.fa")},
+                                                         std::vector<std::string>{data("small.fa")}}));
 
         ASSERT_EQ(layout.user_bins.size(), 2);
         EXPECT_EQ(layout.user_bins[0].idx, 0);
@@ -81,7 +83,9 @@ TEST_F(cli_test, chopper_layout_phibf)
         ASSERT_EQ(layout.user_bins.size(), 2);
         EXPECT_EQ(layout.user_bins[0].idx, 0);
         EXPECT_EQ(layout.user_bins[1].idx, 1);
-        EXPECT_EQ(filenames, (std::vector<std::vector<std::string>>{std::vector<std::string>{data("seq1.fa")}, std::vector<std::string>{data("seq3.fa")}}));
+        EXPECT_EQ(filenames,
+                  (std::vector<std::vector<std::string>>{std::vector<std::string>{data("seq1.fa")},
+                                                         std::vector<std::string>{data("seq3.fa")}}));
     }
 
     EXPECT_FALSE(layout_stream.good());
@@ -280,9 +284,9 @@ TEST_F(cli_test, chopper_layout_phibf_tmax)
             size_t tbs{}; // count tmax
             for (auto const & user_bin : layout.user_bins)
                 tbs = std::max(tbs,
-                                user_bin.previous_TB_indices.empty()
-                                    ? user_bin.storage_TB_id + user_bin.number_of_technical_bins
-                                    : user_bin.previous_TB_indices[0] + 1);
+                               user_bin.previous_TB_indices.empty()
+                                   ? user_bin.storage_TB_id + user_bin.number_of_technical_bins
+                                   : user_bin.previous_TB_indices[0] + 1);
 
             EXPECT_EQ(tbs, expected_tmax);
         }

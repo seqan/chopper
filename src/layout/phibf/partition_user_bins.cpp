@@ -26,10 +26,10 @@
 
 #include <hibf/contrib/robin_hood.hpp>
 #include <hibf/misc/divide_and_ceil.hpp>
+#include <hibf/misc/iota_vector.hpp>
 #include <hibf/sketch/hyperloglog.hpp>
 #include <hibf/sketch/minhashes.hpp>
 #include <hibf/sketch/toolbox.hpp>
-#include <hibf/misc/iota_vector.hpp>
 
 namespace chopper::layout::phibf
 {
@@ -50,8 +50,8 @@ std::vector<Cluster> LSH_clustering(std::vector<seqan::hibf::sketch::minhashes> 
 {
 
     size_t const number_of_user_bins{cardinalities.size()};
-    size_t const number_of_max_minHash_sketches{number_of_bands};     // LSH ADD+OR parameter b
-    size_t const minHash_sketche_size{number_of_hashes_per_band};     // LSH ADD+OR parameter r
+    size_t const number_of_max_minHash_sketches{number_of_bands}; // LSH ADD+OR parameter b
+    size_t const minHash_sketche_size{number_of_hashes_per_band}; // LSH ADD+OR parameter r
 
     assert(number_of_user_bins == minHash_sketches.size());
     assert(!minHash_sketches.empty());
@@ -137,14 +137,14 @@ std::vector<Cluster> LSH_clustering(std::vector<seqan::hibf::sketch::minhashes> 
                 assert(representative_cluster.size() > 1); // there should be at least two user bins now
                 assert(representative_cluster.is_valid(representative_cluster_id)); // and it should still be valid
 
-                current_cluster_cardinality[representative_cluster.id()] += current_cluster_cardinality[next_cluster.id()];
+                current_cluster_cardinality[representative_cluster.id()] +=
+                    current_cluster_cardinality[next_cluster.id()];
             }
 
             current_max_cluster_size = *std::ranges::max_element(current_cluster_cardinality);
         }
 
         ++current_sketch_index;
-
     }
 
     return clusters;
@@ -156,9 +156,10 @@ std::vector<Cluster> LSH_clustering(std::vector<seqan::hibf::sketch::minhashes> 
 // Then 1,2, and 3 Are a MultiCluster each. The clusters within each MultiCluster are rather similar
 // Now clusters from 1,2 and 3 respectively can be used to initialise a partition because between the MultiClusters
 // there is not much similarity
-std::vector<MultiCluster> most_distant_LSH_partitioning(std::vector<Cluster> const & initial_clusters,
-                         std::vector<seqan::hibf::sketch::minhashes> const & minHash_sketches,
-                         chopper::configuration const & config)
+std::vector<MultiCluster>
+most_distant_LSH_partitioning(std::vector<Cluster> const & initial_clusters,
+                              std::vector<seqan::hibf::sketch::minhashes> const & minHash_sketches,
+                              chopper::configuration const & config)
 {
     assert(!minHash_sketches.empty());
     assert(!minHash_sketches[0].table.empty());
@@ -172,7 +173,7 @@ std::vector<MultiCluster> most_distant_LSH_partitioning(std::vector<Cluster> con
 
     size_t current_sketch_index{0};
 
-    size_t current_number_of_clusters = [&initial_clusters] ()
+    size_t current_number_of_clusters = [&initial_clusters]()
     {
         size_t number{0};
         for (auto const & cluster : initial_clusters)
@@ -193,8 +194,8 @@ std::vector<MultiCluster> most_distant_LSH_partitioning(std::vector<Cluster> con
     }
 
     // refine clusters. I want to cluster as much as possible to initialise partitions with very distant clusters
-    while (current_number_of_clusters > (config.hibf_config.tmax * 2) &&
-           current_sketch_index < number_of_max_minHash_sketches)
+    while (current_number_of_clusters > (config.hibf_config.tmax * 2)
+           && current_sketch_index < number_of_max_minHash_sketches)
     {
 
         // fill LSH collision hashtable
@@ -255,7 +256,6 @@ std::vector<MultiCluster> most_distant_LSH_partitioning(std::vector<Cluster> con
         // More and more dissimilar clusters merge, until there are at most 2·tmax clusters or the rounds run out.
         if (current_sketch_index % 4 == 0 && current_number_of_sketch_hashes > 1)
             --current_number_of_sketch_hashes;
-
     }
 
     return clusters;
@@ -281,16 +281,30 @@ void post_process_clusters(std::vector<Cluster> & clusters,
 
     // Edge case: The sequences are all very similar and there are fewer clusters than partitions
     // Solution: Split largest cluster until there are as many clusters as partitions
-    size_t num_non_empty_clusters = std::ranges::count_if(clusters, [](auto const & c){ return !c.empty(); });
+    size_t num_non_empty_clusters = std::ranges::count_if(clusters,
+                                                          [](auto const & c)
+                                                          {
+                                                              return !c.empty();
+                                                          });
     while (num_non_empty_clusters < config.number_of_partitions)
     {
-        auto it_larges_cluster = std::max_element(clusters.begin(), clusters.end(),
-                                                    [](auto const & a, auto const & b) {
-                                                        return a.size() < b.size();
-                                                    });
-        auto it_empty_cluster = std::ranges::find_if(clusters.begin(), clusters.end(), [](auto const & c){ return c.empty(); });
+        auto it_larges_cluster = std::max_element(clusters.begin(),
+                                                  clusters.end(),
+                                                  [](auto const & a, auto const & b)
+                                                  {
+                                                      return a.size() < b.size();
+                                                  });
+        auto it_empty_cluster = std::ranges::find_if(clusters.begin(),
+                                                     clusters.end(),
+                                                     [](auto const & c)
+                                                     {
+                                                         return c.empty();
+                                                     });
         assert(it_larges_cluster != clusters.end()); // There is always a non-empty cluster
-        assert(it_empty_cluster != clusters.end()); // There is always an empty cluster because there are more user bis than partitions when we arrive here
+        assert(
+            it_empty_cluster
+            != clusters
+                   .end()); // There is always an empty cluster because there are more user bis than partitions when we arrive here
         it_larges_cluster->move_part_to(*it_empty_cluster, it_larges_cluster->size() / 2);
         ++num_non_empty_clusters;
     }
@@ -299,10 +313,13 @@ void post_process_clusters(std::vector<Cluster> & clusters,
     auto cluster_size_cmp = [&cardinalities](auto const & v1, auto const & v2)
     {
         if (v2.size() == v1.size() && !v2.empty())
-            return  cardinalities[v2.contained_user_bins()[0]] < cardinalities[v1.contained_user_bins()[0]];
+            return cardinalities[v2.contained_user_bins()[0]] < cardinalities[v1.contained_user_bins()[0]];
         return v2.size() < v1.size();
     };
-    std::partial_sort(clusters.begin(), clusters.begin() + config.number_of_partitions, clusters.end(), cluster_size_cmp);
+    std::partial_sort(clusters.begin(),
+                      clusters.begin() + config.number_of_partitions,
+                      clusters.end(),
+                      cluster_size_cmp);
 
     // after filling up the partitions with the biggest clusters, sort the clusters by cardinality of the biggest ub
     // s.t. that euqally sizes ub are assigned after each other and the small stuff is added at last.
@@ -317,7 +334,9 @@ void post_process_clusters(std::vector<Cluster> & clusters,
 
         return cardinalities[v2.contained_user_bins()[0]] < cardinalities[v1.contained_user_bins()[0]];
     };
-    std::sort(clusters.begin() + config.number_of_partitions, clusters.end(), compare_cardinality_and_move_empty_clusters_to_the_end);
+    std::sort(clusters.begin() + config.number_of_partitions,
+              clusters.end(),
+              compare_cardinality_and_move_empty_clusters_to_the_end);
 
     assert(clusters.size() < 2 || clusters[0].size() >= clusters[1].size()); // sanity check
     // sanity check. Note that a cluster's id() is not its largest user bin; contained_user_bins()[0] is.
@@ -325,13 +344,14 @@ void post_process_clusters(std::vector<Cluster> & clusters,
                           clusters.end(),
                           compare_cardinality_and_move_empty_clusters_to_the_end));
 
-// debug
+    // debug
     for (size_t cidx = 1; cidx < clusters.size(); ++cidx)
     {
-        if (clusters[cidx - 1].empty() && !clusters[cidx].empty()) // once empty - always empty; all empty clusters should be at the end
+        if (clusters[cidx - 1].empty()
+            && !clusters[cidx].empty()) // once empty - always empty; all empty clusters should be at the end
             throw std::runtime_error{"sorting did not work"};
     }
-// debug
+    // debug
 }
 
 void post_process_clusters(std::vector<MultiCluster> & clusters,
@@ -383,15 +403,29 @@ void post_process_clusters(std::vector<MultiCluster> & clusters,
     // Solution: Split largest cluster (by number of user bins) until there are as many clusters as partitions.
     // A cluster with several (sub)clusters is split between its (sub)clusters, s.t. very similar user bins stay together.
     // A cluster with a single (sub)cluster is split between its user bins.
-    size_t num_non_empty_clusters = std::ranges::count_if(clusters, [](auto const & c){ return !c.empty(); });
+    size_t num_non_empty_clusters = std::ranges::count_if(clusters,
+                                                          [](auto const & c)
+                                                          {
+                                                              return !c.empty();
+                                                          });
     while (num_non_empty_clusters < config.number_of_partitions)
     {
-        auto it_largest_cluster = std::ranges::max_element(clusters, std::ranges::less{}, number_of_contained_user_bins);
-        auto it_empty_cluster = std::ranges::find_if(clusters, [](auto const & c){ return c.empty(); });
-        assert(it_empty_cluster != clusters.end()); // There is always an empty cluster because there are more user bins than partitions when we arrive here
-        assert(number_of_contained_user_bins(*it_largest_cluster) >= 2); // pigeonhole: more user bins than non-empty clusters
+        auto it_largest_cluster =
+            std::ranges::max_element(clusters, std::ranges::less{}, number_of_contained_user_bins);
+        auto it_empty_cluster = std::ranges::find_if(clusters,
+                                                     [](auto const & c)
+                                                     {
+                                                         return c.empty();
+                                                     });
+        assert(
+            it_empty_cluster
+            != clusters
+                   .end()); // There is always an empty cluster because there are more user bins than partitions when we arrive here
+        assert(number_of_contained_user_bins(*it_largest_cluster)
+               >= 2); // pigeonhole: more user bins than non-empty clusters
 
-        std::vector<std::vector<size_t>> parts = it_largest_cluster->contained_user_bins(); // sorted by size, descending
+        std::vector<std::vector<size_t>> parts =
+            it_largest_cluster->contained_user_bins(); // sorted by size, descending
         if (parts.size() == 1) // split the user bins (sorted by cardinality, descending) of the single (sub)cluster
         {
             auto & user_bin_cluster = parts[0];
@@ -412,7 +446,7 @@ void post_process_clusters(std::vector<MultiCluster> & clusters,
     {
         if (mc1.empty())
             return false; // mc1 can never be larger than mc2 then
-        if (mc2.empty()) // and mc1 is not, since the first if would catch
+        if (mc2.empty())  // and mc1 is not, since the first if would catch
             return true;
 
         auto const & largest_c1 = mc1.contained_user_bins()[0]; // first cluster is the largest because of sorting above
@@ -422,10 +456,13 @@ void post_process_clusters(std::vector<MultiCluster> & clusters,
         assert(!largest_c2.empty()); // should never be empty
 
         if (largest_c2.size() == largest_c1.size())
-            return  cardinalities[largest_c2[0]] < cardinalities[largest_c1[0]];
+            return cardinalities[largest_c2[0]] < cardinalities[largest_c1[0]];
         return largest_c2.size() < largest_c1.size();
     };
-    std::partial_sort(clusters.begin(), clusters.begin() + config.number_of_partitions, clusters.end(), cluster_size_cmp);
+    std::partial_sort(clusters.begin(),
+                      clusters.begin() + config.number_of_partitions,
+                      clusters.end(),
+                      cluster_size_cmp);
 
     auto move_empty_clusters_to_the_end = [](auto const & v1, auto const & v2)
     {
@@ -433,24 +470,26 @@ void post_process_clusters(std::vector<MultiCluster> & clusters,
     };
     std::sort(clusters.begin() + config.number_of_partitions, clusters.end(), move_empty_clusters_to_the_end);
 
-// debug sanity check
+    // debug sanity check
     for (size_t cidx = 1; cidx < clusters.size(); ++cidx)
     {
-        if (clusters[cidx - 1].empty() && !clusters[cidx].empty()) // once empty - always empty; all empty clusters should be at the end
+        if (clusters[cidx - 1].empty()
+            && !clusters[cidx].empty()) // once empty - always empty; all empty clusters should be at the end
             throw std::runtime_error{"sorting did not work"};
     }
-// debug
+    // debug
 }
 
-std::vector<MultiCluster> sim_dist_LSH_partitioning(std::vector<seqan::hibf::sketch::minhashes> const & minHash_sketches,
-                                      std::vector<size_t> const & cardinalities,
-                                      size_t const average_technical_bin_size,
-                                      chopper::configuration const & config)
+std::vector<MultiCluster>
+sim_dist_LSH_partitioning(std::vector<seqan::hibf::sketch::minhashes> const & minHash_sketches,
+                          std::vector<size_t> const & cardinalities,
+                          size_t const average_technical_bin_size,
+                          chopper::configuration const & config)
 {
     std::vector<Cluster> clusters = LSH_clustering(minHash_sketches,
                                                    cardinalities,
                                                    average_technical_bin_size,
-                                                   3,                                     // b
+                                                   3,                                    // b
                                                    minHash_sketches[0].table[0].size()); // r
     std::vector<MultiCluster> multi_clusters = most_distant_LSH_partitioning(clusters, minHash_sketches, config);
     post_process_clusters(multi_clusters, cardinalities, config);
@@ -507,9 +546,8 @@ void find_best_partition(chopper::configuration const & config,
         double const intersection = std::max(0.0, current_sketch.estimate() - static_cast<double>(change));
         double const subsume_ratio = static_cast<double>(intersection) / current_partition_size;
 
-        if (subsume_ratio > best_subsume_ratio &&
-            partition_cardinality[p] < cardinality_per_part &&
-            (current_cardinality + partition_cardinality[p]) < (cardinality_per_part * 1.2) )
+        if (subsume_ratio > best_subsume_ratio && partition_cardinality[p] < cardinality_per_part
+            && (current_cardinality + partition_cardinality[p]) < (cardinality_per_part * 1.2))
         {
             best_subsume_ratio = subsume_ratio;
             best_p = p;
@@ -528,7 +566,14 @@ void find_best_partition(chopper::configuration const & config,
         {
             for (size_t const user_bin_idx : cluster)
             {
-                find_best_partition(config, cardinality_per_part, {user_bin_idx}, cardinalities, sketches, positions, partition_sketches, partition_cardinality);
+                find_best_partition(config,
+                                    cardinality_per_part,
+                                    {user_bin_idx},
+                                    cardinalities,
+                                    sketches,
+                                    positions,
+                                    partition_sketches,
+                                    partition_cardinality);
             }
             return;
         }
@@ -556,8 +601,8 @@ void partition_user_bins(chopper::configuration const & config,
     if (config.partitioning_approach < partitioning_scheme::blocked
         || config.partitioning_approach > partitioning_scheme::lsh_sim)
     {
-        throw std::invalid_argument{"Unknown partitioning approach " + std::to_string(static_cast<uint8_t>(config.partitioning_approach))
-                                    + "."};
+        throw std::invalid_argument{"Unknown partitioning approach "
+                                    + std::to_string(static_cast<uint8_t>(config.partitioning_approach)) + "."};
     }
 
     if (cardinalities.size() < config.number_of_partitions)
@@ -591,8 +636,10 @@ void partition_user_bins(chopper::configuration const & config,
         // for small edge cases, just use u_bins_per_part,
         // otherwise, use next_multiple_of_64(ceil(sqrt(u_bins_per_part))) to have am ibf friendly block size.
         // That way, we loop over the partitions, filling them block wise, again and again.
-        size_t const block_size = (u_bins_per_part < 64) ? u_bins_per_part :
-                                   chopper::next_multiple_of_64(static_cast<uint16_t>(std::ceil(std::sqrt(u_bins_per_part))));
+        size_t const block_size =
+            (u_bins_per_part < 64)
+                ? u_bins_per_part
+                : chopper::next_multiple_of_64(static_cast<uint16_t>(std::ceil(std::sqrt(u_bins_per_part))));
 
         size_t current_part{0u};
         size_t current_block_count{0};
@@ -613,7 +660,7 @@ void partition_user_bins(chopper::configuration const & config,
     }
     else if (config.partitioning_approach == partitioning_scheme::sorted)
     {
-        size_t const cardinality_per_part = sum_of_cardinalities /  config.number_of_partitions;
+        size_t const cardinality_per_part = sum_of_cardinalities / config.number_of_partitions;
 
         std::vector<size_t> partition_cardinalities(config.number_of_partitions, 0);
         size_t current_part{0};
@@ -623,8 +670,9 @@ void partition_user_bins(chopper::configuration const & config,
             partitions[current_part].push_back(sorted_positions[i]);
             partition_cardinalities[current_part] += cardinalities[sorted_positions[i]];
 
-            if (partition_cardinalities[current_part] >= cardinality_per_part /*partition is full*/||
-                (sorted_positions.size() - i <= config.number_of_partitions - current_part) /* small number edge case:not enough UBs left*/)
+            if (partition_cardinalities[current_part] >= cardinality_per_part /*partition is full*/
+                || (sorted_positions.size() - i
+                    <= config.number_of_partitions - current_part) /* small number edge case:not enough UBs left*/)
             {
                 ++current_part;
                 // If cardinality_per_part was not chosen optimally
@@ -778,7 +826,9 @@ void partition_user_bins(chopper::configuration const & config,
         for (size_t p = 0; p < config.number_of_partitions; ++p)
         {
             size_t const i = indices[p];
-            size_t const end = (i == (indices.size() - 1) && (cardinalities.size() % block_size != 0)) ? (cardinalities.size() % block_size) : block_size;
+            size_t const end = (i == (indices.size() - 1) && (cardinalities.size() % block_size != 0))
+                                 ? (cardinalities.size() % block_size)
+                                 : block_size;
             for (size_t x = 0; x < end; ++x)
             {
                 assert(block_size * i + x < sorted_positions.size());
@@ -788,7 +838,7 @@ void partition_user_bins(chopper::configuration const & config,
             }
         }
 
-        auto has_been_processed_in_init = [&config,&indices, &block_size](size_t const i)
+        auto has_been_processed_in_init = [&config, &indices, &block_size](size_t const i)
         {
             bool result{false};
             for (size_t p = 0; p < config.number_of_partitions; ++p)
@@ -829,14 +879,14 @@ void partition_user_bins(chopper::configuration const & config,
         std::vector<Cluster> raw_clusters = LSH_clustering(minHash_sketches,
                                                            cardinalities,
                                                            cardinality_per_part,
-                                                           seqan::hibf::sketch::minhashes::num_sketches,  // b
+                                                           seqan::hibf::sketch::minhashes::num_sketches, // b
                                                            seqan::hibf::sketch::minhashes::sketch_size); // r
         post_process_clusters(raw_clusters, cardinalities, config);
         std::vector<Cluster> const & clusters = raw_clusters; // clusters do not change from this point on
 
         // initialise partitions with the first p largest clusters (post_processing sorts by size)
         std::vector<size_t> spilled_user_bins{}; // user bins that spilled over past the last partition
-        size_t cidx{0}; // current cluster index
+        size_t cidx{0};                          // current cluster index
         for (size_t p = 0; p < config.number_of_partitions; ++p)
         {
             assert(!clusters[cidx].empty()); // post_process_cluster ensures enough non-empty clusters
@@ -882,7 +932,14 @@ void partition_user_bins(chopper::configuration const & config,
         }
 
         for (size_t const user_bin_idx : spilled_user_bins)
-            find_best_partition(config, cardinality_per_part, {user_bin_idx}, cardinalities, sketches, partitions, partition_sketches, partition_cardinality);
+            find_best_partition(config,
+                                cardinality_per_part,
+                                {user_bin_idx},
+                                cardinalities,
+                                sketches,
+                                partitions,
+                                partition_sketches,
+                                partition_cardinality);
 
         // assign the rest by similarity
         assert(cardinalities.size() == clusters.size());
@@ -893,7 +950,14 @@ void partition_user_bins(chopper::configuration const & config,
             if (cluster.empty()) // non valid clusters have been removed. Since list was sorted, we can abort
                 break;
 
-            find_best_partition(config, cardinality_per_part, cluster.contained_user_bins(), cardinalities, sketches, partitions, partition_sketches, partition_cardinality);
+            find_best_partition(config,
+                                cardinality_per_part,
+                                cluster.contained_user_bins(),
+                                cardinalities,
+                                sketches,
+                                partitions,
+                                partition_sketches,
+                                partition_cardinality);
         }
     }
     else if (config.partitioning_approach == partitioning_scheme::lsh_sim)
@@ -907,11 +971,12 @@ void partition_user_bins(chopper::configuration const & config,
             seqan::hibf::divide_and_ceil(sum_of_cardinalities, config.number_of_partitions);
 
         // initial partitioning using locality sensitive hashing (LSH)
-        std::vector<MultiCluster> const clusters = sim_dist_LSH_partitioning(minHash_sketches, cardinalities, cardinality_per_part, config);
+        std::vector<MultiCluster> const clusters =
+            sim_dist_LSH_partitioning(minHash_sketches, cardinalities, cardinality_per_part, config);
 
         // initialise partitions with the first p largest clusters (post processing sorts by size)
         std::vector<size_t> spilled_user_bins{}; // user bins that spilled over past the last partition
-        size_t cidx{0}; // current cluster index
+        size_t cidx{0};                          // current cluster index
         for (size_t p = 0; p < config.number_of_partitions; ++p)
         {
             // There may be fewer (non-empty) clusters than partitions. The remaining partitions stay empty, which is
@@ -961,7 +1026,14 @@ void partition_user_bins(chopper::configuration const & config,
         }
 
         for (size_t const user_bin_idx : spilled_user_bins)
-            find_best_partition(config, cardinality_per_part, {user_bin_idx}, cardinalities, sketches, partitions, partition_sketches, partition_cardinality);
+            find_best_partition(config,
+                                cardinality_per_part,
+                                {user_bin_idx},
+                                cardinalities,
+                                sketches,
+                                partitions,
+                                partition_sketches,
+                                partition_cardinality);
 
         // assign the rest, cluster by cluster (because the clusters are very similar), by similarity
         assert(cardinalities.size() == clusters.size());
@@ -976,19 +1048,30 @@ void partition_user_bins(chopper::configuration const & config,
             auto start = clusters[i].contained_user_bins().begin() + ((i < cidx) ? 1 : 0);
             remaining_clusters.insert(remaining_clusters.end(), start, clusters[i].contained_user_bins().end());
         }
-        auto cmp = [&cardinalities] (auto const & c1, auto const & c2) { return cardinalities[c2[0]] < cardinalities[c1[0]]; };
+        auto cmp = [&cardinalities](auto const & c1, auto const & c2)
+        {
+            return cardinalities[c2[0]] < cardinalities[c1[0]];
+        };
         std::sort(remaining_clusters.begin(), remaining_clusters.end(), cmp);
 
         for (auto const & cluster : remaining_clusters)
         {
-            find_best_partition(config, cardinality_per_part, cluster, cardinalities, sketches, partitions, partition_sketches, partition_cardinality);
+            find_best_partition(config,
+                                cardinality_per_part,
+                                cluster,
+                                cardinalities,
+                                sketches,
+                                partitions,
+                                partition_sketches,
+                                partition_cardinality);
         }
     }
 
 #ifndef NDEBUG
     // sanity check in debug
     std::vector<size_t> user_bins{};
-    for (auto const & partition : partitions) {
+    for (auto const & partition : partitions)
+    {
         user_bins.insert(user_bins.end(), partition.begin(), partition.end());
     }
     if (!std::ranges::is_permutation(user_bins, seqan::hibf::iota_vector(sketches.size())))

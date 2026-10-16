@@ -127,9 +127,8 @@ int chopper_layout(chopper::configuration & config, sharg::parser & parser)
             throw sharg::parser_error{"The sketch file does not contain MinHash sketches, which --fast-layout needs. "
                                       "Create the sketch file with --fast-layout."};
 
-        bool const partitioning_needs_minhashes =
-            config.partitioning_approach == chopper::partitioning_scheme::lsh
-            || config.partitioning_approach == chopper::partitioning_scheme::lsh_sim;
+        bool const partitioning_needs_minhashes = config.partitioning_approach == chopper::partitioning_scheme::lsh
+                                               || config.partitioning_approach == chopper::partitioning_scheme::lsh_sim;
 
         if (partitioned && partitioning_needs_minhashes && minHash_sketches.size() != sketches.size())
             throw sharg::parser_error{"The sketch file does not contain MinHash sketches, which the chosen "
