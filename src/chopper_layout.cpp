@@ -18,6 +18,7 @@
 #include <chopper/configuration.hpp>
 #include <chopper/input_functor.hpp>
 #include <chopper/layout/execute.hpp>
+#include <chopper/layout/phibf/partition_user_bins.hpp>
 #include <chopper/sketch/check_filenames.hpp>
 #include <chopper/sketch/output.hpp>
 #include <chopper/sketch/read_data_file.hpp>
@@ -81,6 +82,15 @@ int chopper_layout(chopper::configuration & config, sharg::parser & parser)
     if (config.fast_layout && config.determine_best_tmax)
         throw sharg::parser_error{"You cannot combine --fast-layout with --determine-best-tmax."};
 
+    bool const partitioned = config.number_of_partitions >= 2u;
+    config.tmax_is_set = parser.is_option_set("tmax");
+
+    if (partitioned && config.fast_layout)
+        throw sharg::parser_error{"You cannot combine --fast-layout with --number-of-partitions."};
+
+    if (partitioned && config.determine_best_tmax)
+        throw sharg::parser_error{"You cannot combine --determine-best-tmax with --number-of-partitions."};
+
     auto has_sketch_file_extension = [](std::filesystem::path const & path)
     {
         return path.string().ends_with(".sketch") || path.string().ends_with(".sketches");
@@ -116,6 +126,14 @@ int chopper_layout(chopper::configuration & config, sharg::parser & parser)
         if (config.fast_layout && minHash_sketches.size() != sketches.size())
             throw sharg::parser_error{"The sketch file does not contain MinHash sketches, which --fast-layout needs. "
                                       "Create the sketch file with --fast-layout."};
+
+        bool const partitioning_needs_minhashes = config.partitioning_approach == chopper::partitioning_scheme::lsh
+                                               || config.partitioning_approach == chopper::partitioning_scheme::lsh_sim;
+
+        if (partitioned && partitioning_needs_minhashes && minHash_sketches.size() != sketches.size())
+            throw sharg::parser_error{"The sketch file does not contain MinHash sketches, which the chosen "
+                                      "--partitioning-approach needs. Create the sketch file with "
+                                      "--number-of-partitions."};
     }
     else
     {
@@ -129,6 +147,13 @@ int chopper_layout(chopper::configuration & config, sharg::parser & parser)
         chopper::sketch::check_filenames(filenames, config);
     }
 
+    if (partitioned && filenames.size() < config.number_of_partitions)
+        throw sharg::parser_error{sharg::detail::to_string("The number of partitions (",
+                                                           config.number_of_partitions,
+                                                           ") must not exceed the number of user bins (",
+                                                           filenames.size(),
+                                                           ").")};
+
     config.hibf_config.input_fn =
         chopper::input_functor{filenames, config.precomputed_files, config.k, config.window_size};
     config.hibf_config.number_of_user_bins = filenames.size();
@@ -137,9 +162,9 @@ int chopper_layout(chopper::configuration & config, sharg::parser & parser)
     if (!input_is_a_sketch_file)
     {
         config.compute_sketches_timer.start();
-        // Only the fast layout needs MinHash sketches. Computing them requires enough k-mers per user bin and throws
-        // otherwise, so the default layout must not compute them.
-        if (config.fast_layout)
+        // Only the fast layout and the partitioned HIBF need MinHash sketches. Computing them requires enough k-mers
+        // per user bin and throws otherwise, so the default layout must not compute them.
+        if (config.fast_layout || partitioned)
             seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches, minHash_sketches);
         else
             seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches);

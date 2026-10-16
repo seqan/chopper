@@ -87,6 +87,35 @@ void set_up_parser(sharg::parser & parser, configuration & config)
                                     .validator = sharg::output_file_validator{}});
 
     parser.add_option(
+        config.number_of_partitions,
+        sharg::config{
+            .short_id = '\0',
+            .long_id = "number-of-partitions",
+            .description =
+                "The number of partitions of the HIBF. If at least 2, the user bins are distributed onto this many "
+                "partitions, each of which is laid out as a separate HIBF. This reduces the size of each index and "
+                "thereby the peak memory usage of searching with the HIBF.",
+            .advanced = true});
+
+    sharg::value_list_validator<chopper::partitioning_scheme> partitioning_approach_validator{
+        chopper::partitioning_scheme::blocked,
+        chopper::partitioning_scheme::sorted,
+        chopper::partitioning_scheme::folded,
+        chopper::partitioning_scheme::weighted_fold,
+        chopper::partitioning_scheme::similarity,
+        chopper::partitioning_scheme::lsh,
+        chopper::partitioning_scheme::lsh_sim};
+
+    parser.add_option(config.partitioning_approach,
+                      sharg::config{.short_id = '\0',
+                                    .long_id = "partitioning-approach",
+                                    .description = "How the user bins are distributed onto the partitions of a "
+                                                   "partitioned HIBF."
+                                                   "This is only configurable for debugging.",
+                                    .advanced = true,
+                                    .validator = partitioning_approach_validator});
+
+    parser.add_option(
         config.hibf_config.tmax,
         sharg::config{
             .short_id = '\0',
