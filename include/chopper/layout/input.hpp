@@ -28,7 +28,7 @@ std::vector<std::vector<std::string>> read_filenames_from(std::istream & stream)
 * The layout is not validated. Validate it with seqan::hibf::layout::layout::validate and the returned
 * `configuration::hibf_config` before using it.
  */
-std::tuple<std::vector<std::vector<std::string>>, configuration, std::vector<seqan::hibf::layout::layout>>
-read_layouts_file(std::istream & stream);
+std::tuple<std::vector<std::vector<std::string>>, configuration, seqan::hibf::layout::layout>
+read_layout_file(std::istream & stream);
 
 } // namespace chopper::layout
