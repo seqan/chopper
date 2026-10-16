@@ -111,8 +111,13 @@ struct phibf_data
         std::vector<std::vector<std::string>> filenames(kmer_counts.size(), {"ub.fa"});
         chopper::layout::execute(config, filenames, sketches, minHash_sketches);
 
+        std::vector<seqan::hibf::layout::layout> layouts{};
         std::ifstream layout_stream{config.output_filename};
-        return std::get<2>(chopper::layout::read_layouts_file(layout_stream));
+        while (layout_stream.good())
+        {
+            layouts.push_back(std::get<2>(chopper::layout::read_layout_file(layout_stream)));
+        }
+        return layouts;
     }
 };
 
@@ -179,23 +184,31 @@ TEST(phibf_execute_test, writes_one_layout_per_partition)
     chopper::layout::execute(data.config, filenames, data.sketches, data.minHash_sketches);
 
     std::ifstream layout_stream{layout_file};
-    auto [read_filenames, read_config, layouts] = chopper::layout::read_layouts_file(layout_stream);
 
-    EXPECT_EQ(read_filenames, filenames);
-    EXPECT_EQ(read_config.number_of_partitions, number_of_partitions);
-    EXPECT_EQ(read_config.partitioning_approach, chopper::partitioning_scheme::lsh_sim);
-    ASSERT_EQ(layouts.size(), number_of_partitions);
-
-    // Each layout holds the user bins of one partition, with global user bin indices.
-    std::vector<std::vector<size_t>> partitions{};
-    for (auto const & layout : layouts)
+    size_t total_read_number_of_user_bins{0};
+    size_t number_of_layouts{0};
+    std::vector<std::vector<std::string>> total_read_filenames{};
+    while (layout_stream.good())
     {
-        EXPECT_FALSE(layout.user_bins.empty());
-        partitions.emplace_back();
+        auto [read_filenames, read_config, layout] = chopper::layout::read_layout_file(layout_stream);
+        total_read_number_of_user_bins += layout.user_bins.size();
+        ++number_of_layouts;
+        total_read_filenames.insert(total_read_filenames.end(), read_filenames.begin(), read_filenames.end());
+
+        EXPECT_EQ(read_config.partitioning_approach, chopper::partitioning_scheme::lsh_sim);
+        EXPECT_EQ(read_config.number_of_partitions, number_of_partitions);
+        EXPECT_EQ(read_config.hibf_config.number_of_user_bins, layout.user_bins.size());
+
+        std::vector<std::vector<size_t>> user_bins_single_parition(1); // enables us to use each_user_bin_assigned_once
         for (auto const & user_bin : layout.user_bins)
-            partitions.back().push_back(user_bin.idx);
+            user_bins_single_parition.back().push_back(user_bin.idx);
+        EXPECT_TRUE(each_user_bin_assigned_once(user_bins_single_parition, layout.user_bins.size()));
     }
-    EXPECT_TRUE(each_user_bin_assigned_once(partitions, number_of_user_bins));
+    EXPECT_EQ(total_read_number_of_user_bins, number_of_user_bins);
+    EXPECT_EQ(number_of_layouts, number_of_partitions);
+    std::ranges::sort(total_read_filenames);
+    std::ranges::sort(filenames);
+    EXPECT_EQ(total_read_filenames, filenames);
 }
 
 TEST(phibf_invalid_input_test, fewer_user_bins_than_partitions)

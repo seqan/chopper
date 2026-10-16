@@ -50,13 +50,13 @@ int execute(chopper::configuration & config,
 
     std::vector<size_t> cardinalities;
     seqan::hibf::sketch::estimate_kmer_counts(sketches, cardinalities);
-    std::vector<std::vector<size_t>> positions(config.number_of_partitions);
+    std::vector<std::vector<size_t>> partitions(config.number_of_partitions);
     std::vector<seqan::hibf::layout::layout> hibf_layouts(config.number_of_partitions);
 
     if (partitioned)
-        phibf::partition_user_bins(config, cardinalities, sketches, minHash_sketches, positions);
+        phibf::partition_user_bins(config, cardinalities, sketches, minHash_sketches, partitions);
     else
-        positions[0] = seqan::hibf::iota_vector(sketches.size());
+        partitions[0] = seqan::hibf::iota_vector(sketches.size());
 
     if (config.determine_best_tmax)
     {
@@ -73,7 +73,7 @@ int execute(chopper::configuration & config,
             if (!config.tmax_is_set)
             {
                 config_copy.hibf_config.tmax =
-                        chopper::next_multiple_of_64(static_cast<uint16_t>(std::ceil(std::sqrt(positions[i].size()))));
+                        chopper::next_multiple_of_64(static_cast<uint16_t>(std::ceil(std::sqrt(partitions[i].size()))));
             }
 
             // use timers of config_copy for thread safe start() and stop() and add result to config afterwards
@@ -81,7 +81,7 @@ int execute(chopper::configuration & config,
             if (config.fast_layout)
             {
                 fast_layout(config_copy,
-                            std::move(positions[i]),
+                            std::move(partitions[i]),
                             cardinalities,
                             sketches,
                             minHash_sketches,
@@ -92,7 +92,7 @@ int execute(chopper::configuration & config,
                 hibf_layouts[i] = seqan::hibf::layout::compute_layout(config_copy.hibf_config,
                                                                       cardinalities,
                                                                       sketches,
-                                                                      std::move(positions[i]),
+                                                                      std::move(partitions[i]),
                                                                       config_copy.union_estimation_timer,
                                                                       config_copy.rearrangement_timer);
                 config.union_estimation_timer += config_copy.union_estimation_timer;
@@ -104,15 +104,32 @@ int execute(chopper::configuration & config,
         }
     }
 
-    // this fails because each layout has only part of the user bins
+    // local and global indices
+    std::vector<std::vector<size_t>> mapping_per_partition(config.number_of_partitions);
+
     for (size_t i = 0; i < config.number_of_partitions; ++i)
+    {
+        auto & layout = hibf_layouts[i];
+        std::vector<size_t> mapping = seqan::hibf::iota_vector(layout.user_bins.size());
+
+        if (config.number_of_partitions > 1)
+        {
+            // update global indicies to local ones within the partitionied lauyout
+            mapping.resize(layout.user_bins.size());
+            for (size_t ubx{0}; ubx < layout.user_bins.size(); ++ubx)
+            {
+                mapping[ubx] = layout.user_bins[ubx].idx; // for current local store its global UB.idx
+                layout.user_bins[ubx].idx = ubx; // overwrite global index with local one
+            }
+
+            // update hibf_config.number_of_user_bins
+            config.hibf_config.number_of_user_bins = hibf_layouts[i].user_bins.size();
+        }
+
         hibf_layouts[i].validate(config.hibf_config);
 
-    // With determine_best_tmax, determine_best_number_of_technical_bins already wrote the statistics of every tmax to
-    // `<output_filename>.stats`.
-    if (!config.determine_best_tmax && config.output_verbose_statistics)
-    {
-        for (size_t i = 0; i < config.number_of_partitions; ++i)
+        // With determine_best_tmax, statistics of every tmax have already been written to `<output_filename>.stats`
+        if (!config.determine_best_tmax && config.output_verbose_statistics)
         {
             size_t dummy{};
             chopper::layout::hibf_statistics global_stats{config, sketches, cardinalities};
@@ -120,15 +137,14 @@ int execute(chopper::configuration & config,
             global_stats.print_header_to(std::cout);
             global_stats.print_summary_to(dummy, std::cout);
         }
+
+        std::ofstream fout{config.output_filename, std::ios_base::app};
+        chopper::layout::write_user_bins_to(filenames, mapping, fout);
+        config.write_to(fout);
+        layout.write_to(fout);
     }
 
-    // brief Write the output to the layout file.
-    std::ofstream fout{config.output_filename};
-    chopper::layout::write_user_bins_to(filenames, fout);
-    config.write_to(fout);
 
-    for (size_t i = 0; i < config.number_of_partitions; ++i)
-        hibf_layouts[i].write_to(fout);
 
     return 0;
 }

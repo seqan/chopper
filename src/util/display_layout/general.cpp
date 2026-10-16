@@ -380,10 +380,11 @@ void execute_general(config const & cfg)
     if (!layout_file.good() || !layout_file.is_open())
         throw std::logic_error{"Could not open file " + cfg.input.string() + " for reading"};
 
-    auto [filenames, chopper_config, hibf_layouts] = chopper::layout::read_layouts_file(layout_file);
+    while (layout_file.good())
+    {
+        auto [filenames, chopper_config, hibf_layout] = chopper::layout::read_layout_file(layout_file);
+        execute(cfg, filenames, chopper_config, hibf_layout);
+    }
 
     layout_file.close();
-
-    for (auto & hibf_layout : hibf_layouts)
-        execute(cfg, filenames, chopper_config, hibf_layout);
 }

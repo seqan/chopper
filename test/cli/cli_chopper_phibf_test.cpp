@@ -57,19 +57,34 @@ TEST_F(cli_test, chopper_layout_phibf)
     EXPECT_EQ(result.err, std::string{});
 
     std::ifstream layout_stream{layout_filename};
-    auto [filenames, config, layouts] = chopper::layout::read_layouts_file(layout_stream);
 
-    EXPECT_EQ(filenames.size(), 4u);
-    EXPECT_EQ(config.number_of_partitions, 2u);
-    EXPECT_EQ(config.partitioning_approach, chopper::partitioning_scheme::sorted);
-    ASSERT_EQ(layouts.size(), 2u);
+    ASSERT_TRUE(layout_stream.good());
+    // Layout 1
+    {
+        auto [filenames, config, layout] = chopper::layout::read_layout_file(layout_stream);
+        EXPECT_EQ(config.number_of_partitions, 2u);
+        EXPECT_EQ(config.partitioning_approach, chopper::partitioning_scheme::sorted);
+        EXPECT_EQ(filenames, (std::vector<std::vector<std::string>>{std::vector<std::string>{data("seq2.fa")}, std::vector<std::string>{data("small.fa")}}));
 
-    std::vector<size_t> user_bins{};
-    for (auto const & layout : layouts)
-        for (auto const & user_bin : layout.user_bins)
-            user_bins.push_back(user_bin.idx);
-    std::ranges::sort(user_bins);
-    EXPECT_EQ(user_bins, (std::vector<size_t>{0, 1, 2, 3}));
+        ASSERT_EQ(layout.user_bins.size(), 2);
+        EXPECT_EQ(layout.user_bins[0].idx, 0);
+        EXPECT_EQ(layout.user_bins[1].idx, 1);
+    }
+
+    ASSERT_TRUE(layout_stream.good());
+    // Layout 2
+    {
+        auto [filenames, config, layout] = chopper::layout::read_layout_file(layout_stream);
+        EXPECT_EQ(config.number_of_partitions, 2u);
+        EXPECT_EQ(config.partitioning_approach, chopper::partitioning_scheme::sorted);
+
+        ASSERT_EQ(layout.user_bins.size(), 2);
+        EXPECT_EQ(layout.user_bins[0].idx, 0);
+        EXPECT_EQ(layout.user_bins[1].idx, 1);
+        EXPECT_EQ(filenames, (std::vector<std::vector<std::string>>{std::vector<std::string>{data("seq1.fa")}, std::vector<std::string>{data("seq3.fa")}}));
+    }
+
+    EXPECT_FALSE(layout_stream.good());
 }
 
 TEST_F(cli_test, chopper_layout_phibf_with_fast_layout)
@@ -170,8 +185,19 @@ TEST_F(cli_test, chopper_layout_phibf_from_sketch_file_without_minhashes)
         EXPECT_EQ(result.err, std::string{});
 
         std::ifstream layout_stream{layout_filename};
-        auto [filenames, config, layouts] = chopper::layout::read_layouts_file(layout_stream);
-        EXPECT_EQ(layouts.size(), 2u);
+        ASSERT_TRUE(layout_stream.good());
+        // Layout 1
+        {
+            auto [filenames, config, layout] = chopper::layout::read_layout_file(layout_stream);
+            EXPECT_EQ(config.partitioning_approach, chopper::partitioning_scheme::sorted);
+        }
+        ASSERT_TRUE(layout_stream.good());
+        // Layout 2
+        {
+            auto [filenames, config, layout] = chopper::layout::read_layout_file(layout_stream);
+            EXPECT_EQ(config.partitioning_approach, chopper::partitioning_scheme::sorted);
+        }
+        EXPECT_FALSE(layout_stream.good());
     }
 }
 
@@ -222,25 +248,7 @@ TEST_F(cli_test, chopper_layout_phibf_tmax)
 {
     seqan3::test::tmp_directory tmp_dir{};
     std::filesystem::path const input_filename{write_input_file(tmp_dir.path())};
-
-    // The number of technical bins of the top-level IBF of each layout.
-    auto top_level_technical_bins = [](std::filesystem::path const & layout_filename)
-    {
-        std::ifstream layout_stream{layout_filename};
-        auto [filenames, config, layouts] = chopper::layout::read_layouts_file(layout_stream);
-        std::vector<size_t> result;
-        for (auto const & layout : layouts)
-        {
-            size_t tbs{};
-            for (auto const & user_bin : layout.user_bins)
-                tbs = std::max(tbs,
-                               user_bin.previous_TB_indices.empty()
-                                   ? user_bin.storage_TB_id + user_bin.number_of_technical_bins
-                                   : user_bin.previous_TB_indices[0] + 1);
-            result.push_back(tbs);
-        }
-        return result;
-    };
+    size_t const number_of_partitions{2};
 
     for (bool const set_tmax : {false, true})
     {
@@ -251,7 +259,7 @@ TEST_F(cli_test, chopper_layout_phibf_tmax)
                                              "--input",
                                              input_filename.c_str(),
                                              "--number-of-partitions",
-                                             "2",
+                                             std::to_string(number_of_partitions),
                                              "--partitioning-approach",
                                              "sorted",
                                              tmax_option,
@@ -260,7 +268,24 @@ TEST_F(cli_test, chopper_layout_phibf_tmax)
         ASSERT_EQ(result.exit_code, 0) << result.err;
 
         // Without --tmax, each partition (2 user bins) gets next_multiple_of_64(ceil(sqrt(2))) = 64.
-        size_t const expected = set_tmax ? 128u : 64u;
-        EXPECT_EQ(top_level_technical_bins(layout_filename), (std::vector<size_t>{expected, expected}));
+        size_t const expected_tmax = set_tmax ? 128u : 64u;
+
+        std::ifstream layout_stream{layout_filename};
+        size_t number_of_layouts{0};
+        while (layout_stream.good())
+        {
+            auto [filenames, config, layout] = chopper::layout::read_layout_file(layout_stream);
+            ++number_of_layouts;
+
+            size_t tbs{}; // count tmax
+            for (auto const & user_bin : layout.user_bins)
+                tbs = std::max(tbs,
+                                user_bin.previous_TB_indices.empty()
+                                    ? user_bin.storage_TB_id + user_bin.number_of_technical_bins
+                                    : user_bin.previous_TB_indices[0] + 1);
+
+            EXPECT_EQ(tbs, expected_tmax);
+        }
+        EXPECT_EQ(number_of_partitions, number_of_layouts);
     }
 }
