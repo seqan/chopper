@@ -208,6 +208,13 @@ TEST(phibf_execute_test, writes_one_layout_per_partition)
     EXPECT_EQ(total_read_filenames, filenames);
 }
 
+TEST(phibf_invalid_input_test, determine_best_tmax_is_set)
+{
+    phibf_data data{chopper::partitioning_scheme::sorted, 240, 2};
+    data.config.determine_best_tmax = true;
+    EXPECT_THROW(data.layouts(), std::invalid_argument);
+}
+
 TEST(phibf_invalid_input_test, fewer_user_bins_than_partitions)
 {
     for (chopper::partitioning_scheme const approach : phibf_approaches)

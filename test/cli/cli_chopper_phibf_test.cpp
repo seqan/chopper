@@ -91,6 +91,41 @@ TEST_F(cli_test, chopper_layout_phibf)
     EXPECT_FALSE(layout_stream.good());
 }
 
+TEST_F(cli_test, chopper_layout_phibf_all_approaches)
+{
+
+    std::vector<chopper::partitioning_scheme> const phibf_approaches{chopper::partitioning_scheme::blocked,
+                                                                     chopper::partitioning_scheme::sorted,
+                                                                     chopper::partitioning_scheme::folded,
+                                                                     chopper::partitioning_scheme::weighted_fold,
+                                                                     chopper::partitioning_scheme::similarity,
+                                                                     chopper::partitioning_scheme::lsh,
+                                                                     chopper::partitioning_scheme::lsh_sim};
+
+    for (chopper::partitioning_scheme const approach : phibf_approaches)
+    {
+        std::stringstream ss{};
+        ss << approach;
+        seqan3::test::tmp_directory tmp_dir{};
+        std::filesystem::path const input_filename{write_input_file(tmp_dir.path())};
+        std::filesystem::path const layout_filename{tmp_dir.path() / "phibf.layout"};
+
+        cli_test_result result = execute_app("chopper",
+                                             "--input",
+                                             input_filename.c_str(),
+                                             "--number-of-partitions",
+                                             "2",
+                                             "--partitioning-approach",
+                                             ss.str(),
+                                             "--output",
+                                             layout_filename.c_str());
+
+        EXPECT_EQ(result.exit_code, 0);
+        EXPECT_EQ(result.out, std::string{});
+        EXPECT_EQ(result.err, std::string{});
+    }
+}
+
 TEST_F(cli_test, chopper_layout_phibf_with_fast_layout)
 {
     seqan3::test::tmp_directory tmp_dir{};
