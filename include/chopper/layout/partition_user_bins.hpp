@@ -6,7 +6,7 @@
 // ---------------------------------------------------------------------------------------------------
 
 /*!\file
- * \brief Provides chopper::layout::phibf::partition_user_bins.
+ * \brief Provides chopper::layout::partition_user_bins.
  * \author Svenja Mehringer <svenja.mehringer AT fu-berlin.de>
  */
 
@@ -20,7 +20,7 @@
 #include <hibf/sketch/hyperloglog.hpp>
 #include <hibf/sketch/minhashes.hpp>
 
-namespace chopper::layout::phibf
+namespace chopper::layout
 {
 
 /*!\brief Distributes all user bins onto `config.number_of_partitions` partitions of a partitioned HIBF.
@@ -31,7 +31,7 @@ namespace chopper::layout::phibf
  * \param[in]  minHash_sketches The MinHash tables of each user bin. Only used by the `lsh` and `lsh_sim` approaches.
  * \param[out] partitions       Must have size `config.number_of_partitions` on entry. On return, `partitions[i]` holds
  *                              the user bin indices assigned to partition `i`. No partition is empty.
- * \throws std::invalid_argument If `config.partitioning_approach` is not a phibf::partitioning_scheme, or if there are
+ * \throws std::invalid_argument If `config.partitioning_approach` is not a chopper::partitioning_scheme, or if there are
  *                               fewer user bins than partitions.
  * \throws std::logic_error If not all user bins have been assigned to a partition.
  * \throws std::runtime_error If a partition is empty.
@@ -45,4 +45,4 @@ void partition_user_bins(chopper::configuration const & config,
                          std::vector<seqan::hibf::sketch::minhashes> const & minHash_sketches,
                          std::vector<std::vector<size_t>> & partitions);
 
-} // namespace chopper::layout::phibf
+} // namespace chopper::layout

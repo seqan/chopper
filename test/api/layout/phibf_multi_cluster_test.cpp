@@ -7,7 +7,7 @@
 #include <chopper/layout/multi_cluster.hpp>
 
 using chopper::layout::Cluster;
-using chopper::layout::phibf::MultiCluster;
+using chopper::layout::MultiCluster;
 
 TEST(Multicluster_test, ctor_from_cluster)
 {

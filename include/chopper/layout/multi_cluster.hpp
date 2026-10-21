@@ -6,7 +6,7 @@
 // ---------------------------------------------------------------------------------------------------
 
 /*!\file
- * \brief Provides chopper::layout::phibf::MultiCluster.
+ * \brief Provides chopper::layout::MultiCluster.
  * \author Svenja Mehringer <svenja.mehringer AT fu-berlin.de>
  */
 
@@ -20,7 +20,7 @@
 
 #include <chopper/layout/fast_layout_cluster.hpp>
 
-namespace chopper::layout::phibf
+namespace chopper::layout
 {
 
 /*!\brief A cluster of clusters of user bins, used by the `lsh_sim` partitioning of the partitioned HIBF.
@@ -148,4 +148,4 @@ public:
     }
 };
 
-} // namespace chopper::layout::phibf
+} // namespace chopper::layout

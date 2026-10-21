@@ -28,7 +28,7 @@
 #include "../api_test.hpp"
 
 // Not declared in the header. Tested directly in phibf_regression_test.find_best_partition_intersection_underflow.
-namespace chopper::layout::phibf
+namespace chopper::layout
 {
 void find_best_partition(chopper::configuration const & config,
                          size_t const cardinality_per_part,
@@ -38,7 +38,7 @@ void find_best_partition(chopper::configuration const & config,
                          std::vector<std::vector<size_t>> & positions,
                          std::vector<seqan::hibf::sketch::hyperloglog> & partition_sketches,
                          std::vector<size_t> & partition_cardinality);
-} // namespace chopper::layout::phibf
+} // namespace chopper::layout
 
 namespace
 {
@@ -100,7 +100,7 @@ struct phibf_data
     std::vector<std::vector<size_t>> partition() const
     {
         std::vector<std::vector<size_t>> partitions(config.number_of_partitions);
-        chopper::layout::phibf::partition_user_bins(config, cardinalities, sketches, minHash_sketches, partitions);
+        chopper::layout::partition_user_bins(config, cardinalities, sketches, minHash_sketches, partitions);
         return partitions;
     }
 
@@ -365,9 +365,9 @@ seqan::hibf::sketch::hyperloglog make_sketch(uint64_t const offset, size_t const
 
 TEST(phibf_regression_test, seeding_spills_past_last_partition)
 {
-    // lsh and lsh_sim initialise the partitions with the first clusters, which post_process_clusters orders by their
-    // number of user bins, not by cardinality. A cluster that exceeds the target cardinality per partition spills over
-    // into the next partition. Former bug: `++p` was only guarded by an assertion, so a heavy cluster in the last
+    // lsh and lsh_sim initialise the partitions with the first clusters, which post_process_partition_clusters orders by
+    // their number of user bins, not by cardinality. A cluster that exceeds the target cardinality per partition spills
+    // over into the next partition. Former bug: `++p` was only guarded by an assertion, so a heavy cluster in the last
     // seeded position moved p past the last partition (assertion in Debug, out-of-bounds write in Release).
     // Now, user bins that would spill past the last partition are assigned by find_best_partition after seeding.
     // Note: phibf_data cannot trigger this (no lsh/lsh_sim input with up to 128 user bins and 16 partitions does).
@@ -411,7 +411,7 @@ TEST(phibf_regression_test, seeding_spills_past_last_partition)
         config.partitioning_approach = approach;
 
         std::vector<std::vector<size_t>> partitions(config.number_of_partitions);
-        chopper::layout::phibf::partition_user_bins(config, cardinalities, sketches, minHash_sketches, partitions);
+        chopper::layout::partition_user_bins(config, cardinalities, sketches, minHash_sketches, partitions);
         EXPECT_TRUE(each_user_bin_assigned_once(partitions, number_of_user_bins)) << "approach " << approach;
     }
 }
@@ -451,14 +451,14 @@ TEST(phibf_regression_test, find_best_partition_intersection_underflow)
         std::vector<seqan::hibf::sketch::hyperloglog> partition_sketches{partition_0, partition_1};
         std::vector<size_t> partition_cardinality{0, 0}; // Both partitions have room for the user bin.
 
-        chopper::layout::phibf::find_best_partition(config,
-                                                    /*cardinality_per_part*/ 1'000'000,
-                                                    {ub},
-                                                    cardinalities,
-                                                    sketches,
-                                                    partitions,
-                                                    partition_sketches,
-                                                    partition_cardinality);
+        chopper::layout::find_best_partition(config,
+                                             /*cardinality_per_part*/ 1'000'000,
+                                             {ub},
+                                             cardinalities,
+                                             sketches,
+                                             partitions,
+                                             partition_sketches,
+                                             partition_cardinality);
         wrong_partition += (partitions[1] != std::vector<size_t>{ub});
     }
     EXPECT_EQ(wrong_partition, 0u) << "of " << number_of_user_bins << " user bins";

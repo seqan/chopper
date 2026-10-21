@@ -31,7 +31,7 @@
 #include <hibf/sketch/minhashes.hpp>
 #include <hibf/sketch/toolbox.hpp>
 
-namespace chopper::layout::phibf
+namespace chopper::layout
 {
 
 /*!\brief Clusters similar user bins by iterative MinHash LSH (ADD+OR scheme).
@@ -261,9 +261,9 @@ most_distant_LSH_partitioning(std::vector<Cluster> const & initial_clusters,
     return clusters;
 }
 
-void post_process_clusters(std::vector<Cluster> & clusters,
-                           std::vector<size_t> const & cardinalities,
-                           chopper::configuration const & config)
+void post_process_partition_clusters(std::vector<Cluster> & clusters,
+                                     std::vector<size_t> const & cardinalities,
+                                     chopper::configuration const & config)
 {
     assert(clusters.size() == cardinalities.size());
     assert(cardinalities.size() > config.number_of_partitions);
@@ -354,9 +354,9 @@ void post_process_clusters(std::vector<Cluster> & clusters,
     // debug
 }
 
-void post_process_clusters(std::vector<MultiCluster> & clusters,
-                           std::vector<size_t> const & cardinalities,
-                           chopper::configuration const & config)
+void post_process_partition_clusters(std::vector<MultiCluster> & clusters,
+                                     std::vector<size_t> const & cardinalities,
+                                     chopper::configuration const & config)
 {
     // clusters are done. Start post processing
     // since post processing involves re-ordering the clusters, the moved_to_cluster_id value of a cluster will not
@@ -492,7 +492,7 @@ sim_dist_LSH_partitioning(std::vector<seqan::hibf::sketch::minhashes> const & mi
                                                    3,                                    // b
                                                    minHash_sketches[0].table[0].size()); // r
     std::vector<MultiCluster> multi_clusters = most_distant_LSH_partitioning(clusters, minHash_sketches, config);
-    post_process_clusters(multi_clusters, cardinalities, config);
+    post_process_partition_clusters(multi_clusters, cardinalities, config);
     return multi_clusters;
 }
 
@@ -881,7 +881,7 @@ void partition_user_bins(chopper::configuration const & config,
                                                            cardinality_per_part,
                                                            seqan::hibf::sketch::minhashes::num_sketches, // b
                                                            seqan::hibf::sketch::minhashes::sketch_size); // r
-        post_process_clusters(raw_clusters, cardinalities, config);
+        post_process_partition_clusters(raw_clusters, cardinalities, config);
         std::vector<Cluster> const & clusters = raw_clusters; // clusters do not change from this point on
 
         // initialise partitions with the first p largest clusters (post_processing sorts by size)
@@ -1110,4 +1110,4 @@ void partition_user_bins(chopper::configuration const & config,
     }
 }
 
-} // namespace chopper::layout::phibf
+} // namespace chopper::layout

@@ -54,7 +54,7 @@ int execute(chopper::configuration & config,
     std::vector<seqan::hibf::layout::layout> hibf_layouts(config.number_of_partitions);
 
     if (partitioned)
-        phibf::partition_user_bins(config, cardinalities, sketches, minHash_sketches, partitions);
+        partition_user_bins(config, cardinalities, sketches, minHash_sketches, partitions);
     else
         partitions[0] = seqan::hibf::iota_vector(sketches.size());
 

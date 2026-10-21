@@ -32,7 +32,7 @@ namespace chopper::layout
  *         * ...`config.number_of_partitions >= 2` and either of them is set.
  *         * ...the computed layout is invalid (see seqan::hibf::layout::layout::validate).
  *
- * If `config.number_of_partitions >= 2`, a partitioned HIBF layout is computed with phibf::execute.
+ * If `config.number_of_partitions >= 2`, a partitioned HIBF layout is computed with partition_user_bins.
  * Otherwise, the layout is computed with
  * - determine_best_number_of_technical_bins if `config.determine_best_tmax` is set,
  * - fast_layout if `config.fast_layout` is set,
