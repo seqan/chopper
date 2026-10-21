@@ -133,6 +133,7 @@ public:
 
     /*!\brief Moves end range of user bins of this cluster to `target_cluster`.
      * \param[in,out] target_cluster The cluster to move the user bins to. Must be a different cluster.
+     * \param[in] size The size of the part that should be moved, e.g. the number of user bins.
      *
      * No ids are changed. This happens in post_process_clusters.
      */
