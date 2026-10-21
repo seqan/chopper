@@ -4,7 +4,7 @@
 #include <vector>  // for vector
 
 #include <chopper/layout/fast_layout_cluster.hpp>
-#include <chopper/layout/phibf/multi_cluster.hpp>
+#include <chopper/layout/multi_cluster.hpp>
 
 using chopper::layout::Cluster;
 using chopper::layout::phibf::MultiCluster;

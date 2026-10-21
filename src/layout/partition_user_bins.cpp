@@ -20,8 +20,8 @@
 #include <chopper/configuration.hpp>
 #include <chopper/layout/fast_layout_cluster.hpp>
 #include <chopper/layout/lsh.hpp>
-#include <chopper/layout/phibf/multi_cluster.hpp>
-#include <chopper/layout/phibf/partition_user_bins.hpp>
+#include <chopper/layout/multi_cluster.hpp>
+#include <chopper/layout/partition_user_bins.hpp>
 #include <chopper/next_multiple_of_64.hpp>
 
 #include <hibf/contrib/robin_hood.hpp>

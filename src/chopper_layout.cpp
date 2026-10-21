@@ -18,7 +18,7 @@
 #include <chopper/configuration.hpp>
 #include <chopper/input_functor.hpp>
 #include <chopper/layout/execute.hpp>
-#include <chopper/layout/phibf/partition_user_bins.hpp>
+#include <chopper/layout/partition_user_bins.hpp>
 #include <chopper/sketch/check_filenames.hpp>
 #include <chopper/sketch/output.hpp>
 #include <chopper/sketch/read_data_file.hpp>

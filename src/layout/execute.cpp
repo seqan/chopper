@@ -20,7 +20,7 @@
 #include <chopper/layout/fast_layout.hpp>
 #include <chopper/layout/hibf_statistics.hpp>
 #include <chopper/layout/output.hpp>
-#include <chopper/layout/phibf/partition_user_bins.hpp>
+#include <chopper/layout/partition_user_bins.hpp>
 #include <chopper/next_multiple_of_64.hpp>
 
 #include <hibf/layout/compute_layout.hpp>

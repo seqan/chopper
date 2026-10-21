@@ -19,7 +19,7 @@
 #include <chopper/configuration.hpp>
 #include <chopper/layout/execute.hpp>
 #include <chopper/layout/input.hpp>
-#include <chopper/layout/phibf/partition_user_bins.hpp>
+#include <chopper/layout/partition_user_bins.hpp>
 
 #include <hibf/sketch/compute_sketches.hpp>
 #include <hibf/sketch/hyperloglog.hpp>
