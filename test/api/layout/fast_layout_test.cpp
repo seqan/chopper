@@ -122,4 +122,3 @@ TEST(fast_layout_test, too_few_kmers_for_minHash)
     // validate() also reports missing and duplicate user bins.
     EXPECT_NO_THROW(hibf_layout.validate(config.hibf_config, ignore_unexpected_empty_bins_and_throw));
 }
-
