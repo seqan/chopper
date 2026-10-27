@@ -79,3 +79,47 @@ TEST(fast_layout_test, recursion)
     EXPECT_NO_THROW(hibf_layout.validate(config.hibf_config, ignore_unexpected_empty_bins_and_throw));
     EXPECT_GE(hibf_layout.number_of_levels(), 2u);
 }
+
+TEST(fast_layout_test, too_few_kmers_for_minHash)
+{
+    // User bins 0-5 have about 20'000 k-mers. User bins 6 and 7 have 200 and 500 k-mers, which is too few to fill
+    // all minHash sketches (num_sketches * sketch_size = 640 hashes).
+    // They are skipped during LSH clustering and must still be assigned leter in the algorithm.
+    size_t const number_of_user_bins{8};
+    std::vector<size_t> const kmer_counts{20'000, 20'500, 19'500, 21'000, 19'000, 20'200, 200, 500};
+
+    chopper::configuration config{};
+    config.fast_layout = true;
+    config.hibf_config.tmax = 4;
+    config.hibf_config.threads = 2;
+    config.hibf_config.number_of_user_bins = number_of_user_bins;
+    config.hibf_config.disable_estimate_union = true; // also disables rearrangement
+    config.hibf_config.input_fn = [&kmer_counts](size_t const ub, seqan::hibf::insert_iterator it)
+    {
+        uint64_t const offset = static_cast<uint64_t>(ub) << 32;
+        for (uint64_t i = 0; i < kmer_counts[ub]; ++i)
+            it = scramble(offset + i);
+    };
+
+    std::vector<seqan::hibf::sketch::hyperloglog> sketches{};
+    std::vector<seqan::hibf::sketch::minhashes> minHash_sketches{};
+    seqan::hibf::sketch::compute_sketches(config.hibf_config, sketches, minHash_sketches);
+
+    ASSERT_EQ(minHash_sketches.size(), number_of_user_bins);
+    for (size_t ub = 0; ub < 6; ++ub)
+        ASSERT_TRUE(minHash_sketches[ub].is_valid()) << "ub: " << ub;
+    ASSERT_FALSE(minHash_sketches[6].is_valid());
+    ASSERT_FALSE(minHash_sketches[7].is_valid());
+
+    std::vector<size_t> cardinalities(number_of_user_bins);
+    for (size_t i = 0; i < number_of_user_bins; ++i)
+        cardinalities[i] = sketches[i].estimate();
+
+    std::vector<size_t> positions = seqan::hibf::iota_vector(number_of_user_bins);
+    seqan::hibf::layout::layout hibf_layout{};
+    chopper::layout::fast_layout(config, positions, cardinalities, sketches, minHash_sketches, hibf_layout);
+
+    // validate() also reports missing and duplicate user bins.
+    EXPECT_NO_THROW(hibf_layout.validate(config.hibf_config, ignore_unexpected_empty_bins_and_throw));
+}
+
