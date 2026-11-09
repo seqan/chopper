@@ -19,7 +19,7 @@ namespace chopper::layout
 class ibf_query_cost
 {
 public:
-    static inline constexpr const size_t maximum_t_max{65536};
+    static inline constexpr size_t const maximum_t_max{65536};
 
     ibf_query_cost() = default;
     ibf_query_cost(ibf_query_cost const &) = default;
@@ -44,7 +44,7 @@ private:
      *
      * See also `test/benchmark/benchmark_data/query_cost`.
      */
-    static inline const std::map<double, std::array<double, 11>> cost_factors{
+    static inline std::map<double, std::array<double, 11>> const cost_factors{
         /* FPR, cost factors relative to a 64 IBF */
         {0.0001, {1.0000, 1.0602, 1.3492, 1.3524, 1.5645, 1.9595, 3.4143, 5.4849, 6.8115, 10.9489, 19.8932}},
         {0.0005, {1.0000, 1.0534, 1.1068, 1.2821, 1.5151, 1.7112, 3.6442, 4.7700, 6.9978, 12.2086, 22.5374}},
