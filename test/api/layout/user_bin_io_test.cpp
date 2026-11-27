@@ -7,15 +7,18 @@
 #include <chopper/layout/input.hpp>
 #include <chopper/layout/output.hpp>
 
-TEST(output, user_bins)
+#include <hibf/misc/iota_vector.hpp>
+
+TEST(output, write_user_bins_to)
 {
     std::vector<std::vector<std::string>> const filenames{{"file1.fa", "fileB.fa"},
                                                           {"file2.fa"},
                                                           {"path/to/file3.fa"},
                                                           {"file4.fastq"}};
+    auto mapping = seqan::hibf::iota_vector(filenames.size());
 
     std::stringstream ss{};
-    chopper::layout::write_user_bins_to(filenames, ss);
+    chopper::layout::write_user_bins_to(filenames, mapping, ss);
 
     std::string const expected{"@CHOPPER_USER_BINS\n"
                                "@0 file1.fa fileB.fa\n"
@@ -27,7 +30,7 @@ TEST(output, user_bins)
     EXPECT_EQ(ss.str(), expected);
 }
 
-TEST(input, user_bins)
+TEST(input, read_filenames_from)
 {
     std::stringstream ss{"@CHOPPER_USER_BINS\n"
                          "@0 file1.fa fileB.fa\n"

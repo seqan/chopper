@@ -184,29 +184,15 @@ void process_and_write_records_to(std::vector<record> & records, std::ostream & 
     stream << std::flush;
 }
 
-int execute(config const & cfg)
+int execute(config const & cfg,
+            std::vector<std::vector<std::string>> const & filenames,
+            chopper::configuration const & chopper_config,
+            seqan::hibf::layout::layout & hibf_layout)
 {
-    std::ifstream layout_file{cfg.input};
-
-    if (!layout_file.good() || !layout_file.is_open())
-        throw std::logic_error{"Could not open file " + cfg.input.string() + " for reading"};
-
-// https://godbolt.org/z/PeKnxzjn1
-#if defined(__clang__)
-    auto tuple = chopper::layout::read_layout_file(layout_file);
-    // https://godbolt.org/z/WoWf55KPb
-    auto filenames = std::move(std::get<0>(tuple));
-    auto chopper_config = std::move(std::get<1>(tuple));
-    auto hibf_layout = std::move(std::get<2>(tuple));
-#else
-    auto [filenames, chopper_config, hibf_layout] = chopper::layout::read_layout_file(layout_file);
-#endif
     auto const & hibf_config = chopper_config.hibf_config;
 
     // read_layout_file does not validate the layout.
     hibf_layout.validate(hibf_config);
-
-    layout_file.close();
 
     // multiplied to cardinality of a merged bin
     double const merged_correction = seqan::hibf::layout::compute_relaxed_fpr_correction(
@@ -221,7 +207,9 @@ int execute(config const & cfg)
                                                      .hash_count = chopper_config.hibf_config.number_of_hash_functions,
                                                      .t_max = chopper_config.hibf_config.tmax});
 
-    std::ofstream output_stream{cfg.output};
+    // Append: A partitioned HIBF layout file contains multiple layouts, which are written one after another.
+    // The ouput path is validated with output_file_validator, so it must not exist before and we can safely append
+    std::ofstream output_stream{cfg.output, std::ios_base::app};
 
     if (!output_stream.good() || !output_stream.is_open())
         throw std::logic_error{"Could not open file " + cfg.output.string() + " for reading"};
@@ -387,5 +375,16 @@ int execute(config const & cfg)
 
 void execute_general(config const & cfg)
 {
-    execute(cfg);
+    std::ifstream layout_file{cfg.input};
+
+    if (!layout_file.good() || !layout_file.is_open())
+        throw std::logic_error{"Could not open file " + cfg.input.string() + " for reading"};
+
+    while (layout_file.good())
+    {
+        auto [filenames, chopper_config, hibf_layout] = chopper::layout::read_layout_file(layout_file);
+        execute(cfg, filenames, chopper_config, hibf_layout);
+    }
+
+    layout_file.close();
 }

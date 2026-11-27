@@ -282,58 +282,50 @@ void execute_general_stats(config const & cfg)
     if (!layout_file.good() || !layout_file.is_open())
         throw std::logic_error{"Could not open file " + cfg.input.string() + " for reading"};
 
-// https://godbolt.org/z/PeKnxzjn1
-#if defined(__clang__)
-    auto tuple = chopper::layout::read_layout_file(layout_file);
-    // https://godbolt.org/z/WoWf55KPb
-    auto filenames = std::move(std::get<0>(tuple));
-    auto chopper_config = std::move(std::get<1>(tuple));
-    auto hibf_layout = std::move(std::get<2>(tuple));
-#else
-    auto [filenames, chopper_config, hibf_layout] = chopper::layout::read_layout_file(layout_file);
-#endif
-
-    // read_layout_file does not validate the layout.
-    hibf_layout.validate(chopper_config.hibf_config);
-
-    // Prepare configs
-    chopper_config.hibf_config.threads = cfg.threads;
-    auto input_lambda = [&filenames, &chopper_config](size_t const user_bin_id, seqan::hibf::insert_iterator it)
-    {
-        std::vector<uint64_t> current_kmers;
-
-        for (std::string const & filename : filenames[user_bin_id])
-            process_file(filename, current_kmers, chopper_config.k, chopper_config.window_size);
-
-        for (auto const kmer : current_kmers)
-            it = kmer;
-    };
-    chopper_config.hibf_config.input_fn = input_lambda;
-    auto const & hibf_config = chopper_config.hibf_config;
-
-    // Prepare stats
-    size_t const number_of_ibfs = hibf_layout.max_bins.size() + 1u;
-    std::vector<ibf_stats> stats(number_of_ibfs);
-
-    // Prepare data
-    seqan::hibf::build::build_data data{.config = hibf_config, .ibf_graph = {hibf_layout}};
-    seqan::hibf::layout::graph::node const & root_node = data.ibf_graph.root;
-    size_t const t_max{root_node.number_of_technical_bins};
-    data.fpr_correction = seqan::hibf::layout::compute_fpr_correction(
-        {.fpr = hibf_config.maximum_fpr, .hash_count = hibf_config.number_of_hash_functions, .t_max = t_max});
-
-    // Get stats
-    hierarchical_stats(stats, root_node, data);
-
-    // Get stats per level
-    per_level_stats const level_stats{stats};
-
-    // Output
+    // Output. A partitioned HIBF layout file contains multiple layouts, whose stats are written one after another.
     std::ofstream output_stream{cfg.output};
     if (!output_stream.good() || !output_stream.is_open())
         throw std::logic_error{"Could not open file " + cfg.output.string() + " for reading"};
 
-    level_stats.print(output_stream, hibf_layout.user_bins.size());
+    while (layout_file.good())
+    {
+        auto [filenames, chopper_config, hibf_layout] = chopper::layout::read_layout_file(layout_file);
+        hibf_layout.validate(chopper_config.hibf_config);
+
+        // Prepare configs
+        chopper_config.hibf_config.threads = cfg.threads;
+        auto input_lambda = [&filenames, &chopper_config](size_t const user_bin_id, seqan::hibf::insert_iterator it)
+        {
+            std::vector<uint64_t> current_kmers;
+
+            for (std::string const & filename : filenames[user_bin_id])
+                process_file(filename, current_kmers, chopper_config.k, chopper_config.window_size);
+
+            for (auto const kmer : current_kmers)
+                it = kmer;
+        };
+        chopper_config.hibf_config.input_fn = input_lambda;
+        auto const & hibf_config = chopper_config.hibf_config;
+
+        // Prepare stats
+        size_t const number_of_ibfs = hibf_layout.max_bins.size() + 1u;
+        std::vector<ibf_stats> stats(number_of_ibfs);
+
+        // Prepare data
+        seqan::hibf::build::build_data data{.config = hibf_config, .ibf_graph = {hibf_layout}};
+        seqan::hibf::layout::graph::node const & root_node = data.ibf_graph.root;
+        size_t const t_max{root_node.number_of_technical_bins};
+        data.fpr_correction = seqan::hibf::layout::compute_fpr_correction(
+            {.fpr = hibf_config.maximum_fpr, .hash_count = hibf_config.number_of_hash_functions, .t_max = t_max});
+
+        // Get stats
+        hierarchical_stats(stats, root_node, data);
+
+        // Get stats per level
+        per_level_stats const level_stats{stats};
+
+        level_stats.print(output_stream, hibf_layout.user_bins.size());
+    }
 }
 
 void execute_sizes(config const & cfg)

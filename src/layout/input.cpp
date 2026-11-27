@@ -9,6 +9,7 @@
 #include <charconv>
 #include <istream>
 #include <ranges>
+#include <sstream>
 #include <string>
 #include <string_view>
 #include <tuple>
@@ -20,6 +21,7 @@
 #include <chopper/prefixes.hpp>
 
 #include <hibf/layout/layout.hpp>
+#include <hibf/layout/prefixes.hpp>
 
 namespace chopper::layout
 {
@@ -70,10 +72,13 @@ std::tuple<std::vector<std::vector<std::string>>, configuration, seqan::hibf::la
 read_layout_file(std::istream & stream)
 {
     std::vector<std::vector<std::string>> filenames = chopper::layout::read_filenames_from(stream);
+
     chopper::configuration chopper_config;
     chopper_config.read_from(stream);
+
     seqan::hibf::layout::layout hibf_layout{};
     hibf_layout.read_from(stream);
+
     return std::make_tuple(std::move(filenames), std::move(chopper_config), std::move(hibf_layout));
 }
 

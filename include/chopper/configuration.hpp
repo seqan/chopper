@@ -10,6 +10,9 @@
 #include <cinttypes>
 #include <filesystem>
 #include <iosfwd>
+#include <istream>
+#include <ostream>
+#include <string>
 
 #include <cereal/cereal.hpp>
 
@@ -19,6 +22,19 @@
 
 namespace chopper
 {
+
+//!\brief The partitioning approaches of the partitioned HIBF. Selected by `configuration::partitioning_approach`.
+enum struct partitioning_scheme : uint8_t
+{
+    blocked,       // 0
+    sorted,        // 1
+    folded,        // 2
+    weighted_fold, // 3
+    similarity,    // 4
+    lsh,           // 5
+    lsh_sim,       // 6
+    unknown        // for error parsing
+};
 
 struct configuration
 {
@@ -48,6 +64,23 @@ struct configuration
 
     //!\brief Whether the input files are precomputed files (.minimiser) instead of sequence files.
     bool precomputed_files{false};
+    //!\}
+
+    /*!\name Partitioned HIBF configuration
+     * \{
+     */
+    //!\brief The number of partitions for the HIBF index. 1 computes a single HIBF layout.
+    size_t number_of_partitions{1};
+
+    //!\brief The partitioning approach. See chopper::partitioning_scheme.
+    partitioning_scheme partitioning_approach{};
+
+    /*!\brief Whether `hibf_config.tmax` was given by the user. Not serialised.
+     *
+     * If set, every partition of a partitioned HIBF is laid out with `hibf_config.tmax`. Otherwise, the tmax of each
+     * partition is chosen based on its number of user bins.
+     */
+    bool tmax_is_set{false};
     //!\}
 
     /*!\name Configuration of size estimates
@@ -111,7 +144,8 @@ private:
     void serialize(archive_t & archive)
     {
         // Version 3 added fast_layout.
-        uint32_t version{3};
+        // Version 4 added the partitioned HIBF configuration.
+        uint32_t version{4};
         archive(CEREAL_NVP(version));
 
         archive(CEREAL_NVP(data_file));
@@ -126,10 +160,69 @@ private:
         archive(CEREAL_NVP(determine_best_tmax));
         archive(CEREAL_NVP(force_all_binnings));
 
-        // Files written before version 3 do not contain this field. Reading it unconditionally would throw.
         if (version >= 3)
             archive(CEREAL_NVP(fast_layout));
+
+        if (version >= 4)
+        {
+            archive(CEREAL_NVP(number_of_partitions));
+            archive(CEREAL_NVP(partitioning_approach));
+        }
     }
 };
+
+} // namespace chopper
+
+namespace chopper
+{
+
+// Make chopper::partitioning_scheme satisfy sharg::ostreamable. Found by argument-dependent lookup.
+inline std::ostream & operator<<(std::ostream & output, chopper::partitioning_scheme const & scheme)
+{
+    if (scheme == chopper::partitioning_scheme::blocked)
+        output << "blocked";
+    else if (scheme == chopper::partitioning_scheme::sorted)
+        output << "sorted";
+    else if (scheme == chopper::partitioning_scheme::folded)
+        output << "folded";
+    else if (scheme == chopper::partitioning_scheme::weighted_fold)
+        output << "weighted_fold";
+    else if (scheme == chopper::partitioning_scheme::similarity)
+        output << "similarity";
+    else if (scheme == chopper::partitioning_scheme::lsh)
+        output << "lsh";
+    else if (scheme == chopper::partitioning_scheme::lsh_sim)
+        output << "lsh_sim";
+    else
+        output << "unknown";
+
+    return output;
+}
+
+// Make chopper::partitioning_scheme satisfy sharg::istreamable. Found by argument-dependent lookup.
+inline std::istream & operator>>(std::istream & input, chopper::partitioning_scheme & scheme)
+{
+    std::string text;
+    input >> text;
+
+    if (text == "blocked")
+        scheme = chopper::partitioning_scheme::blocked;
+    else if (text == "sorted")
+        scheme = chopper::partitioning_scheme::sorted;
+    else if (text == "folded")
+        scheme = chopper::partitioning_scheme::folded;
+    else if (text == "weighted_fold")
+        scheme = chopper::partitioning_scheme::weighted_fold;
+    else if (text == "similarity")
+        scheme = chopper::partitioning_scheme::similarity;
+    else if (text == "lsh")
+        scheme = chopper::partitioning_scheme::lsh;
+    else if (text == "lsh_sim")
+        scheme = chopper::partitioning_scheme::lsh_sim;
+    else
+        scheme = chopper::partitioning_scheme::unknown;
+
+    return input;
+}
 
 } // namespace chopper
