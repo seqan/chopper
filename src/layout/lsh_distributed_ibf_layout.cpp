@@ -73,13 +73,21 @@ auto LSH_fill_hashtable(std::vector<Cluster> const & clusters,
         auto const & current = clusters[pos];
         assert(current.is_valid(pos));
 
+        // user bins with invalid sketches (e.g. too foo kmers) are not considered for clustering
+        // They will be left as single clusters and merged by cardinality later in the algorithm
+        if (current.size() == 1 && !minHash_sketches[current.contained_user_bins()[0]].is_valid())
+        {
+            ++processed_user_bins;
+            continue;
+        }
+
         if (current.has_been_moved()) // cluster has been moved somewhere else, don't process
             continue;
 
         for (size_t const user_bin_idx : current.contained_user_bins())
         {
             ++processed_user_bins;
-            uint64_t const key = lsh_hash_the_sketch(minHash_sketches[user_bin_idx].table[current_sketch_index],
+            uint64_t const key = lsh_hash_the_sketch(minHash_sketches[user_bin_idx].table[current_sketch_index].hashes,
                                                      current_number_of_sketch_hashes);
             table[key].push_back(current.id()); // insert representative for all user bins
         }
@@ -133,7 +141,6 @@ std::vector<Cluster> very_similar_LSH_clustering(std::vector<seqan::hibf::sketch
 
     assert(!minHash_sketches.empty());
     assert(minHash_sketches[0].table.size() >= number_of_max_minHash_sketches);
-    assert(minHash_sketches[0].table[0].size() >= minHash_sketch_size);
     assert(number_of_user_bins <= minHash_sketches.size());
 
     // Initialise one cluster per user bin. Merging moves the user bins of a cluster into another cluster, e.g., if
